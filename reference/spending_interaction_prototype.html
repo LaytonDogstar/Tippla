@@ -1,0 +1,481 @@
+<title>Tippla Spending Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: phone-first prototype in a device frame, with a designer-notes rail beside it on wide screens */
+:root{
+  --bg:#EEEBF5; --surface:#FFFFFF; --surface-2:#F6F4FB; --line:#E4E0EF;
+  --fg:#1C1830; --muted:#6B6580; --accent:#5B3FD6; --accent-soft:#ECE8FB; --accent-fg:#FFFFFF;
+  --good:#1F8A5B; --good-soft:#E3F4EC; --warn:#A5610E; --warn-soft:#FBF0DF;
+  --scrim:rgba(20,16,40,.42); --shadow:0 18px 50px rgba(40,30,90,.16);
+  --c-housing:#4C7DF0; --c-groceries:#D99A12; --c-food:#EE7A3C; --c-transport:#2FA67A;
+  --c-gambling:#7C879A; --c-bills:#9B6BE0; --c-subs:#D1558B; --c-ent:#1C9FB5;
+  --f-body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E0C18; --surface:#18152A; --surface-2:#211D36; --line:#2E2947;
+  --fg:#EEEBFA; --muted:#A39DBD; --accent:#9C87FF; --accent-soft:#2A2350; --accent-fg:#140F2E;
+  --good:#5BD39A; --good-soft:#153326; --warn:#F2B25C; --warn-soft:#3A2A12;
+  --scrim:rgba(0,0,0,.6); --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E0C18; --surface:#18152A; --surface-2:#211D36; --line:#2E2947;
+  --fg:#EEEBFA; --muted:#A39DBD; --accent:#9C87FF; --accent-soft:#2A2350; --accent-fg:#140F2E;
+  --good:#5BD39A; --good-soft:#153326; --warn:#F2B25C; --warn-soft:#3A2A12;
+  --scrim:rgba(0,0,0,.6); --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
+.stage{display:flex;gap:40px;justify-content:center;align-items:flex-start;padding-block:32px;padding-inline:16px;max-width:1180px;margin:0 auto}
+.phone{position:relative;width:390px;max-width:100%;height:820px;background:var(--bg);border-radius:44px;box-shadow:var(--shadow),0 0 0 10px var(--surface),0 0 0 11px var(--line);overflow:hidden;flex:none}
+.scroll{height:100%;overflow-y:auto;overscroll-behavior:contain;padding:18px 16px 96px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+@media (max-width:760px){
+  .stage{flex-direction:column;align-items:stretch;padding-block:0 24px;padding-inline:0;gap:24px}
+  .phone{width:100%;height:auto;border-radius:0;box-shadow:none;overflow:visible}
+  .scroll{height:auto;overflow:visible}
+  .sheet-wrap{position:fixed!important}
+  .tabbar{position:fixed!important}
+  .notes{margin-inline:16px}
+}
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.top h1{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0}
+.iconbtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
+/* Period chips */
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 14px;padding:0 16px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--muted);transition:.15s}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+/* Cycle hero */
+.hero{background:var(--surface);border-radius:22px;padding:18px;border:1px solid var(--line)}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hero-row{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:6px}
+.big{font-size:36px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.sub{color:var(--muted);font-size:13px}
+.leftpill{text-align:right}
+.leftpill b{display:block;font-size:20px;font-weight:800}
+.track{position:relative;height:10px;border-radius:99px;background:var(--surface-2);margin:16px 0 8px;overflow:hidden}
+.track i{position:absolute;inset:0 auto 0 0;border-radius:99px}
+.track .spent{background:var(--accent)}
+.track .due{background:repeating-linear-gradient(45deg,var(--accent-soft) 0 5px,transparent 5px 9px);border:1px dashed var(--accent)}
+.legend{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);gap:8px;flex-wrap:wrap}
+.upcoming{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.up{display:flex;justify-content:space-between;font-size:13px;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+/* Insight carousel */
+.insight{margin-top:14px;background:var(--accent-soft);border-radius:18px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px}
+.insight-head{display:flex;justify-content:space-between;align-items:center}
+.insight h3{margin:0;font-size:15px;font-weight:700}
+.insight p{margin:0;font-size:13.5px;color:var(--fg);opacity:.85}
+.insight-foot{display:flex;justify-content:space-between;align-items:center}
+.pager{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.pager button{border:0;background:transparent;width:28px;height:28px;border-radius:8px}
+.linkbtn{border:0;background:transparent;color:var(--accent);font-weight:700;font-size:13.5px;padding:6px 0}
+/* Donut */
+.card{margin-top:14px;background:var(--surface);border-radius:22px;padding:16px;border:1px solid var(--line)}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card-head h2{font-size:16px;margin:0;font-weight:800}
+.donut-wrap{display:grid;place-items:center;position:relative;margin:8px 0 4px}
+.donut-wrap svg{width:210px;height:210px;max-width:100%}
+.donut-wrap path{cursor:pointer;transition:opacity .2s, transform .2s;transform-origin:105px 105px}
+.donut-center{position:absolute;text-align:center;pointer-events:none}
+.donut-center b{display:block;font-size:24px;font-weight:800}
+.hint{font-size:12px;color:var(--muted);text-align:center}
+/* Controls */
+.controls{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:14px 0 6px;flex-wrap:wrap}
+.seg{display:flex;background:var(--surface-2);border-radius:12px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 10px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.sortsel{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 8px;font-size:12.5px;font-weight:600}
+.filterchip{display:inline-flex;align-items:center;gap:6px;background:var(--fg);color:var(--bg);border:0;border-radius:99px;padding:5px 10px;font-size:12px;font-weight:700;margin-top:6px}
+/* Category rows */
+.cats{display:flex;flex-direction:column}
+.cat{border-top:1px solid var(--line)}
+.cat:first-child{border-top:0}
+.cat-btn{width:100%;border:0;background:transparent;padding:12px 0;display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;text-align:left}
+.ico{width:40px;height:40px;border-radius:13px;display:grid;place-items:center}
+.ico svg{width:20px;height:20px}
+.cat-main{min-width:0;display:flex;flex-direction:column;gap:5px}
+.cat-name{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.bud{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden;position:relative}
+.bud i{position:absolute;inset:0 auto 0 0;border-radius:99px}
+.bud-note{font-size:11.5px;color:var(--muted)}
+.cat-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.amt{font-weight:800;font-size:15px}
+.delta{font-size:11.5px;font-weight:700;color:var(--muted)}
+.spark{width:56px;height:18px}
+.chev{transition:transform .2s;color:var(--muted)}
+.cat[data-open="true"] .chev{transform:rotate(90deg)}
+.merchants{display:none;padding:0 0 12px 52px;flex-direction:column;gap:2px}
+.cat[data-open="true"] .merchants{display:flex}
+.merch{display:flex;justify-content:space-between;align-items:center;border:0;background:var(--surface-2);border-radius:12px;padding:9px 12px;font-size:13.5px;width:100%;text-align:left;margin-top:4px}
+.merch span:last-child{font-weight:700}
+.insight-chip{margin-top:6px;display:inline-flex;gap:6px;align-items:center;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:99px;padding:5px 10px;font-size:12px;font-weight:700;align-self:flex-start}
+/* Feed */
+.search{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface-2);border-radius:12px;padding:9px 12px;margin-top:10px}
+.search input{border:0;background:transparent;outline:none;flex:1;min-width:0;font-size:14px}
+.day{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 4px}
+.tx{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:8px 0;border:0;background:transparent;width:100%;text-align:left}
+.tx .ico{width:34px;height:34px;border-radius:11px}
+.tx .ico svg{width:17px;height:17px}
+.tx small{display:block;color:var(--muted);font-size:12px}
+.empty{padding:20px 0;text-align:center;color:var(--muted);font-size:13.5px}
+/* Tab bar */
+.tabbar{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px));z-index:5}
+.tab{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:var(--muted);min-width:56px;min-height:44px}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--accent)}
+/* Sheet */
+.sheet-wrap{position:absolute;inset:0;z-index:10;pointer-events:none}
+.scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;transition:opacity .25s}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:24px 24px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .32s cubic-bezier(.2,.8,.2,1);max-height:82%;overflow-y:auto}
+.sheet-wrap.open{pointer-events:auto}
+.sheet-wrap.open .scrim{opacity:1}
+.sheet-wrap.open .sheet{transform:none}
+.grab{width:40px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 14px}
+.sheet h3{margin:0 0 4px;font-size:19px;font-weight:800;letter-spacing:-.01em}
+.sheet .lead{color:var(--muted);font-size:14px;margin:0 0 14px}
+.block{background:var(--surface-2);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.block .eyebrow{margin-bottom:4px}
+.impact{display:flex;gap:10px}
+.impact div{flex:1;background:var(--surface);border-radius:12px;padding:10px}
+.impact b{display:block;font-size:18px}
+.actions{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.btn{border:0;border-radius:14px;padding:13px;font-weight:700;font-size:15px;min-height:48px}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.quiet{background:transparent;color:var(--muted);font-size:14px}
+.txrow{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.txrow select{grid-column:1/-1;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 9px;font-size:13px}
+.toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:9px 14px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:.25s;z-index:20;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+/* Notes rail */
+.notes{flex:1;min-width:0;max-width:520px}
+.notes h2{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:6px 0 6px;text-wrap:balance}
+.notes > p{color:var(--muted);margin:0 0 18px;max-width:60ch}
+.note{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 0;border-top:1px solid var(--line)}
+.note .n{width:28px;height:28px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:13px}
+.note h4{margin:0 0 3px;font-size:15px}
+.note p{margin:0;color:var(--muted);font-size:14px;max-width:60ch}
+.note button{margin-top:6px}
+.pulse{animation:pulse 1.4s ease-out 2}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--accent)}100%{box-shadow:0 0 0 14px transparent}}
+.sample{font-size:12px;color:var(--muted);margin-top:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="scroll" id="scroll">
+      <div class="top">
+        <h1>Spending</h1>
+        <button class="iconbtn" id="themeBtn" aria-label="Switch light or dark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+      </div>
+
+      <div class="chips" role="group" aria-label="Period" id="periods"></div>
+
+      <section class="hero" id="hero"></section>
+
+      <section class="insight" id="insight" aria-live="polite"></section>
+
+      <section class="card" id="breakdown">
+        <div class="card-head"><h2>Where it went</h2><span class="sub" id="catCount"></span></div>
+        <div class="donut-wrap"><svg id="donut" viewBox="0 0 210 210" role="img" aria-label="Spending by category"></svg><div class="donut-center" id="donutCenter"></div></div>
+        <div class="hint">Tap a slice to filter the list</div>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Type" id="typeSeg">
+            <button data-t="all" aria-pressed="true">All</button>
+            <button data-t="ess" aria-pressed="false">Essentials</button>
+            <button data-t="life" aria-pressed="false">Lifestyle</button>
+          </div>
+          <label class="sub" style="display:flex;gap:6px;align-items:center">Sort
+            <select class="sortsel" id="sortSel">
+              <option value="amt">Amount</option>
+              <option value="chg">Biggest change</option>
+              <option value="az">A–Z</option>
+            </select>
+          </label>
+        </div>
+        <div id="activeFilter"></div>
+        <div class="cats" id="cats"></div>
+      </section>
+
+      <section class="card" id="feed">
+        <div class="card-head"><h2>Transactions</h2><span class="sub" id="txCount"></span></div>
+        <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search merchant or amount" aria-label="Search transactions"></div>
+        <div id="txList"></div>
+      </section>
+    </div>
+
+    <nav class="tabbar" aria-label="Main">
+      <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11 12 4l9 7v9H3z"/></svg>Home</button>
+      <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Score</button>
+      <button class="tab" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg>Spending</button>
+      <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Loans</button>
+      <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v.01M12 8a2.5 2.5 0 0 1 1 4.8c-.6.3-1 .8-1 1.4"/></svg>Help</button>
+    </nav>
+
+    <div class="sheet-wrap" id="sheetWrap" aria-hidden="true">
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+
+  <aside class="notes">
+    <div class="eyebrow">Prototype · for design discussion</div>
+    <h2>What makes this feel like an app, not a report</h2>
+    <p>Everything on the phone is clickable. Each note below points at one pattern; tap “Show me” to highlight it.</p>
+    <div id="notes"></div>
+    <p class="sample">All figures are sample data for a fictional customer paid fortnightly. Score impacts are illustrative and need to come from the real scoring model.</p>
+  </aside>
+</div>
+
+<script>
+(function(){
+const ICONS={
+ housing:'<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
+ groceries:'<path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>',
+ food:'<path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M16 3c-1.7 1-2.5 3-2.5 6s1 3 2.5 3v9"/>',
+ transport:'<path d="M5 16V9l2-4h10l2 4v7"/><path d="M3 16h18v2H3z"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="16.5" cy="12.5" r="1"/>',
+ gambling:'<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+ bills:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+ subs:'<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/>',
+ ent:'<path d="M4 8h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z"/><path d="M14 8v10"/>'
+};
+const CATS=[
+ {id:'housing',name:'Rent',type:'ess',last:900,hist:[900,900,900,900,900,900]},
+ {id:'groceries',name:'Groceries',type:'ess',last:205,hist:[198,221,190,214,205,188],budget:220},
+ {id:'food',name:'Food & dining',type:'life',last:198,hist:[172,190,168,215,198,246],budget:200},
+ {id:'transport',name:'Transport',type:'ess',last:150,hist:[160,138,155,149,150,142]},
+ {id:'gambling',name:'Gambling',type:'life',last:240,hist:[180,205,230,260,240,312]},
+ {id:'bills',name:'Bills & utilities',type:'ess',last:140,hist:[132,140,151,140,140,140]},
+ {id:'subs',name:'Subscriptions',type:'life',last:59.46,hist:[47.47,47.47,59.46,59.46,59.46,59.46]},
+ {id:'ent',name:'Entertainment',type:'life',last:90,hist:[64,110,70,95,90,74],budget:100}
+];
+const col=id=>getComputedStyle(document.documentElement).getPropertyValue('--c-'+id).trim();
+let TX=[
+ ['18/04','Ray White Rentals',900,'housing'],
+ ['19/04','Woolworths Metro',64.20,'groceries'],['21/04','Aldi',48.35,'groceries'],['23/04','Coles',41.90,'groceries'],['25/04','Woolworths Metro',33.55,'groceries'],
+ ['18/04','Uber Eats',32.40,'food'],['19/04','Uber Eats',28.90,'food'],['21/04','Uber Eats',36.10,'food'],['23/04','Uber Eats',24.60,'food'],['24/04','Uber Eats',26.00,'food'],
+ ['19/04','Guzman y Gomez',21.50,'food'],['20/04','The Coffee Club',18.50,'food'],['22/04','McDonald\'s',14.20,'food'],['24/04','Grill\'d',26.80,'food'],['25/04','The Coffee Club',17.00,'food'],
+ ['18/04','Opal top-up',40,'transport'],['22/04','Opal top-up',40,'transport'],['23/04','Ampol',62,'transport'],
+ ['18/04','Sportsbet',50,'gambling'],['19/04','TAB',72,'gambling'],['20/04','Sportsbet',100,'gambling'],['22/04','Ladbrokes',50,'gambling'],['24/04','Sportsbet',40,'gambling'],
+ ['20/04','Origin Energy',88,'bills'],['21/04','Telstra',52,'bills'],
+ ['18/04','Netflix',18.99,'subs'],['19/04','Stan',12.00,'subs'],['20/04','Spotify',13.99,'subs'],['22/04','Amazon Prime',9.99,'subs'],['24/04','Apple iCloud',4.49,'subs'],
+ ['19/04','Event Cinemas',38,'ent'],['24/04','Timezone',36,'ent']
+].map((t,i)=>({i,date:t[0],merchant:t[1],amt:t[2],cat:t[3]}));
+const INCOME=2480, UPCOMING=[{d:'27/04',n:'Afterpay instalment',a:45},{d:'29/04',n:'Right Road Finance repayment',a:120}];
+const PERIODS=[{id:'cycle',label:'This pay cycle'},{id:'last',label:'Last pay cycle'},{id:'3m',label:'3 months'},{id:'12m',label:'12 months'}];
+const S={period:'cycle',type:'all',sort:'amt',sel:null,open:new Set(),q:'',ins:0};
+const $=id=>document.getElementById(id);
+const fmt=(n,d)=>'$'+n.toLocaleString('en-AU',{minimumFractionDigits:d??(n%1?2:0),maximumFractionDigits:d??2});
+const cat=id=>CATS.find(c=>c.id===id);
+function totals(){
+  const m={};CATS.forEach(c=>m[c.id]=0);
+  if(S.period==='cycle') TX.forEach(t=>m[t.cat]+=t.amt);
+  else CATS.forEach(c=>{const avg=c.hist.reduce((a,b)=>a+b,0)/c.hist.length;m[c.id]=S.period==='last'?c.last:avg*(S.period==='3m'?6.5:26);});
+  return m;
+}
+function prevFor(c){ if(S.period==='cycle')return c.last; if(S.period==='last')return c.hist[3]; return null; }
+function icon(id,size){return `<span class="ico" style="background:color-mix(in srgb, ${col(id)} 16%, transparent);color:${col(id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[id]}</svg></span>`}
+function spark(h,id){const mx=Math.max(...h),mn=Math.min(...h),r=mx-mn||1;const pts=h.map((v,i)=>`${(i*56/5).toFixed(1)},${(16-((v-mn)/r)*13).toFixed(1)}`).join(' ');const last=pts.split(' ').pop().split(',');return `<svg class="spark" viewBox="-2 -2 60 22" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${col(id)}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${last[0]}" cy="${last[1]}" r="2.4" fill="${col(id)}"/></svg>`}
+
+/* ---------- Insights ---------- */
+function insights(){
+  const t=totals();
+  return [
+   {cat:'food',title:'Food & dining is $'+Math.round(t.food-200)+' over your budget',
+    short:'Most of it is Uber Eats: 5 orders, $148 this pay cycle.',
+    body:`You’ve spent ${fmt(t.food)} on food & dining this pay cycle against the $200 you set. Uber Eats makes up $148 of that across 5 orders.`,
+    impact:[['$46','back next pay cycle if you keep to $200'],['+15 pts','Expense Management sub-score (illustrative)']],
+    primary:'Adjust my food budget'},
+   {cat:'subs',title:'You have two streaming services',
+    short:'Netflix and Stan cost $30.99 each pay cycle between them.',
+    body:'Netflix ($18.99) and Stan ($12.00) both charged this pay cycle. If you still use both, there’s nothing to do here.',
+    impact:[['$12','per pay cycle if you drop one'],['$312','over a year']],
+    primary:'Review subscriptions'},
+   {cat:'gambling',title:'How gambling affects your SmartScore',
+    short:'Lenders look at gambling transactions when they review bank statements.',
+    body:`Lenders look at gambling transactions when they review bank statements. Over the last 90 days, gambling averaged 13% of your income. Keeping it under 5% would lift your Gambling Exposure sub-score from 410 to around 520.`,
+    impact:[['13%','of income, last 90 days'],['410 → 520','if under 5% (illustrative)']],
+    primary:'See how your score is worked out',
+    support:true}
+  ];
+}
+function renderInsight(){
+  const list=insights(),x=list[S.ins];
+  $('insight').innerHTML=`<div class="insight-head"><span class="eyebrow">Worth knowing</span>
+    <div class="pager"><button aria-label="Previous insight" data-p="-1">‹</button><span class="num">${S.ins+1} of ${list.length}</span><button aria-label="Next insight" data-p="1">›</button></div></div>
+    <h3>${x.title}</h3><p>${x.short}</p>
+    <div class="insight-foot"><button class="linkbtn" data-open-ins="${S.ins}">See details →</button><span class="sub">${cat(x.cat).name}</span></div>`;
+}
+function openInsight(k){
+  const x=insights()[k];
+  sheet(`<h3 id="sheetTitle">${x.title}</h3><p class="lead">${cat(x.cat).name} · this pay cycle</p>
+   <div class="block"><div class="eyebrow">What’s happening</div>${x.body}</div>
+   <div class="block"><div class="eyebrow">What it would change</div><div class="impact">${x.impact.map(i=>`<div><b class="num">${i[0]}</b><span class="sub">${i[1]}</span></div>`).join('')}</div></div>
+   ${x.support?`<div class="block"><div class="eyebrow">If you want them</div>Tools some people find useful: a gambling block on your bank card, BetStop (the national self-exclusion register), and free, confidential support through Gambling Help Online. <button class="linkbtn" data-toast="Would open the support sheet in Help">View options</button></div>`:''}
+   <div class="actions">
+     <button class="btn primary" data-toast="Would open: ${x.primary}">${x.primary}</button>
+     <button class="btn ghost" data-toast="Hidden. We won’t show this again this pay cycle" data-dismiss>Not relevant to me</button>
+     <button class="btn quiet" data-close>Close</button>
+   </div>`);
+}
+
+/* ---------- Hero ---------- */
+function renderHero(){
+  const t=totals(),spent=Object.values(t).reduce((a,b)=>a+b,0);
+  if(S.period==='cycle'){
+    const due=UPCOMING.reduce((a,b)=>a+b.a,0),left=INCOME-spent,free=left-due;
+    $('hero').innerHTML=`<div class="eyebrow">Pay cycle 18/04 – 01/05 · 6 days to payday</div>
+     <div class="hero-row"><div><div class="big num">${fmt(spent,0)}</div><div class="sub">spent of ${fmt(INCOME)} paid in</div></div>
+     <div class="leftpill"><span class="sub">Left after bills</span><b class="num" style="color:${free>0?'var(--good)':'var(--warn)'}">${fmt(free,0)}</b></div></div>
+     <div class="track" aria-hidden="true"><i class="spent" style="width:${spent/INCOME*100}%"></i><i class="due" style="left:${spent/INCOME*100}%;width:${due/INCOME*100}%"></i></div>
+     <div class="legend"><span>Spent</span><span>${fmt(due)} due before payday</span></div>
+     <div class="upcoming">${UPCOMING.map(u=>`<div class="up"><span>${u.d} · ${u.n}</span><b class="num">${fmt(u.a)}</b></div>`).join('')}</div>`;
+  } else {
+    const label=PERIODS.find(p=>p.id===S.period).label;
+    const perCycle=S.period==='last'?spent:spent/(S.period==='3m'?6.5:26);
+    $('hero').innerHTML=`<div class="eyebrow">${label}</div>
+     <div class="hero-row"><div><div class="big num">${fmt(spent,0)}</div><div class="sub">total spent</div></div>
+     <div class="leftpill"><span class="sub">Per pay cycle</span><b class="num">${fmt(perCycle,0)}</b></div></div>
+     <div class="sub" style="margin-top:10px">Switch to “This pay cycle” to see what’s left before payday.</div>`;
+  }
+}
+
+/* ---------- Donut ---------- */
+function renderDonut(){
+  const t=totals(),ids=CATS.map(c=>c.id).filter(id=>t[id]>0),sum=ids.reduce((a,id)=>a+t[id],0);
+  let a0=-Math.PI/2,html='';const R=92,r=62,cx=105,cy=105,gap=.018;
+  ids.forEach(id=>{
+    const a1=a0+(t[id]/sum)*Math.PI*2;const s=a0+gap,e=a1-gap,large=(e-s)>Math.PI?1:0;
+    const p=(ang,rad)=>[cx+rad*Math.cos(ang),cy+rad*Math.sin(ang)].map(v=>v.toFixed(2)).join(' ');
+    const dim=S.sel&&S.sel!==id;
+    html+=`<path d="M${p(s,R)} A${R} ${R} 0 ${large} 1 ${p(e,R)} L${p(e,r)} A${r} ${r} 0 ${large} 0 ${p(s,r)}Z" fill="${col(id)}" data-slice="${id}" tabindex="0" role="button" aria-label="${cat(id).name} ${fmt(t[id],0)}" style="opacity:${dim?.22:1};transform:scale(${S.sel===id?1.04:1})"><title>${cat(id).name}</title></path>`;
+    a0=a1;
+  });
+  $('donut').innerHTML=html;
+  const c=S.sel?cat(S.sel):null;
+  $('donutCenter').innerHTML=c?`<span class="sub">${c.name}</span><b class="num">${fmt(t[c.id],0)}</b><span class="sub">${Math.round(t[c.id]/sum*100)}% of spend</span>`:`<span class="sub">Total</span><b class="num">${fmt(sum,0)}</b><span class="sub">${ids.length} categories</span>`;
+}
+
+/* ---------- Category list ---------- */
+function renderCats(){
+  const t=totals(),insl=insights();
+  let list=CATS.filter(c=>t[c.id]>0&&(S.type==='all'||c.type===S.type)&&(!S.sel||c.id===S.sel));
+  const chg=c=>{const p=prevFor(c);return p?(t[c.id]-p)/p:0};
+  list.sort(S.sort==='amt'?(a,b)=>t[b.id]-t[a.id]:S.sort==='chg'?(a,b)=>Math.abs(chg(b))-Math.abs(chg(a)):(a,b)=>a.name.localeCompare(b.name));
+  $('catCount').textContent=list.length+' shown';
+  $('activeFilter').innerHTML=S.sel?`<button class="filterchip" id="clearSel">${cat(S.sel).name} ✕</button>`:'';
+  $('cats').innerHTML=list.map(c=>{
+    const v=t[c.id],p=prevFor(c),d=p?Math.round((v-p)/p*100):null;
+    const bScale=S.period==='cycle'||S.period==='last'?1:(S.period==='3m'?6.5:26);
+    const b=c.budget?c.budget*bScale:null,over=b&&v>b;
+    const merch={};(S.period==='cycle'?TX.filter(x=>x.cat===c.id):[]).forEach(x=>{merch[x.merchant]=merch[x.merchant]||{n:0,a:0};merch[x.merchant].n++;merch[x.merchant].a+=x.amt});
+    const k=insl.findIndex(x=>x.cat===c.id);
+    return `<div class="cat" data-open="${S.open.has(c.id)}" id="cat-${c.id}">
+      <button class="cat-btn" data-cat="${c.id}" aria-expanded="${S.open.has(c.id)}">
+        ${icon(c.id)}
+        <span class="cat-main"><span class="cat-name">${c.name}${c.type==='ess'?'':'<span class="sub" style="font-weight:500">· lifestyle</span>'}</span>
+          ${b?`<span class="bud"><i style="width:${Math.min(v/b,1)*100}%;background:${over?'var(--warn)':col(c.id)}"></i></span><span class="bud-note num">${over?fmt(v-b,0)+' over':fmt(b-v,0)+' left'} of ${fmt(b,0)} budget</span>`:`<span class="bud-note">No budget set</span>`}
+        </span>
+        <span class="cat-right"><span class="amt num">${fmt(v,0)}</span>${d!==null?`<span class="delta num">${d>0?'+':''}${d}% vs last</span>`:''}${spark(c.hist,c.id)}</span>
+      </button>
+      <div class="merchants">
+        ${k>-1?`<button class="insight-chip" data-open-ins="${k}">● ${insl[k].short.split('.')[0]}</button>`:''}
+        ${Object.keys(merch).length?Object.entries(merch).sort((a,b)=>b[1].a-a[1].a).map(([m,o])=>`<button class="merch" data-merch="${m}"><span>${m} <span class="sub">· ${o.n}</span></span><span class="num">${fmt(o.a)}</span></button>`).join(''):'<span class="sub" style="padding:8px 0">Merchant detail shown for pay-cycle views in this prototype.</span>'}
+        <button class="linkbtn" data-toast="Would open budget editor for ${c.name}">${b?'Edit budget':'Set a budget'} →</button>
+      </div></div>`;
+  }).join('')||'<div class="empty">Nothing in this view. Try “All”.</div>';
+}
+
+/* ---------- Feed ---------- */
+function renderFeed(){
+  const q=S.q.trim().toLowerCase();
+  let list=TX.filter(x=>(!S.sel||x.cat===S.sel)&&(S.type==='all'||cat(x.cat).type===S.type)&&(!q||x.merchant.toLowerCase().includes(q)||x.amt.toFixed(2).includes(q)));
+  list.sort((a,b)=>b.date.localeCompare(a.date)||b.i-a.i);
+  $('txCount').textContent=list.length+' this pay cycle';
+  let html='',day='';
+  list.forEach(x=>{if(x.date!==day){day=x.date;html+=`<div class="day">${x.date}/2026</div>`}
+    html+=`<button class="tx" data-tx="${x.i}">${icon(x.cat)}<span><b style="font-weight:600">${x.merchant}</b><small>${cat(x.cat).name}</small></span><span class="num" style="font-weight:700">−${fmt(x.amt,2)}</span></button>`});
+  $('txList').innerHTML=html||`<div class="empty">No transactions match “${S.q}”.</div>`;
+}
+
+/* ---------- Sheet ---------- */
+function sheet(html){$('sheet').innerHTML='<div class="grab"></div>'+html;$('sheetWrap').classList.add('open');$('sheetWrap').setAttribute('aria-hidden','false');setTimeout(()=>{const f=$('sheet').querySelector('button,select');f&&f.focus()},320)}
+function closeSheet(){$('sheetWrap').classList.remove('open');$('sheetWrap').setAttribute('aria-hidden','true')}
+function catOptions(sel){return CATS.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.name}</option>`).join('')}
+function openMerchant(m){
+  const list=TX.filter(x=>x.merchant===m);
+  sheet(`<h3 id="sheetTitle">${m}</h3><p class="lead">${list.length} transaction${list.length>1?'s':''} · ${fmt(list.reduce((a,b)=>a+b.amt,0))} this pay cycle</p>
+   ${list.map(x=>`<div class="txrow"><span>${x.date}/2026</span><b class="num">−${fmt(x.amt,2)}</b><select data-recat="${x.i}" aria-label="Category for ${x.merchant} on ${x.date}">${catOptions(x.cat)}</select></div>`).join('')}
+   <p class="sub">Wrong category? Change it here and every total on the page updates.</p>
+   <div class="actions"><button class="btn quiet" data-close>Close</button></div>`);
+}
+function openTx(i){const x=TX.find(t=>t.i==i);
+  sheet(`<h3 id="sheetTitle">${x.merchant}</h3><p class="lead">${x.date}/2026 · −${fmt(x.amt,2)}</p>
+   <div class="block"><div class="eyebrow">Category</div><select data-recat="${x.i}" class="sortsel" style="width:100%;margin-top:4px" aria-label="Category">${catOptions(x.cat)}</select></div>
+   <div class="actions"><button class="btn ghost" data-merch="${x.merchant}">All ${x.merchant} transactions</button><button class="btn quiet" data-close>Close</button></div>`);
+}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2200)}
+
+function renderPeriods(){$('periods').innerHTML=PERIODS.map(p=>`<button class="chip" data-period="${p.id}" aria-pressed="${S.period===p.id}">${p.label}</button>`).join('')}
+function render(){renderPeriods();renderHero();renderInsight();renderDonut();renderCats();renderFeed();
+  $('feed').hidden=S.period!=='cycle';}
+
+/* ---------- Events ---------- */
+document.addEventListener('click',e=>{
+  const g=s=>e.target.closest(s);let el;
+  if(el=g('[data-period]')){S.period=el.dataset.period;S.open.clear();render();return}
+  if(el=g('[data-p]')){const n=insights().length;S.ins=(S.ins+ +el.dataset.p+n)%n;renderInsight();return}
+  if(el=g('[data-open-ins]')){openInsight(+el.dataset.openIns);return}
+  if(el=g('[data-slice]')){S.sel=S.sel===el.dataset.slice?null:el.dataset.slice;if(S.sel)S.open.add(S.sel);renderDonut();renderCats();renderFeed();return}
+  if(g('#clearSel')){S.sel=null;renderDonut();renderCats();renderFeed();return}
+  if(el=g('#typeSeg button')){S.type=el.dataset.t;[...$('typeSeg').children].forEach(b=>b.setAttribute('aria-pressed',b===el));S.sel=null;renderDonut();renderCats();renderFeed();return}
+  if(el=g('[data-cat]')){const id=el.dataset.cat;S.open.has(id)?S.open.delete(id):S.open.add(id);renderCats();return}
+  if(el=g('[data-merch]')){openMerchant(el.dataset.merch);return}
+  if(el=g('[data-tx]')){openTx(el.dataset.tx);return}
+  if(el=g('[data-toast]')){toast(el.dataset.toast);if(el.hasAttribute('data-dismiss'))closeSheet();return}
+  if(g('[data-close]')||e.target===$('scrim')){closeSheet();return}
+  if(el=g('[data-show]')){showMe(el.dataset.show);return}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeSheet();
+  if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.slice){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}))}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='sortSel'){S.sort=e.target.value;renderCats();return}
+  if(e.target.dataset.recat){const x=TX.find(t=>t.i==e.target.dataset.recat);x.cat=e.target.value;render();toast(`Moved to ${cat(x.cat).name}. Totals updated`)}
+});
+$('q').addEventListener('input',e=>{S.q=e.target.value;renderFeed()});
+$('themeBtn').addEventListener('click',()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark';render()});
+
+/* ---------- Notes ---------- */
+const NOTES=[
+ ['hero','Frame it by pay cycle','Customers are paid fortnightly, so the hero answers the question they actually have: how much is left before payday once known bills come out. Try the period chips.'],
+ ['insight','One insight at a time','Tips don’t get a whole column. One sits at the top with “1 of 3”, and each one also appears on the category it refers to.'],
+ ['breakdown','The chart is a control','Tap a slice and the category list and transactions filter to it. Tap again to clear.'],
+ ['cats','Rows expand into merchants','Each row shows spend, change against last period, a trend line and budget status. Tap to open merchants; tap a merchant to see its transactions.'],
+ ['sheetdemo','Every link goes somewhere','“See details” opens a sheet with what’s happening, what it would change, and a choice, including “Not relevant to me”.'],
+ ['feed','Transactions you can search and fix','Search by merchant or amount. Tap any transaction to change its category, and the totals update across the page.'],
+ ['gambling','Gambling handled plainly','Gambling is an ordinary row with a neutral colour and no warning styling. Its insight explains the effect on credit and offers support as an option.']
+];
+$('notes').innerHTML=NOTES.map((n,i)=>`<div class="note"><span class="n">${i+1}</span><div><h4>${n[1]}</h4><p>${n[2]}</p><button class="linkbtn" data-show="${n[0]}">Show me →</button></div></div>`).join('');
+function showMe(k){
+  if(k==='sheetdemo'){S.ins=0;renderInsight();openInsight(0);return}
+  if(k==='gambling'){closeSheet();S.period='cycle';S.sel=null;S.type='all';S.open.add('gambling');render();k='cat-gambling'}
+  else closeSheet();
+  const el=$(k);if(!el)return;
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse');
+  if(k==='cat-gambling')setTimeout(()=>openInsight(2),900);
+}
+render();
+})();
+</script>

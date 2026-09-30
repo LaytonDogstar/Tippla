@@ -1,0 +1,29 @@
+{
+  "_note": "Tippla-stored history: one TaleFin Score per bank-statement refresh (fortnightly). TaleFin does not return history; Tippla must persist each score_id and result.",
+  "history": [
+    {
+      "scored_date": "2026-07-17",
+      "score": 521
+    },
+    {
+      "scored_date": "2026-07-31",
+      "score": 515
+    },
+    {
+      "scored_date": "2026-08-14",
+      "score": 506
+    },
+    {
+      "scored_date": "2026-08-28",
+      "score": 498
+    },
+    {
+      "scored_date": "2026-09-11",
+      "score": 489
+    },
+    {
+      "scored_date": "2026-09-25",
+      "score": 472
+    }
+  ]
+}

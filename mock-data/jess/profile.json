@@ -1,0 +1,14 @@
+{
+  "first_name": "Jess",
+  "full_name": "Jess Taylor",
+  "age": 31,
+  "state": "NSW",
+  "postcode": "2150",
+  "email": "jess.taylor@example.com",
+  "mobile": "0412 345 678",
+  "tier": "standard",
+  "story": "Hospitality shift worker, paid fortnightly. Declined by Friendly Finance for $2,500. Score slipping: new pay advance and more gambling this month.",
+  "id": "jess",
+  "data_from": "2026-03-30",
+  "data_days": 180
+}

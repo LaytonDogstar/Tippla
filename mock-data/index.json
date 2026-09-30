@@ -1,0 +1,32 @@
+{
+  "as_of": "2026-09-25",
+  "personas": [
+    {
+      "id": "jess",
+      "name": "Jess Taylor",
+      "state_under_test": "Hospitality shift worker, paid fortnightly. Declined by Friendly Finance for $2,500. Score slipping: new pay advance and more gambling this month.",
+      "score": 472,
+      "override": null,
+      "transactions": 459
+    },
+    {
+      "id": "marcus",
+      "name": "Marcus Webb",
+      "state_under_test": "Part-time warehouse work plus Centrelink Family Tax Benefit. Paid off one SACC two months ago; score improving and close to lender-ready.",
+      "score": 612,
+      "override": null,
+      "transactions": 371
+    },
+    {
+      "id": "priya",
+      "name": "Priya Raman",
+      "state_under_test": "Recently changed banks. Only 45 days of history connected, so TaleFin returns a thin-file override and no score yet.",
+      "score": null,
+      "override": {
+        "OVERRIDE": "Thin File Detected",
+        "OVERRIDE_SCORE": -998
+      },
+      "transactions": 87
+    }
+  ]
+}

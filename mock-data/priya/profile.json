@@ -1,0 +1,14 @@
+{
+  "first_name": "Priya",
+  "full_name": "Priya Raman",
+  "age": 26,
+  "state": "VIC",
+  "postcode": "3029",
+  "email": "priya.raman@example.com",
+  "mobile": "0455 876 123",
+  "tier": "standard",
+  "story": "Recently changed banks. Only 45 days of history connected, so TaleFin returns a thin-file override and no score yet.",
+  "id": "priya",
+  "data_from": "2026-08-12",
+  "data_days": 45
+}

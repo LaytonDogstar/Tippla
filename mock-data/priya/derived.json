@@ -1,0 +1,43 @@
+{
+  "_note": "Tippla-derived from transactions (not TaleFin metrics). Recurring detection and bill prediction are Tippla logic.",
+  "as_of": "2026-09-25",
+  "pay_cycle": {
+    "start": "2026-09-24",
+    "end": "2026-10-07",
+    "next_payday": "2026-10-08"
+  },
+  "upcoming_bills": [
+    {
+      "date": "2026-09-28",
+      "merchant": "Afterpay",
+      "expected_amount": 28.0,
+      "category": "bnpl",
+      "confidence": "predicted",
+      "cadence_days": 14
+    },
+    {
+      "date": "2026-10-09",
+      "merchant": "Share House Rent - Bpay",
+      "expected_amount": 620.0,
+      "category": "housing",
+      "confidence": "predicted",
+      "cadence_days": 14
+    },
+    {
+      "date": "2026-10-21",
+      "merchant": "Origin Energy",
+      "expected_amount": 88.39,
+      "category": "bills",
+      "confidence": "predicted",
+      "cadence_days": 31
+    }
+  ],
+  "subscriptions": [
+    {
+      "merchant": "Spotify",
+      "amount": 13.99,
+      "last_charged": "2026-09-06",
+      "cadence": "monthly"
+    }
+  ]
+}

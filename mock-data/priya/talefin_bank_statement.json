@@ -1,0 +1,2484 @@
+{
+  "version": "2.0",
+  "application_id": "APP-PRIYA-0925",
+  "vendor_specific_id": "VS-190925",
+  "timestamp": "2026-09-25T09:12:00+10:00",
+  "_note": "Mock TaleFin bank statement analysis. Shapes follow the Tippla Portal Product Spec v2.0; every value is computed from transactions.json. Only the metrics the portal uses are included (the real response has 139).",
+  "metrics": [
+    {
+      "code": "AM2001",
+      "name": "Wages",
+      "group_name": "Income",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 1977.87,
+          "count": 1,
+          "min_amount": 1977.87,
+          "max_amount": 1977.87,
+          "mean_amount": 1977.87,
+          "monthly_mean_amount": 4297.16,
+          "days_since_last": 1,
+          "days_since_first": 1,
+          "earliest": "2026-09-24",
+          "latest": "2026-09-24"
+        },
+        "30": {
+          "sum_amount": 5908.46,
+          "count": 3,
+          "min_amount": 1965.02,
+          "max_amount": 1977.87,
+          "mean_amount": 1969.49,
+          "monthly_mean_amount": 5990.52,
+          "days_since_last": 1,
+          "days_since_first": 29,
+          "earliest": "2026-08-27",
+          "latest": "2026-09-24"
+        },
+        "60": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "90": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "180": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "365": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 3943.44,
+            "count": 2
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 3896.35,
+            "count": 2
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2002",
+      "name": "Centrelink",
+      "group_name": "Income",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "30": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "60": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "90": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "180": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "365": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2003",
+      "name": "Total Credits",
+      "group_name": "Information",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 1977.87,
+          "count": 1,
+          "min_amount": 1977.87,
+          "max_amount": 1977.87,
+          "mean_amount": 1977.87,
+          "monthly_mean_amount": 4297.16,
+          "days_since_last": 1,
+          "days_since_first": 1,
+          "earliest": "2026-09-24",
+          "latest": "2026-09-24"
+        },
+        "30": {
+          "sum_amount": 5908.46,
+          "count": 3,
+          "min_amount": 1965.02,
+          "max_amount": 1977.87,
+          "mean_amount": 1969.49,
+          "monthly_mean_amount": 5990.52,
+          "days_since_last": 1,
+          "days_since_first": 29,
+          "earliest": "2026-08-27",
+          "latest": "2026-09-24"
+        },
+        "60": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "90": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "180": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "365": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 3943.44,
+            "count": 2
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 3896.35,
+            "count": 2
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2004",
+      "name": "Total Debits",
+      "group_name": "Information",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 1810.07,
+          "count": 27,
+          "min_amount": 19.36,
+          "max_amount": 620.0,
+          "mean_amount": 67.04,
+          "monthly_mean_amount": 3932.59,
+          "days_since_last": 0,
+          "days_since_first": 13,
+          "earliest": "2026-09-12",
+          "latest": "2026-09-25"
+        },
+        "30": {
+          "sum_amount": 4075.87,
+          "count": 58,
+          "min_amount": 9.54,
+          "max_amount": 620.0,
+          "mean_amount": 70.27,
+          "monthly_mean_amount": 4132.48,
+          "days_since_last": 0,
+          "days_since_first": 29,
+          "earliest": "2026-08-27",
+          "latest": "2026-09-25"
+        },
+        "60": {
+          "sum_amount": 5700.92,
+          "count": 82,
+          "min_amount": 9.54,
+          "max_amount": 620.0,
+          "mean_amount": 69.52,
+          "monthly_mean_amount": 3853.4,
+          "days_since_last": 0,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-25"
+        },
+        "90": {
+          "sum_amount": 5700.92,
+          "count": 82,
+          "min_amount": 9.54,
+          "max_amount": 620.0,
+          "mean_amount": 69.52,
+          "monthly_mean_amount": 3853.4,
+          "days_since_last": 0,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-25"
+        },
+        "180": {
+          "sum_amount": 5700.92,
+          "count": 82,
+          "min_amount": 9.54,
+          "max_amount": 620.0,
+          "mean_amount": 69.52,
+          "monthly_mean_amount": 3853.4,
+          "days_since_last": 0,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-25"
+        },
+        "365": {
+          "sum_amount": 5700.92,
+          "count": 82,
+          "min_amount": 9.54,
+          "max_amount": 620.0,
+          "mean_amount": 69.52,
+          "monthly_mean_amount": 3853.4,
+          "days_since_last": 0,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-25"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 3119.58,
+            "count": 47
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 2581.34,
+            "count": 35
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2005",
+      "name": "Confirmed Gambling",
+      "group_name": "Expenses",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "30": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "60": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "90": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "180": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "365": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2008",
+      "name": "Living Expenses",
+      "group_name": "Expenses",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 998.64,
+          "count": 22,
+          "min_amount": 19.36,
+          "max_amount": 88.39,
+          "mean_amount": 45.39,
+          "monthly_mean_amount": 2169.66,
+          "days_since_last": 0,
+          "days_since_first": 13,
+          "earliest": "2026-09-12",
+          "latest": "2026-09-25"
+        },
+        "30": {
+          "sum_amount": 1741.62,
+          "count": 43,
+          "min_amount": 9.54,
+          "max_amount": 88.39,
+          "mean_amount": 40.5,
+          "monthly_mean_amount": 1765.81,
+          "days_since_last": 0,
+          "days_since_first": 29,
+          "earliest": "2026-08-27",
+          "latest": "2026-09-25"
+        },
+        "60": {
+          "sum_amount": 2644.04,
+          "count": 63,
+          "min_amount": 9.54,
+          "max_amount": 93.18,
+          "mean_amount": 41.97,
+          "monthly_mean_amount": 1787.18,
+          "days_since_last": 0,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-25"
+        },
+        "90": {
+          "sum_amount": 2644.04,
+          "count": 63,
+          "min_amount": 9.54,
+          "max_amount": 93.18,
+          "mean_amount": 41.97,
+          "monthly_mean_amount": 1787.18,
+          "days_since_last": 0,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-25"
+        },
+        "180": {
+          "sum_amount": 2644.04,
+          "count": 63,
+          "min_amount": 9.54,
+          "max_amount": 93.18,
+          "mean_amount": 41.97,
+          "monthly_mean_amount": 1787.18,
+          "days_since_last": 0,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-25"
+        },
+        "365": {
+          "sum_amount": 2644.04,
+          "count": 63,
+          "min_amount": 9.54,
+          "max_amount": 93.18,
+          "mean_amount": 41.97,
+          "monthly_mean_amount": 1787.18,
+          "days_since_last": 0,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-25"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 1533.07,
+            "count": 37
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 1110.97,
+            "count": 26
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2010",
+      "name": "Housing Costs",
+      "group_name": "Expenses",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 620.0,
+          "count": 1,
+          "min_amount": 620.0,
+          "max_amount": 620.0,
+          "mean_amount": 620.0,
+          "monthly_mean_amount": 1347.02,
+          "days_since_last": 0,
+          "days_since_first": 0,
+          "earliest": "2026-09-25",
+          "latest": "2026-09-25"
+        },
+        "30": {
+          "sum_amount": 1860.0,
+          "count": 3,
+          "min_amount": 620.0,
+          "max_amount": 620.0,
+          "mean_amount": 620.0,
+          "monthly_mean_amount": 1885.83,
+          "days_since_last": 0,
+          "days_since_first": 28,
+          "earliest": "2026-08-28",
+          "latest": "2026-09-25"
+        },
+        "60": {
+          "sum_amount": 2480.0,
+          "count": 4,
+          "min_amount": 620.0,
+          "max_amount": 620.0,
+          "mean_amount": 620.0,
+          "monthly_mean_amount": 1676.3,
+          "days_since_last": 0,
+          "days_since_first": 42,
+          "earliest": "2026-08-14",
+          "latest": "2026-09-25"
+        },
+        "90": {
+          "sum_amount": 2480.0,
+          "count": 4,
+          "min_amount": 620.0,
+          "max_amount": 620.0,
+          "mean_amount": 620.0,
+          "monthly_mean_amount": 1676.3,
+          "days_since_last": 0,
+          "days_since_first": 42,
+          "earliest": "2026-08-14",
+          "latest": "2026-09-25"
+        },
+        "180": {
+          "sum_amount": 2480.0,
+          "count": 4,
+          "min_amount": 620.0,
+          "max_amount": 620.0,
+          "mean_amount": 620.0,
+          "monthly_mean_amount": 1676.3,
+          "days_since_last": 0,
+          "days_since_first": 42,
+          "earliest": "2026-08-14",
+          "latest": "2026-09-25"
+        },
+        "365": {
+          "sum_amount": 2480.0,
+          "count": 4,
+          "min_amount": 620.0,
+          "max_amount": 620.0,
+          "mean_amount": 620.0,
+          "monthly_mean_amount": 1676.3,
+          "days_since_last": 0,
+          "days_since_first": 42,
+          "earliest": "2026-08-14",
+          "latest": "2026-09-25"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 1240.0,
+            "count": 2
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 1240.0,
+            "count": 2
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2011",
+      "name": "All Direct Debit Dishonours",
+      "group_name": "Risk",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "30": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "60": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "90": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "180": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "365": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2012",
+      "name": "Other Credits",
+      "group_name": "Income",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "30": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "60": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "90": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "180": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "365": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2013",
+      "name": "Direct Debits",
+      "group_name": "Information",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 736.39,
+          "count": 3,
+          "min_amount": 28.0,
+          "max_amount": 620.0,
+          "mean_amount": 245.46,
+          "monthly_mean_amount": 1599.89,
+          "days_since_last": 0,
+          "days_since_first": 11,
+          "earliest": "2026-09-14",
+          "latest": "2026-09-25"
+        },
+        "30": {
+          "sum_amount": 2018.38,
+          "count": 7,
+          "min_amount": 13.99,
+          "max_amount": 620.0,
+          "mean_amount": 288.34,
+          "monthly_mean_amount": 2046.41,
+          "days_since_last": 0,
+          "days_since_first": 28,
+          "earliest": "2026-08-28",
+          "latest": "2026-09-25"
+        },
+        "60": {
+          "sum_amount": 2799.1,
+          "count": 11,
+          "min_amount": 13.99,
+          "max_amount": 620.0,
+          "mean_amount": 254.46,
+          "monthly_mean_amount": 1891.98,
+          "days_since_last": 0,
+          "days_since_first": 42,
+          "earliest": "2026-08-14",
+          "latest": "2026-09-25"
+        },
+        "90": {
+          "sum_amount": 2799.1,
+          "count": 11,
+          "min_amount": 13.99,
+          "max_amount": 620.0,
+          "mean_amount": 254.46,
+          "monthly_mean_amount": 1891.98,
+          "days_since_last": 0,
+          "days_since_first": 42,
+          "earliest": "2026-08-14",
+          "latest": "2026-09-25"
+        },
+        "180": {
+          "sum_amount": 2799.1,
+          "count": 11,
+          "min_amount": 13.99,
+          "max_amount": 620.0,
+          "mean_amount": 254.46,
+          "monthly_mean_amount": 1891.98,
+          "days_since_last": 0,
+          "days_since_first": 42,
+          "earliest": "2026-08-14",
+          "latest": "2026-09-25"
+        },
+        "365": {
+          "sum_amount": 2799.1,
+          "count": 11,
+          "min_amount": 13.99,
+          "max_amount": 620.0,
+          "mean_amount": 254.46,
+          "monthly_mean_amount": 1891.98,
+          "days_since_last": 0,
+          "days_since_first": 42,
+          "earliest": "2026-08-14",
+          "latest": "2026-09-25"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 1370.38,
+            "count": 5
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 1428.72,
+            "count": 6
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2015",
+      "name": "Inferred Gambling",
+      "group_name": "Risk",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "30": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "60": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "90": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "180": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "365": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2020",
+      "name": "ATM Withdrawals",
+      "group_name": "Information",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 47.72,
+          "count": 1,
+          "min_amount": 47.72,
+          "max_amount": 47.72,
+          "mean_amount": 47.72,
+          "monthly_mean_amount": 103.68,
+          "days_since_last": 7,
+          "days_since_first": 7,
+          "earliest": "2026-09-18",
+          "latest": "2026-09-18"
+        },
+        "30": {
+          "sum_amount": 47.72,
+          "count": 1,
+          "min_amount": 47.72,
+          "max_amount": 47.72,
+          "mean_amount": 47.72,
+          "monthly_mean_amount": 48.38,
+          "days_since_last": 7,
+          "days_since_first": 7,
+          "earliest": "2026-09-18",
+          "latest": "2026-09-18"
+        },
+        "60": {
+          "sum_amount": 47.72,
+          "count": 1,
+          "min_amount": 47.72,
+          "max_amount": 47.72,
+          "mean_amount": 47.72,
+          "monthly_mean_amount": 32.26,
+          "days_since_last": 7,
+          "days_since_first": 7,
+          "earliest": "2026-09-18",
+          "latest": "2026-09-18"
+        },
+        "90": {
+          "sum_amount": 47.72,
+          "count": 1,
+          "min_amount": 47.72,
+          "max_amount": 47.72,
+          "mean_amount": 47.72,
+          "monthly_mean_amount": 32.26,
+          "days_since_last": 7,
+          "days_since_first": 7,
+          "earliest": "2026-09-18",
+          "latest": "2026-09-18"
+        },
+        "180": {
+          "sum_amount": 47.72,
+          "count": 1,
+          "min_amount": 47.72,
+          "max_amount": 47.72,
+          "mean_amount": 47.72,
+          "monthly_mean_amount": 32.26,
+          "days_since_last": 7,
+          "days_since_first": 7,
+          "earliest": "2026-09-18",
+          "latest": "2026-09-18"
+        },
+        "365": {
+          "sum_amount": 47.72,
+          "count": 1,
+          "min_amount": 47.72,
+          "max_amount": 47.72,
+          "mean_amount": 47.72,
+          "monthly_mean_amount": 32.26,
+          "days_since_last": 7,
+          "days_since_first": 7,
+          "earliest": "2026-09-18",
+          "latest": "2026-09-18"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 47.72,
+            "count": 1
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2072",
+      "name": "Total Income",
+      "group_name": "Income",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 1977.87,
+          "count": 1,
+          "min_amount": 1977.87,
+          "max_amount": 1977.87,
+          "mean_amount": 1977.87,
+          "monthly_mean_amount": 4297.16,
+          "days_since_last": 1,
+          "days_since_first": 1,
+          "earliest": "2026-09-24",
+          "latest": "2026-09-24"
+        },
+        "30": {
+          "sum_amount": 5908.46,
+          "count": 3,
+          "min_amount": 1965.02,
+          "max_amount": 1977.87,
+          "mean_amount": 1969.49,
+          "monthly_mean_amount": 5990.52,
+          "days_since_last": 1,
+          "days_since_first": 29,
+          "earliest": "2026-08-27",
+          "latest": "2026-09-24"
+        },
+        "60": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "90": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "180": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "365": {
+          "sum_amount": 7839.79,
+          "count": 4,
+          "min_amount": 1931.33,
+          "max_amount": 1977.87,
+          "mean_amount": 1959.95,
+          "monthly_mean_amount": 5299.12,
+          "days_since_last": 1,
+          "days_since_first": 43,
+          "earliest": "2026-08-13",
+          "latest": "2026-09-24"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 3943.44,
+            "count": 2
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 3896.35,
+            "count": 2
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2128",
+      "name": "BNPL Transactions",
+      "group_name": "Loans",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 28.0,
+          "count": 1,
+          "min_amount": 28.0,
+          "max_amount": 28.0,
+          "mean_amount": 28.0,
+          "monthly_mean_amount": 60.83,
+          "days_since_last": 11,
+          "days_since_first": 11,
+          "earliest": "2026-09-14",
+          "latest": "2026-09-14"
+        },
+        "30": {
+          "sum_amount": 56.0,
+          "count": 2,
+          "min_amount": 28.0,
+          "max_amount": 28.0,
+          "mean_amount": 28.0,
+          "monthly_mean_amount": 56.78,
+          "days_since_last": 11,
+          "days_since_first": 25,
+          "earliest": "2026-08-31",
+          "latest": "2026-09-14"
+        },
+        "60": {
+          "sum_amount": 84.0,
+          "count": 3,
+          "min_amount": 28.0,
+          "max_amount": 28.0,
+          "mean_amount": 28.0,
+          "monthly_mean_amount": 56.78,
+          "days_since_last": 11,
+          "days_since_first": 39,
+          "earliest": "2026-08-17",
+          "latest": "2026-09-14"
+        },
+        "90": {
+          "sum_amount": 84.0,
+          "count": 3,
+          "min_amount": 28.0,
+          "max_amount": 28.0,
+          "mean_amount": 28.0,
+          "monthly_mean_amount": 56.78,
+          "days_since_last": 11,
+          "days_since_first": 39,
+          "earliest": "2026-08-17",
+          "latest": "2026-09-14"
+        },
+        "180": {
+          "sum_amount": 84.0,
+          "count": 3,
+          "min_amount": 28.0,
+          "max_amount": 28.0,
+          "mean_amount": 28.0,
+          "monthly_mean_amount": 56.78,
+          "days_since_last": 11,
+          "days_since_first": 39,
+          "earliest": "2026-08-17",
+          "latest": "2026-09-14"
+        },
+        "365": {
+          "sum_amount": 84.0,
+          "count": 3,
+          "min_amount": 28.0,
+          "max_amount": 28.0,
+          "mean_amount": 28.0,
+          "monthly_mean_amount": 56.78,
+          "days_since_last": 11,
+          "days_since_first": 39,
+          "earliest": "2026-08-17",
+          "latest": "2026-09-14"
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 28.0,
+            "count": 1
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 56.0,
+            "count": 2
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2138",
+      "name": "Wage Advance Credits",
+      "group_name": "Loans",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "30": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "60": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "90": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "180": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "365": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2139",
+      "name": "Wage Advance Debits",
+      "group_name": "Loans",
+      "format": "array",
+      "value": {
+        "14": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "30": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "60": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "90": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "180": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "365": {
+          "sum_amount": 0.0,
+          "count": 0,
+          "min_amount": null,
+          "max_amount": null,
+          "mean_amount": null,
+          "monthly_mean_amount": 0.0,
+          "days_since_last": null,
+          "days_since_first": null,
+          "earliest": null,
+          "latest": null
+        },
+        "monthly_values": {
+          "0": {
+            "month": "2026-09",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "1": {
+            "month": "2026-08",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "2": {
+            "month": "2026-07",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "3": {
+            "month": "2026-06",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "4": {
+            "month": "2026-05",
+            "sum_amount": 0.0,
+            "count": 0
+          },
+          "5": {
+            "month": "2026-04",
+            "sum_amount": 0.0,
+            "count": 0
+          }
+        }
+      }
+    },
+    {
+      "code": "AM2023",
+      "name": "Combined Gambling % of Income",
+      "group_name": "Risk Percentages",
+      "format": "percentage",
+      "value": {
+        "14": 0.0,
+        "30": 0.0,
+        "60": 0.0,
+        "90": 0.0,
+        "180": 0.0,
+        "365": 0.0
+      }
+    },
+    {
+      "code": "AM2031",
+      "name": "Confirmed Gambling % of Income",
+      "group_name": "Risk Percentages",
+      "format": "percentage",
+      "value": {
+        "14": 0.0,
+        "30": 0.0,
+        "60": 0.0,
+        "90": 0.0,
+        "180": 0.0,
+        "365": 0.0
+      }
+    },
+    {
+      "code": "AM2033",
+      "name": "Centrelink % of Income",
+      "group_name": "Risk Percentages",
+      "format": "percentage",
+      "value": {
+        "14": 0.0,
+        "30": 0.0,
+        "60": 0.0,
+        "90": 0.0,
+        "180": 0.0,
+        "365": 0.0
+      }
+    },
+    {
+      "code": "AM2034",
+      "name": "Withdrawals % of Income",
+      "group_name": "Risk Percentages",
+      "format": "percentage",
+      "value": {
+        "14": 91.52,
+        "30": 68.98,
+        "60": 72.72,
+        "90": 72.72,
+        "180": 72.72,
+        "365": 72.72
+      }
+    },
+    {
+      "code": "AM2069",
+      "name": "Debt to Income Ratio",
+      "group_name": "Expenses",
+      "format": "percentage",
+      "value": {
+        "14": 1.42,
+        "30": 0.95,
+        "60": 1.07,
+        "90": 1.07,
+        "180": 1.07,
+        "365": 1.07
+      }
+    },
+    {
+      "code": "AM2163",
+      "name": "Employer Name",
+      "group_name": "Income",
+      "format": "string",
+      "value": "COLES"
+    },
+    {
+      "code": "AM2101",
+      "name": "Primary Income Type",
+      "group_name": "Income",
+      "format": "string",
+      "value": "Wages"
+    },
+    {
+      "code": "AM2038",
+      "name": "Employment Status",
+      "group_name": "Income",
+      "format": "boolean",
+      "value": true
+    },
+    {
+      "code": "AM2021",
+      "name": "Days Since Last Income",
+      "group_name": "Income",
+      "format": "days",
+      "value": 1
+    },
+    {
+      "code": "AM2074",
+      "name": "Days Since Last Wage",
+      "group_name": "Income",
+      "format": "days",
+      "value": 1
+    },
+    {
+      "code": "AM2077",
+      "name": "Next Expected Pay Date",
+      "group_name": "Income",
+      "format": "date",
+      "value": "2026-10-08"
+    },
+    {
+      "code": "AM2110",
+      "name": "Irregular Wages Present",
+      "group_name": "Income",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2025",
+      "name": "SACC Loans Present",
+      "group_name": "Information",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2026",
+      "name": "MACC Loans Present",
+      "group_name": "Information",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2027",
+      "name": "AOCC Loans Present",
+      "group_name": "Information",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2172",
+      "name": "Estimated Active SACC Count",
+      "group_name": "Loans",
+      "format": "count",
+      "value": 0
+    },
+    {
+      "code": "AM2173",
+      "name": "Estimated Active MACC Count",
+      "group_name": "Loans",
+      "format": "count",
+      "value": 0
+    },
+    {
+      "code": "AM2174",
+      "name": "Estimated Active AOCC Count",
+      "group_name": "Loans",
+      "format": "count",
+      "value": 0
+    },
+    {
+      "code": "AM2175",
+      "name": "Active Wage Advance Providers",
+      "group_name": "Loans",
+      "format": "count",
+      "value": 0
+    },
+    {
+      "code": "AM2024",
+      "name": "SACC Outstanding Balance (estimated)",
+      "group_name": "Loans",
+      "format": "currency",
+      "value": 0.0
+    },
+    {
+      "code": "AM2132",
+      "name": "Non-SACC Outstanding Balance (estimated)",
+      "group_name": "Loans",
+      "format": "currency",
+      "value": 0.0
+    },
+    {
+      "code": "AM2022",
+      "name": "SACC Repayments (monthly)",
+      "group_name": "Loans",
+      "format": "currency",
+      "value": 0.0
+    },
+    {
+      "code": "AM2055",
+      "name": "MACC Repayments (monthly)",
+      "group_name": "Loans",
+      "format": "currency",
+      "value": 0.0
+    },
+    {
+      "code": "AM2056",
+      "name": "AOCC Repayments (monthly)",
+      "group_name": "Loans",
+      "format": "currency",
+      "value": 0.0
+    },
+    {
+      "code": "AM2158",
+      "name": "BNPL Repayments (monthly)",
+      "group_name": "Loans",
+      "format": "currency",
+      "value": 60.67
+    },
+    {
+      "code": "AM2117",
+      "name": "SACC Providers",
+      "group_name": "Loans",
+      "format": "string_array",
+      "value": []
+    },
+    {
+      "code": "AM2120",
+      "name": "MACC Providers",
+      "group_name": "Loans",
+      "format": "string_array",
+      "value": []
+    },
+    {
+      "code": "AM2123",
+      "name": "AOCC Providers",
+      "group_name": "Loans",
+      "format": "string_array",
+      "value": []
+    },
+    {
+      "code": "AM2032",
+      "name": "Dishonours % of Direct Debits",
+      "group_name": "Risk Percentages",
+      "format": "percentage",
+      "value": {
+        "14": 0.0,
+        "30": 0.0,
+        "60": 0.0,
+        "90": 0.0,
+        "180": 0.0,
+        "365": 0.0
+      }
+    },
+    {
+      "code": "AM2161",
+      "name": "Daily End of Day Balance Statistics",
+      "group_name": "Information",
+      "format": "array",
+      "value": {
+        "14": {
+          "min_amount": 2237.41,
+          "max_amount": 4186.42,
+          "mean_amount": 2833.75,
+          "median_amount": 2759.25,
+          "range_amount": 1949.01
+        },
+        "30": {
+          "min_amount": 2091.23,
+          "max_amount": 4186.42,
+          "mean_amount": 2741.99,
+          "median_amount": 2649.01,
+          "range_amount": 2095.19
+        },
+        "60": {
+          "min_amount": 1320.0,
+          "max_amount": 4186.42,
+          "mean_amount": 2503.75,
+          "median_amount": 2409.55,
+          "range_amount": 2866.42
+        },
+        "90": {
+          "min_amount": 1320.0,
+          "max_amount": 4186.42,
+          "mean_amount": 2503.75,
+          "median_amount": 2409.55,
+          "range_amount": 2866.42
+        },
+        "180": {
+          "min_amount": 1320.0,
+          "max_amount": 4186.42,
+          "mean_amount": 2503.75,
+          "median_amount": 2409.55,
+          "range_amount": 2866.42
+        },
+        "365": {
+          "min_amount": 1320.0,
+          "max_amount": 4186.42,
+          "mean_amount": 2503.75,
+          "median_amount": 2409.55,
+          "range_amount": 2866.42
+        }
+      }
+    },
+    {
+      "code": "AM2019",
+      "name": "Daily End of Day Balance",
+      "group_name": "Information",
+      "format": "time_series",
+      "value": [
+        {
+          "date": "2026-08-12",
+          "balance": 1320.0
+        },
+        {
+          "date": "2026-08-13",
+          "balance": 3107.62
+        },
+        {
+          "date": "2026-08-14",
+          "balance": 2409.55
+        },
+        {
+          "date": "2026-08-15",
+          "balance": 2350.47
+        },
+        {
+          "date": "2026-08-16",
+          "balance": 2237.02
+        },
+        {
+          "date": "2026-08-17",
+          "balance": 2145.27
+        },
+        {
+          "date": "2026-08-18",
+          "balance": 2135.57
+        },
+        {
+          "date": "2026-08-19",
+          "balance": 2095.21
+        },
+        {
+          "date": "2026-08-20",
+          "balance": 1937.92
+        },
+        {
+          "date": "2026-08-21",
+          "balance": 1845.37
+        },
+        {
+          "date": "2026-08-22",
+          "balance": 1845.37
+        },
+        {
+          "date": "2026-08-23",
+          "balance": 1805.16
+        },
+        {
+          "date": "2026-08-24",
+          "balance": 1791.61
+        },
+        {
+          "date": "2026-08-25",
+          "balance": 1756.42
+        },
+        {
+          "date": "2026-08-26",
+          "balance": 1626.28
+        },
+        {
+          "date": "2026-08-27",
+          "balance": 3579.11
+        },
+        {
+          "date": "2026-08-28",
+          "balance": 2865.08
+        },
+        {
+          "date": "2026-08-29",
+          "balance": 2722.48
+        },
+        {
+          "date": "2026-08-30",
+          "balance": 2663.01
+        },
+        {
+          "date": "2026-08-31",
+          "balance": 2635.01
+        },
+        {
+          "date": "2026-09-01",
+          "balance": 2621.96
+        },
+        {
+          "date": "2026-09-02",
+          "balance": 2483.65
+        },
+        {
+          "date": "2026-09-03",
+          "balance": 2449.59
+        },
+        {
+          "date": "2026-09-04",
+          "balance": 2435.28
+        },
+        {
+          "date": "2026-09-05",
+          "balance": 2289.64
+        },
+        {
+          "date": "2026-09-06",
+          "balance": 2249.86
+        },
+        {
+          "date": "2026-09-07",
+          "balance": 2152.32
+        },
+        {
+          "date": "2026-09-08",
+          "balance": 2091.23
+        },
+        {
+          "date": "2026-09-09",
+          "balance": 2091.23
+        },
+        {
+          "date": "2026-09-10",
+          "balance": 3966.76
+        },
+        {
+          "date": "2026-09-11",
+          "balance": 3291.07
+        },
+        {
+          "date": "2026-09-12",
+          "balance": 3254.99
+        },
+        {
+          "date": "2026-09-13",
+          "balance": 3032.25
+        },
+        {
+          "date": "2026-09-14",
+          "balance": 2911.17
+        },
+        {
+          "date": "2026-09-15",
+          "balance": 2835.86
+        },
+        {
+          "date": "2026-09-16",
+          "balance": 2759.25
+        },
+        {
+          "date": "2026-09-17",
+          "balance": 2759.25
+        },
+        {
+          "date": "2026-09-18",
+          "balance": 2684.16
+        },
+        {
+          "date": "2026-09-19",
+          "balance": 2576.54
+        },
+        {
+          "date": "2026-09-20",
+          "balance": 2394.74
+        },
+        {
+          "date": "2026-09-21",
+          "balance": 2304.65
+        },
+        {
+          "date": "2026-09-22",
+          "balance": 2276.96
+        },
+        {
+          "date": "2026-09-23",
+          "balance": 2237.41
+        },
+        {
+          "date": "2026-09-24",
+          "balance": 4186.42
+        },
+        {
+          "date": "2026-09-25",
+          "balance": 3458.87
+        }
+      ]
+    },
+    {
+      "code": "AM2177",
+      "name": "Days Overdrawn",
+      "group_name": "Risk",
+      "format": "array",
+      "value": {
+        "14": {
+          "account_balance_overdrawn": 0
+        },
+        "30": {
+          "account_balance_overdrawn": 0
+        },
+        "60": {
+          "account_balance_overdrawn": 0
+        },
+        "90": {
+          "account_balance_overdrawn": 0
+        },
+        "180": {
+          "account_balance_overdrawn": 0
+        },
+        "365": {
+          "account_balance_overdrawn": 0
+        }
+      }
+    },
+    {
+      "code": "AM2066",
+      "name": "Days Overdrawn %",
+      "group_name": "Risk Percentages",
+      "format": "percentage",
+      "value": 0.0
+    },
+    {
+      "code": "AM2151",
+      "name": "Debit Transaction Categories Monthly Mean",
+      "group_name": "Expenses",
+      "format": "array",
+      "value": [
+        {
+          "category_name": "Rent & housing",
+          "category_id": 35,
+          "tippla_category": "housing",
+          "monthly_mean_30_days": 1885.83,
+          "monthly_mean_90_days": 1676.3
+        },
+        {
+          "category_name": "Groceries",
+          "category_id": 101,
+          "tippla_category": "groceries",
+          "monthly_mean_30_days": 507.26,
+          "monthly_mean_90_days": 555.71
+        },
+        {
+          "category_name": "Food & dining",
+          "category_id": 102,
+          "tippla_category": "food",
+          "monthly_mean_30_days": 748.97,
+          "monthly_mean_90_days": 589.37
+        },
+        {
+          "category_name": "Transport",
+          "category_id": 103,
+          "tippla_category": "transport",
+          "monthly_mean_30_days": 403.28,
+          "monthly_mean_90_days": 455.28
+        },
+        {
+          "category_name": "Bills & utilities",
+          "category_id": 104,
+          "tippla_category": "bills",
+          "monthly_mean_30_days": 89.62,
+          "monthly_mean_90_days": 149.45
+        },
+        {
+          "category_name": "Subscriptions",
+          "category_id": 105,
+          "tippla_category": "subscriptions",
+          "monthly_mean_30_days": 14.18,
+          "monthly_mean_90_days": 9.46
+        },
+        {
+          "category_name": "Entertainment",
+          "category_id": 106,
+          "tippla_category": "entertainment",
+          "monthly_mean_30_days": 140.51,
+          "monthly_mean_90_days": 93.68
+        },
+        {
+          "category_name": "Alcohol",
+          "category_id": 23,
+          "tippla_category": "alcohol",
+          "monthly_mean_30_days": 77.78,
+          "monthly_mean_90_days": 86.0
+        },
+        {
+          "category_name": "Health",
+          "category_id": 108,
+          "tippla_category": "health",
+          "monthly_mean_30_days": 16.68,
+          "monthly_mean_90_days": 37.37
+        },
+        {
+          "category_name": "Shopping",
+          "category_id": 109,
+          "tippla_category": "shopping",
+          "monthly_mean_30_days": 143.2,
+          "monthly_mean_90_days": 111.76
+        },
+        {
+          "category_name": "Buy now, pay later",
+          "category_id": 111,
+          "tippla_category": "bnpl",
+          "monthly_mean_30_days": 56.78,
+          "monthly_mean_90_days": 56.78
+        },
+        {
+          "category_name": "Cash withdrawals",
+          "category_id": 113,
+          "tippla_category": "cash",
+          "monthly_mean_30_days": 48.38,
+          "monthly_mean_90_days": 32.26
+        }
+      ]
+    },
+    {
+      "code": "AM2017",
+      "name": "Insolvency Present",
+      "group_name": "Risk",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2018",
+      "name": "Budget Management Service",
+      "group_name": "Risk",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2064",
+      "name": "Public Trustee",
+      "group_name": "Risk",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2092",
+      "name": "Financial Counsellor Service",
+      "group_name": "Risk",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2093",
+      "name": "Dependents Present",
+      "group_name": "Risk",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2062",
+      "name": "High Risk Centrelink",
+      "group_name": "Risk",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2091",
+      "name": "Debt Collection Present",
+      "group_name": "Risk",
+      "format": "boolean",
+      "value": false
+    },
+    {
+      "code": "AM2063",
+      "name": "Charge Off Present",
+      "group_name": "Risk",
+      "format": "boolean",
+      "value": false
+    }
+  ],
+  "profiles": [
+    {
+      "full_name": "PRIYA RAMAN",
+      "bank": {
+        "name": "CBA"
+      },
+      "accounts": [
+        {
+          "id": 1,
+          "nickname": "Smart Access",
+          "bsb": "062-XXX",
+          "number": "XXXX 4821",
+          "balance": 3458.87,
+          "available": 3458.87,
+          "_note": "BSB/number masked in fixtures. The app must never display or log full account numbers."
+        }
+      ]
+    }
+  ]
+}

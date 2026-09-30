@@ -1,0 +1,28 @@
+{
+  "score": {
+    "SCORE": 472,
+    "OVERRIDE": null,
+    "RISK_GRADE": "4",
+    "OVERRIDE_SCORE": null
+  },
+  "metadata": {
+    "BANKS_REFERENCE": 2465,
+    "SCORED_DATETIME": "2026-09-25 09:14:03",
+    "BUREAU_REFERENCE": null
+  },
+  "score_breakdown": {
+    "INCOME": 7.4,
+    "CASH_SPEND": 6.1,
+    "ADVERSE_SPEND": 3.2,
+    "MISSED_PAYMENT": 5.6,
+    "PRODUCTIVE_SPEND": 5.0,
+    "DISPOSABLE_INCOME": 3.4,
+    "GOVERNMENT_RELIANCE": 10.0,
+    "LOAN_AMOUNT_AND_TYPE": 2.9,
+    "RELIABLE_PAYMENT_HISTORY": 6.8
+  },
+  "Consumer": {
+    "FULL_NAME": "Jess Taylor"
+  },
+  "score_id": "jess0000af4e418c86807592833f07"
+}

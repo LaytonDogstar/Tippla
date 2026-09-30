@@ -1,0 +1,28 @@
+{
+  "score": {
+    "SCORE": null,
+    "OVERRIDE": "Thin File Detected",
+    "RISK_GRADE": null,
+    "OVERRIDE_SCORE": -998
+  },
+  "metadata": {
+    "BANKS_REFERENCE": 2477,
+    "SCORED_DATETIME": "2026-09-25 09:14:03",
+    "BUREAU_REFERENCE": null
+  },
+  "score_breakdown": {
+    "INCOME": null,
+    "CASH_SPEND": null,
+    "ADVERSE_SPEND": null,
+    "MISSED_PAYMENT": null,
+    "PRODUCTIVE_SPEND": null,
+    "DISPOSABLE_INCOME": null,
+    "GOVERNMENT_RELIANCE": null,
+    "LOAN_AMOUNT_AND_TYPE": null,
+    "RELIABLE_PAYMENT_HISTORY": null
+  },
+  "Consumer": {
+    "FULL_NAME": "Priya Raman"
+  },
+  "score_id": "priya000af4e418c86807592833f19"
+}
