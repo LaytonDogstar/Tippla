@@ -4,7 +4,7 @@
 
 | Persona | Story | Score | Key states exercised |
 |---|---|---|---|
-| **jess** (default) | Hospitality shift worker, NSW, paid fortnightly (Thu). Declined by FF for $2,500. | 472, down from 521 over 5 refreshes | Declining; 2 SACC + 1 MACC + Afterpay + Zip; new Beforepay pay advance; gambling deposits rising (Apr $260 → Sep $705); overdrawn 16 of last 90 days; two dishonour fees; spending above income; no offers |
+| **jess** (default) | Hospitality shift worker, NSW, paid fortnightly (Thu). Declined by FF for $2,500. | 472, down from 521 over 5 refreshes | Declining; 2 SACC + 1 MACC + Afterpay + Zip; a $300 Beforepay advance every fortnight since 27/08 ($315 repaid the day before payday); gambling deposits rising (Apr $260 → Aug $845; Sep $705 to 25/09); overdrawn 16 of last 90 days; two dishonour fees; spending above income; no offers |
 | **marcus** | Warehouse part-time + Centrelink FTB, QLD, Pro tier | 612, up from 548 | Improving; Centrelink shown as ordinary income; one SACC paid off; Latitude AOCC; one matched offer (lender consent on); dependants flag present in fixture (must never render) |
 | **priya** | Retail, VIC, changed banks | none (override -998 thin file) | Insufficient history (45 days); onboarding and dashboard without a score; estimated date score will be available |
 

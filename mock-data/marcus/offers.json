@@ -5,12 +5,13 @@
     {
       "id": "off_001",
       "lender": "Harbour Lending (sample)",
-      "amount": 2000,
-      "term_weeks": 52,
+      "amount": 2500,
+      "term_weeks": 78,
       "comparison_rate_pct": 21.9,
       "establishment_fee": 150,
-      "repayment_per_fortnight": 88.46,
-      "total_repayable": 2300.0,
+      "repayment_per_fortnight": 75.47,
+      "total_repayable": 2943.33,
+      "_fee_note": "Establishment fee is included in the repayments; 39 x $75.47 = $2,943.33, comparison rate 21.9% (medium loan, not a SACC)",
       "matched_on": [
         "Income steady for 6 months",
         "No failed payments in 90 days",

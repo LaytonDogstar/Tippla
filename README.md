@@ -26,3 +26,10 @@ Everything needed for **Astra (ChatGPT)** to produce the design system and for *
 - Figures, people, employers and lenders in the fixtures are fictional. Score impacts are illustrative until TaleFin confirms weights (`docs/10_open_questions.md` Q3).
 - The pack contains Tippla's commercial model and open legal questions. Share it with Claude Code and your design partner only, not publicly.
 - Guardrails in `docs/08_compliance_guardrails.md` are product rules for the build, not legal advice. Items marked Q need counsel sign-off before production.
+
+## Changes since the first version (30/09/2026 review)
+
+- **Astra prompts:** corrected weekdays (26/09 is a Saturday, 30/09 a Wednesday, 25/09 a Friday). Days to payday is now 6. The Jess category list now includes Subscriptions $4, so it reconciles to $1,832. The calendar now shows only the predicted below-$0 day (30/09). The dashboard layout now matches `docs/04_screens.md` (hardship banner, plus a short-before-payday pay cycle card). Jess's first action is now "Skip the next pay advance if you can". Added screens: Marcus improving dashboard, factor detail sheet, consents, desktop dashboard, and Priya's expected score date (10/11/2026). Added batching and verification notes for working in ChatGPT.
+- **Tokens template:** stage and category colours now meet 3:1 on surface and surface2. Added `income`, `centrelink` and `uncategorised` categories. The neutral-family categories are now distinguishable from each other. Added `chart` tokens, `focusRing` and breakpoints.
+- **Marcus offer:** changed to $2,500 over 78 weeks at $75.47 per fortnight, $2,943.33 total, so it matches the 21.9% comparison rate and is no longer a SACC.
+- **Docs:** fixed the "Updated" weekday, fixed "Up 11 since 11/09", gambling copy now compares full months (Apr $260 → Aug $845), corrected the Jess pay-advance description, and added definitions for days to payday and for what "Next thing to do" can recommend.

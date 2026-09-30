@@ -1,64 +1,280 @@
 {
-  "_readme": "Placeholder tokens so Claude Code can build before Astra delivers. Astra must return design/tokens.json in EXACTLY this schema (same keys), replacing values only. Colours are hex. Every colour exists in both light and dark. Claude Code maps these to CSS variables (--color-bg, --cat-food, etc.).",
-  "meta": { "name": "Tippla", "version": "0.0-placeholder", "direction": "neutral placeholder" },
+  "_readme": "Placeholder tokens so Claude Code can build before Astra delivers. Astra must return design/tokens.json in EXACTLY this schema (same keys), replacing values only. Colours are hex. Every colour exists in both light and dark. Claude Code maps these to CSS variables (--color-bg, --cat-food, etc.). Values are neutral placeholders, not a visual direction. Stage and category colours must reach 3:1 against surface and surface2 (non-text contrast).",
+  "meta": {
+    "name": "Tippla",
+    "version": "0.0-placeholder",
+    "direction": "neutral placeholder"
+  },
   "color": {
     "light": {
-      "bg": "#F4F2F8", "surface": "#FFFFFF", "surface2": "#F1EEF7", "line": "#E2DDEC",
-      "text": "#1C1830", "textMuted": "#6B6580", "textInverse": "#FFFFFF",
-      "accent": "#5B3FD6", "accentSoft": "#ECE8FB", "onAccent": "#FFFFFF",
-      "positive": "#1F7A52", "positiveSoft": "#E3F2EA",
-      "caution": "#9A5A0B", "cautionSoft": "#FBF0DF",
-      "info": "#2E5FB8", "infoSoft": "#E6EEFA",
-      "neutral": "#5E6678", "neutralSoft": "#EEF0F4",
-      "destructive": "#B3261E", "focus": "#5B3FD6", "scrim": "rgba(20,16,40,0.42)"
+      "bg": "#F4F2F8",
+      "surface": "#FFFFFF",
+      "surface2": "#F1EEF7",
+      "line": "#E2DDEC",
+      "text": "#1C1830",
+      "textMuted": "#6B6580",
+      "textInverse": "#FFFFFF",
+      "accent": "#5B3FD6",
+      "accentSoft": "#ECE8FB",
+      "onAccent": "#FFFFFF",
+      "positive": "#1F7A52",
+      "positiveSoft": "#E3F2EA",
+      "caution": "#9A5A0B",
+      "cautionSoft": "#FBF0DF",
+      "info": "#2E5FB8",
+      "infoSoft": "#E6EEFA",
+      "neutral": "#5E6678",
+      "neutralSoft": "#EEF0F4",
+      "destructive": "#B3261E",
+      "focus": "#5B3FD6",
+      "scrim": "rgba(20,16,40,0.42)"
     },
     "dark": {
-      "bg": "#0E0C18", "surface": "#18152A", "surface2": "#211D36", "line": "#2E2947",
-      "text": "#EEEBFA", "textMuted": "#A39DBD", "textInverse": "#140F2E",
-      "accent": "#9C87FF", "accentSoft": "#2A2350", "onAccent": "#140F2E",
-      "positive": "#5BD39A", "positiveSoft": "#153326",
-      "caution": "#F2B25C", "cautionSoft": "#3A2A12",
-      "info": "#8AB0F5", "infoSoft": "#17263F",
-      "neutral": "#A8AEBD", "neutralSoft": "#23262F",
-      "destructive": "#F2B8B5", "focus": "#9C87FF", "scrim": "rgba(0,0,0,0.6)"
+      "bg": "#0E0C18",
+      "surface": "#18152A",
+      "surface2": "#211D36",
+      "line": "#2E2947",
+      "text": "#EEEBFA",
+      "textMuted": "#A39DBD",
+      "textInverse": "#140F2E",
+      "accent": "#9C87FF",
+      "accentSoft": "#2A2350",
+      "onAccent": "#140F2E",
+      "positive": "#5BD39A",
+      "positiveSoft": "#153326",
+      "caution": "#F2B25C",
+      "cautionSoft": "#3A2A12",
+      "info": "#8AB0F5",
+      "infoSoft": "#17263F",
+      "neutral": "#A8AEBD",
+      "neutralSoft": "#23262F",
+      "destructive": "#F2B8B5",
+      "focus": "#9C87FF",
+      "scrim": "rgba(0,0,0,0.6)"
     },
     "stage": {
       "_note": "Single-hue progression. NEVER red to green.",
-      "light": { "building": "#C9C0F2", "steadying": "#9D8CEB", "healthy": "#7257E0", "thriving": "#4A2FC2" },
-      "dark":  { "building": "#3B3270", "steadying": "#5A49A8", "healthy": "#7F68E6", "thriving": "#A895FF" }
+      "light": {
+        "building": "#8575D0",
+        "steadying": "#7560D8",
+        "healthy": "#5B3FD6",
+        "thriving": "#3F25A8"
+      },
+      "dark": {
+        "building": "#7466B8",
+        "steadying": "#8A75E6",
+        "healthy": "#A08CFF",
+        "thriving": "#C3B6FF"
+      }
     },
     "category": {
-      "_note": "Identity colours for icons, donut, sparklines. Gambling is deliberately neutral slate.",
-      "light": { "housing": "#4C7DF0", "groceries": "#C98A0C", "food": "#E06A2C", "transport": "#23936A", "bills": "#8A5AD6", "subscriptions": "#C4497F", "entertainment": "#16899C", "alcohol": "#9B6B3F", "gambling": "#737D90", "health": "#2F9E9E", "shopping": "#B0569B", "loan_repayment": "#5E6678", "bnpl": "#6C7FA8", "wage_advance": "#7E7390", "cash": "#8C8F6A", "fees": "#8A8A96" },
-      "dark":  { "housing": "#7FA3FF", "groceries": "#F0B94A", "food": "#FF9A63", "transport": "#5CCB9F", "bills": "#B690FF", "subscriptions": "#F07FB0", "entertainment": "#5CC6D8", "alcohol": "#D0A077", "gambling": "#A4ADBE", "health": "#6ED0D0", "shopping": "#E08CCB", "loan_repayment": "#A8AEBD", "bnpl": "#9DAED2", "wage_advance": "#B3A8C6", "cash": "#C2C59C", "fees": "#B8B8C4" }
+      "_note": "Identity colours for icons, donut, sparklines. Gambling is deliberately neutral slate. income and centrelink are styled as equals. The muted family (loan_repayment, gambling, fees, bnpl, wage_advance, cash) must still be distinguishable side by side.",
+      "light": {
+        "housing": "#4C7DF0",
+        "groceries": "#9E6C00",
+        "food": "#C4531A",
+        "transport": "#23936A",
+        "bills": "#8A5AD6",
+        "subscriptions": "#C4497F",
+        "entertainment": "#16899C",
+        "alcohol": "#9B6B3F",
+        "gambling": "#6B7384",
+        "health": "#1F8080",
+        "shopping": "#B0569B",
+        "loan_repayment": "#4F5A70",
+        "bnpl": "#56709E",
+        "wage_advance": "#76638F",
+        "cash": "#6E7148",
+        "fees": "#7A6A60",
+        "income": "#2F7D5B",
+        "centrelink": "#2F6F8D",
+        "uncategorised": "#6F6A7A"
+      },
+      "dark": {
+        "housing": "#7FA3FF",
+        "groceries": "#F0B94A",
+        "food": "#FF9A63",
+        "transport": "#5CCB9F",
+        "bills": "#B690FF",
+        "subscriptions": "#F07FB0",
+        "entertainment": "#5CC6D8",
+        "alcohol": "#D0A077",
+        "gambling": "#B0B6C2",
+        "health": "#6ED0D0",
+        "shopping": "#E08CCB",
+        "loan_repayment": "#8C99B3",
+        "bnpl": "#8FA9DB",
+        "wage_advance": "#BBA6D9",
+        "cash": "#C2C59C",
+        "fees": "#C4B3A8",
+        "income": "#6CCB9E",
+        "centrelink": "#6CB6D8",
+        "uncategorised": "#ADA8B8"
+      }
+    },
+    "chart": {
+      "_note": "Chart-specific tokens. Below-zero is always neutral, never red.",
+      "light": {
+        "ringTrack": "#E2DDEC",
+        "hatch": "#5E6678",
+        "predicted": "#6B6580",
+        "gridline": "#E2DDEC"
+      },
+      "dark": {
+        "ringTrack": "#2E2947",
+        "hatch": "#A8AEBD",
+        "predicted": "#A39DBD",
+        "gridline": "#2E2947"
+      }
     }
   },
   "font": {
-    "display": { "family": "Figtree", "fallback": "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif", "source": "Google Fonts" },
-    "body":    { "family": "Figtree", "fallback": "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif", "source": "Google Fonts" },
-    "numeric": { "family": "Figtree", "fallback": "ui-sans-serif, system-ui", "features": "tnum" }
+    "display": {
+      "family": "Figtree",
+      "fallback": "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+      "source": "Google Fonts"
+    },
+    "body": {
+      "family": "Figtree",
+      "fallback": "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+      "source": "Google Fonts"
+    },
+    "numeric": {
+      "family": "Figtree",
+      "fallback": "ui-sans-serif, system-ui",
+      "features": "tnum"
+    }
   },
   "type": {
     "_note": "size/lineHeight in px, weight numeric, letterSpacing in em",
-    "h0":      { "size": 44, "lineHeight": 48, "weight": 800, "letterSpacing": -0.03 },
-    "h1":      { "size": 28, "lineHeight": 34, "weight": 800, "letterSpacing": -0.02 },
-    "h2":      { "size": 20, "lineHeight": 26, "weight": 700, "letterSpacing": -0.01 },
-    "h3":      { "size": 17, "lineHeight": 22, "weight": 700, "letterSpacing": 0 },
-    "body":    { "size": 15, "lineHeight": 22, "weight": 400, "letterSpacing": 0 },
-    "bodyStrong": { "size": 15, "lineHeight": 22, "weight": 600, "letterSpacing": 0 },
-    "small":   { "size": 13, "lineHeight": 18, "weight": 400, "letterSpacing": 0 },
-    "caption": { "size": 12, "lineHeight": 16, "weight": 500, "letterSpacing": 0 },
-    "eyebrow": { "size": 11, "lineHeight": 14, "weight": 700, "letterSpacing": 0.08, "transform": "uppercase" },
-    "figureXL":{ "size": 56, "lineHeight": 56, "weight": 800, "letterSpacing": -0.03 },
-    "figureL": { "size": 36, "lineHeight": 38, "weight": 800, "letterSpacing": -0.03 }
+    "h0": {
+      "size": 44,
+      "lineHeight": 48,
+      "weight": 800,
+      "letterSpacing": -0.03
+    },
+    "h1": {
+      "size": 28,
+      "lineHeight": 34,
+      "weight": 800,
+      "letterSpacing": -0.02
+    },
+    "h2": {
+      "size": 20,
+      "lineHeight": 26,
+      "weight": 700,
+      "letterSpacing": -0.01
+    },
+    "h3": {
+      "size": 17,
+      "lineHeight": 22,
+      "weight": 700,
+      "letterSpacing": 0
+    },
+    "body": {
+      "size": 15,
+      "lineHeight": 22,
+      "weight": 400,
+      "letterSpacing": 0
+    },
+    "bodyStrong": {
+      "size": 15,
+      "lineHeight": 22,
+      "weight": 600,
+      "letterSpacing": 0
+    },
+    "small": {
+      "size": 13,
+      "lineHeight": 18,
+      "weight": 400,
+      "letterSpacing": 0
+    },
+    "caption": {
+      "size": 12,
+      "lineHeight": 16,
+      "weight": 500,
+      "letterSpacing": 0
+    },
+    "eyebrow": {
+      "size": 11,
+      "lineHeight": 14,
+      "weight": 700,
+      "letterSpacing": 0.08,
+      "transform": "uppercase"
+    },
+    "figureXL": {
+      "size": 56,
+      "lineHeight": 56,
+      "weight": 800,
+      "letterSpacing": -0.03
+    },
+    "figureL": {
+      "size": 36,
+      "lineHeight": 38,
+      "weight": 800,
+      "letterSpacing": -0.03
+    }
   },
-  "space": [0, 4, 8, 12, 16, 24, 32, 48, 64],
-  "radius": { "xs": 6, "sm": 10, "md": 14, "lg": 20, "xl": 28, "pill": 999 },
+  "space": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    24,
+    32,
+    48,
+    64
+  ],
+  "radius": {
+    "xs": 6,
+    "sm": 10,
+    "md": 14,
+    "lg": 20,
+    "xl": 28,
+    "pill": 999
+  },
   "elevation": {
-    "light": { "1": "0 1px 2px rgba(28,24,48,0.06)", "2": "0 6px 18px rgba(28,24,48,0.08)", "3": "0 18px 50px rgba(40,30,90,0.16)" },
-    "dark":  { "1": "0 1px 2px rgba(0,0,0,0.4)", "2": "0 6px 18px rgba(0,0,0,0.45)", "3": "0 18px 50px rgba(0,0,0,0.5)" }
+    "light": {
+      "1": "0 1px 2px rgba(28,24,48,0.06)",
+      "2": "0 6px 18px rgba(28,24,48,0.08)",
+      "3": "0 18px 50px rgba(40,30,90,0.16)"
+    },
+    "dark": {
+      "1": "0 1px 2px rgba(0,0,0,0.4)",
+      "2": "0 6px 18px rgba(0,0,0,0.45)",
+      "3": "0 18px 50px rgba(0,0,0,0.5)"
+    }
   },
-  "motion": { "fast": 150, "base": 220, "slow": 320, "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)" },
-  "layout": { "mobileWidth": 390, "gutter": 16, "tabBarHeight": 64, "minTap": 44, "desktopSidebar": 260, "drawerWidth": 420 },
-  "icons": { "family": "Lucide", "strokeWidth": 2, "sizes": [16, 20, 24] }
+  "motion": {
+    "fast": 150,
+    "base": 220,
+    "slow": 320,
+    "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)"
+  },
+  "layout": {
+    "mobileWidth": 390,
+    "gutter": 16,
+    "tabBarHeight": 64,
+    "minTap": 44,
+    "desktopSidebar": 260,
+    "drawerWidth": 420,
+    "breakpoints": {
+      "tablet": 768,
+      "desktop": 1024
+    }
+  },
+  "icons": {
+    "family": "Lucide",
+    "strokeWidth": 2,
+    "sizes": [
+      16,
+      20,
+      24
+    ]
+  },
+  "focusRing": {
+    "width": 2,
+    "offset": 2
+  }
 }

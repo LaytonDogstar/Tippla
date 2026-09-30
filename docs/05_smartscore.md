@@ -18,7 +18,7 @@
 | `score.SCORE` (0–1,000) | SHOW | SmartScore number, ring, stage |
 | `score.RISK_GRADE` (0–10, string) | LENDER_ONLY | Not shown |
 | `score.OVERRIDE`, `score.OVERRIDE_SCORE` | SHOW (as state) | Drives the no-score states below |
-| `metadata.SCORED_DATETIME` | SHOW | "Updated Thu 25/09, 9:14am" (convert to AEST/AEDT) |
+| `metadata.SCORED_DATETIME` | SHOW | "Updated Fri 25/09, 9:14am" (convert to AEST/AEDT) |
 | `metadata.BANKS_REFERENCE`, `BUREAU_REFERENCE` | INTERNAL | Not shown |
 | `score_breakdown.*` (0–10, higher better, may be `null`) | SHOW (except GOVERNMENT_RELIANCE, see below) | Factor tiles and detail |
 | `Consumer.FULL_NAME` | INTERNAL | Not shown (use profile first name) |
@@ -61,7 +61,7 @@ Building 0–449 · Steadying 450–599 · Healthy 600–749 · Thriving 750–1
 
 ## Trend
 
-From `score_history.json`. Show change since last refresh with neutral styling in both directions ("Down 17 since 11/09", "Up 11 since 10/09"). Declines explain the likely factor movement if two consecutive breakdowns exist (store breakdowns per refresh in the real build; mock supplies only current breakdown — show movement text only when available).
+From `score_history.json`. Show change since last refresh with neutral styling in both directions ("Down 17 since 11/09", "Up 11 since 11/09"). Declines explain the likely factor movement if two consecutive breakdowns exist (store breakdowns per refresh in the real build; mock supplies only current breakdown — show movement text only when available).
 
 ## Projections ("do X, score goes from Y to Z")
 

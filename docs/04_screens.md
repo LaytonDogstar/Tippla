@@ -41,8 +41,10 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 - **Content (top to bottom, mobile):**
   1. Urgent state banner, only if one exists (priority order): bank connection expired → hardship trigger → score dropped ≥ 20 pts since last refresh → new offer (if lender consent on). One at a time.
   2. **SmartScore card:** ScoreRing (medium), stage, change since last refresh (neutral styling for drops: "Down 17 since 11/09"), link to Score.
-  3. **Next thing to do:** one RecommendationCard (highest projected impact the customer can act on). Opens the recommendation sheet.
+  3. **Next thing to do:** one RecommendationCard (highest projected impact the customer can act on **within this pay cycle** — don't lead with an action that costs money the customer doesn't have; when "left after bills" is negative, prefer a no-cost action). Opens the recommendation sheet.
+   - jess (−$53 before payday): "Skip the next pay advance if you can" — "You've taken a $300 Beforepay advance every fortnight since 27/08. Each costs $15 and comes out the day before payday." Paying off Nimble (~$610, estimated) is second, on `/savings`.
   4. **Pay cycle card:** "{spent} spent · {days} days to payday · {left_after_bills} left after bills" with the spent/due track (from `derived.json`). Link to Spending.
+   - **Days to payday** = calendar days from the data date to the next payday (jess: Fri 25/09 → Thu 01/10 = 6 days). Show the payday too: "6 days to payday (Thu 01/10)".
    - **Definition:** `left_after_bills = current available balance − predicted bills due before next payday`. Not "income − spending" for the cycle, which ignores money carried in or owed from last cycle.
    - **"Paid in"** counts income only; pay advances are shown separately ("Includes a $300 pay advance, due back 30/09").
    - **Short before payday** (jess: $314 balance − $367 due = −$53): headline "About $53 short before payday" in `caution` (not red), with two options: "See what's due" (calendar) and "Options if money's tight" (hardship). This is the most useful thing the app can tell her.

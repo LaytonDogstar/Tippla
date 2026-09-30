@@ -43,7 +43,7 @@ PERSONAS = {
  "jess": {
    "profile": {"first_name": "Jess", "full_name": "Jess Taylor", "age": 31, "state": "NSW",
                "postcode": "2150", "email": "jess.taylor@example.com", "mobile": "0412 345 678",
-               "tier": "standard", "story": "Hospitality shift worker, paid fortnightly. Declined by Friendly Finance for $2,500. Score slipping: new pay advance and more gambling this month."},
+               "tier": "standard", "story": "Hospitality shift worker, paid fortnightly. Declined by Friendly Finance for $2,500. Score slipping: a pay advance every fortnight since late August, and gambling deposits up since April."},
    "days": 180, "seed": 7, "start_balance": 420.0,
    "wage": {"employer": "HARBOURSIDE HOSPITALITY PTY", "amount": 2340.0, "jitter": 180.0, "first": date(2026, 4, 2)},
    "centrelink": None,
@@ -388,9 +388,9 @@ def main():
         }
         files["offers.json"] = {"_note": "Mock lender offers. Only shown when lender-matching consent is on. Lender names are fictional.",
             "lender_matching_consent": pid == "marcus",
-            "offers": ([{"id": "off_001", "lender": "Harbour Lending (sample)", "amount": 2000, "term_weeks": 52,
-                         "comparison_rate_pct": 21.9, "establishment_fee": 150, "repayment_per_fortnight": 88.46,
-                         "total_repayable": 2300.0, "matched_on": ["Income steady for 6 months", "No failed payments in 90 days", "One fewer open loan than 3 months ago"],
+            "offers": ([{"id": "off_001", "lender": "Harbour Lending (sample)", "amount": 2500, "term_weeks": 78,
+                         "comparison_rate_pct": 21.9, "establishment_fee": 150, "repayment_per_fortnight": 75.47,
+                         "total_repayable": 2943.33, "_fee_note": "Establishment fee is included in the repayments; 39 x $75.47 = $2,943.33, comparison rate 21.9% (medium loan, not a SACC)", "matched_on": ["Income steady for 6 months", "No failed payments in 90 days", "One fewer open loan than 3 months ago"],
                          "expires": None}] if pid == "marcus" else [])}
         files["consents.json"] = {"consents": [
             {"id": "ff_data_sharing", "label": "Share my Friendly Finance application with Tippla", "required": True, "granted": True, "granted_at": "2026-03-28T19:42:10+11:00", "version": "1.2"},

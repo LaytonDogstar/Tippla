@@ -26,7 +26,7 @@
 ## Global elements
 
 - Header: page title, notifications bell (badge count), avatar.
-- Bank data freshness line where numbers appear: "Updated Thu 25/09, 9:14am".
+- Bank data freshness line where numbers appear: "Updated Fri 25/09, 9:14am".
 - Sheets (mobile) / right drawers (desktop) for: transaction detail, merchant detail, category detail, loan detail, lender detail, recommendation detail, factor detail.
 - Toasts for confirmations ("Moved to Groceries. Totals updated").
 - Dev-only persona switcher and theme toggle.

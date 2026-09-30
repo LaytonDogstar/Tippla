@@ -69,7 +69,8 @@ Create three genuinely different visual directions for Tippla. For each directio
    - Headline: "Your SmartScore is 472."
    - Line: "That puts you in the Steadying stage. Here's what's shaping it, and the first thing that would move it."
    - Biggest factor with room to move: "Current borrowing · 2.9 / 10 — you have 3 loans open."
-   - First action card: "Pay off Nimble ($610 estimated left) before taking new credit."
+   - First action card: "Skip the next pay advance if you can" — "You've taken a $300 Beforepay advance every fortnight since 27/08. Each costs $15 and comes out the day before payday."
+   - Ring note: the ring shows progress from 450 to 600, so at 472 it is only about 15% filled. Design for that: this near-empty ring is the most common case, and it must still read as "on the path", not "failing".
    - Button: "See your dashboard".
 
 Make the three directions distinct from each other: e.g. one calm/editorial, one confident/single bold colour (not green, not blue), one warm/crafted. Don't give me three variations of the same purple SaaS look.
@@ -87,11 +88,17 @@ We're going with Direction [X], with these changes: [your notes].
 Now produce two more mock-ups in this direction, mobile 390×844, to test it on harder screens:
 
 A) Dashboard for Jess, light mode, top to bottom:
-   - Caution banner (not red): "About $53 short before payday. Options if money's tight →"
+   - Data as of Fri 25/09. "Updated Fri 25/09, 9:14am".
+   - Gentle hardship banner (not red, not an alert): "Money tight right now? There are options →" (opens Hardship support).
    - SmartScore card: 472, Steadying, "Down 17 since 11/09" (neutral styling), link "See what's shaping it".
-   - "Next thing to do" card: "Pay off Nimble before taking new credit" — "It's the quickest way to lift Current borrowing." Button "See how".
-   - Pay cycle card: "Pay cycle 17/09 – 30/09 · 5 days to payday", "$1,832 spent", "$2,483 paid in (plus a $300 pay advance, due back 30/09)", "$367 due before payday: Telstra $52 (26/09), Beforepay $315 (30/09)".
-   - Next bill: "Fri 26/09 · Telstra · $52 · predicted".
+   - "Next thing to do" card: "Skip the next pay advance if you can" — "Fewer pay advances is one of the ways to lift Current borrowing." Button "See how".
+   - Pay cycle card, in its short-before-payday (caution, not red) state:
+     - Headline: "About $53 short before payday" (balance $314 − $367 due before payday).
+     - "Pay cycle 17/09 – 30/09 · 6 days to payday (Thu 01/10)".
+     - "$1,832 spent" · "$2,483 paid in" · "Includes a $300 pay advance, $315 due back 30/09 ($300 + $15 fee)".
+     - "$367 due before payday: Telstra $52 (Sat 26/09), Beforepay $315 (Wed 30/09)".
+     - Two links: "See what's due" (calendar) and "Options if money's tight" (hardship).
+   - Next bill: "Sat 26/09 · Telstra · $52 · predicted".
    - Six-month spending bars (Apr–Sep): $4,529 · $6,361 · $4,989 · $5,385 · $5,257 · $4,821 (Sep to 25/09).
    - Bottom tab bar.
 
@@ -107,15 +114,22 @@ Then list any changes to the direction the harder screens forced.
 ```
 Turn the chosen direction into design tokens. Return ONE JSON code block that follows EXACTLY this schema (same keys, same nesting; replace values only). Save as design/tokens.json.
 
+The values in the template are neutral placeholders (they happen to be purple). They are NOT a direction: replace every value with the chosen direction's, including the stage colours.
+
 [PASTE THE FULL CONTENTS OF design/tokens.template.json HERE]
 
 Rules:
 - Every colour in both light and dark.
-- stage colours: single-hue progression, never red→green.
-- category colours: 16 distinct identity colours; gambling must be a neutral slate/grey.
+- stage colours: single-hue progression, never red→green. Every stage colour, including Building and Steadying, must reach at least 3:1 against surface and surface2 (it's a graphic, WCAG 1.4.11). Jess is in Steadying, so the second stage cannot be a pale tint.
+- category colours: 19 identity colours (16 spending, income, centrelink, uncategorised); gambling must be a neutral slate/grey. Income and centrelink must look like equals (same lightness and saturation, different hue is fine).
+- The neutral-family categories (loan_repayment, gambling, fees, bnpl, wage_advance, cash) can stay muted, but must be distinguishable from each other next to each other in a donut. Jess's donut puts loan repayments, gambling and BNPL side by side.
+- Every category colour must reach 3:1 as an icon fill on surface2 in both themes.
+- chart tokens: ringTrack (empty part of the score ring), hatch (below-$0 balance pattern colour), predicted (outline for predicted bills), below-zero must stay neutral.
 - No "danger" colour for financial states; "destructive" is for delete/disconnect buttons only.
-- After the JSON, give a contrast table (Markdown) for every text/background pair you expect to be used: text on bg, textMuted on surface, onAccent on accent, positive/caution/info on their soft backgrounds, category colours as icon fills on surface2. Show ratio and AA pass/fail. Fix any fails before you answer.
+- After the JSON, give a contrast table (Markdown) for every text/background pair you expect to be used: text on bg, textMuted on surface, onAccent on accent, positive/caution/info on their soft backgrounds, category colours as icon fills on surface2, stage colours on surface and surface2. Show ratio and AA pass/fail. Fix any fails before you answer.
 ```
+
+*Don't rely on Astra's contrast table: model-computed ratios are often wrong. Claude Code re-checks `tokens.json` with a script before building.*
 
 ---
 
@@ -126,6 +140,7 @@ Design the Tippla wordmark and app icon in the chosen direction. Deliver:
 1. An image showing wordmark, icon, and both on light and dark.
 2. SVG code (single code block each): tippla-wordmark.svg, tippla-icon.svg (1024×1024 artboard, safe for iOS/Android masks), tippla-icon-mono.svg.
 SVG rules: viewBox set, no embedded raster, no external fonts (convert text to paths or build letterforms from shapes), fills use currentColor where sensible. Keep paths simple. It must not look like a bank, a lender, or a crypto token.
+3. Name the Google Font (and weight) the wordmark is based on, and any letter modifications, so the wordmark can be rebuilt precisely in Figma or Inkscape if the SVG letterforms come out rough.
 ```
 
 ---
@@ -143,6 +158,8 @@ Where Lucide has no good fit, supply a custom SVG in the same 24×24, 2px stroke
 
 ## Prompt 6 — Component sheet
 
+*Too big for one reply. Paste the prompt with the full list once, then ask for the components in batches: "Do 1–4 now", then 5–8, 9–12, 13–17. Every third batch or so, re-paste the HARD RULES from Prompt 0 — long threads drift.*
+
 ```
 Produce component specs for Claude Code. For EACH component below give: (a) an image showing all states in light and dark, and (b) a Markdown spec table: anatomy, sizes, padding/gaps (use token names from tokens.json, e.g. space[4], radius.md), typography token per text element, colour token per element per state, interaction notes.
 
@@ -157,7 +174,7 @@ Components:
 8. TransactionRow — posted, pending, recategorised.
 9. BottomSheet — with drag handle, scrim; desktop drawer equivalent.
 10. SegmentedControl, Chip (period chips), FilterChip (dismissible).
-11. CalendarCell — confirmed spend dots, predicted bill (outlined), payday marker, balance below $0 (hatched neutral, not red).
+11. CalendarCell — confirmed spend dots, predicted bill (outlined), payday marker, confirmed balance below $0 (hatched neutral, not red), predicted balance below $0 (hatched neutral, outlined/lighter to show it's a forecast), "next payday" edge marker when payday falls just outside the visible range.
 12. LoanCard — collapsed/expanded, "estimated" labels.
 13. OfferCard — objective, comparable: lender, amount, term, comparison rate, fees, repayment per fortnight, total cost, "Why you matched". No urgency devices.
 14. RecommendationCard.
@@ -172,19 +189,25 @@ Save specs as design/components.md and images in design/components/.
 
 ## Prompt 7 — Hero screens
 
+*Run in batches of two or three screens per reply (e.g. 1–3, 4–6, 7–9, 10–12, 13–15), and re-paste the HARD RULES from Prompt 0 every couple of batches. Image generators garble small text and numbers: treat the PNGs as visual reference and check every figure against this prompt. If Astra can, also ask for each screen as a single self-contained HTML file using the tokens (`design/screens/<name>.html`) — text stays exact and Claude Code can build straight from it.*
+
 ```
-Using the tokens and components, produce these mobile screens (390×844), each in light and dark. Use the data exactly as given. Save as design/screens/<name>-<theme>.png and describe any new patterns in design/screens.md.
+Using the tokens and components, produce these mobile screens (390×844), each in light and dark, unless the item says otherwise. Use the data exactly as given. Save as design/screens/<name>-<theme>.png and describe any new patterns in design/screens.md. All data is as of Fri 25/09/2026.
 
 1. score-reveal (Jess): see Prompt 1 data.
-2. score-reveal-thinfile (Priya): no number. "We need a bit more history to work out your SmartScore — usually 90 days. We'll calculate it automatically." Then "What we can already see": pay cycle 24/09 – 07/10, pay of about $1,960 every second Thursday, 45 days of history so far.
+2. score-reveal-thinfile (Priya): no number. "We need a bit more history to work out your SmartScore — usually 90 days. We'll calculate it automatically." "We expect to have enough history around 10/11/2026." Then "What we can already see": pay cycle 24/09 – 07/10, pay of about $1,960 every second Thursday, 45 days of history so far.
 3. dashboard (Jess): see Prompt 2 data.
-4. smartscore (Jess): ScoreRing 472 Steadying; trend 521 → 515 → 506 → 498 → 489 → 472 (fortnightly, last 11/09 → 25/09); top three factors: Current borrowing 2.9, Gambling & alcohol spending 3.2, Money left over 3.4; other factors: Payments on time 5.6, Spending mix 5.0, Cash use 6.1, Payment track record 6.8, Income stability 7.4. Show one specific strength as a fact: "Income stability is your strongest factor at 7.4."
-5. spending-overview (Jess): period chips; pay cycle hero; insight card "1 of 3": "How gambling affects your SmartScore — Lenders look at gambling transactions when they review bank statements." Donut + category rows for this pay cycle: Rent & housing $820 · Loan repayments $290 · Gambling $200 · Transport $115 · Food & dining $112 · Groceries $82 · Bills & utilities $82 · Cash withdrawals $59 · Buy now, pay later $45 · Shopping $21. Gambling row looks like every other row.
-6. spending-sheet (Jess): the gambling InsightSheet open over the spending screen. Copy: "Lenders look at gambling transactions when they review bank statements. Over the last 90 days, gambling deposits averaged 16.5% of your income. Your Gambling & alcohol spending factor is 3.2 / 10." Block "If you want them": "Tools some people find useful: a gambling block on your bank card, BetStop (the national self-exclusion register), and free, confidential support through Gambling Help Online." Actions: "See how your score is worked out", "View support options", "Not now".
-7. loans (Jess): Overview tab. Nimble (small loan) ~$610 left, $96 per fortnight; Cash Train (small loan) ~$450 left, $74 per fortnight; Right Road Finance (medium loan) ~$2,140 left, $120 per fortnight; Afterpay $45 per fortnight; Zip Pay $40 per month; Beforepay pay advance $300, due back 30/09. All balances labelled "estimated from your transactions". Debt repayments are about 21% of income.
-8. offers (Marcus): one offer — Harbour Lending (sample): $2,000 over 52 weeks, comparison rate 21.9%, $150 establishment fee, $88.46 per fortnight, $2,300 total repayable. Why you matched: income steady for 6 months; no failed payments in 90 days; one fewer open loan than 3 months ago. Buttons "View details", "Not interested". Calm, comparable, no countdown.
-9. hardship: "If money's tight right now, these are real options." Cards: ask your lender for a hardship arrangement (with a message template), free financial counselling through the National Debt Helpline, pause or downgrade Tippla, gambling support options. Should feel like relief, not a back office.
-10. calendar (Jess): fortnight view 17/09 – 30/09, payday Thu 17/09 and next Thu 01/10 marked, predicted bills Fri 26/09 Telstra $52 and Tue 30/09 Beforepay $315 (outlined dots), days below $0 shown with a neutral hatched balance bar.
+4. dashboard-improving (Marcus): no banner except "You have 1 new offer →" (he has lender matching on). SmartScore card: 612, Healthy (600–749), "Up 11 since 11/09" (neutral styling — the same treatment as Jess's drop, not celebratory), next stage Thriving at 750, 138 points to go. "Next thing to do": "Money left over is your lowest factor at 5.9" — "Keeping more of each pay left after bills is one of the ways to lift it." Button "See how". Pay cycle card: "Pay cycle 24/09 – 07/10 · 13 days to payday (Thu 08/10)", "$221 spent", "$1,335 paid in", "$663 due before payday: Qld Housing Rent $560 (Sat 26/09), Telstra $52 (Sat 26/09), Afterpay $32 (Thu 01/10), Netflix $18.99 (Tue 06/10)", "About $1,700 left after bills". Next bill: "Sat 26/09 · Qld Housing Rent · $560 · predicted". Six-month spending bars (Apr–Sep): $3,526 · $3,094 · $3,373 · $3,979 · $4,433 · $2,249 (Sep to 25/09). Spending going up (Jul, Aug) must not be green.
+5. smartscore (Jess): ScoreRing 472 Steadying; trend 521 → 515 → 506 → 498 → 489 → 472 (fortnightly, 17/07 → 25/09); top three factors: Current borrowing 2.9, Gambling & alcohol spending 3.2, Money left over 3.4; other factors: Payments on time 5.6, Spending mix 5.0, Cash use 6.1, Payment track record 6.8, Income stability 7.4. Show one specific strength as a fact: "Income stability is your strongest factor at 7.4."
+6. factor-sheet (Jess): Current borrowing factor detail as a bottom sheet over the SmartScore screen. "Current borrowing · 2.9 / 10". What it measures: "How many loans and credit products you have, and what kind." What's driving it: "2 small loans open (Nimble, Cash Train), about $1,060 left in total, estimated" · "1 medium loan open (Right Road Finance), about $2,140 left, estimated" · "A Beforepay pay advance every fortnight since 27/08". What lifts it: "Fewer open loans — paying one off, or not taking a new one." Related: "Skip the next pay advance if you can". "Updated Fri 25/09, 9:14am".
+7. spending-overview (Jess): period chips; pay cycle hero; insight card "1 of 3": "How gambling affects your SmartScore — Lenders look at gambling transactions when they review bank statements." Donut + category rows for this pay cycle (rows are rounded; the total is $1,832): Rent & housing $820 · Loan repayments $290 · Gambling $200 · Transport $115 · Food & dining $112 · Bills & utilities $82 · Groceries $82 · Cash withdrawals $59 · Buy now, pay later $45 · Shopping $21 · Subscriptions $4. Gambling row looks like every other row.
+8. spending-sheet (Jess): the gambling InsightSheet open over the spending screen. Copy: "Lenders look at gambling transactions when they review bank statements. Over the last 90 days, gambling deposits averaged 16.5% of your income. Your Gambling & alcohol spending factor is 3.2 / 10." Block "If you want them": "Tools some people find useful: a gambling block on your bank card, BetStop (the national self-exclusion register), and free, confidential support through Gambling Help Online." Actions: "See how your score is worked out", "View support options", "Not now".
+9. loans (Jess): Overview tab. Nimble (small loan) ~$610 left, $96 per fortnight; Cash Train (small loan) ~$450 left, $74 per fortnight; Right Road Finance (medium loan) ~$2,140 left, $120 per fortnight; Afterpay $45 per fortnight; Zip Pay $40 per month; Beforepay pay advance: $300 received 24/09, $315 due back Wed 30/09 ($300 + $15 fee). All balances labelled "estimated from your transactions". Debt repayments are about 21% of income.
+10. offers (Marcus): one offer — Harbour Lending (sample): $2,500 over 78 weeks, comparison rate 21.9%, $150 establishment fee (included in the repayments), $75.47 per fortnight, $2,943.33 total repayable. Why you matched: income steady for 6 months; no failed payments in 90 days; one fewer open loan than 3 months ago. Buttons "View details", "Not interested". Calm, comparable, no countdown.
+11. hardship: "If money's tight right now, these are real options." Cards: ask your lender for a hardship arrangement (with a message template), free financial counselling through the National Debt Helpline, pause or downgrade Tippla, gambling support options. Should feel like relief, not a back office.
+12. calendar (Jess): fortnight view Thu 17/09 – Wed 30/09 (two rows of seven, Thu–Wed). Payday marker on Thu 17/09; "Next payday Thu 01/10" as an edge marker just after the last cell. Today is Fri 25/09: days before it show confirmed spend (solid dots), days after it show predicted bills only (outlined dots): Sat 26/09 Telstra $52, Wed 30/09 Beforepay $315. End-of-day balance bars: 25/09 $314; predicted 26/09–29/09 $262; predicted 30/09 −$53 — the only below-$0 day, shown with the neutral hatched bar in its "predicted" style. No confirmed day in this fortnight is below $0.
+13. consents (onboarding): three separate, unticked checkboxes, each with a two-line plain explanation and a "What this means" expander: (1) "Share my Friendly Finance application with Tippla" — Required. (2) "Let Tippla read my bank data through TaleFin" — Required. (3) "Let Tippla show my profile to partner lenders when I might qualify" — "Optional. Tippla works fully without this. You can turn it on or off any time." Continue button, disabled until 1 and 2 are ticked. The optional consent must look genuinely optional: same weight as the others, not pre-selected, no persuasion copy. Light mode only is fine.
+14. dashboard-desktop (Jess): the Prompt 2 dashboard at 1440×900, light mode only. Left sidebar (260 px) grouped: Home · Score (SmartScore, Ways to lift your score) · Spending (Spending, Calendar, Subscriptions) · Loans (Loans & credit, Offers) · Support (Hardship support, Help). "Hardship support" visible without scrolling. Sheets become right-side drawers (420 px).
 ```
 
 ---
@@ -203,7 +226,7 @@ Save as design/illustration-and-motion.md and design/empty-states/*.svg.
 ## Prompt 9 — Handoff check
 
 ```
-Give me a handoff manifest (Markdown) listing every file you produced with its path under design/ and what it's for. Then self-review against the hard rules in Prompt 0 and list anything that breaks them (red used for money states, rankings, green for spending increases, gambling highlighted, US spelling, contrast fails, missing dark variants). Fix anything you find and re-output only the corrected files.
+Give me a handoff manifest (Markdown) listing every file you produced with its path under design/ and what it's for. Then self-review against the hard rules in Prompt 0 and list anything that breaks them (red used for money states, rankings, green for spending increases, gambling highlighted, US spelling, contrast fails, missing dark variants, any figure, date or weekday that differs from the data in Prompts 1, 2 and 7). Fix anything you find and re-output only the corrected files.
 ```
 
 ---
