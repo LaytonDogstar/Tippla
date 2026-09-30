@@ -189,7 +189,7 @@ Save specs as design/components.md and images in design/components/.
 
 ## Prompt 7 — Hero screens
 
-*Run in batches of two or three screens per reply (e.g. 1–3, 4–6, 7–9, 10–12, 13–15), and re-paste the HARD RULES from Prompt 0 every couple of batches. Image generators garble small text and numbers: treat the PNGs as visual reference and check every figure against this prompt. If Astra can, also ask for each screen as a single self-contained HTML file using the tokens (`design/screens/<name>.html`) — text stays exact and Claude Code can build straight from it.*
+*Run in batches of two or three screens per reply (e.g. 1–3, 4–6, 7–9, 10–12, 13–14), and re-paste the HARD RULES from Prompt 0 every couple of batches. Image generators garble small text and numbers: treat the PNGs as visual reference and check every figure against this prompt. If Astra can, also ask for each screen as a single self-contained HTML file using the tokens (`design/screens/<name>.html`) — text stays exact and Claude Code can build straight from it.*
 
 ```
 Using the tokens and components, produce these mobile screens (390×844), each in light and dark, unless the item says otherwise. Use the data exactly as given. Save as design/screens/<name>-<theme>.png and describe any new patterns in design/screens.md. All data is as of Fri 25/09/2026.
