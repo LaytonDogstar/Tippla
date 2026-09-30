@@ -1,0 +1,33 @@
+import type { ArrayMetricValue, PersonaData } from "@/lib/api/types";
+import { HARDSHIP_DISHONOUR_WITHIN_DAYS, HARDSHIP_OVERDRAWN_DAYS_90 } from "@/config/flags";
+import { metric } from "@/lib/dataUse";
+import { daysOverdrawn90 } from "./balance";
+import { scoreDroppedForBanner } from "./score";
+
+/** docs/09: overdrawn on ≥ 15 of the last 90 days AND a dishonour in the last 30 days (or self-selected). */
+export function hardshipTriggered(d: PersonaData, selfSelected = false): boolean {
+  if (selfSelected) return true;
+  const since = metric<ArrayMetricValue>(d.bankStatement, "AM2011")["90"]?.days_since_last;
+  return daysOverdrawn90(d) >= HARDSHIP_OVERDRAWN_DAYS_90 && since !== null && since !== undefined && since <= HARDSHIP_DISHONOUR_WITHIN_DAYS;
+}
+
+export const lenderMatchingOn = (d: PersonaData) => d.consents.find((c) => c.id === "lender_matching")?.granted ?? false;
+
+export type Banner =
+  | { kind: "bank_expired"; since: string }
+  | { kind: "hardship" }
+  | { kind: "score_drop"; points: number }
+  | { kind: "new_offer"; count: number };
+
+/** One dashboard banner at a time, in priority order (docs/04 P1). */
+export function dashboardBanner(d: PersonaData, state: { bankExpiredSince?: string | null; hardshipSelfSelected?: boolean } = {}): Banner | null {
+  if (state.bankExpiredSince) return { kind: "bank_expired", since: state.bankExpiredSince };
+  if (hardshipTriggered(d, state.hardshipSelfSelected)) return { kind: "hardship" };
+  const drop = scoreDroppedForBanner(d);
+  if (drop !== null) return { kind: "score_drop", points: drop };
+  if (lenderMatchingOn(d) && d.offers.offers.length) return { kind: "new_offer", count: d.offers.offers.length };
+  return null;
+}
+
+/** Offers are only visible with lender-matching consent. */
+export const visibleOffers = (d: PersonaData) => (lenderMatchingOn(d) ? d.offers.offers : []);

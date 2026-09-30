@@ -86,9 +86,9 @@
         "wage_advance": "#76638F",
         "cash": "#6E7148",
         "fees": "#7A6A60",
-        "income": "#2F7D5B",
+        "income": "#2E7F4E",
         "centrelink": "#2F6F8D",
-        "uncategorised": "#6F6A7A"
+        "uncategorised": "#8A7A5C"
       },
       "dark": {
         "housing": "#7FA3FF",
@@ -107,9 +107,9 @@
         "wage_advance": "#BBA6D9",
         "cash": "#C2C59C",
         "fees": "#C4B3A8",
-        "income": "#6CCB9E",
+        "income": "#8FD19A",
         "centrelink": "#6CB6D8",
-        "uncategorised": "#ADA8B8"
+        "uncategorised": "#CDBE9E"
       }
     },
     "chart": {

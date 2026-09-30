@@ -27,6 +27,20 @@ Everything needed for **Astra (ChatGPT)** to produce the design system and for *
 - The pack contains Tippla's commercial model and open legal questions. Share it with Claude Code and your design partner only, not publicly.
 - Guardrails in `docs/08_compliance_guardrails.md` are product rules for the build, not legal advice. Items marked Q need counsel sign-off before production.
 
+## Running the app (Phase 0)
+
+```bash
+npm install
+npm run dev            # http://localhost:3000 → /dev/selectors shows every figure per persona
+npm test               # reconciliation, prompt figures, banned phrases, sensitive data, formatters, tokens
+npm run typecheck && npm run lint
+npm run tokens:check   # checks design/tokens.json from Astra (add --table for the full contrast table)
+```
+
+- `/dev/selectors?persona=marcus`: switch persona (`jess`, `marcus` or `priya`). Add `&fail=score` to simulate a score API failure.
+- Tokens: `npm run dev` and `npm run build` regenerate `src/styles/tokens.css` from `design/tokens.json`. They fall back to `design/tokens.template.json` if Astra's file isn't there yet.
+- `tests/design-data.test.ts` checks every number given to Astra in `design/ASTRA_PROMPTS.md`. If you change the fixtures, it tells you which prompt figures to update.
+
 ## Changes since the first version (30/09/2026 review)
 
 - **Astra prompts:** corrected weekdays (26/09 is a Saturday, 30/09 a Wednesday, 25/09 a Friday). Days to payday is now 6. The Jess category list now includes Subscriptions $4, so it reconciles to $1,832. The calendar now shows only the predicted below-$0 day (30/09). The dashboard layout now matches `docs/04_screens.md` (hardship banner, plus a short-before-payday pay cycle card). Jess's first action is now "Skip the next pay advance if you can". Added screens: Marcus improving dashboard, factor detail sheet, consents, desktop dashboard, and Priya's expected score date (10/11/2026). Added batching and verification notes for working in ChatGPT.
