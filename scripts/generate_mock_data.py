@@ -352,8 +352,12 @@ def build_score(pid, p):
 
 def derived(pid, p, tx):
     """Tippla-computed values (NOT from TaleFin): pay cycle and upcoming bills."""
-    last_wage = max(t["date"] for t in tx if t["subcategory"] == "wages" and t["status"] == "posted")
-    cyc_start = date.fromisoformat(last_wage); cyc_end = cyc_start + timedelta(days=13)
+    # The pay cycle starts at the first regular income (wages OR Centrelink) in the fortnight that
+    # ends with the latest wage, so Centrelink paid the day before wages counts in the same cycle.
+    last_wage = date.fromisoformat(max(t["date"] for t in tx if t["subcategory"] == "wages" and t["status"] == "posted"))
+    regular = [date.fromisoformat(t["date"]) for t in tx if t["subcategory"] in ("wages", "centrelink") and t["status"] == "posted"]
+    cyc_start = min(d for d in regular if last_wage - timedelta(days=6) <= d <= last_wage)
+    cyc_end = cyc_start + timedelta(days=13)
     rec = {}
     for t in tx:
         if t["is_recurring"] and t["amount"] < 0 and t["status"] == "posted":
