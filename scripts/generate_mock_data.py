@@ -17,27 +17,29 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "mock-data")
 AS_OF = date(2026, 9, 25)          # "today" for all fixtures (a Friday)
 PERIODS = [14, 30, 60, 90, 180, 365]
 
-# Tippla category taxonomy. talefin_category_id values are PLACEHOLDERS except 23 and 35
-# (the only ids confirmed in the product spec) - confirm the full AM2151 list with TaleFin.
+# Tippla category taxonomy mapped to TaleFin AM2151 debit category ids (real ids, from a production
+# response; see scripts/talefin_catalogue.json). TaleFin has 56 debit categories, some of them parents
+# (Debit 2, Fixed 5, Variable 6, Risk 4, Loans 8, Other Debit 140). Tippla groups them as below.
 CATEGORIES = {
-    "housing":      {"name": "Rent & housing",   "type": "essential", "talefin_category_id": 35},
-    "groceries":    {"name": "Groceries",        "type": "essential", "talefin_category_id": 101},
-    "food":         {"name": "Food & dining",    "type": "lifestyle", "talefin_category_id": 102},
-    "transport":    {"name": "Transport",        "type": "essential", "talefin_category_id": 103},
-    "bills":        {"name": "Bills & utilities","type": "essential", "talefin_category_id": 104},
-    "subscriptions":{"name": "Subscriptions",    "type": "lifestyle", "talefin_category_id": 105},
-    "entertainment":{"name": "Entertainment",    "type": "lifestyle", "talefin_category_id": 106},
+    "housing":      {"name": "Rent & housing",   "type": "essential", "talefin_category_id": 9},    # Rent (35 = Accommodation)
+    "groceries":    {"name": "Groceries",        "type": "essential", "talefin_category_id": 21},
+    "food":         {"name": "Food & dining",    "type": "lifestyle", "talefin_category_id": 22},   # Eating Place
+    "transport":    {"name": "Transport",        "type": "essential", "talefin_category_id": 15},
+    "bills":        {"name": "Bills & utilities","type": "essential", "talefin_category_id": 7},    # Utilities
+    "subscriptions":{"name": "Subscriptions",    "type": "lifestyle", "talefin_category_id": 37},   # Subscription Services
+    "entertainment":{"name": "Entertainment",    "type": "lifestyle", "talefin_category_id": 58},   # Leisure
     "alcohol":      {"name": "Alcohol",          "type": "lifestyle", "talefin_category_id": 23},
-    "gambling":     {"name": "Gambling",         "type": "lifestyle", "talefin_category_id": 107},
-    "health":       {"name": "Health",           "type": "essential", "talefin_category_id": 108},
-    "shopping":     {"name": "Shopping",         "type": "lifestyle", "talefin_category_id": 109},
-    "loan_repayment":{"name": "Loan repayments", "type": "essential", "talefin_category_id": 110},
-    "bnpl":         {"name": "Buy now, pay later","type": "essential","talefin_category_id": 111},
-    "wage_advance": {"name": "Pay advances",     "type": "essential", "talefin_category_id": 112},
-    "cash":         {"name": "Cash withdrawals", "type": "lifestyle", "talefin_category_id": 113},
-    "fees":         {"name": "Bank fees",        "type": "essential", "talefin_category_id": 114},
+    "gambling":     {"name": "Gambling",         "type": "lifestyle", "talefin_category_id": 30},
+    "health":       {"name": "Health",           "type": "essential", "talefin_category_id": 52},   # Medical
+    "shopping":     {"name": "Shopping",         "type": "lifestyle", "talefin_category_id": 13},   # Retail
+    "loan_repayment":{"name": "Loan repayments", "type": "essential", "talefin_category_id": 8},    # Loans (SACC 19 / Non SACC 20)
+    "bnpl":         {"name": "Buy now, pay later","type": "essential","talefin_category_id": 69},
+    "wage_advance": {"name": "Pay advances",     "type": "essential", "talefin_category_id": 71},
+    "cash":         {"name": "Cash withdrawals", "type": "lifestyle", "talefin_category_id": 70},   # ATM Withdrawals
+    "fees":         {"name": "Bank fees",        "type": "essential", "talefin_category_id": 29},   # Fees (Dishonour Fees 50)
     "income":       {"name": "Income",           "type": "income",    "talefin_category_id": None},
 }
+CATALOGUE = json.load(open(os.path.join(os.path.dirname(__file__), "talefin_catalogue.json")))
 
 PERSONAS = {
  "jess": {
@@ -190,43 +192,75 @@ def window(tx, days, pred=lambda t: True):
     cut = AS_OF - timedelta(days=days - 1)
     return [t for t in tx if t["status"] == "posted" and date.fromisoformat(t["date"]) >= cut and pred(t)]
 
-def agg(items, days):
+def ts(d):
+    """TaleFin timestamps carry an offset: +10:00 (AEST) or +11:00 (AEDT, from 04/10/2026 in NSW/VIC)."""
+    d = date.fromisoformat(d) if isinstance(d, str) else d
+    dst = date(2026, 10, 4) <= d < date(2027, 4, 4) or d < date(2026, 4, 5)
+    return f"{d.isoformat()}T10:00:00{'+11:00' if dst else '+10:00'}"
+
+EMPTY_AGG = {"sum_amount": None, "min_amount": None, "max_amount": None, "mean_amount": None, "monthly_mean_amount": None,
+             "trimmed": None, "trimmed_monthly": None, "days_since_last": None, "days_since_first": None, "count": None,
+             "earliest": None, "latest": None, "date_range_in_days": None}
+
+def agg(items, period_days):
+    """Real TaleFin: monthly_mean = sum / (period / 30), whatever history exists (so thin files understate)."""
     amts = [abs(t["amount"]) for t in items]
     if not amts:
-        return {"sum_amount": 0.0, "count": 0, "min_amount": None, "max_amount": None, "mean_amount": None,
-                "monthly_mean_amount": 0.0, "days_since_last": None, "days_since_first": None, "earliest": None, "latest": None}
+        return dict(EMPTY_AGG)
     ds = sorted(t["date"] for t in items)
-    return {"sum_amount": r2(sum(amts)), "count": len(amts), "min_amount": r2(min(amts)), "max_amount": r2(max(amts)),
-            "mean_amount": r2(statistics.mean(amts)), "monthly_mean_amount": r2(sum(amts) / days * (365 / 12)),
+    monthly = r2(sum(amts) / (period_days / 30))
+    return {"sum_amount": r2(sum(amts)), "min_amount": r2(min(amts)), "max_amount": r2(max(amts)),
+            "mean_amount": r2(statistics.mean(amts)), "monthly_mean_amount": monthly,
+            "trimmed": r2(statistics.mean(amts)), "trimmed_monthly": monthly,
             "days_since_last": (AS_OF - date.fromisoformat(ds[-1])).days, "days_since_first": (AS_OF - date.fromisoformat(ds[0])).days,
-            "earliest": ds[0], "latest": ds[-1]}
+            "count": len(amts), "earliest": ts(ds[0]), "latest": ts(ds[-1]),
+            "date_range_in_days": (date.fromisoformat(ds[-1]) - date.fromisoformat(ds[0])).days + 1}
+
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+def months_back():
+    for k in range(12):
+        y, m = AS_OF.year, AS_OF.month - k
+        while m <= 0: m += 12; y -= 1
+        yield k, y, m
 
 def monthly(tx, pred):
     out = {}
-    for k in range(6):
-        y, m = AS_OF.year, AS_OF.month - k
-        while m <= 0: m += 12; y -= 1
+    for k, y, m in months_back():
         items = [t for t in tx if t["status"] == "posted" and pred(t) and t["date"][:7] == f"{y}-{m:02d}"]
-        out[str(k)] = {"month": f"{y}-{m:02d}", "sum_amount": r2(sum(abs(t["amount"]) for t in items)), "count": len(items)}
+        v = agg(items, 30) if items else {**EMPTY_AGG, "sum_amount": 0}
+        out[str(k)] = {"month": MONTHS[m - 1], "year": y, **v}
     return out
 
-def metric(code, name, group, fmt, value):
-    return {"code": code, "name": name, "group_name": group, "format": fmt, "value": value}
+def metric(code, value, fmt=None):
+    c = CATALOGUE["metrics"][code]
+    return {"code": code, "name": c["name"], "friendly_name": c["name"], "value": value, "format": fmt or c["format"],
+            "cluster_visibility": "all", "group_name": c["group_name"]}
 
-def arr_metric(code, name, group, tx, pred, days_avail):
-    v = {str(pd): agg(window(tx, min(pd, days_avail), pred), min(pd, days_avail)) for pd in PERIODS}
+def arr_metric(code, tx, pred, days_avail=None):
+    v = {str(pd): agg(window(tx, pd, pred), pd) for pd in PERIODS}
     v["monthly_values"] = monthly(tx, pred)
-    return metric(code, name, group, "array", v)
+    return metric(code, v)
 
-def pct_metric(code, name, group, num_pred, den_pred, tx, days_avail):
-    v = {}
-    for pd in PERIODS:
-        n = sum(abs(t["amount"]) for t in window(tx, min(pd, days_avail), num_pred))
-        dd = sum(abs(t["amount"]) for t in window(tx, min(pd, days_avail), den_pred))
-        v[str(pd)] = r2(n / dd * 100) if dd else None
-    return metric(code, name, group, "percentage", v)
+def pct_metric(code, num_pred, den_pred, tx):
+    def pct(items_n, items_d):
+        n = sum(abs(t["amount"]) for t in items_n); dd = sum(abs(t["amount"]) for t in items_d)
+        return r2(n / dd * 100) if dd else None
+    v = {str(pd): pct(window(tx, pd, num_pred), window(tx, pd, den_pred)) for pd in PERIODS}
+    v["monthly_values"] = {}
+    for k, y, m in months_back():
+        mon = lambda t, y=y, m=m: t["status"] == "posted" and t["date"][:7] == f"{y}-{m:02d}"
+        v["monthly_values"][str(k)] = {"month": MONTHS[m - 1], "year": y,
+            "value": pct([t for t in tx if mon(t) and num_pred(t)], [t for t in tx if mon(t) and den_pred(t)])}
+    return metric(code, v)
+
+def flag_metric(code, present):
+    v = {str(pd): present for pd in PERIODS}
+    v["monthly_values"] = {str(k): {"month": MONTHS[m - 1], "year": y, "value": present} for k, y, m in months_back()}
+    return metric(code, v)
 
 def build_talefin(pid, p, start, tx, eod):
+    """A TaleFin bank statement 'summary' response, shaped like production (see scripts/talefin_catalogue.json)."""
     D = p["days"]
     inc = lambda t: t["category"] == "income"
     wage = lambda t: t["subcategory"] == "wages"
@@ -235,104 +269,152 @@ def build_talefin(pid, p, start, tx, eod):
     gam = lambda t: t["category"] == "gambling"
     living = lambda t: t["category"] in ("groceries", "food", "transport", "bills", "health")
     loanr = lambda t: t["category"] == "loan_repayment"
+    sacc_d = lambda t: loanr(t) and t["subcategory"] == "sacc"
+    macc_d = lambda t: loanr(t) and t["subcategory"] == "macc"
+    aocc_d = lambda t: loanr(t) and t["subcategory"] == "aocc"
     wa_c = lambda t: t["subcategory"] == "advance_credit"
     wa_d = lambda t: t["subcategory"] == "advance_repayment"
     bnpl = lambda t: t["category"] == "bnpl"
     dish = lambda t: t["subcategory"] == "dishonour"
     atm = lambda t: t["category"] == "cash"
     dd = lambda t: t["is_recurring"] and t["amount"] < 0
-    m = []
-    m.append(arr_metric("AM2001", "Wages", "Income", tx, wage, D))
-    m.append(arr_metric("AM2002", "Centrelink", "Income", tx, cl, D))
-    m.append(arr_metric("AM2003", "Total Credits", "Information", tx, lambda t: t["amount"] > 0, D))
-    m.append(arr_metric("AM2004", "Total Debits", "Information", tx, deb, D))
-    m.append(arr_metric("AM2005", "Confirmed Gambling", "Expenses", tx, gam, D))
-    m.append(arr_metric("AM2008", "Living Expenses", "Expenses", tx, living, D))
-    m.append(arr_metric("AM2010", "Housing Costs", "Expenses", tx, lambda t: t["category"] == "housing", D))
-    m.append(arr_metric("AM2011", "All Direct Debit Dishonours", "Risk", tx, dish, D))
-    m.append(arr_metric("AM2012", "Other Credits", "Income", tx, lambda t: t["amount"] > 0 and not inc(t), D))
-    m.append(arr_metric("AM2013", "Direct Debits", "Information", tx, dd, D))
-    m.append(arr_metric("AM2015", "Inferred Gambling", "Risk", tx, lambda t: False, D))
-    m.append(arr_metric("AM2020", "ATM Withdrawals", "Information", tx, atm, D))
-    m.append(arr_metric("AM2072", "Total Income", "Income", tx, inc, D))
-    m.append(arr_metric("AM2128", "BNPL Transactions", "Loans", tx, bnpl, D))
-    m.append(arr_metric("AM2138", "Wage Advance Credits", "Loans", tx, wa_c, D))
-    m.append(arr_metric("AM2139", "Wage Advance Debits", "Loans", tx, wa_d, D))
-    m.append(pct_metric("AM2023", "Combined Gambling % of Income", "Risk Percentages", gam, inc, tx, D))
-    m.append(pct_metric("AM2031", "Confirmed Gambling % of Income", "Risk Percentages", gam, inc, tx, D))
-    m.append(pct_metric("AM2033", "Centrelink % of Income", "Risk Percentages", cl, inc, tx, D))
-    m.append(pct_metric("AM2034", "Withdrawals % of Income", "Risk Percentages", deb, inc, tx, D))
-    m.append(pct_metric("AM2069", "Debt to Income Ratio", "Expenses", lambda t: loanr(t) or bnpl(t) or wa_d(t), inc, tx, D))
-    # scalar metrics
-    last_inc = max(t["date"] for t in tx if inc(t) and t["status"] == "posted")
-    last_wage = max(t["date"] for t in tx if wage(t) and t["status"] == "posted")
-    next_pay = date.fromisoformat(last_wage) + timedelta(days=14)
-    wage_amts = [t["amount"] for t in window(tx, 90, wage)]
-    m += [
-      metric("AM2163", "Employer Name", "Income", "string", p["wage"]["employer"].split(" ")[0]),
-      metric("AM2101", "Primary Income Type", "Income", "string", "Wages"),
-      metric("AM2038", "Employment Status", "Income", "boolean", True),
-      metric("AM2021", "Days Since Last Income", "Income", "days", (AS_OF - date.fromisoformat(last_inc)).days),
-      metric("AM2074", "Days Since Last Wage", "Income", "days", (AS_OF - date.fromisoformat(last_wage)).days),
-      metric("AM2077", "Next Expected Pay Date", "Income", "date", next_pay.isoformat()),
-      metric("AM2110", "Irregular Wages Present", "Income", "boolean", (statistics.pstdev(wage_amts) / statistics.mean(wage_amts)) > 0.05 if len(wage_amts) > 1 else None),
-    ]
+    none = lambda t: False
+    pend = [t for t in tx if t["status"] == "pending"]
     loans = p["loans"]
     act = lambda typ: [L for L in loans if L["type"] == typ and not L.get("end_day")]
-    m += [
-      metric("AM2025", "SACC Loans Present", "Information", "boolean", bool(act("SACC"))),
-      metric("AM2026", "MACC Loans Present", "Information", "boolean", bool(act("MACC"))),
-      metric("AM2027", "AOCC Loans Present", "Information", "boolean", bool(act("AOCC"))),
-      metric("AM2172", "Estimated Active SACC Count", "Loans", "count", len(act("SACC"))),
-      metric("AM2173", "Estimated Active MACC Count", "Loans", "count", len(act("MACC"))),
-      metric("AM2174", "Estimated Active AOCC Count", "Loans", "count", len(act("AOCC"))),
-      metric("AM2175", "Active Wage Advance Providers", "Loans", "count", 1 if p["wage_advance"] else 0),
-      metric("AM2024", "SACC Outstanding Balance (estimated)", "Loans", "currency", r2(sum(L["balance"] for L in act("SACC")))),
-      metric("AM2132", "Non-SACC Outstanding Balance (estimated)", "Loans", "currency", r2(sum(L["balance"] for L in loans if L["type"] != "SACC" and not L.get("end_day")))),
-      metric("AM2022", "SACC Repayments (monthly)", "Loans", "currency", r2(sum(L["repay"] * (26/12 if L["every"] == 14 else 1) for L in act("SACC")))),
-      metric("AM2055", "MACC Repayments (monthly)", "Loans", "currency", r2(sum(L["repay"] * (26/12 if L["every"] == 14 else 1) for L in act("MACC")))),
-      metric("AM2056", "AOCC Repayments (monthly)", "Loans", "currency", r2(sum(L["repay"] * (26/12 if L["every"] == 14 else 1) for L in act("AOCC")))),
-      metric("AM2158", "BNPL Repayments (monthly)", "Loans", "currency", r2(sum(B["repay"] * (26/12 if B["every"] == 14 else 1) for B in p["bnpl"]))),
-      metric("AM2117", "SACC Providers", "Loans", "string_array", [{"provider": L["provider"], "credit_deposit": None} for L in loans if L["type"] == "SACC"]),
-      metric("AM2120", "MACC Providers", "Loans", "string_array", [{"provider": L["provider"], "credit_deposit": None} for L in loans if L["type"] == "MACC"]),
-      metric("AM2123", "AOCC Providers", "Loans", "string_array", [{"provider": L["provider"], "credit_deposit": None} for L in loans if L["type"] == "AOCC"]),
+    monthly_repay = lambda Ls: r2(sum(L["repay"] * (26 / 12 if L["every"] == 14 else 1) for L in Ls)) if Ls else None
+    # A dishonour is the bounced repayment itself (TaleFin reports its amount); the fee is a separate debit.
+    nimble = next((L for L in loans if L["provider"] == "Nimble"), None)
+    bounced = [{"date": t["date"], "amount": -(nimble["repay"] if nimble else 15.0), "status": "posted"} for t in tx if dish(t)]
+
+    m = [
+      arr_metric("AM2001", tx, wage), arr_metric("AM2002", tx, cl),
+      arr_metric("AM2003", tx, lambda t: t["amount"] > 0), arr_metric("AM2004", tx, deb),
+      arr_metric("AM2005", tx, gam), arr_metric("AM2008", tx, living),
+      arr_metric("AM2010", tx, lambda t: t["category"] == "housing"),
+      arr_metric("AM2011", bounced, lambda t: True), arr_metric("AM2059", bounced, lambda t: True),
+      arr_metric("AM2012", tx, lambda t: t["amount"] > 0 and not inc(t)), arr_metric("AM2013", tx, dd),
+      arr_metric("AM2015", tx, none), arr_metric("AM2020", tx, atm), arr_metric("AM2072", tx, inc),
+      arr_metric("AM2128", tx, bnpl), arr_metric("AM2138", tx, wa_c), arr_metric("AM2139", tx, wa_d),
+      arr_metric("AM2087", tx, wa_d),
+      arr_metric("AM2040", tx, none), arr_metric("AM2041", tx, none), arr_metric("AM2042", tx, none),
+      arr_metric("AM2044", tx, sacc_d), arr_metric("AM2045", tx, macc_d), arr_metric("AM2046", tx, aocc_d),
+      arr_metric("AM2047", tx, none), arr_metric("AM2113", tx, none), arr_metric("AM2197", tx, none),
+      arr_metric("AM2067", pend, lambda t: True),
+      pct_metric("AM2023", gam, inc, tx), pct_metric("AM2031", gam, inc, tx), pct_metric("AM2033", cl, inc, tx),
+      pct_metric("AM2034", deb, inc, tx), pct_metric("AM2069", lambda t: loanr(t) or bnpl(t) or wa_d(t), inc, tx),
     ]
-    dd_items = window(tx, 90, dd); dish_items = window(tx, 90, dish)
-    m.append(metric("AM2032", "Dishonours % of Direct Debits", "Risk Percentages", "percentage",
-                    {str(pd): r2(len(window(tx, min(pd, D), dish)) / max(1, len(window(tx, min(pd, D), dd))) * 100) for pd in PERIODS}))
+    # AM2067 counts pending debits, which window() skips; rebuild it from the pending list directly.
+    m[[x["code"] for x in m].index("AM2067")] = metric("AM2067", {**{str(pd): agg(pend, pd) for pd in PERIODS}, "monthly_values": {}})
+
+    last_inc = max(t["date"] for t in tx if inc(t) and t["status"] == "posted")
+    last_wage = max(t["date"] for t in tx if wage(t) and t["status"] == "posted")
+    next_wage = date.fromisoformat(last_wage) + timedelta(days=14)
+    nexts = [next_wage]
+    if p["centrelink"]:
+        last_cl = max(t["date"] for t in tx if cl(t) and t["status"] == "posted")
+        nexts.append(date.fromisoformat(last_cl) + timedelta(days=14))
+    wage_amts = [t["amount"] for t in window(tx, 90, wage)]
+    irregular = (statistics.pstdev(wage_amts) / statistics.mean(wage_amts)) > 0.05 if len(wage_amts) > 1 else False
+    m += [
+      metric("AM2163", p["wage"]["employer"].replace(" PTY", "")),
+      metric("AM2101", "Wages"),
+      metric("AM2038", True),
+      metric("AM2021", (AS_OF - date.fromisoformat(last_inc)).days),
+      metric("AM2074", (AS_OF - date.fromisoformat(last_wage)).days),
+      metric("AM2035", ts(start)),
+      metric("AM2037", ts(min(nexts))),   # next income of any kind on the primary account
+      metric("AM2077", ts(next_wage)),    # next wages
+      flag_metric("AM2110", irregular),
+      flag_metric("AM2025", bool(act("SACC"))), flag_metric("AM2026", bool(act("MACC"))), flag_metric("AM2027", bool(act("AOCC"))),
+      metric("AM2172", len(act("SACC"))), metric("AM2173", len(act("MACC"))), metric("AM2174", len(act("AOCC"))),
+      metric("AM2175", 1 if p["wage_advance"] else 0),
+      # Outstanding = recent loan deposit − repayments since (TaleFin's own definition); class totals only.
+      metric("AM2024", r2(sum(L["balance"] for L in act("SACC")))),
+      metric("AM2132", r2(sum(L["balance"] for L in loans if L["type"] != "SACC" and not L.get("end_day"))) or None),
+      metric("AM2022", monthly_repay(act("SACC"))), metric("AM2116", monthly_repay(act("SACC"))),
+      metric("AM2055", monthly_repay(act("MACC"))), metric("AM2119", monthly_repay(act("MACC"))),
+      metric("AM2056", monthly_repay(act("AOCC"))), metric("AM2122", monthly_repay(act("AOCC"))),
+      metric("AM2158", r2(sum(B["repay"] * (26 / 12 if B["every"] == 14 else 1) for B in p["bnpl"])) if p["bnpl"] else None),
+      metric("AM2156", r2(p["wage_advance"]["credit"] * 1.05 * 26 / 12) if p["wage_advance"] else None),
+      metric("AM2157", r2(p["wage_advance"]["credit"] * 1.05 * 26 / 12) if p["wage_advance"] else None),
+      # "Active providers" lists only providers whose LATEST transaction is a loan deposit, so they are
+      # usually empty. Provider names come from the status / default / past-due lists instead.
+      metric("AM2117", []), metric("AM2120", []), metric("AM2123", []),
+      metric("AM2049", [{"provider": L["provider"], "status": "settled" if L.get("end_day") else "active"} for L in loans if L["type"] == "SACC"]),
+      metric("AM2105", [{"provider": L["provider"], "defaults": 0} for L in loans if L["type"] == "SACC"]),
+      metric("AM2106", [{"provider": L["provider"], "defaults": 0} for L in loans if L["type"] != "SACC"]),
+      metric("AM2107", [{"provider": p["wage_advance"]["provider"], "defaults": 0}] if p["wage_advance"] else []),
+      metric("AM2125", [{"provider": L["provider"], "defaults": 0} for L in loans if L["type"] == "SACC"]),
+      metric("AM2126", [{"provider": L["provider"], "defaults": 0} for L in loans if L["type"] != "SACC"]),
+      metric("AM2127", [{"provider": p["wage_advance"]["provider"], "defaults": 0}] if p["wage_advance"] else []),
+      metric("AM2030", [p["wage_advance"]["provider"]] if p["wage_advance"] else []),
+    ]
+    m.append(pct_metric("AM2032", dish, dd, tx))
     bals = [e["balance"] for e in eod]
     def bstats(n):
         b = bals[-min(n, D):]
         return {"min_amount": r2(min(b)), "max_amount": r2(max(b)), "mean_amount": r2(statistics.mean(b)),
-                "median_amount": r2(statistics.median(b)), "range_amount": r2(max(b) - min(b))}
-    m.append(metric("AM2161", "Daily End of Day Balance Statistics", "Information", "array", {str(pd): bstats(pd) for pd in PERIODS}))
-    m.append(metric("AM2019", "Daily End of Day Balance", "Information", "time_series", eod))
-    m.append(metric("AM2177", "Days Overdrawn", "Risk", "array", {str(pd): {"account_balance_overdrawn": sum(1 for b in bals[-min(pd, D):] if b < 0)} for pd in PERIODS}))
-    m.append(metric("AM2066", "Days Overdrawn %", "Risk Percentages", "percentage", r2(sum(1 for b in bals[-min(90, D):] if b < 0) / min(90, D) * 100)))
-    # AM2151 category monthly means
-    cats = []
+                "trimmed_amount": r2(statistics.mean(b)), "median_amount": r2(statistics.median(b)), "range_amount": r2(max(b) - min(b))}
+    m.append(metric("AM2161", {str(pd): bstats(pd) for pd in PERIODS}))
+    m.append(metric("AM2019", [{"date": ts(e["date"]), "balance": e["balance"]} for e in eod]))
+    m.append(metric("AM2177", {str(pd): {"account_balance_overdrawn": sum(1 for b in bals[-min(pd, D):] if b < 0)} for pd in PERIODS}))
+    m.append(metric("AM2066", r2(sum(1 for b in bals[-min(90, D):] if b < 0) / min(90, D) * 100)))
+    # AM2151: every TaleFin debit category, monthly means over 30 and 90 days (null when none).
+    def mean_for(pred, pd):
+        s_ = sum(abs(t["amount"]) for t in window(tx, pd, pred))
+        return r2(s_ / (pd / 30)) if s_ else None
+    by_id = {}
     for cid, c in CATEGORIES.items():
-        if c["type"] == "income": continue
-        s30 = sum(abs(t["amount"]) for t in window(tx, min(30, D), lambda t, cid=cid: t["category"] == cid and t["amount"] < 0))
-        s90 = sum(abs(t["amount"]) for t in window(tx, min(90, D), lambda t, cid=cid: t["category"] == cid and t["amount"] < 0))
-        if s90:
-            cats.append({"category_name": c["name"], "category_id": c["talefin_category_id"], "tippla_category": cid,
-                         "monthly_mean_30_days": r2(s30 / min(30, D) * 365 / 12), "monthly_mean_90_days": r2(s90 / min(90, D) * 365 / 12)})
-    m.append(metric("AM2151", "Debit Transaction Categories Monthly Mean", "Expenses", "array", cats))
-    # sensitive flags: present in fixture so the app can prove it never renders them
-    for code, name in [("AM2017","Insolvency Present"),("AM2018","Budget Management Service"),("AM2064","Public Trustee"),
-                       ("AM2092","Financial Counsellor Service"),("AM2093","Dependents Present"),("AM2062","High Risk Centrelink"),
-                       ("AM2091","Debt Collection Present"),("AM2063","Charge Off Present")]:
-        m.append(metric(code, name, "Risk", "boolean", code == "AM2093" and pid == "marcus"))
+        if c["type"] != "income":
+            by_id.setdefault(c["talefin_category_id"], []).append(cid)
+    special = {2: deb, 19: sacc_d, 20: lambda t: macc_d(t) or aocc_d(t), 50: dish}
+    cats = []
+    for c in CATALOGUE["debit_categories"]:
+        cid = c["category_id"]
+        if cid in special: pred = special[cid]
+        elif cid in by_id: pred = lambda t, ids=by_id[cid]: t["category"] in ids and t["amount"] < 0 and not dish(t)
+        else: pred = none
+        cats.append({**c, "monthly_mean_30_days": mean_for(pred, 30), "monthly_mean_90_days": mean_for(pred, 90)})
+    m.append(metric("AM2151", cats))
+    credit_pred = {36: wage, 45: cl, 40: inc, 3: lambda t: t["amount"] > 0 and not inc(t)}
+    m.append(metric("AM2152", [{**c, "monthly_mean_30_days": mean_for(credit_pred.get(c["category_id"], none), 30),
+                                     "monthly_mean_90_days": mean_for(credit_pred.get(c["category_id"], none), 90)}
+                                for c in CATALOGUE["credit_categories"]]))
+    # Sensitive flags: present in the fixture so the app can prove it never renders them.
+    for code in ["AM2017", "AM2018", "AM2064", "AM2092", "AM2093", "AM2062", "AM2091", "AM2063"]:
+        m.append(flag_metric(code, code == "AM2093" and pid == "marcus"))
+
+    prof = p["profile"]
+    seed = p["seed"]
+    bal = f"{eod[-1]['balance']:.4f}"
     return {
-      "version": "2.0", "application_id": f"APP-{pid.upper()}-0925", "vendor_specific_id": f"VS-{p['seed']}0925",
-      "timestamp": f"{AS_OF.isoformat()}T09:12:00+10:00",
-      "_note": "Mock TaleFin bank statement analysis. Shapes follow the Tippla Portal Product Spec v2.0; every value is computed from transactions.json. Only the metrics the portal uses are included (the real response has 139).",
+      "version": "2.0", "application_id": 39440000 + seed, "type": "summary", "id": 39440000 + seed,
+      "vendor_specific_id": f"VS-{seed}0925", "timestamp": f"{AS_OF.isoformat()}T09:12:00.000Z",
+      "_note": ("Mock TaleFin bank statement 'summary' response, shaped like production: timestamps with offsets, month names, "
+                "string balances, UNMASKED fictional account numbers and holder details (so the app's masking is tested). "
+                "Only the metrics the portal uses are included (production has 139). Values are computed from transactions.json."),
       "metrics": m,
-      "profiles": [{"full_name": p["profile"]["full_name"].upper(), "bank": {"name": "CBA"},
-                    "accounts": [{"id": 1, "nickname": "Smart Access", "bsb": "062-XXX", "number": "XXXX 4821",
-                                  "balance": eod[-1]["balance"], "available": r2(eod[-1]["balance"] + 0),
-                                  "_note": "BSB/number masked in fixtures. The app must never display or log full account numbers."}]}],
+      "profiles": [{
+        "id": 1000 + seed, "timestamp": f"{AS_OF.isoformat()}T09:10:00.000Z",
+        "full_name": prof["full_name"].upper(), "owner": prof["full_name"].upper(), "email": prof["email"],
+        "bank": {"id": 1, "name": "CBA", "slug": "cba", "country_code": "AU", "institution_type": "banking"},
+        "application": {"id": 39440000 + seed, "full_name": prof["full_name"], "email": prof["email"], "mobile": prof["mobile"].replace(" ", ""),
+                        "finalised": True, "analysed": True},
+        "accounts": [{
+          "id": 100280000 + seed, "nickname": "Smart Access", "available": bal, "balance": bal,
+          "bsb": f"062{seed:03d}", "number": f"1024{4814 + seed:04d}",
+          "type": "TRANSACTION", "type_display": "Transaction", "transactions_num": len([t for t in tx if t["status"] == "posted"]),
+          "account_json": {"dob": "", "name": prof["full_name"].upper(), "type": "individual", "gender": "", "openDate": ""},
+          "account_owner_info": {"owners": [prof["full_name"].upper()], "address": [{"state": prof["state"], "postCode": prof["postcode"],
+                                 "streetName": "Sample", "streetType": "St", "townSuburb": "Sample", "streetNumber": "1"}]},
+          "metrics": {"debits": {"sum": f"{-sum(abs(t['amount']) for t in tx if t['amount'] < 0 and t['status'] == 'posted'):.4f}"},
+                      "credits": {"sum": f"{sum(t['amount'] for t in tx if t['amount'] > 0 and t['status'] == 'posted'):.4f}"}},
+        }],
+        "is_cdr": False,
+      }],
+      "is_cdr": False,
+      "report_period": {"start_date": start.isoformat(), "end_date": AS_OF.isoformat(), "days_requested": D},
     }
 
 def build_score(pid, p):

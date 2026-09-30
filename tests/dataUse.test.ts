@@ -25,13 +25,15 @@ describe("data-use classes", async () => {
 
   it("the raw fixtures DO contain sensitive metrics (so the next tests mean something)", () => {
     const codes = RAW.marcus.bankStatement.metrics.map((m) => m.code);
-    for (const c of NEVER_DISPLAY_CODES.filter((x) => x !== "AM2134")) expect(codes).toContain(c);
+    for (const c of ["AM2017", "AM2018", "AM2064", "AM2092", "AM2093", "AM2062", "AM2091", "AM2063"]) expect(codes).toContain(c);
   });
 
   for (const d of personas) {
     it(`${d.id}: NEVER_DISPLAY and LENDER_ONLY metrics are stripped at the API boundary`, () => {
       for (const m of d.bankStatement.metrics) expect(["SHOW", "SCORE_ONLY", "INTERNAL"]).toContain(classOf(m.code));
-      expect(d.bankStatement.profiles[0]!.full_name).toBe("");
+      const raw = JSON.stringify(d.bankStatement);
+      expect(raw).not.toContain(d.profile.email);
+      expect(raw).not.toMatch(/"(bsb|number|full_name|owner|email|mobile|account_owner_info|account_json|application)"/);
     });
 
     it(`${d.id}: the customer score has no risk grade, references or consumer name`, () => {

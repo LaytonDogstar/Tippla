@@ -21,10 +21,11 @@ export const categoryNames: Record<CategoryId, string> = {
   cash: "Cash withdrawals",
   fees: "Bank fees",
   income: "Income",
+  transfer: "Transfers between your accounts",
 };
 
 /** Essentials vs lifestyle, for the All / Essentials / Lifestyle filter. */
-export const categoryTypes: Record<Exclude<CategoryId, "income">, "essential" | "lifestyle"> = {
+export const categoryTypes: Record<Exclude<CategoryId, "income" | "transfer">, "essential" | "lifestyle"> = {
   housing: "essential", groceries: "essential", food: "lifestyle", transport: "essential", bills: "essential",
   subscriptions: "lifestyle", entertainment: "lifestyle", alcohol: "lifestyle", gambling: "lifestyle", health: "essential",
   shopping: "lifestyle", loan_repayment: "essential", bnpl: "essential", wage_advance: "essential", cash: "lifestyle",
@@ -109,6 +110,7 @@ export const copy = {
     typeMACC: "Medium loan",
     typeAOCC: "Other credit",
     combinedBalance: (amt: string, n: number) => `About ${amt} left across ${n} small loans (estimated)`,
+    repaid: (lender: string, amt: string, n: number) => `Repaid to ${lender} in the last 90 days: ${amt} (${n} ${n === 1 ? "repayment" : "repayments"})`,
   },
   banners: {
     bankExpired: (date: string) =>
@@ -120,6 +122,7 @@ export const copy = {
   income: {
     basedOn: (days: number) => `Based on ${days} days`,
     payPattern: (amt: string, weekday: string) => `Pay of about ${amt} every second ${weekday}`,
+    expected: (payer: string, amt: string, exact: boolean, date: string) => `${payer} ${exact ? amt : `about ${amt}`} · ${date}`,
   },
   empty: {
     noBankData: "Connect your bank to see your SmartScore. It takes about two minutes and you can disconnect any time.",

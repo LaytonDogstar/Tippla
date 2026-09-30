@@ -6,7 +6,9 @@ export type PersonaId = "jess" | "marcus" | "priya";
 export type CategoryId =
   | "housing" | "groceries" | "food" | "transport" | "bills" | "subscriptions" | "entertainment"
   | "alcohol" | "gambling" | "health" | "shopping" | "loan_repayment" | "bnpl" | "wage_advance"
-  | "cash" | "fees" | "income";
+  | "cash" | "fees" | "income"
+  /** Money moved between the customer's own accounts: never spending, never income. */
+  | "transfer";
 
 export interface Transaction {
   id: string;
@@ -35,11 +37,12 @@ export interface PeriodStats {
   latest: string | null;
 }
 export type PeriodKey = "14" | "30" | "60" | "90" | "180" | "365";
+/** Normalised: month is "YYYY-MM" (TaleFin sends a month name + year). */
 export interface MonthValue { month: string; sum_amount: number; count: number }
 export type ArrayMetricValue = Partial<Record<PeriodKey, PeriodStats>> & {
   monthly_values?: Record<string, MonthValue>;
 };
-export type PercentMetricValue = Record<PeriodKey, number>;
+export type PercentMetricValue = Record<PeriodKey, number | null> & { monthly_values?: Record<string, { month: string; value: number | null }> };
 
 export interface Metric<V = unknown> {
   code: string;
@@ -49,22 +52,32 @@ export interface Metric<V = unknown> {
   value: V;
 }
 
+/** Normalised account: never holds the BSB or full number, only the last 4 digits. */
 export interface BankAccount {
   id: number;
   nickname: string;
-  bsb: string;
-  number: string;
+  last4: string;
+  type: string;
   balance: number;
   available: number;
 }
 
+/** Lender names extracted from TaleFin's provider lists (names only; status only when active/settled). */
+export interface Lenders {
+  sacc: { provider: string; status: "active" | "settled" | null }[];
+  nonSacc: string[];
+  wageAdvance: string[];
+}
+
+/** Normalised TaleFin bank statement (see src/lib/api/talefin.ts). Holder details are dropped. */
 export interface BankStatement {
   version: string;
   application_id: string;
-  vendor_specific_id: string;
   timestamp: string;
+  reportPeriod: { start: string; end: string; days: number } | null;
   metrics: Metric[];
-  profiles: { full_name: string; bank: { name: string }; accounts: BankAccount[] }[];
+  lenders: Lenders;
+  profiles: { bank: { name: string }; accounts: BankAccount[] }[];
 }
 
 export type FactorKey =

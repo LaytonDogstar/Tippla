@@ -61,9 +61,11 @@ export default async function SelectorsPage({ searchParams }: { searchParams: Se
   figures.push(["Monthly income", `${formatWhole(out.income.monthly.amount)}${out.income.monthly.basedOnDays < 90 ? ` (${copy.income.basedOn(out.income.monthly.basedOnDays)})` : ""}`]);
   if (out.income.pattern.weekday && out.income.pattern.everyDays === 14)
     figures.push(["Pay pattern", copy.income.payPattern(formatWhole(out.income.pattern.typicalAmount), weekdayLong[out.income.pattern.weekday] ?? "")]);
+  figures.push(["Income coming in", pc.expectedIncome.map((i) => copy.income.expected(i.payer, formatWhole(i.amount), i.exact, formatShortDay(i.date))).join(" · ") || "none expected"]);
+  out.loans.active.forEach((l) => figures.push([`Lender · ${l.provider}`, copy.loans.repaid(l.provider, formatWhole(l.activity.repaid90), l.activity.repayments90)]));
   figures.push(["Overdrawn", copy.balance.overdrawn(out.balance.daysOverdrawn90, 90)]);
   if (out.loans.dishonours90.count && out.loans.dishonours90.latest) figures.push(["Dishonours", copy.balance.dishonours(out.loans.dishonours90.count, formatDayMonth(out.loans.dishonours90.latest))]);
-  figures.push(["Debt-to-income", copy.loans.dti(formatPercent(out.loans.totals.debtToIncomePct90, 0))]);
+  if (out.loans.totals.debtToIncomePct90 !== null) figures.push(["Debt-to-income", copy.loans.dti(formatPercent(out.loans.totals.debtToIncomePct90, 0))]);
   if (out.gambling) {
     figures.push(["Gambling insight", `${copy.gambling.body(formatPercent(out.gambling.pctOfIncome90))}${out.gambling.factor !== null ? " " + copy.gambling.factor(formatFactor(out.gambling.factor)) : ""}`]);
     if (out.gambling.trend) figures.push(["Gambling trend", copy.gambling.trend(formatWhole(out.gambling.trend.from.amount), formatMonthLong(out.gambling.trend.from.month), formatWhole(out.gambling.trend.to.amount), formatMonthLong(out.gambling.trend.to.month))]);

@@ -1,0 +1,703 @@
+{
+ "_note": "TaleFin catalogue taken from a real bank statement response (metric names, groups, formats and category ids only; no customer data). Used by scripts/generate_mock_data.py so the mock matches production.",
+ "metrics": {
+  "AM2001": {
+   "name": "Wages",
+   "group_name": "Income",
+   "format": "array"
+  },
+  "AM2002": {
+   "name": "Centrelink",
+   "group_name": "Income",
+   "format": "array"
+  },
+  "AM2003": {
+   "name": "Credit Transactions",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2004": {
+   "name": "Debit Transactions",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2005": {
+   "name": "Confirmed Gambling",
+   "group_name": "Expenses",
+   "format": "array"
+  },
+  "AM2008": {
+   "name": "Living Expenses",
+   "group_name": "Expenses",
+   "format": "array"
+  },
+  "AM2010": {
+   "name": "Housing",
+   "group_name": "Expenses",
+   "format": "array"
+  },
+  "AM2011": {
+   "name": "Direct Debit Dishonours",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2012": {
+   "name": "Other Credits",
+   "group_name": "Income",
+   "format": "array"
+  },
+  "AM2013": {
+   "name": "Direct Debit Transactions on All Accounts",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2015": {
+   "name": "Inferred Gambling",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2020": {
+   "name": "ATM Withdrawals",
+   "group_name": "Expenses",
+   "format": "array"
+  },
+  "AM2072": {
+   "name": "Income",
+   "group_name": "Income",
+   "format": "array"
+  },
+  "AM2128": {
+   "name": "BNPL",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2138": {
+   "name": "Wage Advance Loans Credit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2139": {
+   "name": "Wage Advance Loans Debit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2023": {
+   "name": "Confirmed and Inferred Gambling as % of Income",
+   "group_name": "Risk Percentages",
+   "format": "array"
+  },
+  "AM2031": {
+   "name": "Confirmed Gambling as % of Income",
+   "group_name": "Risk Percentages",
+   "format": "array"
+  },
+  "AM2033": {
+   "name": "Centrelink as % of Income",
+   "group_name": "Income",
+   "format": "array"
+  },
+  "AM2034": {
+   "name": "Withdrawals as % of Income",
+   "group_name": "Expenses",
+   "format": "array"
+  },
+  "AM2069": {
+   "name": "Debt as % of Income (DTI Ratio)",
+   "group_name": "Expenses",
+   "format": "array"
+  },
+  "AM2163": {
+   "name": "Employer Name for Primary Wage",
+   "group_name": "Income",
+   "format": "string_array"
+  },
+  "AM2101": {
+   "name": "Primary Income Type",
+   "group_name": "Income",
+   "format": "string_array"
+  },
+  "AM2038": {
+   "name": "Estimated Employment Status",
+   "group_name": "Income",
+   "format": "boolean"
+  },
+  "AM2021": {
+   "name": "Days Since Last Income Deposit",
+   "group_name": "Income",
+   "format": "days"
+  },
+  "AM2074": {
+   "name": "Days Since Last Wage Deposit",
+   "group_name": "Income",
+   "format": "days"
+  },
+  "AM2077": {
+   "name": "Next Expected Wages Date on Primary Account",
+   "group_name": "Income",
+   "format": "date"
+  },
+  "AM2110": {
+   "name": "Irregular Wages Present",
+   "group_name": "Income",
+   "format": "boolean"
+  },
+  "AM2025": {
+   "name": "SACC Loans Present",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2026": {
+   "name": "MACC Loans Present",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2027": {
+   "name": "AOCC Loans Present",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2172": {
+   "name": "Estimated Active SACC Loans",
+   "group_name": "Loans",
+   "format": "count"
+  },
+  "AM2173": {
+   "name": "Estimated Active MACC Loans",
+   "group_name": "Loans",
+   "format": "count"
+  },
+  "AM2174": {
+   "name": "Estimated Active AOCC Loans",
+   "group_name": "Loans",
+   "format": "count"
+  },
+  "AM2175": {
+   "name": "Estimated Active Wage Advance Loans",
+   "group_name": "Loans",
+   "format": "count"
+  },
+  "AM2024": {
+   "name": "Active SACC Loan Outstanding Balance",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2132": {
+   "name": "Active Non SACC Loan Outstanding Balance",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2022": {
+   "name": "Confirmed and Estimated Active SACC Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2055": {
+   "name": "Confirmed and Estimated Active MACC Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2056": {
+   "name": "Confirmed and Estimated Active AOCC Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2158": {
+   "name": "Active BNPL Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2117": {
+   "name": "Active SACC Loan Providers",
+   "group_name": "Loans",
+   "format": "string_array"
+  },
+  "AM2120": {
+   "name": "Active MACC Loan Providers",
+   "group_name": "Loans",
+   "format": "string_array"
+  },
+  "AM2123": {
+   "name": "Active AOCC Loan Providers",
+   "group_name": "Loans",
+   "format": "string_array"
+  },
+  "AM2032": {
+   "name": "Dishonours as % of Direct Debits",
+   "group_name": "Risk Percentages",
+   "format": "array"
+  },
+  "AM2161": {
+   "name": "Daily End of Day Balance Statistics",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2019": {
+   "name": "Daily End of Day Balance",
+   "group_name": "Information",
+   "format": "string_array"
+  },
+  "AM2177": {
+   "name": "Account Balance Overdrawn",
+   "group_name": "Information",
+   "format": "string_array"
+  },
+  "AM2066": {
+   "name": "Days Overdrawn as % of Total Days",
+   "group_name": "Risk Percentages",
+   "format": "percentage"
+  },
+  "AM2151": {
+   "name": "Debit Transaction Categories Monthly Mean",
+   "group_name": "Expenses",
+   "format": "array"
+  },
+  "AM2017": {
+   "name": "Insolvency Present",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2018": {
+   "name": "Budget Management Present",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2064": {
+   "name": "Public Trustee Present",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2092": {
+   "name": "Financial Counsellors Present",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2093": {
+   "name": "Dependents Present",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2062": {
+   "name": "High Risk Centrelink Income Present",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2091": {
+   "name": "Debt Collection Present",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2063": {
+   "name": "Charge Off Present",
+   "group_name": "Risk",
+   "format": "array"
+  },
+  "AM2030": {
+   "name": "Third-Party Present",
+   "group_name": "Information",
+   "format": "string_array"
+  },
+  "AM2035": {
+   "name": "Oldest Transaction Date on All Accounts",
+   "group_name": "Income",
+   "format": "date"
+  },
+  "AM2037": {
+   "name": "Next Expected Income Date on Primary Account",
+   "group_name": "Income",
+   "format": "date"
+  },
+  "AM2040": {
+   "name": "SACC Loans Credit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2041": {
+   "name": "MACC Loans Credit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2042": {
+   "name": "AOCC Loans Credit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2044": {
+   "name": "SACC Loans Debit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2045": {
+   "name": "MACC Loans Debit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2046": {
+   "name": "AOCC Loans Debit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2047": {
+   "name": "Other Credits from Internal Transfers",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2049": {
+   "name": "Estimated SACC Loan Status",
+   "group_name": "Risk",
+   "format": "string_array"
+  },
+  "AM2067": {
+   "name": "Pending Debit Transactions",
+   "group_name": "Information",
+   "format": "array"
+  },
+  "AM2087": {
+   "name": "Wage Advance Direct Debit Transactions",
+   "group_name": "Loans",
+   "format": "array"
+  },
+  "AM2105": {
+   "name": "SACC Loan Providers in Default",
+   "group_name": "Risk",
+   "format": "string_array"
+  },
+  "AM2106": {
+   "name": "Non SACC Loan Providers in Default",
+   "group_name": "Risk",
+   "format": "string_array"
+  },
+  "AM2107": {
+   "name": "Wage Advance Providers in Default",
+   "group_name": "Risk",
+   "format": "string_array"
+  },
+  "AM2113": {
+   "name": "External Transfer Withdrawals",
+   "group_name": "Expenses",
+   "format": "array"
+  },
+  "AM2116": {
+   "name": "Confirmed Active SACC Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2119": {
+   "name": "Confirmed Active MACC Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2122": {
+   "name": "Confirmed Active AOCC Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2125": {
+   "name": "SACC Loan Providers Past Due",
+   "group_name": "Risk",
+   "format": "string_array"
+  },
+  "AM2126": {
+   "name": "Non SACC Loan Providers Past Due",
+   "group_name": "Risk",
+   "format": "string_array"
+  },
+  "AM2127": {
+   "name": "Wage Advance Providers Past Due",
+   "group_name": "Risk",
+   "format": "string_array"
+  },
+  "AM2152": {
+   "name": "Credit Transaction Categories Monthly Mean",
+   "group_name": "Income",
+   "format": "array"
+  },
+  "AM2156": {
+   "name": "Confirmed and Estimated Active Wage Advance Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2157": {
+   "name": "Confirmed Active Wage Advance Loan Repayments",
+   "group_name": "Loans",
+   "format": "currency"
+  },
+  "AM2197": {
+   "name": "Work Cover",
+   "group_name": "Income",
+   "format": "array"
+  },
+  "AM2059": {
+   "name": "All Loan Direct Debit Dishonours",
+   "group_name": "Risk",
+   "format": "array"
+  }
+ },
+ "debit_categories": [
+  {
+   "category_id": 70,
+   "category_name": "ATM Withdrawals"
+  },
+  {
+   "category_id": 35,
+   "category_name": "Accommodation"
+  },
+  {
+   "category_id": 26,
+   "category_name": "Airlines"
+  },
+  {
+   "category_id": 23,
+   "category_name": "Alcohol"
+  },
+  {
+   "category_id": 49,
+   "category_name": "Budget Management"
+  },
+  {
+   "category_id": 69,
+   "category_name": "Buy Now, Pay Later"
+  },
+  {
+   "category_id": 61,
+   "category_name": "Centrelink Repayment"
+  },
+  {
+   "category_id": 68,
+   "category_name": "Charitable Donations"
+  },
+  {
+   "category_id": 57,
+   "category_name": "Childcare"
+  },
+  {
+   "category_id": 62,
+   "category_name": "Clothing"
+  },
+  {
+   "category_id": 18,
+   "category_name": "Council"
+  },
+  {
+   "category_id": 55,
+   "category_name": "Court Fines"
+  },
+  {
+   "category_id": 48,
+   "category_name": "Credit Card"
+  },
+  {
+   "category_id": 72,
+   "category_name": "Cryptocurrency"
+  },
+  {
+   "category_id": 2,
+   "category_name": "Debit"
+  },
+  {
+   "category_id": 31,
+   "category_name": "Debt Collection"
+  },
+  {
+   "category_id": 38,
+   "category_name": "Debt Management"
+  },
+  {
+   "category_id": 50,
+   "category_name": "Dishonour Fees"
+  },
+  {
+   "category_id": 67,
+   "category_name": "Drinking Place"
+  },
+  {
+   "category_id": 22,
+   "category_name": "Eating Place"
+  },
+  {
+   "category_id": 66,
+   "category_name": "Education"
+  },
+  {
+   "category_id": 17,
+   "category_name": "Energy/Gas"
+  },
+  {
+   "category_id": 29,
+   "category_name": "Fees"
+  },
+  {
+   "category_id": 5,
+   "category_name": "Fixed"
+  },
+  {
+   "category_id": 27,
+   "category_name": "Fuel"
+  },
+  {
+   "category_id": 30,
+   "category_name": "Gambling"
+  },
+  {
+   "category_id": 21,
+   "category_name": "Groceries"
+  },
+  {
+   "category_id": 10,
+   "category_name": "Insurance"
+  },
+  {
+   "category_id": 58,
+   "category_name": "Leisure"
+  },
+  {
+   "category_id": 8,
+   "category_name": "Loans"
+  },
+  {
+   "category_id": 52,
+   "category_name": "Medical"
+  },
+  {
+   "category_id": 56,
+   "category_name": "Memberships"
+  },
+  {
+   "category_id": 63,
+   "category_name": "Money Transfer"
+  },
+  {
+   "category_id": 20,
+   "category_name": "Non SACC Loans"
+  },
+  {
+   "category_id": 140,
+   "category_name": "Other Debit"
+  },
+  {
+   "category_id": 64,
+   "category_name": "Personal Care"
+  },
+  {
+   "category_id": 65,
+   "category_name": "Pet Care"
+  },
+  {
+   "category_id": 53,
+   "category_name": "Pharmacy"
+  },
+  {
+   "category_id": 25,
+   "category_name": "Public Transport"
+  },
+  {
+   "category_id": 9,
+   "category_name": "Rent"
+  },
+  {
+   "category_id": 13,
+   "category_name": "Retail"
+  },
+  {
+   "category_id": 4,
+   "category_name": "Risk"
+  },
+  {
+   "category_id": 44,
+   "category_name": "Road Tolls"
+  },
+  {
+   "category_id": 19,
+   "category_name": "SACC Loans"
+  },
+  {
+   "category_id": 37,
+   "category_name": "Subscription Services"
+  },
+  {
+   "category_id": 54,
+   "category_name": "Tax Collection"
+  },
+  {
+   "category_id": 24,
+   "category_name": "Taxi"
+  },
+  {
+   "category_id": 16,
+   "category_name": "Telecommunications"
+  },
+  {
+   "category_id": 51,
+   "category_name": "Tobacco"
+  },
+  {
+   "category_id": 15,
+   "category_name": "Transport"
+  },
+  {
+   "category_id": 43,
+   "category_name": "Unmatched Dishonours"
+  },
+  {
+   "category_id": 7,
+   "category_name": "Utilities"
+  },
+  {
+   "category_id": 6,
+   "category_name": "Variable"
+  },
+  {
+   "category_id": 28,
+   "category_name": "Vehicle Maintenance"
+  },
+  {
+   "category_id": 71,
+   "category_name": "Wage Advance"
+  },
+  {
+   "category_id": 33,
+   "category_name": "Withdrawal"
+  }
+ ],
+ "credit_categories": [
+  {
+   "category_id": 32,
+   "category_name": "Benefits"
+  },
+  {
+   "category_id": 34,
+   "category_name": "Cash Deposits"
+  },
+  {
+   "category_id": 45,
+   "category_name": "Centrelink"
+  },
+  {
+   "category_id": 59,
+   "category_name": "Child Support"
+  },
+  {
+   "category_id": 60,
+   "category_name": "Emergency Payment"
+  },
+  {
+   "category_id": 40,
+   "category_name": "Income"
+  },
+  {
+   "category_id": 3,
+   "category_name": "Other Credit"
+  },
+  {
+   "category_id": 47,
+   "category_name": "Superannuation"
+  },
+  {
+   "category_id": 36,
+   "category_name": "Wages"
+  },
+  {
+   "category_id": 46,
+   "category_name": "Work Cover"
+  }
+ ]
+}

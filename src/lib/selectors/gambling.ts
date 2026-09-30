@@ -13,7 +13,7 @@ export function gamblingInsight(d: PersonaData) {
   const months = fullMonths(d, deposits.monthly_values ?? {});
   const first = months[0], last = months.at(-1);
   return {
-    pctOfIncome90: metric<PercentMetricValue>(d.bankStatement, "AM2023")["90"],
+    pctOfIncome90: metric<PercentMetricValue>(d.bankStatement, "AM2023")["90"] ?? 0,
     deposits90: v90.sum_amount,
     factor: d.score?.breakdown.ADVERSE_SPEND ?? null,
     /** First vs last FULL calendar month (the current month is partial). Only when it went up. */

@@ -6,7 +6,7 @@ import { currentBalance, daysOverdrawn90, lowestBalance90 } from "./balance";
 import { dashboardBanner, hardshipTriggered, lenderMatchingOn, visibleOffers } from "./banners";
 import { fortnight } from "./calendar";
 import { gamblingInsight } from "./gambling";
-import { incomeSources, monthlyIncome, payPattern } from "./income";
+import { incomeSources, incomeStreams, incomeStreamsFromSummary, monthlyIncome, payPattern } from "./income";
 import { sixMonthSpending } from "./monthly";
 import { nextBill, payCycleSummary } from "./payCycle";
 import { period, PERIOD_IDS, type PeriodId } from "./periods";
@@ -41,7 +41,7 @@ export function allSelectorOutputs(d: PersonaData) {
     spending: periods,
     sparklines: Object.fromEntries(cycleRows.map((r) => [r.category, categorySparkline(d, r.category)])),
     calendar: fortnight(d),
-    income: { monthly: monthlyIncome(d), sources: incomeSources(d), pattern: payPattern(d) },
+    income: { monthly: monthlyIncome(d), sources: incomeSources(d), pattern: payPattern(d), streams: incomeStreams(d), streamsFromSummary: incomeStreamsFromSummary(d) },
     balance: { current: currentBalance(d), daysOverdrawn90: daysOverdrawn90(d), lowest90: lowestBalance90(d) },
     loans: { active: activeLoans(d), other: otherCredit(d), totals: loanTotals(d), dishonours90: dishonours90(d) },
     gambling: gamblingInsight(d),

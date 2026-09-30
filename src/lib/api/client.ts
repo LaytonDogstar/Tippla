@@ -2,6 +2,7 @@
 // replace this file without touching UI. Simulate failures with ?fail=score (or bank, all).
 import { sanitiseBankStatement } from "@/lib/dataUse";
 import { RAW } from "./fixtures";
+import { normaliseBankStatement } from "./talefin";
 import type { CustomerScore, PersonaData, PersonaId, TaleFinScore } from "./types";
 
 export const PERSONAS: PersonaId[] = ["jess", "marcus", "priya"];
@@ -43,7 +44,7 @@ export function toCustomerScore(s: TaleFinScore): CustomerScore {
 export async function getBankStatement(id: PersonaId, opts: ClientOptions = {}) {
   await delay(opts);
   if (opts.fail === "bank" || opts.fail === "all") throw new MockApiError("bank");
-  return sanitiseBankStatement(RAW[id].bankStatement);
+  return sanitiseBankStatement(normaliseBankStatement(RAW[id].bankStatement));
 }
 
 export async function getScore(id: PersonaId, opts: ClientOptions = {}) {

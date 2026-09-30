@@ -13,8 +13,14 @@ export function applyOverrides(tx: Transaction[], overrides: CategoryOverrides =
 /** Pending transactions show in the feed but never count in totals. */
 export const posted = (tx: Transaction[]) => tx.filter((t) => t.status === "posted");
 export const pending = (tx: Transaction[]) => tx.filter((t) => t.status === "pending");
-export const isDebit = (t: Transaction) => t.amount < 0;
-export const isCredit = (t: Transaction) => t.amount > 0;
+/**
+ * Transfers between the customer's own accounts. In a real multi-account response these dwarf real
+ * spending (one sample had $48,703 of 90-day debits against $13,981 income), so they are excluded from
+ * every spent and paid-in figure.
+ */
+export const isTransfer = (t: Transaction) => t.category === "transfer";
+export const isDebit = (t: Transaction) => t.amount < 0 && !isTransfer(t);
+export const isCredit = (t: Transaction) => t.amount > 0 && !isTransfer(t);
 /** Income = wages and Centrelink, styled identically. Pay advances are credits but not income. */
 export const isIncome = (t: Transaction) => t.amount > 0 && t.category === "income";
 

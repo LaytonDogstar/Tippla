@@ -1,5 +1,5 @@
 import type { ArrayMetricValue, PersonaData } from "@/lib/api/types";
-import { metric } from "@/lib/dataUse";
+import { internalMetric, metric } from "@/lib/dataUse";
 
 export interface MonthBar {
   month: string; // 2026-09
@@ -7,16 +7,23 @@ export interface MonthBar {
   partial: boolean; // current month, data only to the data date
 }
 
-/** Six-month spending bars from AM2004 monthly_values, oldest first. */
+/**
+ * Six-month spending bars, oldest first: AM2004 (all debits) minus AM2047 (credits from the customer's
+ * own accounts), because money moved between their own accounts shows up as a debit on one side.
+ * Months before the history starts (AM2035) are null — never drawn as $0. A standard 90-day TaleFin
+ * pull only fills three of the six bars (Q17: ask for 180 days).
+ */
 export function sixMonthSpending(d: PersonaData): MonthBar[] {
-  const mv = metric<ArrayMetricValue>(d.bankStatement, "AM2004").monthly_values ?? {};
-  const dataFromMonth = d.profile.data_from.slice(0, 7);
+  const debits = metric<ArrayMetricValue>(d.bankStatement, "AM2004").monthly_values ?? {};
+  const internal = internalMetric<ArrayMetricValue>(d.bankStatement, "AM2047").monthly_values ?? {};
+  const firstMonth = metric<string>(d.bankStatement, "AM2035").slice(0, 7);
   const asOfMonth = d.asOf.slice(0, 7);
   return ["5", "4", "3", "2", "1", "0"].flatMap((k) => {
-    const v = mv[k];
+    const v = debits[k];
     if (!v) return [];
-    const before = v.month < dataFromMonth;
-    return [{ month: v.month, total: before ? null : v.sum_amount, partial: v.month === asOfMonth }];
+    const transfers = Object.values(internal).find((x) => x.month === v.month)?.sum_amount ?? 0;
+    const total = v.month < firstMonth ? null : Math.max(0, Math.round((v.sum_amount - transfers) * 100) / 100);
+    return [{ month: v.month, total, partial: v.month === asOfMonth }];
   });
 }
 

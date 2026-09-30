@@ -5,6 +5,8 @@ import { currentCycle, type Period } from "./periods";
 import { totalSpent } from "./spending";
 import { applyOverrides, inPeriod, isIncome, posted, type CategoryOverrides } from "./transactions";
 import { currentBalance } from "./balance";
+import { upcomingIncome, type ExpectedIncome } from "./income";
+import { addDays } from "@/lib/format/dates";
 
 export interface IncomeLine { date: string; source: "wages" | "centrelink" | "other"; payer: string; amount: number }
 export interface PayAdvance { date: string; provider: string; amount: number; repayDate: string | null; repayAmount: number | null; fee: number | null }
@@ -25,6 +27,8 @@ export interface PayCycleSummary {
   /** available balance − bills due before payday. Negative → "About $x short before payday". */
   leftAfterBills: number;
   isShort: boolean;
+  /** Every income expected from now until the end of the next pay cycle ("when all incomes come in"). */
+  expectedIncome: ExpectedIncome[];
 }
 
 /** Predicted bills after the data date and before the next payday. */
@@ -71,5 +75,6 @@ export function payCycleSummary(d: PersonaData, overrides?: CategoryOverrides): 
     balance,
     leftAfterBills,
     isShort: leftAfterBills < 0,
+    expectedIncome: upcomingIncome(d, addDays(d.derived.pay_cycle.next_payday, 13)),
   };
 }

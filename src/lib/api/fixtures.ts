@@ -1,6 +1,8 @@
 // Raw persona fixtures. Only src/lib/api may import this file: everything else goes through the client,
 // which strips fields the customer must never see.
-import type { BankStatement, Consent, Derived, Offers, PersonaId, Profile, ScoreHistory, TaleFinScore, Transaction } from "./types";
+import type { Consent, Derived, Offers, PersonaId, Profile, ScoreHistory, TaleFinScore, Transaction } from "./types";
+
+import type { RawBankStatement } from "./talefin";
 
 import jessProfile from "@mock/jess/profile.json";
 import jessTx from "@mock/jess/transactions.json";
@@ -32,7 +34,7 @@ import priyaConsents from "@mock/priya/consents.json";
 export interface RawPersona {
   profile: Profile;
   transactions: { as_of: string; transactions: Transaction[] };
-  bankStatement: BankStatement;
+  bankStatement: RawBankStatement;
   score: TaleFinScore;
   scoreHistory: ScoreHistory;
   derived: Derived;
@@ -42,17 +44,17 @@ export interface RawPersona {
 
 export const RAW: Record<PersonaId, RawPersona> = {
   jess: {
-    profile: jessProfile as Profile, transactions: jessTx as RawPersona["transactions"], bankStatement: jessBank as BankStatement,
+    profile: jessProfile as Profile, transactions: jessTx as RawPersona["transactions"], bankStatement: jessBank as unknown as RawBankStatement,
     score: jessScore as TaleFinScore, scoreHistory: jessHistory, derived: jessDerived as Derived, offers: jessOffers as Offers,
     consents: jessConsents as RawPersona["consents"],
   },
   marcus: {
-    profile: marcusProfile as Profile, transactions: marcusTx as RawPersona["transactions"], bankStatement: marcusBank as BankStatement,
+    profile: marcusProfile as Profile, transactions: marcusTx as RawPersona["transactions"], bankStatement: marcusBank as unknown as RawBankStatement,
     score: marcusScore as TaleFinScore, scoreHistory: marcusHistory, derived: marcusDerived as Derived, offers: marcusOffers as Offers,
     consents: marcusConsents as RawPersona["consents"],
   },
   priya: {
-    profile: priyaProfile as Profile, transactions: priyaTx as RawPersona["transactions"], bankStatement: priyaBank as BankStatement,
+    profile: priyaProfile as Profile, transactions: priyaTx as RawPersona["transactions"], bankStatement: priyaBank as unknown as RawBankStatement,
     score: priyaScore as TaleFinScore, scoreHistory: priyaHistory, derived: priyaDerived as Derived, offers: priyaOffers as Offers,
     consents: priyaConsents as RawPersona["consents"],
   },

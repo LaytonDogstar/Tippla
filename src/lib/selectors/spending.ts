@@ -4,7 +4,7 @@ import { sumMoney } from "@/lib/format/money";
 import { lastCycles, previousOf, type Period } from "./periods";
 import { debitsIn, type CategoryOverrides } from "./transactions";
 
-export type SpendCategory = Exclude<CategoryId, "income">;
+export type SpendCategory = Exclude<CategoryId, "income" | "transfer">;
 export type SpendFilter = "all" | "essentials" | "lifestyle";
 
 export interface CategoryRow {

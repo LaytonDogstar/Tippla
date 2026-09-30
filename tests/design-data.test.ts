@@ -85,7 +85,7 @@ describe("Jess (Prompts 1, 2, 7)", async () => {
     expect(t.saccOutstanding).toBe(1060); // Nimble ~$610 + Cash Train ~$450 in the prompts
     expect(t.nonSaccOutstanding).toBe(2140);
     expect(loans.find((l) => l.provider === "Right Road Finance")!.estimatedBalance).toBe(2140);
-    expect(Math.round(t.debtToIncomePct90)).toBe(21);
+    expect(Math.round(t.debtToIncomePct90 ?? 0)).toBe(21);
     const other = otherCredit(d).map((o) => [o.provider, o.kind, o.repayment]);
     expect(other).toEqual(expect.arrayContaining([["Afterpay", "bnpl", 45], ["Zip Pay", "bnpl", 40], ["Beforepay", "wage_advance", 315]]));
   });

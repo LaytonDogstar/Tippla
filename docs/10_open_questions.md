@@ -15,7 +15,11 @@ Where a question affects behaviour, implement the **default** shown, isolate it 
 | Q9 | Standard vs Pro feature split | Commercial | Pro: faster refresh, longer history, extra calculator scenarios |
 | Q10 | Refresh cadence, cost per bank pull, and ongoing consent/credential mechanism | TaleFin/Commercial | Fortnightly mock refresh |
 | Q11 | Which LENDER_ONLY / NEVER_DISPLAY fields may go in a lender package | Legal | None of NEVER_DISPLAY; LENDER_ONLY only with consent |
-| Q12 | Transaction schema and full AM2151 category id list | TaleFin | Tippla taxonomy in `mock-data` (ids 23, 35 confirmed; others placeholders) |
+| Q12 | Transaction schema and category coverage | TaleFin | Full AM2151/AM2152 id lists now known (`scripts/talefin_catalogue.json`, `docs/12`); still need the transaction schema and how much spend lands in "Other Debit" |
 | Q13 | Where consents are captured (FF form vs Tippla onboarding) | Legal/Product | Tippla onboarding, unticked |
 | Q14 | Licensing position for offers/referrals, and effect of subscription fees / Pro "priority matching" | Legal | Offers informational; no "priority matching" copy |
 | Q15 | Visual direction and brand tokens | Design (Astra) | Neutral placeholder tokens in `design/tokens.template.json` until Astra delivers |
+| Q16 | Can income types that imply circumstances (Child Support, WorkCover) be named to the customer? | Legal | Show the money as "Other regular income", never the label |
+| Q17 | History length per pull: 90 days (standard) or 180+ days? Cost and consent | TaleFin/Commercial | Mock has 180 days; real sample was 90, so the six-month chart would show three months |
+| Q18 | Transaction-level endpoint (for per-cycle categories, merchants, recategorising, per-lender splits) | TaleFin | `transactions.json` stands in; `…FromSummary` selectors cover what the summary can do alone |
+| Q19 | Timezone: AEST for everyone (decided for now) or per-state (AEDT/ACST/AWST)? | Product | AEST everywhere (`src/lib/format/dates.ts`) |

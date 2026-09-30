@@ -2,6 +2,7 @@ import type { PersonaData } from "@/lib/api/types";
 import { metric } from "@/lib/dataUse";
 import { addDays, type ISODate } from "@/lib/format/dates";
 import { sumMoney } from "@/lib/format/money";
+import { upcomingIncome } from "./income";
 
 export const currentBalance = (d: PersonaData): number =>
   sumMoney((d.bankStatement.profiles[0]?.accounts ?? []).map((a) => a.available));
@@ -21,18 +22,17 @@ export const lowestBalance90 = (d: PersonaData): number =>
   metric<{ "90": { min_amount: number } }>(d.bankStatement, "AM2161")["90"].min_amount;
 
 /**
- * Forecast end-of-day balance from the day after the data date to `until`, applying predicted bills only
- * (no guess at everyday spending). Label these "predicted".
+ * Forecast end-of-day balance from the day after the data date to `until`: predicted bills out, expected
+ * income in (typical amounts). No guess at everyday spending. Label these "predicted".
  */
 export function projectedBalances(d: PersonaData, until: ISODate): BalancePoint[] {
-  // Stop before the next payday: the forecast doesn't guess the next pay amount.
-  const last = addDays(d.derived.pay_cycle.next_payday, -1);
-  if (until > last) until = last;
+  const incomes = upcomingIncome(d, until);
   const out: BalancePoint[] = [];
   let bal = currentBalance(d);
   for (let day = addDays(d.asOf, 1); day <= until; day = addDays(day, 1)) {
-    const bills = d.derived.upcoming_bills.filter((b) => b.date === day);
-    bal = sumMoney([bal, ...bills.map((b) => -b.expected_amount)]);
+    const bills = d.derived.upcoming_bills.filter((b) => b.date === day).map((b) => -b.expected_amount);
+    const pay = incomes.filter((i) => i.date === day).map((i) => i.amount);
+    bal = sumMoney([bal, ...bills, ...pay]);
     out.push({ date: day, balance: bal, predicted: true });
   }
   return out;

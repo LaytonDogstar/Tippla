@@ -26,7 +26,11 @@ Source: *Tippla Customer Portal Product Specification Sheet — Talefin API to P
 4. **Loan balances are estimates** (AM2024, AM2132). Always labelled "estimated".
 5. **Lender thresholds are INTERNAL:** ">10% warning / >20% critical" gambling, "Centrelink >50% flag", "DTI target <40%", ">2 wage advance providers warning", "dishonours >5%", "overdrawn >30%". None of these appear as labels, colours or badges in the customer UI.
 6. **Balance heat map:** the spec's "green if positive, red if negative" is replaced by neutral tones + hatched below zero.
-7. **Account numbers:** display only nickname + last 4 (`Smart Access ••4821`). Never display or log full BSB/number.
+7. **Account numbers:** display only nickname + last 4 (`Smart Access ••4821`). Never display or log full BSB/number. **Production sends them unmasked** along with holder name, joint owners, email, mobile, address and DOB fields; `src/lib/api/talefin.ts` drops them at the boundary.
+8. **Transfers between the customer's own accounts** inflate AM2003/AM2004 (a real sample: $48,703 debits vs $13,981 income over 90 days). Exclude them from spent and paid-in; the six-month bars use AM2004 − AM2047.
+9. **Lender names:** AM2117/AM2120/AM2123 list only lenders whose latest transaction is a loan deposit, so they are usually empty. Take names from AM2049, AM2105–AM2107, AM2125–AM2127 and AM2030 (names only; the lists themselves are LENDER_ONLY).
+10. **Monthly means** divide by the whole period, not the history available: rescale for thin files using AM2035.
+11. **Format:** timestamps carry offsets (→ AEST), monthly values use month names + year, empty stats are all-null, balances are strings. See `docs/12_talefin_response_review.md`.
 
 ## Mapping
 

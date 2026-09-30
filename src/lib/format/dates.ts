@@ -40,14 +40,31 @@ export function formatRelativeDays(from: ISODate, to: ISODate): string {
 }
 
 /**
- * "Updated Fri 25/09, 9:14am". TaleFin's SCORED_DATETIME has no timezone; the fixtures hold
- * Australian local time. Confirm TaleFin's timezone before production (convert to AEST/AEDT then).
+ * All displayed dates and times are AEST (UTC+10), decided 30/09/2026. TaleFin timestamps carry their own
+ * offset (+10:00, or +11:00 in daylight saving), so they are converted; a timestamp with no offset
+ * (the Score's SCORED_DATETIME) is taken as AEST already. Per-state time (AEDT, ACST, AWST) is a later change.
  */
+export const DISPLAY_OFFSET_MINUTES = 10 * 60;
+
+const OFFSET_RE = /(Z|[+-]\d{2}:?\d{2})$/;
+
+/** Any TaleFin date/datetime → { date: YYYY-MM-DD, minutes since midnight } in AEST. */
+export function toAEST(value: string): { date: ISODate; minutes: number } {
+  const v = value.trim().replace(" ", "T");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return { date: v, minutes: 0 };
+  const ms = Date.parse(OFFSET_RE.test(v) ? v : `${v}+10:00`);
+  if (Number.isNaN(ms)) throw new Error(`Bad datetime: ${value}`);
+  const local = new Date(ms + DISPLAY_OFFSET_MINUTES * 60_000);
+  return { date: local.toISOString().slice(0, 10), minutes: local.getUTCHours() * 60 + local.getUTCMinutes() };
+}
+export const toAESTDate = (value: string): ISODate => toAEST(value).date;
+
+/** "Updated Fri 25/09, 9:14am" (AEST). */
 export function formatUpdated(datetime: string): string {
-  const [date, time = "00:00"] = datetime.split(" ");
-  const [hh = 0, mm = 0] = time.split(":").map(Number);
+  const { date, minutes } = toAEST(datetime);
+  const hh = Math.floor(minutes / 60), mm = minutes % 60;
   const h12 = hh % 12 === 0 ? 12 : hh % 12;
-  return `Updated ${formatShortDay(date!)}, ${h12}:${String(mm).padStart(2, "0")}${hh < 12 ? "am" : "pm"}`;
+  return `Updated ${formatShortDay(date)}, ${h12}:${String(mm).padStart(2, "0")}${hh < 12 ? "am" : "pm"}`;
 }
 
 /** Month key "2026-09" → "Sep" */

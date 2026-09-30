@@ -31,6 +31,25 @@ export const DATA_USE = {
   AM2049: "LENDER_ONLY", AM2105: "LENDER_ONLY", AM2106: "LENDER_ONLY", AM2107: "LENDER_ONLY", AM2125: "LENDER_ONLY", AM2126: "LENDER_ONLY",
   // Balances
   AM2068: "SHOW", AM2161: "SHOW", AM2019: "SHOW", AM2177: "SHOW", AM2066: "SHOW",
+  // Added after reviewing a production response (docs/12_talefin_response_review.md)
+  AM2030: "SHOW", // Third-party (pay advance) provider names
+  AM2035: "SHOW", AM2036: "SHOW", AM2037: "SHOW", // Oldest transaction dates; next expected income (any type)
+  AM2039: "INTERNAL", AM2076: "INTERNAL", // Primary account ids
+  AM2040: "SHOW", AM2041: "SHOW", AM2042: "SHOW", // Loan deposits received, by class
+  AM2044: "SHOW", AM2045: "SHOW", AM2046: "SHOW", // Loan repayments debited, by class
+  AM2078: "SHOW", AM2079: "SHOW", AM2081: "SHOW", AM2087: "SHOW", // Loan / pay-advance direct debits
+  AM2116: "SHOW", AM2119: "SHOW", AM2122: "SHOW", AM2157: "SHOW", // Confirmed active repayments (monthly)
+  AM2152: "SHOW", // Credit (income) categories, monthly means
+  AM2164: "SHOW", AM2197: "SHOW", // Primary wage; WorkCover income (label as "Other regular income", Q16)
+  AM2067: "SHOW", AM2060: "SHOW", // Pending debits; credit card cash advances
+  AM2014: "INTERNAL", AM2047: "INTERNAL", AM2061: "INTERNAL", AM2113: "INTERNAL", // Transfers: exclude from spend/income
+  AM2007: "INTERNAL", AM2162: "INTERNAL", AM2100: "INTERNAL", AM2028: "INTERNAL", AM2147: "INTERNAL",
+  AM2141: "INTERNAL", AM2142: "INTERNAL", AM2143: "INTERNAL", AM2144: "INTERNAL", AM2145: "INTERNAL", AM2146: "INTERNAL",
+  AM2082: "SCORE_ONLY", AM2083: "SCORE_ONLY", AM2086: "SCORE_ONLY", AM2089: "SCORE_ONLY", AM2130: "SCORE_ONLY", AM2192: "SCORE_ONLY",
+  AM2127: "LENDER_ONLY", // Wage advance providers past due
+  AM2070: "NEVER_DISPLAY", // Superannuation present (can signal early release on hardship grounds)
+  AM2006: "NEVER_DISPLAY", // Centrelink emergency (advance) payments
+  AM2009: "NEVER_DISPLAY", AM2065: "NEVER_DISPLAY", AM2095: "NEVER_DISPLAY", // Debt collection, counsellor, Public Trustee payments
   // Sensitive inferences: never displayed, never logged, never in a lender package (Q11)
   AM2091: "NEVER_DISPLAY", AM2063: "NEVER_DISPLAY", AM2017: "NEVER_DISPLAY", AM2018: "NEVER_DISPLAY",
   AM2064: "NEVER_DISPLAY", AM2092: "NEVER_DISPLAY", AM2093: "NEVER_DISPLAY", AM2062: "NEVER_DISPLAY",
@@ -52,13 +71,14 @@ export const NEVER_DISPLAY_CODES = (Object.keys(DATA_USE) as MetricCode[]).filte
 /** Classes allowed to leave the API layer for the customer portal. */
 const CUSTOMER_CLASSES: DataUseClass[] = ["SHOW", "SCORE_ONLY", "INTERNAL"];
 
-/** Strips LENDER_ONLY, NEVER_DISPLAY and unclassified metrics. Called once, in the API client. */
+/**
+ * Strips LENDER_ONLY, NEVER_DISPLAY and unclassified metrics. Called once, in the API client, after
+ * normaliseBankStatement (which already dropped holder details and all but the last 4 account digits).
+ */
 export function sanitiseBankStatement(bs: BankStatement): BankStatement {
   return {
     ...bs,
     metrics: bs.metrics.filter((m) => CUSTOMER_CLASSES.includes(classOf(m.code))),
-    // Holder name is INTERNAL (greet with the profile first name); account numbers are already masked.
-    profiles: bs.profiles.map((p) => ({ ...p, full_name: "" })),
   };
 }
 
