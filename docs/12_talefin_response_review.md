@@ -130,11 +130,13 @@ In the sample, "Other Debit" (140) was $12,428 of $14,752 a month. Much of that 
 - **Data-use classes:** every code seen in the production response now has a class (fail-closed for anything else).
 - **Tests:** `tests/talefin.test.ts` (normaliser, AEST, masking, lender names) and `tests/income.test.ts` (income schedule, lender debits, transfers, thin-file income).
 
-## Asks for TaleFin
+## Asks for TaleFin — answered 30/09/2026
 
-1. The transaction-level endpoint (date, description, amount, category id, account, pending flag) and whether it's billed separately (Q18).
-2. A 180-day (or longer) pull: cost and consent implications (Q17).
-3. How much real spending lands in "Other Debit" (140), and whether transfers between the customer's own accounts can be flagged on transactions.
-4. Per-lender balance and repayment figures, or confirmation that transactions are the only route.
-5. Whether `SCORED_DATETIME` is AEST, UTC or server-local.
-6. When AM2117/AM2120/AM2123 are populated, and what `credit_deposit` holds.
+| # | Ask | Answer | What it means for the build |
+|---|---|---|---|
+| 1 | Transaction-level data | **Yes, transactions can be extracted** | The Spending screen works as designed: per-pay-cycle categories, merchants, recategorising and search, all from transactions. `transactions.json` is the model of that feed |
+| 2 | 180-day pull | **Yes, 180 days** | The six-month chart stays; the mock already holds 180 days |
+| 3 | Flagging transfers between own accounts | **Not conclusively.** The customer can connect more than one account | Tippla infers them: a debit on one connected account and the same amount credited to another within 2 days is a transfer and leaves every total (`findTransferPairs`). Onboarding (O3) should ask the customer to connect every account they use. Transfer-looking items with no match are listed for the customer to confirm, rather than silently excluded |
+| 4 | Per-lender balances and repayments | **From transactions only** | Per-lender repayments, dishonours and "borrowed / repaid so far" come from transactions (`activeLoans()[].activity`). TaleFin's class totals are the cross-check. Balances stay labelled "estimated" |
+| 5 | `SCORED_DATETIME` timezone | **AEST** | Already handled |
+| 6 | When AM2117/AM2120/AM2123 are populated | Open, low priority | Lender names already come from the other lists; this only confirms an assumption |

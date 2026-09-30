@@ -3,6 +3,7 @@
 import { sanitiseBankStatement } from "@/lib/dataUse";
 import { RAW } from "./fixtures";
 import { normaliseBankStatement } from "./talefin";
+import { applyTransferDetection } from "@/lib/selectors/transfers";
 import type { CustomerScore, PersonaData, PersonaId, TaleFinScore } from "./types";
 
 export const PERSONAS: PersonaId[] = ["jess", "marcus", "priya"];
@@ -64,7 +65,8 @@ export async function loadPersona(id: PersonaId, opts: ClientOptions = {}): Prom
     id,
     asOf: raw.transactions.as_of,
     profile: raw.profile,
-    transactions: raw.transactions.transactions,
+    // TaleFin can't flag own-account transfers; Tippla matches them across connected accounts.
+    transactions: applyTransferDetection(raw.transactions.transactions),
     bankStatement,
     score: scoreResult.s,
     scoreHistory: raw.scoreHistory.history,

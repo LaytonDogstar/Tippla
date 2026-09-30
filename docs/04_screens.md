@@ -21,7 +21,7 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 ### O3 Connect bank
 - Before: what will happen, which bank, read-only, can disconnect any time, ~2 minutes. Button "Connect with TaleFin".
 - Mock TaleFin screen (clearly styled as a third party) → "Returning you to Tippla".
-- After: "Connected to CBA · Smart Access". Option to add another account (multi-account state).
+- After: "Connected to CBA · Smart Access". Then ask plainly for the others: "Do you use any other accounts, like savings or another bank? Connecting them keeps money you move between your own accounts out of your spending." Buttons: "Add another account" · "That's all of them". Every connected account improves transfer matching (Q20).
 
 ### O4 Analysing
 - Four steps tick through in plain language (see copy doc). ~8 s simulated. No bouncing illustrations. Reduced motion: steps appear without animation.

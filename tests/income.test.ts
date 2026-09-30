@@ -82,3 +82,31 @@ describe("transfers between the customer's own accounts", async () => {
     expect(payCycleSummary(withTransfers).paidIn).toBe(payCycleSummary(jess).paidIn);
   });
 });
+
+describe("inferring transfers across connected accounts", () => {
+  const base = { subcategory: null, is_recurring: false, status: "posted" as const, balance_after: null, merchant: "X" };
+  const tx = (id: string, date: string, amount: number, account_id: number, description: string, category: any = "shopping") =>
+    ({ ...base, id, date, amount, account_id, description, category });
+
+  it("pairs same-amount debit and credit on different accounts within two days", async () => {
+    const { findTransferPairs, applyTransferDetection, possibleUnconnectedTransfers } = await import("@/lib/selectors");
+    const list = [
+      tx("c", "2026-09-20", -500, 1, "KMART"),           // same amount and day, but the transfer-worded debit wins
+      tx("a", "2026-09-20", -500, 1, "TRANSFER TO XX1234 NETBANK"),
+      tx("b", "2026-09-21", 500, 2, "TRANSFER FROM XX4821"),
+      tx("d", "2026-09-10", -80, 1, "OSKO PAYMENT TO J SMITH"), // transfer-looking, no match: ask the customer
+      tx("e", "2026-09-10", 80, 1, "REFUND"),            // same account: never a transfer
+      tx("f", "2026-09-25", 1335.06, 2, "SALARY", "income"),
+      tx("g", "2026-09-25", -1335.06, 1, "RENT"),        // matches salary's amount, but income is never a transfer
+    ];
+    expect(findTransferPairs(list).map((m) => [m.debitId, m.creditId])).toEqual([["a", "b"]]);
+    const applied = applyTransferDetection(list);
+    expect(applied.filter((t) => t.category === "transfer").map((t) => t.id)).toEqual(["a", "b"]);
+    expect(possibleUnconnectedTransfers(list).map((t) => t.id)).toEqual(["d"]);
+  });
+
+  it("changes nothing for single-account personas", async () => {
+    const { findTransferPairs } = await import("@/lib/selectors");
+    for (const d of await Promise.all([load("jess"), load("marcus"), load("priya")])) expect(findTransferPairs(d.transactions)).toEqual([]);
+  });
+});
