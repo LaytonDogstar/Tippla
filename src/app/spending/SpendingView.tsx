@@ -1,7 +1,7 @@
 "use client";
 // P3 Spending, after reference/spending_interaction_prototype.html: the chart is a control, rows expand to
 // merchants, any transaction can be recategorised and every figure (donut, rows, budgets, hero, Home) moves.
-import { ChevronRight, ExternalLink, Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
@@ -24,6 +24,7 @@ import { CategoryRow } from "@/components/domain/CategoryRow";
 import { Donut } from "@/components/domain/Donut";
 import { DueSheet } from "@/components/domain/DueSheet";
 import { InsightCard, InsightSheetBody, type InsightItem } from "@/components/domain/Insight";
+import { SupportOptions } from "@/components/domain/SupportOptions";
 import { TransactionRow } from "@/components/domain/TransactionRow";
 import { categoryIcons, catVar } from "@/components/icons";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -416,21 +417,7 @@ function InsightSheets({ sheet, setSheet, items, insights, budgets, onBudget }: 
       subtitle={support ? undefined : ins ? `${categoryNames[ins.category]}${ins.id === "gambling" ? ` · ${factorCopy.ADVERSE_SPEND.name}` : ""}` : undefined}
       onBack={support ? () => setSheet({ kind: "insight", id: id! }) : undefined} footer={footer}>
       {support ? (
-        <div className="flex flex-col gap-t4">
-          <p className="text-body text-text-muted">{gamblingSupport.intro}</p>
-          <ul className="flex flex-col gap-t3">
-            {gamblingSupport.items.map((s) => (
-              <li key={s.id} className="rounded-sm bg-surface2 p-t4">
-                {s.href ? (
-                  <a href={s.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-tap items-center gap-t2 text-h3 text-accent underline-offset-4 hover:underline">
-                    {s.name}<ExternalLink aria-hidden size={16} /><span className="sr-only">{gamblingSupport.opensIn}</span>
-                  </a>
-                ) : <p className="text-h3 text-text">{s.name}</p>}
-                <p className="mt-t1 text-small text-text-muted">{s.body}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <SupportOptions />
       ) : item ? <InsightSheetBody item={item} /> : null}
     </Sheet>
   );

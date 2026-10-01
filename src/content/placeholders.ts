@@ -1,10 +1,5 @@
 // Screens not built yet. Each route still goes somewhere and says what will be there (non-negotiable 7).
 export const placeholders: Record<string, { title: string; body: string; phase: number }> = {
-  loans: { title: "Loans & credit", body: "Your loans, pay advances and buy now, pay later, with estimated balances.", phase: 5 },
-  offers: { title: "Offers", body: "Offers from partner lenders, only if you've turned on lender matching.", phase: 5 },
-  hardship: { title: "Hardship support", body: "If money's tight right now, these are real options: talking to your lender, free financial counselling through the National Debt Helpline (1800 007 007), and pausing Tippla.", phase: 5 },
-  help: { title: "Help", body: "Answers to common questions, like why you were declined and who sees your data.", phase: 5 },
-  notifications: { title: "Notifications", body: "Score changes, bill reminders and bank connection updates.", phase: 5 },
 };
 export const placeholderNote = (phase: number) => `This screen is being built (phase ${phase}).`;
 export const devLinks = { components: "Component library", selectors: "Selector figures", onboarding: "Start onboarding" };

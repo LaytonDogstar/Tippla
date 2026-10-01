@@ -4,6 +4,7 @@
 import { Check, Info, X, type LucideIcon } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { emptyStates, ui, type EmptyVariant } from "@/content/components";
 import { Button } from "./Button";
 import { cx } from "./cx";
@@ -21,6 +22,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const reduce = useReducedMotion();
   const seq = useRef(0);
   const show = useCallback((t: Omit<ToastMsg, "id">) => setToast({ ...t, id: ++seq.current }), []);
+  // A toast belongs to the screen that raised it: clear it when the customer moves to another page.
+  const pathname = usePathname();
+  useEffect(() => setToast(null), [pathname]);
   // Informational toasts dismiss after 6 s (paused on hover/focus); actionable ones persist.
   useEffect(() => {
     if (!toast || toast.onUndo || paused) return;

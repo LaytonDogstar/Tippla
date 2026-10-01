@@ -18,3 +18,6 @@ export * from "./edits";
 export * from "./budgets";
 export * from "./cohort";
 export * from "./spendingInsights";
+export * from "./repayments";
+export * from "./account";
+export * from "./notifications";

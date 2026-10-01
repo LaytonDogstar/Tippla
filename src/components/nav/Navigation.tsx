@@ -59,6 +59,7 @@ const GROUPS: { label?: string; items: { href: string; label: string }[] }[] = [
   { label: nav.groups.score, items: [{ href: "/score", label: nav.items.smartscore }, { href: "/savings", label: nav.items.lift }] },
   { label: nav.groups.spending, items: [{ href: "/spending", label: nav.items.spending }, { href: "/calendar", label: nav.items.calendar }, { href: "/subscriptions", label: nav.items.subscriptions }] },
   { label: nav.groups.loans, items: [{ href: "/loans", label: nav.items.loans }, { href: "/offers", label: nav.items.offers }] },
+  { label: nav.groups.account, items: [{ href: "/account", label: nav.items.account }, { href: "/notifications", label: nav.items.notifications }] },
 ];
 const SUPPORT = { label: nav.groups.support, items: [{ href: "/hardship", label: nav.items.hardship }, { href: "/help", label: nav.items.help }] };
 

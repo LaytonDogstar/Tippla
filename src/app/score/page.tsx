@@ -1,6 +1,6 @@
 import { Info } from "lucide-react";
 import Link from "next/link";
-import { loadPersona } from "@/lib/api/client";
+import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { factorDrivers, factors, loanTotals, recommendations, scoreState, scoreTrend, strongestFactor, topThreeFactors } from "@/lib/selectors";
 import { formatUpdated } from "@/lib/format";
@@ -18,7 +18,7 @@ type Key = Exclude<FactorKey, "GOVERNMENT_RELIANCE">;
 export async function ScorePage({ searchParams, slug }: { searchParams: { persona?: string; present?: string }; slug?: string }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
-  const { data } = await loadPersona(persona);
+  const { data } = await loadCustomer(persona);
   const all = factors(data);
   const top = topThreeFactors(data);
   const recs = recommendations(data);

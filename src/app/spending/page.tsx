@@ -1,7 +1,7 @@
 // P3 Spending. The server loads the persona and sends the client only what the spending selectors need
 // (transactions, pay cycle, bills, subscriptions), so every chip, filter and recategorisation recomputes
 // instantly through the same selectors — and the server-rendered Home agrees via the edits cookie.
-import { loadPersona } from "@/lib/api/client";
+import { loadCustomer } from "@/lib/customer";
 import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
 import { gamblingInsight, payCycleSummary, type SpendData } from "@/lib/selectors";
 import { formatUpdated } from "@/lib/format";
@@ -16,7 +16,7 @@ type Search = { persona?: string; present?: string; tab?: string; period?: strin
 export default async function Spending({ searchParams }: { searchParams: Search }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
-  const { data } = await loadPersona(persona);
+  const { data } = await loadCustomer(persona);
   const lite: SpendData = {
     transactions: data.transactions,
     asOf: data.asOf,

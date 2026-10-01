@@ -161,6 +161,7 @@ export const offer = {
   unavailable: "Offer details unavailable",
   unavailableBody: "We can't show these terms right now. Nothing has been sent to the lender.",
   sample: "Sample",
+  sampleLabel: "(sample)",
 };
 
 export const recommendation = {
@@ -188,6 +189,7 @@ export const nav = {
     spending: "Spending",
     loans: "Loans",
     support: "Support",
+    account: "Account",
   },
   items: {
     smartscore: "SmartScore",
@@ -199,6 +201,8 @@ export const nav = {
     offers: "Offers",
     hardship: "Hardship support",
     help: "Help",
+    account: "Account",
+    notifications: "Notifications",
   },
 };
 

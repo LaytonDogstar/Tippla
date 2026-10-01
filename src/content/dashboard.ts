@@ -36,6 +36,7 @@ export const dashboard = {
     hardship: "Money tight right now? There are options",
     newOffer: (n: number) => (n === 1 ? "You have 1 new offer" : `You have ${n} new offers`),
     scoreDrop: (n: number) => `Your SmartScore dropped ${n} points. See what changed`,
+    bankDisconnected: "You've disconnected your bank, so your numbers have stopped updating. Reconnect any time.",
     bankExpired: (d: string) => `Your bank connection has expired, so your numbers stopped updating on ${d}. Reconnect to refresh them.`,
   },
 };

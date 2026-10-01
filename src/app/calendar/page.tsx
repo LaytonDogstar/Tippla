@@ -1,6 +1,6 @@
 // P5 Expense calendar: payday to payday at a glance. Navigation is in the URL (?view, ?offset, ?month,
 // ?day) so links from Home ("next bill" → ?day=) land on the right fortnight with that day's sheet open.
-import { loadPersona } from "@/lib/api/client";
+import { loadCustomer } from "@/lib/customer";
 import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
 import { currentCycle, dayTransactions, fortnight, fortnightBounds, isMonthKey, monthCalendar, payCycleSummary } from "@/lib/selectors";
 import { daysBetween, formatShortDay, formatUpdated } from "@/lib/format";
@@ -16,7 +16,7 @@ const isDay = (v?: string): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
 export default async function Calendar({ searchParams }: { searchParams: Search }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
-  const { data } = await loadPersona(persona);
+  const { data } = await loadCustomer(persona);
   const edits = categoryEdits(persona);
   const view = searchParams.view === "month" ? "month" : "fortnight";
   const day = isDay(searchParams.day) ? searchParams.day : null;
