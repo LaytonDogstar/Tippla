@@ -51,6 +51,8 @@ npm run test:e2e             # Playwright: the three journeys, every screen in a
 npm run lighthouse           # Lighthouse mobile accessibility on every screen × persona (target ≥ 95); needs npm start running
 ```
 
+**Password for a hosted preview:** set the environment variable `SITE_PASSWORD` (on Railway: service › Variables). Every page then asks for that password first, and a correct entry is remembered for 30 days on that device. Leave it unset locally and the app opens straight away. To sign out on a device, visit `/api/gate?signout=1`. To change the password, change the variable and redeploy; everyone is asked again.
+
 Dev controls (all carried in cookies, so they stick as you click around):
 
 - `?persona=jess|marcus|priya` switches the customer. The **Dev** pill bottom-left does the same.
