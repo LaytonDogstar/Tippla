@@ -234,7 +234,7 @@ Give me a handoff manifest (Markdown) listing every file you produced with its p
 ## Prompt 10 — Corrections after the first handoff (01/10/2026)
 
 ```
-Thanks — the handoff is strong and the tokens pass our automated checks. Please make these corrections, then re-output only the changed files and add them to MANIFEST.md.
+Thanks — the handoff is strong and the tokens pass our automated checks. Please make these corrections, then re-output only the changed files, add them to MANIFEST.md, and package them as described in point 7.
 
 1. MARCUS DASHBOARD USES OLD DATA. Screens 04 (dashboard-improving, -pay-cycle, -due, light and dark) and screens.md use the earlier pay cycle. The current data is:
    - "Pay cycle 23/09 – 06/10 · 12 days to payday (Wed 07/10)"
@@ -255,6 +255,12 @@ Thanks — the handoff is strong and the tokens pass our automated checks. Pleas
 5. COMPARISON RATE IS VERIFIED. 21.9% p.a. matches the repayment schedule ($2,500, 39 fortnightly repayments of $75.47). Show it as "21.9% p.a. comparison rate"; drop the caveat. Label the $443.33 line "Total cost of borrowing $443 (includes the $150 fee)".
 
 6. GAMBLING SHEET "WHAT IT WOULD CHANGE". There is copy for this block: "Keeping gambling lower over the next 90 days is one of the ways to lift this factor." Please add it to screen 08 (light and dark).
+
+7. THE SCREENS ZIP STILL WON'T OPEN. The tippla-screens.zip I downloaded is the old broken one (no ZIP directory), so it fails to open. After making the corrections above, please:
+   - rebuild design/tippla-screens.zip with every current screen PNG (all 71, including the ones corrected here), screens.md and screens previews;
+   - give it a new name so I can't download the old one by mistake: design/tippla-screens-v2.zip;
+   - test that it opens (list its contents and check every CRC) before you give me the link;
+   - also give me a separate small ZIP of only the files changed in this round: design/corrections-round-2.zip.
 ```
 
 ---
