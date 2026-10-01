@@ -11,7 +11,7 @@ export function HeaderActions({ unread }: { unread: number }) {
       <Link href="/notifications" aria-label={unread ? `${notificationsCopy.title}, ${notificationsCopy.badge(unread)}` : notificationsCopy.title} className={btn}>
         <Bell aria-hidden size={24} />
         {unread > 0 && (
-          <span aria-hidden className="tnum absolute -right-[2px] -top-[2px] inline-flex h-[20px] min-w-[20px] items-center justify-center rounded-pill bg-accent px-t1 text-caption text-on-accent">{unread}</span>
+          <span aria-hidden className="tnum absolute -right-[2px] -top-[2px] inline-flex min-h-[20px] min-w-[20px] items-center justify-center rounded-pill bg-accent px-t1 text-caption text-on-accent">{unread}</span>
         )}
       </Link>
       <Link href="/account" aria-label={accountPage.menu} className={btn}>

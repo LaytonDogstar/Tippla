@@ -6,7 +6,8 @@ import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
 import { gamblingInsight, payCycleSummary, type SpendData } from "@/lib/selectors";
 import { formatUpdated } from "@/lib/format";
 import { spending as t } from "@/content/spending";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { SpendingSearchButton, SpendingView, type SpendingParams } from "./SpendingView";
 
 export const dynamic = "force-dynamic";

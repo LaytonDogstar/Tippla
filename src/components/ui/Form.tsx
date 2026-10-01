@@ -23,7 +23,7 @@ function Field({ id, label, helper, error, children }: { id: string; label: stri
 
 const fieldBox = (error?: string, readOnly?: boolean, disabled?: boolean) =>
   cx(
-    "flex h-[52px] w-full items-center gap-t2 rounded-sm border px-t4 text-body",
+    "flex min-h-[52px] w-full items-center gap-t2 rounded-sm border px-t4 text-body",
     error ? "border-2 border-destructive" : "border-neutral hover:shadow-[inset_0_0_0_1px_var(--color-neutral)]",
     "focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus",
     readOnly || disabled ? "bg-neutral-soft" : "bg-surface",

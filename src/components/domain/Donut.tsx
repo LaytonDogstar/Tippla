@@ -20,7 +20,7 @@ export function Donut({ rows, total, periodLabel, selected, onSelect, loading, l
   if (loading) {
     return (
       <section aria-busy="true" className="rounded-lg bg-surface p-t5">
-        <h3 className="text-h3 text-text">{t.heading}</h3>
+        <h2 className="text-h3 text-text">{t.heading}</h2>
         <svg aria-hidden width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="mx-auto mt-t4 block">
           <circle cx={C} cy={C} r={(RO + RI) / 2} fill="none" stroke="var(--chart-ring-track)" strokeWidth={RO - RI} />
         </svg>
@@ -29,7 +29,7 @@ export function Donut({ rows, total, periodLabel, selected, onSelect, loading, l
     );
   }
   if (!rows.length || total <= 0) {
-    return <section className="rounded-lg bg-surface p-t5"><h3 className="text-h3 text-text">{t.heading}</h3><p className="mt-t3 text-small text-text">{t.empty}</p></section>;
+    return <section className="rounded-lg bg-surface p-t5"><h2 className="text-h3 text-text">{t.heading}</h2><p className="mt-t3 text-small text-text">{t.empty}</p></section>;
   }
   const sectors = donutSectors(rows.map((r) => ({ key: r.category, value: r.total })));
   const sel = selected ? rows.find((r) => r.category === selected) : null;
@@ -37,7 +37,7 @@ export function Donut({ rows, total, periodLabel, selected, onSelect, loading, l
 
   return (
     <section className="rounded-lg bg-surface p-t5">
-      <h3 className="text-h3 text-text">{t.heading}</h3>
+      <h2 className="text-h3 text-text">{t.heading}</h2>
       <div className="relative mx-auto mt-t4" style={{ width: SIZE, height: SIZE }}>
         <svg role="img" aria-label={t.summary(formatWhole(total), rows[0]!.name)} width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
           {sectors.map((s) => {

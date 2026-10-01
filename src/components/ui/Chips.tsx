@@ -18,7 +18,7 @@ export function Chip({ selected, disabled, onClick, children }: { selected?: boo
       disabled={disabled}
       onClick={onClick}
       className={cx(
-        "inline-flex h-tap min-w-tap items-center gap-t2 rounded-pill border px-t3 text-small transition-colors duration-fast ease-tippla",
+        "inline-flex min-h-tap min-w-tap items-center py-t1 gap-t2 rounded-pill border px-t3 text-small transition-colors duration-fast ease-tippla",
         selected
           ? "border-accent bg-accent-soft text-accent active:shadow-[inset_0_0_0_2px_var(--color-accent)]"
           : "border-neutral bg-surface text-text hover:bg-surface2",
@@ -39,7 +39,7 @@ export function FilterChip({ label, onRemove, disabled }: { label: string; onRem
       disabled={disabled}
       aria-label={ui.removeFilter(label)}
       className={cx(
-        "inline-flex h-tap items-center gap-t2 rounded-pill border border-accent bg-accent-soft px-t3 text-small text-accent",
+        "inline-flex min-h-tap items-center gap-t2 rounded-pill border border-accent py-t1 bg-accent-soft px-t3 text-small text-accent",
         "hover:shadow-[inset_0_0_0_2px_var(--color-accent)] disabled:border-neutral disabled:bg-neutral-soft disabled:text-text-muted",
       )}
     >
@@ -58,7 +58,7 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
   return (
     <fieldset className="min-w-0" disabled={disabled}>
       <legend className="sr-only">{label}</legend>
-      <div className="flex h-[52px] gap-t1 rounded-md bg-surface2 p-t1">
+      <div className="flex min-h-[52px] gap-t1 rounded-md bg-surface2 p-t1">
         {options.map((o) => {
           const checked = o.value === value;
           return (

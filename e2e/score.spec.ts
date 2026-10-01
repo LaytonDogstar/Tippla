@@ -20,7 +20,7 @@ test("journey 3: dashboard → score → factor detail → recommendation sheet 
 
   await expect(page).toHaveURL(/\/score$/);
   await expect(page.getByRole("heading", { name: "SmartScore", level: 1 })).toBeVisible();
-  await page.getByRole("button", { name: /^Current borrowing\./ }).click();
+  await page.getByRole("button", { name: /^Current borrowing 2\.9 \/ 10/ }).click();
 
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByRole("heading", { name: "Current borrowing" })).toBeVisible();
@@ -49,7 +49,7 @@ test("Priya: override state, null factors, no recommendations", async ({ page })
   await expect(page.getByRole("heading", { name: "Not enough history yet" })).toBeVisible();
   await expect(page.getByText(/10\/11\/2026/)).toBeVisible();
   await expect(page.getByText("-998")).toHaveCount(0);
-  await page.getByRole("button", { name: /^Income stability\. Not enough history yet/ }).click();
+  await page.getByRole("button", { name: /^Income stability.*Not enough history yet/ }).click();
   await expect(page.getByRole("dialog").getByText("We don't have enough history to work this out yet.").first()).toBeVisible();
 
   await page.goto("/savings?persona=priya&present=1");

@@ -99,7 +99,7 @@ export function EmptyState({ variant, query = "", onAction, illustrated }: { var
       ) : (
         <div aria-hidden className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-md bg-accent-soft text-accent"><Icon size={24} /></div>
       )}
-      <h3 className="mt-t6 text-h2 font-display text-text">{c.title}</h3>
+      <h2 className="mt-t6 text-h2 font-display text-text">{c.title}</h2>
       <p className="mt-t3 text-small text-text-muted">{body}</p>
       {onAction && <Button variant="secondary" className="mt-t5" onClick={onAction}>{c.action}</Button>}
     </section>

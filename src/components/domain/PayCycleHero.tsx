@@ -36,13 +36,13 @@ export function PayCycleHero({ summary: s, onForecast, onSpent, onPaidIn, onAdva
         <button
           type="button"
           onClick={onForecast}
-          aria-label={`${t.forecastButton}. ${t.forecast(formatWhole(s.balance), formatWhole(s.dueTotal))}. ${headline}.`}
           className={cx(
             "block min-h-[80px] w-full rounded-sm p-t3 text-left",
             s.isShort ? "bg-caution-soft text-caution active:shadow-[inset_0_0_0_2px_var(--color-caution)]" : "bg-surface2 text-text active:shadow-[inset_0_0_0_2px_var(--color-neutral)]",
           )}
         >
-          <span aria-hidden className="tnum block text-small">{t.forecast(formatWhole(s.balance), formatWhole(s.dueTotal))}</span>
+          <span className="sr-only">{t.forecastButton}. </span>
+          <span className="tnum block text-small">{t.forecast(formatWhole(s.balance), formatWhole(s.dueTotal))}</span>
           <span aria-hidden className="mt-t1 flex h-t2 w-full overflow-hidden rounded-pill" style={{ background: "var(--chart-ring-track)" }}>
             <span className="h-full bg-accent" style={{ width: `${cov.covered * 100}%` }} />
             {cov.remainder > 0 && (
@@ -57,7 +57,7 @@ export function PayCycleHero({ summary: s, onForecast, onSpent, onPaidIn, onAdva
               />
             )}
           </span>
-          <span aria-hidden className={cx("mt-t2 flex justify-between text-caption", s.isShort ? "text-caution" : "text-text-muted")}>
+          <span className={cx("mt-t2 flex justify-between text-caption", s.isShort ? "text-caution" : "text-text-muted")}>
             <span>{s.isShort ? t.covered : t.billsCovered}</span>
             <span>{s.isShort ? t.short : t.left}</span>
           </span>

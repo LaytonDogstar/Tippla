@@ -63,11 +63,11 @@ export function CategoryRow({ row, merchants = [], budget, showLifestyle, insigh
       {(showLifestyle || hasBudget || insightLabel) && (
         <div className="flex flex-col gap-t3 pb-t4 pl-[68px] pr-t4">
           {showLifestyle && row.type === "lifestyle" && (
-            <span className="inline-flex h-[24px] w-fit items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.lifestyle}</span>
+            <span className="inline-flex min-h-[24px] w-fit items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.lifestyle}</span>
           )}
           {hasBudget && <BudgetSlot spent={row.total} budget={budget ?? null} onEdit={onEditBudget} />}
           {insightLabel && (
-            <button type="button" onClick={onInsight} className="inline-flex h-tap w-fit items-center gap-t2 rounded-pill bg-accent-soft px-t3 text-small text-accent hover:shadow-[inset_0_0_0_2px_var(--color-accent)]">
+            <button type="button" onClick={onInsight} className="inline-flex min-h-tap w-fit items-center gap-t2 rounded-pill bg-accent-soft px-t3 py-t1 text-left text-small text-accent hover:shadow-[inset_0_0_0_2px_var(--color-accent)]">
               <Info aria-hidden size={16} />
               {insightLabel}
             </button>

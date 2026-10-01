@@ -82,7 +82,7 @@ test("search by merchant or amount, with a plain empty state", async ({ page }) 
   await page.getByRole("button", { name: "Search transactions" }).click();
   await expect(page.getByRole("searchbox", { name: "Search merchant or amount" })).toBeFocused();
   await page.getByRole("searchbox").fill("4.49");
-  await expect(page.getByRole("button", { name: /^Apple iCloud, \$4\.49 money out/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Apple iCloud −\$4\.49 , money out/ })).toBeVisible();
   await page.getByRole("searchbox").fill("zzzz");
   await expect(page.getByText('No transactions match "zzzz".')).toBeVisible();
   await expect(page).toHaveURL(/q=zzzz/);

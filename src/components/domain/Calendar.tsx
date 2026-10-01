@@ -113,7 +113,7 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
                       {d.balance !== null && (
                         <span aria-hidden className="mt-auto flex flex-col items-center gap-[2px]">
                           <BalanceStrip day={d} />
-                          <span className="tnum text-[11px] leading-[14px] text-text">{formatCompact(d.balance)}</span>
+                          <span className="tnum text-[length:min(0.6875rem,12px)] leading-[14px] text-text">{formatCompact(d.balance)}</span>
                         </span>
                       )}
                     </button>
@@ -125,7 +125,7 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
         </tbody>
       </table>
       {nextPayday && (
-        <button type="button" onClick={onNextPayday} className="mt-t3 flex h-tap w-full items-center gap-t2 rounded-sm bg-accent-soft px-t3 text-small text-accent">
+        <button type="button" onClick={onNextPayday} className="mt-t3 flex min-h-tap w-full items-center gap-t2 rounded-sm bg-accent-soft py-t1 px-t3 text-small text-accent">
           <ArrowDownToLine aria-hidden size={20} />
           <span className="flex-1 text-left">{t.nextPayday(formatShortDay(nextPayday))}</span>
           <ChevronRight aria-hidden size={20} />

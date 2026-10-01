@@ -5,7 +5,8 @@ import { currentPersona, presentationMode } from "@/lib/persona";
 import { lenderMatchingOn, visibleOffers } from "@/lib/selectors";
 import { formatUpdated } from "@/lib/format";
 import { offersPage as t } from "@/content/account";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { OffersView } from "./OffersView";
 
 export const dynamic = "force-dynamic";

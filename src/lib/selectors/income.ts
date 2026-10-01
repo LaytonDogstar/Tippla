@@ -14,12 +14,30 @@ export function historyDays(d: PersonaData, cap = 365): number {
  * when there is less history, so thin files would understate; rescale by the days actually covered.
  * Never the 30-day sum: for fortnightly pay, 30 days holds two or three pays (docs/06 correction 1).
  */
-export function monthlyIncome(d: PersonaData): { amount: number; basedOnDays: number } {
+export function monthlyIncome(d: PersonaData): { amount: number; basedOnDays: number; excluded: OneOff[] } {
   const v = metric<ArrayMetricValue>(d.bankStatement, "AM2072")["90"];
   const covered = historyDays(d, 90);
-  if (!v) return { amount: 0, basedOnDays: covered };
-  const amount = covered < 90 ? (v.sum_amount / covered) * (365 / 12) : v.monthly_mean_amount;
-  return { amount, basedOnDays: covered };
+  const excluded = oneOffDeposits(d);
+  if (!v) return { amount: 0, basedOnDays: covered, excluded };
+  const sum = v.sum_amount - excluded.reduce((a, x) => a + x.amount, 0);
+  const amount = covered < 90 ? (sum / covered) * (365 / 12) : v.monthly_mean_amount - excluded.reduce((a, x) => a + x.amount, 0) / 3;
+  return { amount, basedOnDays: covered, excluded };
+}
+
+export interface OneOff { id: string; date: ISODate; amount: number; payer: string }
+
+/**
+ * One-off deposits counted as income in the last 90 days (a bond refund, a tax return): not wages or
+ * Centrelink, not recurring, the only deposit from that payer in the period, and $1,000 or more.
+ * Left out of "monthly income", with a note.
+ */
+export function oneOffDeposits(d: PersonaData): OneOff[] {
+  const since = addDays(d.asOf, -89);
+  const credits = posted(d.transactions).filter((t) => t.category === "income" && t.amount > 0 && t.date >= since);
+  const fromPayer = (m: string) => credits.filter((t) => t.merchant === m).length;
+  return credits
+    .filter((t) => !t.is_recurring && t.subcategory !== "wages" && t.subcategory !== "centrelink" && t.amount >= 1000 && fromPayer(t.merchant) === 1)
+    .map((t) => ({ id: t.id, date: t.date, amount: t.amount, payer: t.merchant }));
 }
 
 export function incomeSources(d: PersonaData) {

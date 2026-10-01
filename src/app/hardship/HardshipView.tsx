@@ -8,6 +8,11 @@ import { SupportOptions } from "@/components/domain/SupportOptions";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Feedback";
 import { SampleTag } from "@/components/ui/SampleTag";
+import { Toggle } from "@/components/ui/Form";
+import { statesCopy } from "@/content/states";
+import { useAccount } from "@/lib/account/client";
+import type { AccountState } from "@/lib/account/state";
+import type { PersonaId } from "@/lib/api/types";
 import { Sheet } from "@/components/ui/Sheet";
 import { cx } from "@/components/ui/cx";
 
@@ -27,7 +32,8 @@ export function HardshipInfoButton() {
   );
 }
 
-export function HardshipView({ present, lenders }: { present: boolean; lenders: string[] }) {
+export function HardshipView({ persona, account: initial, present, lenders }: { persona: PersonaId; account: AccountState; present: boolean; lenders: string[] }) {
+  const { account, save } = useAccount(persona, initial);
   const router = useRouter();
   const toast = useToast();
   const [sheet, setSheet] = useState<SheetId>(null);
@@ -75,6 +81,12 @@ export function HardshipView({ present, lenders }: { present: boolean; lenders: 
         ))}
       </ul>
 
+      <section className="mt-t4 rounded-md bg-surface p-t4">
+        <Toggle label={statesCopy.hardshipSelf.label} checked={!!account.hardshipSelfSelected}
+          onChange={(v) => save({ ...account, hardshipSelfSelected: v || undefined })} />
+        {account.hardshipSelfSelected && <p role="status" className="mt-t1 px-t1 text-small text-text-muted">{statesCopy.hardshipSelf.on}</p>}
+      </section>
+
       <Sheet open={sheet === "template"} onClose={() => setSheet(null)} title={t.template.title}
         footer={<>
           <Button full onClick={copyMessage}>{t.template.copy}</Button>
@@ -92,9 +104,9 @@ export function HardshipView({ present, lenders }: { present: boolean; lenders: 
         footer={<Button full variant="tertiary" onClick={() => setSheet(null)}>{t.ndh.notNow}</Button>}>
         <h3 className="text-h3 text-text">{NDH.name}</h3>
         <p className="mt-t2 text-body text-text-muted">{t.ndh.body}</p>
-        <a href={NDH.tel} className="mt-t5 flex h-[48px] w-full items-center justify-center rounded-sm bg-accent text-body-strong text-on-accent hover:opacity-90">{t.ndh.call(NDH.phoneDisplay)}</a>
+        <a href={NDH.tel} className="mt-t5 flex min-h-[48px] w-full items-center py-t2 text-center justify-center rounded-sm bg-accent text-body-strong text-on-accent hover:opacity-90">{t.ndh.call(NDH.phoneDisplay)}</a>
         <p className="mt-t2 select-text text-center text-small text-text-muted">{NDH.hours}</p>
-        <a href={NDH.url} target="_blank" rel="noopener noreferrer" className="mt-t5 flex h-[48px] w-full items-center justify-center gap-t2 rounded-sm bg-accent-soft text-body-strong text-accent hover:shadow-[inset_0_0_0_2px_var(--color-accent)]">
+        <a href={NDH.url} target="_blank" rel="noopener noreferrer" className="mt-t5 flex min-h-[48px] w-full items-center py-t2 text-center justify-center gap-t2 rounded-sm bg-accent-soft text-body-strong text-accent hover:shadow-[inset_0_0_0_2px_var(--color-accent)]">
           {t.ndh.visit}<ExternalLink aria-hidden size={16} />
         </a>
         <p className="mt-t2 text-caption text-text-muted">{t.ndh.visitNote}</p>

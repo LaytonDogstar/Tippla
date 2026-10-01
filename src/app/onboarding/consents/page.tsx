@@ -36,7 +36,7 @@ function ConsentCard({ id, required, checked, onChange }: { id: Id; required: bo
       <p id={`${base}-st`} className="mt-t3 text-caption text-text-muted">{required ? t.required : t.optional}</p>
       <p id={`${base}-ex`} className="mt-t2 text-small text-text-muted">{item.explanation}</p>
       <button type="button" aria-expanded={open} aria-controls={`${base}-detail`} onClick={() => setOpen((v) => !v)}
-        className="mt-t2 flex h-tap w-full items-center justify-between rounded-sm text-small text-accent hover:bg-surface2">
+        className="mt-t2 flex min-h-tap w-full items-center justify-between rounded-sm text-small text-accent hover:bg-surface2">
         {t.whatThisMeans}
         {open ? <ChevronUp aria-hidden size={20} /> : <ChevronDown aria-hidden size={20} />}
       </button>

@@ -31,7 +31,7 @@ export function RecommendationCard({ item, snoozed, dismissed, onSeeHow, onSnooz
           <p className="text-small text-text">{item.factor}</p>
         </div>
       </div>
-      <h3 className="mt-t6 text-h2 font-display text-text">{item.title}</h3>
+      <h2 className="mt-t6 text-h2 font-display text-text">{item.title}</h2>
       <p className="mt-t3 text-small text-text-muted">{item.rationale}</p>
       {item.impact && (
         <p className="mt-t4 rounded-sm bg-surface2 p-t3 text-small text-text"><span className="text-caption text-text-muted">{recs.wouldChange}: </span>{item.impact}</p>

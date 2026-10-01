@@ -1,7 +1,9 @@
 "use client";
 // Dev-only persona pill, bottom-left above the dock. Hidden in presentation mode (?present=1).
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DEV_COOKIE, DEV_STATES, parseDevStates, type DevState } from "@/lib/dev/states";
+import { statesCopy } from "@/content/states";
 import type { PersonaId } from "@/lib/api/types";
 import { cx } from "@/components/ui/cx";
 
@@ -10,6 +12,17 @@ const PERSONAS: PersonaId[] = ["jess", "marcus", "priya"];
 export function PersonaSwitcher({ current, raised }: { current: PersonaId; raised?: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [states, setStates] = useState<DevState[]>([]);
+  useEffect(() => {
+    const raw = document.cookie.split("; ").find((c) => c.startsWith(`${DEV_COOKIE}=`))?.slice(DEV_COOKIE.length + 1);
+    setStates(parseDevStates(raw));
+  }, [open]);
+  const toggleState = (s: DevState) => {
+    const next = states.includes(s) ? states.filter((x) => x !== s) : [...states, s];
+    setStates(next);
+    document.cookie = next.length ? `${DEV_COOKIE}=${next.join(",")}; path=/; samesite=lax` : `${DEV_COOKIE}=; path=/; max-age=0`;
+    router.refresh();
+  };
   const pick = (p: PersonaId) => {
     document.cookie = `tippla-persona=${p}; path=/; samesite=lax`;
     setOpen(false);
@@ -26,11 +39,18 @@ export function PersonaSwitcher({ current, raised }: { current: PersonaId; raise
               {p}
             </button>
           ))}
+          <p className="mt-t2 border-t border-line px-t4 pb-t1 pt-t2 text-caption text-text-muted">{statesCopy.devMenu}</p>
+          {DEV_STATES.map((st) => (
+            <button key={st} role="menuitemcheckbox" aria-checked={states.includes(st)} type="button" onClick={() => toggleState(st)}
+              className={cx("min-h-tap rounded-sm px-t4 text-left text-small", states.includes(st) ? "bg-accent-soft text-accent" : "text-text hover:bg-surface2")}>
+              {states.includes(st) ? "✓ " : ""}{statesCopy.devStates[st]}
+            </button>
+          ))}
         </div>
       )}
       <button type="button" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen((v) => !v)}
         className="min-h-tap rounded-pill border border-line bg-surface px-t4 text-caption capitalize text-text-muted shadow-e1">
-        Dev · {current}
+        Dev · {current}{states.length ? ` · ${states.length} state${states.length > 1 ? "s" : ""}` : ""}
       </button>
     </div>
   );

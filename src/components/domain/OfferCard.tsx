@@ -17,7 +17,7 @@ export function OfferCard({ offer: o, onDetails, onNotInterested }: { offer: Off
       <div className="flex items-center gap-t3">
         <span aria-hidden className="inline-flex h-[40px] w-[40px] items-center justify-center rounded-sm bg-surface2 text-neutral"><Landmark size={24} /></span>
         <div>
-          <h3 className="text-h3 text-text">{o.lender.replace(/\s*\(sample\)$/i, "")}</h3>
+          <h2 className="text-h3 text-text">{o.lender.replace(/\s*\(sample\)$/i, "")}</h2>
           {/\(sample\)$/i.test(o.lender) && <p className="text-caption text-text-muted">{t.sampleLabel}</p>}
         </div>
       </div>

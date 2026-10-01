@@ -23,7 +23,7 @@ export function HelpView({ initialQ, initialOpen }: { initialQ: string; initialO
 
   return (
     <div className="pb-t6">
-      <label className="mt-t2 flex h-[52px] items-center gap-t2 rounded-sm border border-neutral bg-surface px-t3 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
+      <label className="mt-t2 flex min-h-[52px] items-center gap-t2 rounded-sm border border-neutral bg-surface px-t3 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
         <Search aria-hidden size={20} className="text-text-muted" />
         <span className="sr-only">{t.searchLabel}</span>
         <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.searchPlaceholder}

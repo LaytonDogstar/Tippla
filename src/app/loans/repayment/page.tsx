@@ -4,7 +4,7 @@ import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { activeLoans, loanTotals } from "@/lib/selectors";
 import { calculatorPage as t } from "@/content/account";
-import { PortalShell } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { CalculatorView } from "./CalculatorView";
 
 export const dynamic = "force-dynamic";

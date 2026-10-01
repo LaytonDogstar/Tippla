@@ -6,7 +6,7 @@ import { formatDayMonth, formatPercent, formatWhole } from "@/lib/format";
 import { sumMoney } from "@/lib/format/money";
 import { daysOverdrawn90, lowestBalance90 } from "./balance";
 import { gamblingInsight } from "./gambling";
-import { incomeStreams, payPattern } from "./income";
+import { incomeStreams, monthlyIncome, payPattern } from "./income";
 import { activeLoans, dishonours90, loanTotals, otherCredit, payAdvanceRun } from "./loans";
 import { payCycleSummary } from "./payCycle";
 
@@ -61,6 +61,9 @@ export function factorDrivers(d: PersonaData, key: FactorKey): DriverFact[] {
       const out: DriverFact[] = [];
       if (p.typicalAmount && p.weekday && p.everyDays === 14) out.push({ text: c.income.pattern(formatWhole(p.typicalAmount), weekdayLong[p.weekday] ?? p.weekday) });
       if (streams.length > 1) out.push({ text: c.income.sources(streams.length) });
+      const mi = monthlyIncome(d);
+      if (mi.amount > 0) out.push({ text: c.income.monthly(formatWhole(mi.amount)) });
+      for (const x of mi.excluded) out.push({ text: c.income.oneOff(formatWhole(x.amount), formatDayMonth(x.date)) });
       out.push({ text: irregular ? c.income.irregular : c.income.steady });
       out.push({ text: c.income.mix });
       return out;

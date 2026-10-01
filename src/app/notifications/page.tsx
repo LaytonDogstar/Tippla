@@ -3,7 +3,7 @@ import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { notifications } from "@/lib/selectors";
 import { notificationsCopy as t } from "@/content/account";
-import { PortalShell } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { NotificationsView } from "./NotificationsView";
 
 export const dynamic = "force-dynamic";

@@ -48,6 +48,9 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
   const rangeCard = useRef<HTMLElement>(null);
+  // At large text sizes seven columns can't fit: default to the list (Astra: a labelled list alternative).
+  const [list, setList] = useState(false);
+  useEffect(() => { if (parseFloat(getComputedStyle(document.documentElement).fontSize) >= 24) setList(true); }, []);
   const totals = from && to ? rangeTotals(days, from, to) : null;
   const sel = days.find((d) => d.date === selected) ?? null;
   const sheet = days.find((d) => d.date === sheetDay) ?? null;
@@ -76,14 +79,33 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
         ) : <span className="h-tap w-tap" />}
       </div>
 
-      <div className="mt-t3 rounded-md bg-surface py-t3">
-        <CalendarGrid days={days} label={nav.label} selected={rangeMode || totals ? null : selected} rangeFrom={from} rangeTo={to ?? from}
-          initialFocus={focus ?? openDay} nextPayday={null} onDay={onDay} />
+      <div className="mt-t2 flex justify-end">
+        <Button variant="tertiary" aria-pressed={list} onClick={() => setList((v) => !v)}>{list ? t.showGrid : t.showList}</Button>
       </div>
+      {list ? (
+        <ul aria-label={`${t.listLabel}, ${nav.label}`} className="mt-t1 overflow-hidden rounded-md bg-surface">
+          {days.filter((d) => !d.outside).map((d) => (
+            <li key={d.date} className="border-b border-line last:border-b-0">
+              <button type="button" onClick={() => onDay(d)} aria-current={d.isToday ? "date" : undefined}
+                className={`flex min-h-[64px] w-full flex-col items-start gap-t1 p-t4 text-left hover:bg-surface2 ${from && to && d.date >= (from < to ? from : to) && d.date <= (from < to ? to : from) ? "bg-accent-soft" : ""}`}>
+                <span className="text-body-strong text-text">{withYear(d.date)}{d.isToday ? ` · ${cal.today}` : ""}{d.isPayday ? ` · ${cal.pay}` : ""}</span>
+                {d.confirmedCount > 0 && <span className="tnum text-small text-text">{t.listSpent(formatWhole(d.confirmedSpend))}</span>}
+                {d.predictedBills.length > 0 && <span className="tnum text-small text-text-muted">{t.listBills(d.predictedBills.length, money(d.predictedBills.reduce((a, b) => a + b.expected_amount, 0)))}</span>}
+                {d.balance !== null && <span className="tnum flex items-center gap-t2 text-small text-text-muted"><BalanceStrip day={d} />{t.listBalance(formatWhole(d.balance), d.balancePredicted)}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="mt-t1 rounded-md bg-surface py-t3">
+          <CalendarGrid days={days} label={nav.label} selected={rangeMode || totals ? null : selected} rangeFrom={from} rangeTo={to ?? from}
+            initialFocus={focus ?? openDay} nextPayday={null} onDay={onDay} />
+        </div>
+      )}
 
       {nextPayday && (
         <button type="button" disabled={!nextPaydayHref} onClick={() => nextPaydayHref && router.push(nextPaydayHref)}
-          className="mt-t3 flex h-tap w-full items-center gap-t2 rounded-sm bg-accent-soft px-t3 text-small text-accent disabled:text-text-muted">
+          className="mt-t3 flex min-h-tap w-full items-center gap-t2 rounded-sm bg-accent-soft py-t1 px-t3 text-small text-accent disabled:text-text-muted">
           <span className="flex-1 text-left">{cal.nextPayday(formatShortDay(nextPayday))}</span>
           {nextPaydayHref && <ChevronRight aria-hidden size={20} />}
         </button>

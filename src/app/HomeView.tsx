@@ -13,19 +13,32 @@ import { HomeBanner, NextBillCard, NextStepCard, SixMonthChart, SmartScoreCard }
 import { InsightSheetBody } from "@/components/domain/Insight";
 import { PayCycleHero } from "@/components/domain/PayCycleHero";
 import { DueSheet } from "@/components/domain/DueSheet";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { statesCopy } from "@/content/states";
 import { Sheet } from "@/components/ui/Sheet";
 
 type SheetId = "due" | "advance" | "action" | null;
 
-export function HomeView({ asOf, banner, score, change, action, payCycle, nextBill, bars }: {
-  asOf: string; banner: { text: string; href: string } | null; score: ScoreState; change: { delta: number; since: string } | null;
+export function HomeView({ asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed }: {
+  asOf: string; lapsed?: boolean; banner: { text: string; href: string } | null; score: ScoreState; change: { delta: number; since: string } | null;
   action: FirstAction | null; payCycle: PayCycleSummary; nextBill: UpcomingBill | null; bars: MonthBar[];
 }) {
   const router = useRouter();
   const [sheet, setSheet] = useState<SheetId>(null);
   const advance = payCycle.payAdvances[0];
 
+  if (lapsed) {
+    // Lapsed subscription: the score stays visible; everything else waits for reactivation.
+    return (
+      <div className="flex flex-col gap-t3">
+        <SmartScoreCard state={score} change={change} />
+        <section className="rounded-lg bg-surface p-t5">
+          <p className="text-body text-text">{statesCopy.lapsed.homeCard}</p>
+          <ButtonLink className="mt-t4" href="/account/subscription">{statesCopy.lapsed.reactivate}</ButtonLink>
+        </section>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-t3 desktop:grid desktop:grid-cols-[minmax(0,656fr)_minmax(0,436fr)] desktop:gap-t6">
       {banner && <div className="desktop:col-span-2"><HomeBanner {...banner} /></div>}

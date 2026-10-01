@@ -14,6 +14,8 @@ export interface AccountState {
   dismissedOffers?: string[];
   readNotifications?: string[];
   bank?: { disconnected?: boolean; refreshedAt?: string };
+  /** The customer said things are hard right now (docs/09 "in hardship", self-selected). */
+  hardshipSelfSelected?: boolean;
 }
 type AllAccounts = Partial<Record<PersonaId, AccountState>>;
 
@@ -43,6 +45,7 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   }
   const s = a.subscription;
   if (s && ["active", "paused", "cancelled"].includes(s.status) && ["standard", "pro"].includes(s.plan) && typeof s.effective === "string") out.subscription = s;
+  if (a.hardshipSelfSelected === true) out.hardshipSelfSelected = true;
   if (a.bank && typeof a.bank === "object") out.bank = { disconnected: a.bank.disconnected === true, refreshedAt: typeof a.bank.refreshedAt === "string" ? a.bank.refreshedAt : undefined };
   return out;
 }

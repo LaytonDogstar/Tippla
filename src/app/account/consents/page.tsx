@@ -1,7 +1,7 @@
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { accountPage as t } from "@/content/account";
-import { PortalShell } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { ConsentsView } from "../AccountViews";
 
 export const dynamic = "force-dynamic";

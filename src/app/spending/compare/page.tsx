@@ -4,7 +4,7 @@ import { loadCustomer } from "@/lib/customer";
 import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
 import { compareWithHistory, sampleCohort } from "@/lib/selectors";
 import { compare as t } from "@/content/spending";
-import { PortalShell } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { CompareView } from "./CompareView";
 
 export const dynamic = "force-dynamic";

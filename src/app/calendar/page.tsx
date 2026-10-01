@@ -5,7 +5,8 @@ import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
 import { currentCycle, dayTransactions, fortnight, fortnightBounds, isMonthKey, monthCalendar, payCycleSummary } from "@/lib/selectors";
 import { daysBetween, formatShortDay, formatUpdated } from "@/lib/format";
 import { calendarPage as t, monthLabel } from "@/content/spending";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { CalendarInfoButton, CalendarView } from "./CalendarView";
 
 export const dynamic = "force-dynamic";

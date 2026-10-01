@@ -43,11 +43,12 @@ export function StageScale({ score, stage, onStage, onNext, embedded }: { score:
           <span className="h-t1 w-t1 rounded-pill bg-text" />
         </span>
       </div>
-      <ol className="mt-t3 flex gap-t1">
+      {/* Each label keeps a minimum width in rem, so at large text sizes they wrap to two rows, never off-screen. */}
+      <ol className="mt-t3 flex flex-wrap gap-t1">
         {STAGES.map((s) => {
           const current = s.id === stage.stage.id;
           return (
-            <li key={s.id} className="flex-1">
+            <li key={s.id} className="min-w-[4.75rem] flex-1">
               <button
                 type="button"
                 onClick={() => onStage?.(s.id)}

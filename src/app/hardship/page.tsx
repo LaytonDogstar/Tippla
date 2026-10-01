@@ -3,7 +3,8 @@ import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { activeLoans, otherCredit } from "@/lib/selectors";
 import { hardshipPage as t } from "@/content/account";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { HardshipInfoButton, HardshipView } from "./HardshipView";
 
 export const dynamic = "force-dynamic";
@@ -11,11 +12,11 @@ export const dynamic = "force-dynamic";
 export default async function Hardship({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
-  const { data } = await loadCustomer(persona);
+  const { data, account } = await loadCustomer(persona);
   const lenders = [...activeLoans(data).map((l) => l.provider), ...otherCredit(data).map((o) => o.provider)];
   return (
     <PortalShell path="/hardship" persona={persona} present={present} header={<PageHeader title={t.title} sub={t.sub} action={<HardshipInfoButton />} />}>
-      <HardshipView present={present} lenders={[...new Set(lenders)]} />
+      <HardshipView persona={persona} account={account} present={present} lenders={[...new Set(lenders)]} />
     </PortalShell>
   );
 }

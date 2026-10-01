@@ -3,7 +3,8 @@ import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { currentCycle, recommendations } from "@/lib/selectors";
 import { recs } from "@/content/recommendations";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { SavingsView } from "./SavingsView";
 
 export const dynamic = "force-dynamic";

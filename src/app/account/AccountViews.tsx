@@ -136,7 +136,7 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
       <section aria-labelledby="plan-h" className="mt-t2 rounded-lg bg-surface p-t5">
         <div className="flex flex-wrap items-center gap-t2">
           <h2 id="plan-h" className="text-h2 font-display text-text">{t.subscription.plan(b.planName)}</h2>
-          <span className="inline-flex h-[24px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.subscription.status[b.status]}</span>
+          <span className="inline-flex min-h-[24px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.subscription.status[b.status]}</span>
         </div>
         <p className="tnum mt-t1 text-body text-text">{t.subscription.price(formatCents(b.price))}</p>
         <SampleTag q="Q9" present={present} className="mt-t2" />
@@ -214,7 +214,7 @@ export function ConsentsView({ persona, account: initial, consents, asOf }: { pe
           <section key={c.id} id={c.id} aria-labelledby={`c-${c.id}`} className="rounded-md bg-surface p-t4">
             <div className="flex flex-wrap items-center gap-t2">
               <h2 id={`c-${c.id}`} className="text-h3 text-text">{c.label}</h2>
-              <span className="inline-flex h-[24px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{c.required ? t.consents.required : t.consents.optional}</span>
+              <span className="inline-flex min-h-[24px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{c.required ? t.consents.required : t.consents.optional}</span>
             </div>
             <p className="mt-t1 text-caption text-text-muted">{s.granted && s.at ? t.consents.given(formatDate(toAESTDate(s.at))) : t.consents.notGiven} · {t.consents.version(c.version)}</p>
             <div className="mt-t2">

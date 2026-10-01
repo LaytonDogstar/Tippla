@@ -62,7 +62,7 @@ export function InsightCard({ items, loading, onOpen, onDismissUndo, dismissed }
         )}
       </div>
       <span ref={status} role="status" className="sr-only" />
-      <h3 className="mt-t5 text-h2 font-display text-text">{item.title}</h3>
+      <h2 className="mt-t5 text-h2 font-display text-text">{item.title}</h2>
       <p className="mt-t4 text-small text-text-muted">{item.summary}</p>
       <Button full className="mt-t5" onClick={() => onOpen?.(item.id)}>{t.seeHow}</Button>
     </section>

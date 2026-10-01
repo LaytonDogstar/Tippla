@@ -2,7 +2,7 @@
 import { loadPersona } from "@/lib/api/client";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { currentCycle, factors, firstAction, loanTotals, payPattern, scoreState, topThreeFactors } from "@/lib/selectors";
-import { PortalShell } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { RevealView } from "./RevealView";
 import { ButtonLink } from "@/components/ui/Button";
 import { onboarding } from "@/content/onboarding";

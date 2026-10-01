@@ -25,7 +25,7 @@ export function MobileDock({ path: forced, preview }: { path?: string; preview?:
   const path = forced ?? current ?? "/";
   return (
     <div className={preview ? "w-full" : "fixed inset-x-0 bottom-0 z-30 desktop:hidden"}>
-      <Link href="/hardship" className="flex h-tap w-full items-center justify-center gap-t2 border-t border-line bg-surface text-small text-text-muted hover:bg-surface2"
+      <Link href="/hardship" className="flex min-h-tap w-full items-center justify-center gap-t2 border-t border-line bg-surface text-small text-text-muted hover:bg-surface2"
         aria-current={path === "/hardship" ? "page" : undefined}>
         <MessageCircle aria-hidden size={16} />
         {nav.hardship}
@@ -37,7 +37,7 @@ export function MobileDock({ path: forced, preview }: { path?: string; preview?:
             return (
               <li key={t.href}>
                 <Link href={t.href} aria-current={active ? "page" : undefined}
-                  className={cx("group flex h-full flex-col items-center justify-center gap-t1 text-caption", active ? "text-accent" : "text-text-muted")}>
+                  className={cx("group flex h-full flex-col items-center justify-center gap-t1 text-caption text-[length:min(0.75rem,14px)] leading-tight", active ? "text-accent" : "text-text-muted")}>
                   <span className={cx("relative inline-flex h-[32px] w-[52px] items-center justify-center rounded-sm transition-colors duration-fast ease-tippla",
                     active ? "bg-accent-soft" : "group-hover:bg-surface2")}>
                     <t.icon aria-hidden size={24} />

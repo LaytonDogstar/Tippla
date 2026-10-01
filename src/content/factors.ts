@@ -35,6 +35,8 @@ export const drivers = {
   income: {
     pattern: (amt: string, weekday: string) => `Pay of about ${amt} every second ${weekday}`,
     sources: (n: number) => `${n} regular income sources, treated the same way`,
+    monthly: (amt: string) => `Monthly income about ${amt}, from the last 90 days`,
+    oneOff: (amt: string, date: string) => `We've left out a one-off ${amt} deposit on ${date}`,
     irregular: "Your pay amounts varied over the last 90 days",
     steady: "Your pay amounts were steady over the last 90 days",
     mix: "Your score also looks at the mix of wages and government payments in your income.",

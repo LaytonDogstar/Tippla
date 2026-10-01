@@ -77,7 +77,7 @@ test("journey 1 — Jess: onboarding to score reveal", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Your SmartScore is 472." })).toBeVisible();
   await expect(page.getByRole("meter", { name: "SmartScore" })).toHaveAttribute("aria-valuetext", "SmartScore 472. Steadying. 128 points to Healthy.");
   await expect(page.getByText("Biggest factor with room to move")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Current borrowing\. 2\.9 \/ 10\. you have 3 loans open\./ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Current borrowing 2\.9 \/ 10 you have 3 loans open\./ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Skip the next pay advance if you can" })).toBeVisible();
   await expect(page.locator("body")).not.toContainText(/congratulations|well done|great job/i);
   await expectNoAxe(page);

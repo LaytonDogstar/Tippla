@@ -188,6 +188,11 @@ export const calendarPage = {
     predictedNote: "Predicted from past payments. It hasn't gone through.",
   },
   listLabel: "Days as a list",
+  showList: "Show as a list",
+  showGrid: "Show as a grid",
+  listSpent: (amt: string) => `${amt} spent`,
+  listBills: (n: number, amt: string) => (n === 1 ? `1 predicted bill, ${amt}` : `${n} predicted bills, ${amt}`),
+  listBalance: (amt: string, forecast: boolean) => `${forecast ? "Forecast" : "Balance"} ${amt}`,
 } as const;
 
 export const subscriptionsPage = {

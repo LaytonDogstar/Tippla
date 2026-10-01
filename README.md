@@ -41,6 +41,29 @@ npm run tokens:check   # checks design/tokens.json from Astra (add --table for t
 - Tokens: `npm run dev` and `npm run build` regenerate `src/styles/tokens.css` from `design/tokens.json`. They fall back to `design/tokens.template.json` if Astra's file isn't there yet.
 - `tests/design-data.test.ts` checks every number given to Astra in `design/ASTRA_PROMPTS.md`. If you change the fixtures, it tells you which prompt figures to update.
 
+## Running the finished app
+
+```bash
+npm install
+npm run build && npm start   # http://localhost:3000
+npm test                     # unit tests (selectors reconcile, banned phrases, NEVER_DISPLAY, formatters, states)
+npm run test:e2e             # Playwright: the three journeys, every screen in axe (both themes), 200% text, states
+npm run lighthouse           # Lighthouse mobile accessibility on every screen × persona (target ≥ 95); needs npm start running
+```
+
+Dev controls (all carried in cookies, so they stick as you click around):
+
+- `?persona=jess|marcus|priya` switches the customer. The **Dev** pill bottom-left does the same.
+- `?present=1` is presentation mode: hides the Dev pill and every "Sample logic" tag. `?present=0` turns it off.
+- `?state=` turns on the docs/09 states, comma-separated, or `?state=none` to clear. Also in the Dev pill.
+  - `analysing`: brand new, bank connected, analysis in progress
+  - `lapsed`: subscription ended. Home keeps the score; other screens show the reactivate sheet. Hardship, Help and Account are never blocked
+  - `bank_expired`: the expired-connection banner, with a way to reconnect
+  - `offline`: "Couldn't refresh. Showing data from …"
+  - `one_off`: a $4,000 bond refund on 12/09, left out of monthly income with a note (Score › Income stability)
+  - `two_accounts`: a second connected account, so the Spending account filter appears
+- Customer choices persist the same way: recategorised transactions, consents, subscription status, dismissed offers, read notifications and bank connection. Clear the site's cookies to reset.
+
 ## Changes since the first version (30/09/2026 review)
 
 - **Astra prompts:** corrected weekdays (26/09 is a Saturday, 30/09 a Wednesday, 25/09 a Friday). Days to payday is now 6. The Jess category list now includes Subscriptions $4, so it reconciles to $1,832. The calendar now shows only the predicted below-$0 day (30/09). The dashboard layout now matches `docs/04_screens.md` (hardship banner, plus a short-before-payday pay cycle card). Jess's first action is now "Skip the next pay advance if you can". Added screens: Marcus improving dashboard, factor detail sheet, consents, desktop dashboard, and Priya's expected score date (10/11/2026). Added batching and verification notes for working in ChatGPT.

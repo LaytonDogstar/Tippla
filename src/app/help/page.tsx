@@ -1,7 +1,8 @@
 // P12 Help: search first, seeded with what a stressed customer asks.
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { helpPage as t } from "@/content/account";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { HelpView } from "./HelpView";
 
 export const dynamic = "force-dynamic";

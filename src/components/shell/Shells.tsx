@@ -39,7 +39,7 @@ export function OnboardingShell({ backHref, title, footer, children }: { backHre
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-bg">
         <div className="mx-auto flex max-w-[480px] flex-col gap-t2 px-gutter pt-t3">
           {footer}
-          <Link href="/hardship" className="flex h-tap items-center justify-center gap-t2 rounded-sm text-small text-text-muted hover:bg-surface2">
+          <Link href="/hardship" className="flex min-h-tap items-center justify-center gap-t2 rounded-sm text-small text-text-muted hover:bg-surface2">
             <MessageCircle aria-hidden size={16} />
             {nav.hardship}
           </Link>
@@ -63,8 +63,11 @@ export function PageHeader({ title, sub, action }: { title: string; sub?: string
   );
 }
 
-export function PortalShell({ path, title, backHref, persona, present, cta, header, wide, children }: {
+/** The portal frame. Pages use PortalShell from ./Portal (server), which adds state notices and gates. */
+export function PortalFrame({ path, title, backHref, persona, present, cta, header, wide, notice, children }: {
   path: string; title?: string; backHref?: string; persona: PersonaId; present: boolean;
+  /** Above the content: offline / stale-data notices. */
+  notice?: ReactNode;
   /** Replaces the default small header (dashboard, SmartScore). */
   header?: ReactNode;
   /** Desktop pages that use two columns. */
@@ -77,6 +80,7 @@ export function PortalShell({ path, title, backHref, persona, present, cta, head
     <div className="min-h-[100dvh] bg-bg text-text desktop:pl-sidebar">
       <div className={wide ? "mx-auto max-w-[720px] desktop:max-w-[1180px] desktop:px-t5" : "mx-auto max-w-[720px]"}>
         {header ?? <Header backHref={backHref} title={title} />}
+        {notice && <div className="px-gutter pb-t2">{notice}</div>}
         <main id="main" className={cta ? "px-gutter pb-[calc(44px+var(--tab-bar-height)+80px+env(safe-area-inset-bottom)+16px)]" : "px-gutter pb-[calc(44px+var(--tab-bar-height)+env(safe-area-inset-bottom)+24px)]"}>
           {children}
         </main>

@@ -23,8 +23,9 @@ const fontSize = Object.fromEntries(
     .map(([k, v]) => {
       const t = v as TypeToken;
       const entry: [string, { lineHeight: string; fontWeight: string; letterSpacing: string }] = [
-        `${t.size}px`,
-        { lineHeight: `${t.lineHeight}px`, fontWeight: String(t.weight), letterSpacing: `${t.letterSpacing}em` },
+        // rem, so text follows the reader's text-size setting (dynamic type to 200%); 16px = 1rem.
+        `${t.size / 16}rem`,
+        { lineHeight: `${t.lineHeight / 16}rem`, fontWeight: String(t.weight), letterSpacing: `${t.letterSpacing}em` },
       ];
       return [kebab(k), entry];
     }),

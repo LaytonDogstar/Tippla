@@ -197,7 +197,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
 
   const categoryList = (
     <section aria-labelledby="cats-h" className="mt-t3">
-      <div className="flex items-baseline justify-between gap-t3 px-t1 pb-t2 pt-t4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-t3 px-t1 pb-t2 pt-t4">
         <h2 id="cats-h" className="text-h3 text-text">{t.categories.heading}</h2>
         <span className="text-caption text-text-muted">{t.categories.count(listRows.length)}</span>
       </div>
@@ -347,12 +347,12 @@ const Feed = forwardRef<HTMLElement, {
   }
   return (
     <section ref={ref} aria-labelledby="feed-h" className="mt-t3 scroll-mt-t6 rounded-md bg-surface">
-      <div className="flex items-baseline justify-between gap-t3 p-t4 pb-t2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-t3 p-t4 pb-t2">
         <h2 id="feed-h" className="text-h3 text-text">{t.feed.heading}</h2>
         <span role="status" className="text-caption text-text-muted">{t.feed.count(feed.length)}</span>
       </div>
       <div className="flex flex-col gap-t3 px-t4 pb-t3">
-        <label className="flex h-[52px] items-center gap-t2 rounded-sm border border-neutral bg-surface px-t3 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
+        <label className="flex min-h-[52px] items-center gap-t2 rounded-sm border border-neutral bg-surface px-t3 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
           <Search aria-hidden size={20} className="text-text-muted" />
           <span className="sr-only">{t.feed.searchLabel}</span>
           <input id="spending-search" ref={searchRef} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.feed.searchLabel}

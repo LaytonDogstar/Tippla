@@ -89,10 +89,9 @@ export function FactorRow({ factor, explanation, onOpen }: { factor: Factor; exp
   const isNull = factor.value === null;
   return (
     <button type="button" onClick={onOpen}
-      aria-label={`${factor.name}. ${isNull ? copy.score.factorNull : `${factor.value!.toFixed(1)} out of 10`}${explanation ? `. ${explanation}` : ""}`}
       className="flex min-h-[80px] w-full items-start gap-t3 rounded-md bg-surface p-t4 text-left hover:bg-surface2">
       <Icon aria-hidden size={20} className="mt-[2px] shrink-0 text-text-muted" />
-      <span aria-hidden className="min-w-0 flex-1">
+      <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-baseline justify-between gap-x-t3">
           <span className="text-h3 text-text">{factor.name}</span>
           <span className={cx("tnum ml-auto text-small font-numeric", isNull ? "text-text-muted" : "text-text")}>{isNull ? "—" : `${factor.value!.toFixed(1)} / 10`}</span>

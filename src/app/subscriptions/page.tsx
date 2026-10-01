@@ -4,7 +4,8 @@ import { currentPersona, presentationMode } from "@/lib/persona";
 import { subscriptions } from "@/lib/selectors";
 import { formatUpdated } from "@/lib/format";
 import { subscriptionsPage as t } from "@/content/spending";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { SubscriptionsView } from "./SubscriptionsView";
 
 export const dynamic = "force-dynamic";

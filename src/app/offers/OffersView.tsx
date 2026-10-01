@@ -25,7 +25,7 @@ export function OffersView({ persona, account: initial, matching, offers }: {
 
   const infoButton = (
     <button type="button" aria-label={t.info} onClick={() => setInfo(true)}
-      className="inline-flex h-tap min-w-tap items-center gap-t2 rounded-sm px-t2 text-small text-accent hover:bg-surface2">
+      className="inline-flex min-h-tap min-w-tap items-center py-t1 gap-t2 rounded-sm px-t2 text-small text-accent hover:bg-surface2">
       <Info aria-hidden size={20} />{t.info}
     </button>
   );

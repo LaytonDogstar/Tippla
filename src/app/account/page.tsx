@@ -6,7 +6,8 @@ import { currentPersona, presentationMode } from "@/lib/persona";
 import { billing, lenderMatchingOn } from "@/lib/selectors";
 import { formatShortDay, formatUpdated } from "@/lib/format";
 import { accountPage as t, notificationsCopy } from "@/content/account";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 
 export const dynamic = "force-dynamic";
 

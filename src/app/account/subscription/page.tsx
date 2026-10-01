@@ -2,7 +2,7 @@ import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { billing } from "@/lib/selectors";
 import { accountPage as t } from "@/content/account";
-import { PortalShell } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { SubscriptionView } from "../AccountViews";
 
 export const dynamic = "force-dynamic";

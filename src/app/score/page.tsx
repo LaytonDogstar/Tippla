@@ -9,7 +9,8 @@ import { onboarding } from "@/content/onboarding";
 import { STAGES_ARE_SAMPLE } from "@/config/stages";
 import { factorFromSlug } from "@/lib/ui/factorSlugs";
 import type { FactorKey } from "@/lib/api/types";
-import { PageHeader, PortalShell } from "@/components/shell/Shells";
+import { PageHeader } from "@/components/shell/Shells";
+import { PortalShell } from "@/components/shell/Portal";
 import { ScoreView, type FactorPanel } from "./ScoreView";
 
 export const dynamic = "force-dynamic";
