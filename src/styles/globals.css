@@ -36,3 +36,8 @@ body {
 @media (forced-colors: active) {
   .tippla-empty-illustration { color: CanvasText; --color-accent: CanvasText; }
 }
+
+/* The hidden attribute always wins over utility display classes. */
+[hidden] { display: none !important; }
+/* Programmatically focused headings (sheet titles) aren't controls: no ring. */
+[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none; }

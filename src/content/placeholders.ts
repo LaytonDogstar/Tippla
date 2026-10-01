@@ -1,8 +1,5 @@
 // Screens not built yet. Each route still goes somewhere and says what will be there (non-negotiable 7).
 export const placeholders: Record<string, { title: string; body: string; phase: number }> = {
-  "": { title: "Home", body: "Your dashboard: SmartScore, the next thing to do, your pay cycle and next bill.", phase: 3 },
-  score: { title: "SmartScore", body: "Your score, the path to the next stage, and every factor with what lifts it.", phase: 3 },
-  savings: { title: "Ways to lift your score", body: "Specific steps, ordered by what they'd change.", phase: 3 },
   spending: { title: "Spending", body: "Where your money goes this pay cycle, by category, with search.", phase: 4 },
   calendar: { title: "Calendar", body: "Payday to payday at a glance, with predicted bills.", phase: 4 },
   subscriptions: { title: "Subscriptions", body: "Regular charges, what they cost per pay cycle, and how to cancel.", phase: 4 },

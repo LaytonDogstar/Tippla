@@ -9,7 +9,7 @@ import type { StageInfo } from "@/lib/selectors/score";
 import { stageMarkerX } from "@/lib/ui/geometry";
 import { cx } from "@/components/ui/cx";
 
-export function StageScale({ score, stage, onStage, onNext }: { score: number; stage: StageInfo; onStage?: (id: StageId) => void; onNext?: () => void }) {
+export function StageScale({ score, stage, onStage, onNext, embedded }: { score: number; stage: StageInfo; onStage?: (id: StageId) => void; onNext?: () => void; embedded?: boolean }) {
   const strip = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(310);
   useLayoutEffect(() => {
@@ -24,12 +24,14 @@ export function StageScale({ score, stage, onStage, onNext }: { score: number; s
   const x = stageMarkerX(w, idx, stage.progress);
 
   return (
-    <section aria-label={stageScale.label} className="min-h-[196px] rounded-md bg-surface p-t5">
-      <div className="flex flex-wrap items-baseline justify-between gap-t3">
-        <p className="text-h3 text-text">{stage.name}</p>
-        <p className="tnum text-h3 font-numeric text-text">{score}</p>
-      </div>
-      <div ref={strip} className="relative mt-t4">
+    <section aria-label={stageScale.label} className={embedded ? "" : "min-h-[196px] rounded-md bg-surface p-t5"}>
+      {!embedded && (
+        <div className="flex flex-wrap items-baseline justify-between gap-t3">
+          <p className="text-h3 text-text">{stage.name}</p>
+          <p className="tnum text-h3 font-numeric text-text">{score}</p>
+        </div>
+      )}
+      <div ref={strip} className={cx("relative", !embedded && "mt-t4")}>
         <div aria-hidden className="flex gap-t1">
           {STAGES.map((s) => <span key={s.id} className="h-t2 flex-1 rounded-pill" style={{ background: `var(--stage-${s.id})` }} />)}
         </div>
@@ -60,12 +62,14 @@ export function StageScale({ score, stage, onStage, onNext }: { score: number; s
           );
         })}
       </ol>
-      <button type="button" onClick={onNext} className="mt-t5 flex min-h-tap w-full items-center gap-t3 rounded-sm text-left hover:bg-surface2">
-        <span className="flex-1 text-h2 font-display text-text">
-          {stage.next ? scoreRing.toNext(stage.next.pointsToGo, stage.next.name) : stageScale.current}
-        </span>
-        <ChevronRight aria-hidden size={20} className="text-accent" />
-      </button>
+      {!embedded && (
+        <button type="button" onClick={onNext} className="mt-t5 flex min-h-tap w-full items-center gap-t3 rounded-sm text-left hover:bg-surface2">
+          <span className="flex-1 text-h2 font-display text-text">
+            {stage.next ? scoreRing.toNext(stage.next.pointsToGo, stage.next.name) : stageScale.current}
+          </span>
+          <ChevronRight aria-hidden size={20} className="text-accent" />
+        </button>
+      )}
     </section>
   );
 }

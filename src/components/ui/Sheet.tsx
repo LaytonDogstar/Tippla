@@ -63,6 +63,15 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, onBack
     };
   }, [open]);
 
+  // Content replaced in place (a related step, or Back): the control that had focus is gone, so move
+  // focus to the new heading rather than letting it fall to the page and lose Escape and the Tab trap.
+  useEffect(() => {
+    if (!open) return;
+    requestAnimationFrame(() => {
+      if (!panel.current?.contains(document.activeElement)) heading.current?.focus();
+    });
+  }, [open, title]);
+
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape") { e.stopPropagation(); onClose(); return; }
     if (e.key !== "Tab" || !panel.current) return;

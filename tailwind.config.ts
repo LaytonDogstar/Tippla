@@ -48,7 +48,7 @@ const config: Config = {
         numeric: "var(--font-numeric)",
       },
       fontSize,
-      spacing: Object.fromEntries((tokens.space as number[]).map((v, i) => [`t${i}`, `${v}px`])),
+      spacing: { ...Object.fromEntries((tokens.space as number[]).map((v, i) => [`t${i}`, `${v}px`])), sidebar: "var(--sidebar-width)", drawer: "var(--drawer-width)" },
       borderRadius: Object.fromEntries(Object.entries(tokens.radius).map(([k, v]) => [k, `${v}px`])),
       boxShadow: { e1: "var(--elev-1)", e2: "var(--elev-2)", e3: "var(--elev-3)" },
       transitionDuration: { fast: "var(--motion-fast)", base: "var(--motion-base)", slow: "var(--motion-slow)" },

@@ -13,3 +13,4 @@ export * from "./banners";
 export * from "./subscriptions";
 export * from "./transfers";
 export * from "./recommendations";
+export * from "./factorDetail";

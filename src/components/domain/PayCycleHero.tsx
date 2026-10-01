@@ -1,6 +1,7 @@
 // Component 04. Brand summary (fixed gradient, both themes) + neutral body with separate controls.
 // Headline: available balance − bills due before payday. Short state uses caution (blue-grey), never red.
-import { ChevronRight } from "lucide-react";
+import { ArrowDownToLine, ChevronRight } from "lucide-react";
+import { dashboard } from "@/content/dashboard";
 import { payCycleHero as t } from "@/content/components";
 import { copy } from "@/content/en-AU";
 import { formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
@@ -71,6 +72,33 @@ export function PayCycleHero({ summary: s, onForecast, onSpent, onPaidIn, onAdva
           </button>
         </div>
 
+        {/* More than one income source (wages + Centrelink): equal rows, same icon, type and colour. */}
+        {s.incomeLines.length > 1 && (
+          <>
+            <ul className="mt-t2 border-t border-line">
+              {s.incomeLines.map((l) => (
+                <li key={`${l.payer}-${l.date}`} className="flex min-h-tap items-center gap-t3 text-small text-text">
+                  <ArrowDownToLine aria-hidden size={20} className="shrink-0 text-neutral" />
+                  <span className="tnum">{dashboard.incomeRow(l.payer, formatWhole(l.amount), formatShortDay(l.date))}</span>
+                </li>
+              ))}
+            </ul>
+            {s.expectedIncome.length > 0 && (
+              <>
+                <h3 className="mt-t3 text-h3 text-text">{dashboard.comingIn}</h3>
+                <ul>
+                  {dedupeNext(s.expectedIncome).map((i) => (
+                    <li key={`${i.payer}-${i.date}`} className="flex min-h-tap items-center gap-t3 text-small text-text">
+                      <ArrowDownToLine aria-hidden size={20} className="shrink-0 text-neutral" />
+                      <span className="tnum">{(i.exact ? dashboard.incomeRow : dashboard.incomeRowAbout)(i.payer, formatWhole(i.amount), formatShortDay(i.date))}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
+        )}
+
         {advance && advance.repayAmount !== null && advance.repayDate && (
           <>
             <hr aria-hidden className="my-t3 border-line" />
@@ -91,4 +119,10 @@ export function PayCycleHero({ summary: s, onForecast, onSpent, onPaidIn, onAdva
       </div>
     </section>
   );
+}
+
+/** The next date for each income source. */
+function dedupeNext<T extends { payer: string; date: string }>(xs: T[]): T[] {
+  const seen = new Set<string>();
+  return xs.filter((x) => (seen.has(x.payer) ? false : (seen.add(x.payer), true)));
 }

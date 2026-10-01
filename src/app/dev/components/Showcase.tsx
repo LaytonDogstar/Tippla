@@ -250,9 +250,9 @@ export function Showcase({ data }: { data: ShowcaseData }) {
       <Section id="recommendation" title="14 RecommendationCard">
         {() => (
           <RecommendationCard
-            item={{ id: "pay-advance", factor: pa.context, title: pa.title, rationale: pa.rationale }}
-            saved={saved} dismissed={recDismissed}
-            onSeeHow={() => openInsight("pay-advance")} onSave={() => setSaved(true)} onUnsave={() => setSaved(false)}
+            item={{ id: "pay-advance", factor: pa.context, title: pa.title, rationale: pa.rationale, impact: "Keeps $15 a fortnight in fees", action: { label: "See what's due before payday", href: "/calendar" } }}
+            snoozed={saved} dismissed={recDismissed}
+            onSeeHow={() => openInsight("pay-advance")} onSnooze={() => setSaved(true)} onUndoSnooze={() => setSaved(false)}
             onDismiss={() => setRecDismissed(true)} onUndoDismiss={() => setRecDismissed(false)}
           />
         )}
