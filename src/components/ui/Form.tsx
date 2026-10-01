@@ -158,3 +158,22 @@ export function RadioGroup<T extends string>({ legend, options, value, onChange,
     </fieldset>
   );
 }
+
+/** Native select (best on mobile: the platform picker). Used for recategorising. */
+export function SelectInput<T extends string>({ label, value, options, onChange, hideLabel, disabled }: {
+  label: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; hideLabel?: boolean; disabled?: boolean;
+}) {
+  const id = useId();
+  return (
+    <div className="min-w-0">
+      <label htmlFor={id} className={hideLabel ? "sr-only" : "block text-small text-text"}>{label}</label>
+      <div className={cx(fieldBox(undefined, false, disabled), "relative px-0", !hideLabel && "mt-t2")}>
+        <select id={id} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value as T)}
+          className="h-full w-full cursor-pointer appearance-none rounded-sm bg-transparent pl-t4 pr-t8 text-body text-text outline-none">
+          {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <svg aria-hidden width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="pointer-events-none absolute right-t3 text-text-muted"><path d="m6 9 6 6 6-6" /></svg>
+      </div>
+    </div>
+  );
+}

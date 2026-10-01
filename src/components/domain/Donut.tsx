@@ -12,7 +12,9 @@ import { cx } from "@/components/ui/cx";
 
 const SIZE = 250, C = SIZE / 2, RO = 120, RI = 80;
 
-export function Donut({ rows, total, periodLabel, selected, onSelect, loading }: {
+export function Donut({ rows, total, periodLabel, selected, onSelect, loading, legend = true }: {
+  /** false when full-size category rows follow (they are the precise-access alternative). */
+  legend?: boolean;
   rows: CategoryRow[]; total: number; periodLabel: string; selected: SpendCategory | null; onSelect: (c: SpendCategory | null) => void; loading?: boolean;
 }) {
   if (loading) {
@@ -75,7 +77,7 @@ export function Donut({ rows, total, periodLabel, selected, onSelect, loading }:
         </div>
       </div>
       {sel && <div className="mt-t4"><FilterChip label={sel.name} onRemove={() => onSelect(null)} /></div>}
-      <ul className="mt-t4">
+      {legend && <ul className="mt-t4">
         {rows.map((r) => {
           const isSel = r.category === selected;
           return (
@@ -94,7 +96,7 @@ export function Donut({ rows, total, periodLabel, selected, onSelect, loading }:
             </li>
           );
         })}
-      </ul>
+      </ul>}
     </section>
   );
 }

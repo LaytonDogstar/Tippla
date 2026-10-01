@@ -34,3 +34,11 @@ export function formatPercent(n: number, decimals = 1): string {
 
 /** Factor score: 2.9 / 10 */
 export const formatFactor = (n: number): string => `${n.toFixed(1)} / 10`;
+
+/** Compact for tight cells: $314, −$53, $12.3k. Full amounts stay in labels and sheets. */
+export function formatCompact(n: number): string {
+  const abs = Math.abs(n);
+  if (abs < 10000) return formatAUD(n);
+  const k = Math.round(abs / 100) / 10;
+  return `${n < 0 ? "−" : ""}$${k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)}k`;
+}

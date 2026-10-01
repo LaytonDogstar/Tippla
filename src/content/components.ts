@@ -93,7 +93,7 @@ export const category = {
 
 export const donut = {
   heading: "Spending by category",
-  centreLabel: "Spent this cycle",
+  centreLabel: "Spent",
   shareOf: (pct: string) => `${pct} of spending`,
   loading: "Loading spending",
   empty: "No spending this period",
@@ -124,6 +124,8 @@ export const calendar = {
   billPredicted: (merchant: string, amt: string) => `${merchant} ${amt} predicted`,
   incomeExpected: (payer: string) => `${payer} expected`,
   today: "today",
+  inRange: "in selected range",
+  predicted: "predicted",
 };
 
 export const loan = {

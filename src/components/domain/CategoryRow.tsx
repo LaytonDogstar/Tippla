@@ -7,6 +7,7 @@ import { category as t } from "@/content/components";
 import { formatCents, formatWhole } from "@/lib/format";
 import type { CategoryRow as Row, MerchantRow } from "@/lib/selectors/spending";
 import { categoryIcons, catVar } from "@/components/icons";
+import { Sparkline } from "./Sparkline";
 import { cx } from "@/components/ui/cx";
 
 export interface CategoryRowProps {
@@ -20,20 +21,28 @@ export interface CategoryRowProps {
   onViewAll?: () => void;
   onEditBudget?: () => void;
   defaultExpanded?: boolean;
+  /** "Up $40 vs last pay cycle" — plain words, neutral colour. */
+  changeText?: string;
+  /** Last 6 pay cycles, oldest first. */
+  sparkline?: (number | null)[];
+  /** Controlled expansion (donut selection opens the row). */
+  expanded?: boolean;
+  onToggle?: (open: boolean) => void;
 }
 
-export function CategoryRow({ row, merchants = [], budget, showLifestyle, insightLabel, onInsight, onMerchant, onViewAll, onEditBudget, defaultExpanded }: CategoryRowProps) {
-  const [open, setOpen] = useState(!!defaultExpanded);
+export function CategoryRow({ row, merchants = [], budget, showLifestyle, insightLabel, onInsight, onMerchant, onViewAll, onEditBudget, defaultExpanded, changeText, sparkline, expanded, onToggle }: CategoryRowProps) {
+  const [openState, setOpen] = useState(!!defaultExpanded);
+  const open = expanded ?? openState;
   const id = useId();
   const Icon = categoryIcons[row.category];
-  const hasBudget = budget !== undefined;
+  const hasBudget = typeof budget === "number";
   return (
     <section className="rounded-md bg-surface">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={id}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => { setOpen(!open); onToggle?.(!open); }}
         className="flex min-h-[88px] w-full items-center gap-t3 rounded-md p-t4 text-left hover:bg-surface2 active:bg-surface2"
       >
         <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2" style={{ color: catVar(row.category) }}>
@@ -42,8 +51,12 @@ export function CategoryRow({ row, merchants = [], budget, showLifestyle, insigh
         <span className="min-w-0 flex-1">
           <span className="block text-h3 text-text">{row.name}</span>
           <span className="mt-t1 block text-caption text-text-muted">{t.transactions(row.count)}</span>
+          {changeText && <span className="tnum mt-t1 block text-caption text-text-muted">{changeText}</span>}
         </span>
-        <span className="tnum shrink-0 text-small font-numeric text-text">{formatWhole(row.total)}</span>
+        <span className="flex shrink-0 flex-col items-end gap-t1">
+          <span className="tnum text-small font-numeric text-text">{formatWhole(row.total)}</span>
+          {sparkline && <Sparkline values={sparkline} category={row.category} />}
+        </span>
         {open ? <ChevronUp aria-hidden size={20} className="shrink-0 text-text-muted" /> : <ChevronDown aria-hidden size={20} className="shrink-0 text-text-muted" />}
       </button>
 
@@ -73,7 +86,8 @@ export function CategoryRow({ row, merchants = [], budget, showLifestyle, insigh
             </li>
           ))}
         </ul>
-        <button type="button" onClick={onViewAll} className="min-h-tap w-full rounded-sm text-left text-small text-accent hover:bg-surface2">{t.viewTransactions}</button>
+        {onViewAll && <button type="button" onClick={onViewAll} className="min-h-tap w-full rounded-sm text-left text-small text-accent hover:bg-surface2">{t.viewTransactions}</button>}
+        {budget === null && onEditBudget && <button type="button" onClick={onEditBudget} className="min-h-tap w-full rounded-sm text-left text-small text-accent hover:bg-surface2">{t.setBudget}</button>}
       </div>
     </section>
   );

@@ -225,7 +225,6 @@ export function Showcase({ data }: { data: ShowcaseData }) {
               days={jess.calendar.days}
               label={`Pay cycle ${formatDayMonth(jess.calendar.days[0]!.date)} – ${formatDayMonth(jess.calendar.days[13]!.date)}`}
               nextPayday={jess.calendar.nextPayday}
-              spendCategories={jess.spendCats}
               onDay={(d) => setSheet({ title: `Day ${formatDayMonth(d.date)}`, body: <DayDetail day={d} /> })}
             />
           </div>

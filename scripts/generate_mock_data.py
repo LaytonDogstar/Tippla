@@ -118,6 +118,16 @@ EVERYDAY = {
   "cash": (["ATM WITHDRAWAL"], 0.35, 40, 100),
 }
 
+
+# Brand capitalisation that str.title() gets wrong.
+DISPLAY_NAMES = {
+  "APPLE ICLOUD": "Apple iCloud", "MCDONALDS": "McDonald's", "GRILL'D": "Grill'd", "DAN MURPHYS": "Dan Murphy's",
+  "BWS": "BWS", "BIG W": "BIG W", "KMART": "Kmart", "AMAZON AU": "Amazon AU", "TAB": "TAB", "ATM WITHDRAWAL": "ATM withdrawal",
+  "7-ELEVEN FUEL": "7-Eleven Fuel",
+}
+def display_name(m):
+    return DISPLAY_NAMES.get(m, m.title())
+
 def r2(x): return round(x + 0.0, 2)
 
 def build(pid, p):
@@ -155,19 +165,19 @@ def build(pid, p):
             if d + timedelta(days=6) <= AS_OF:
                 add(d + timedelta(days=6), f"{p['wage_advance']['provider'].upper()} REPAYMENT", -(p["wage_advance"]["credit"] * 1.05), "wage_advance", p["wage_advance"]["provider"], True, "advance_repayment")
         for (m, a, dom) in p["subscriptions"]:
-            if d.day == dom: add(d, m, -a, "subscriptions", m.title(), True)
+            if d.day == dom: add(d, m, -a, "subscriptions", display_name(m), True)
         if d.day == 20: add(d, "ORIGIN ENERGY", -rnd.uniform(78, 118), "bills", "Origin Energy", True)
         if d.day == 26: add(d, "TELSTRA PREPAID", -52.0, "bills", "Telstra", True)
         for cat, (merchants, per_week, lo, hi) in EVERYDAY.items():
             if rnd.random() < per_week / 7:
                 m = rnd.choice(merchants)
-                add(d, m, -rnd.uniform(lo, hi), cat, m.title())
+                add(d, m, -rnd.uniform(lo, hi), cat, display_name(m))
         g = p["gambling"]
         if g:
             growth = 1 + (g["growth"] - 1) * (di / p["days"]) ** 2
             if rnd.random() < g["per_cycle"] / 14 * (0.8 + di / p["days"]):
                 m = rnd.choice(g["merchants"])
-                add(d, f"{m} DEPOSIT", -round(g["base"] * growth * rnd.uniform(0.6, 1.6) / 5) * 5, "gambling", m.title())
+                add(d, f"{m} DEPOSIT", -round(g["base"] * growth * rnd.uniform(0.6, 1.6) / 5) * 5, "gambling", display_name(m))
     for dday in p["dishonour_days"]:
         if dday < p["days"]:
             d = start + timedelta(days=dday)

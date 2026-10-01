@@ -14,3 +14,7 @@ export * from "./subscriptions";
 export * from "./transfers";
 export * from "./recommendations";
 export * from "./factorDetail";
+export * from "./edits";
+export * from "./budgets";
+export * from "./cohort";
+export * from "./spendingInsights";

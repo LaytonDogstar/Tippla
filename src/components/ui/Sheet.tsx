@@ -70,7 +70,15 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, onBack
     requestAnimationFrame(() => {
       if (!panel.current?.contains(document.activeElement)) heading.current?.focus();
     });
-  }, [open, title]);
+  }, [open, title, mounted]);
+
+  // Backstop: Escape closes even if focus never reached the panel (e.g. a sheet open on page load).
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onDoc);
+    return () => document.removeEventListener("keydown", onDoc);
+  }, [open, onClose]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape") { e.stopPropagation(); onClose(); return; }

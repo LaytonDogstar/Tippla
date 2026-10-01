@@ -2,7 +2,7 @@
 import { Bell } from "lucide-react";
 import Link from "next/link";
 import { loadPersona } from "@/lib/api/client";
-import { currentPersona, presentationMode } from "@/lib/persona";
+import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
 import { dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
 import { formatUpdated, formatDate } from "@/lib/format";
 import { dashboard as t } from "@/content/dashboard";
@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function Home({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
   const persona = currentPersona(searchParams.persona);
   const { data } = await loadPersona(persona);
+  const edits = categoryEdits(persona);
   const banner = dashboardBanner(data);
   const bannerView = banner && (
     banner.kind === "hardship" ? { text: t.banners.hardship, href: "/hardship" }
@@ -30,9 +31,9 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
         score={scoreState(data)}
         change={scoreChange(data)}
         action={firstAction(data)}
-        payCycle={payCycleSummary(data)}
+        payCycle={payCycleSummary(data, edits)}
         nextBill={nextBill(data)}
-        bars={sixMonthSpending(data)}
+        bars={sixMonthSpending(data, edits)}
       />
     </PortalShell>
   );

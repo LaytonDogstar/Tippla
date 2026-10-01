@@ -1,5 +1,6 @@
 import type { ArrayMetricValue, PersonaData } from "@/lib/api/types";
 import { internalMetric, metric } from "@/lib/dataUse";
+import { posted, type CategoryOverrides } from "./transactions";
 
 export interface MonthBar {
   month: string; // 2026-09
@@ -13,7 +14,15 @@ export interface MonthBar {
  * Months before the history starts (AM2035) are null — never drawn as $0. A standard 90-day TaleFin
  * pull only fills three of the six bars (Q17: ask for 180 days).
  */
-export function sixMonthSpending(d: PersonaData): MonthBar[] {
+export function sixMonthSpending(d: PersonaData, overrides: CategoryOverrides = {}): MonthBar[] {
+  // Customer edits to or from "transfer" move money in or out of spending; other edits only move categories.
+  const editDelta = new Map<string, number>();
+  for (const t of posted(d.transactions)) {
+    const to = overrides[t.id];
+    if (!to || t.amount >= 0 || (to === "transfer") === (t.category === "transfer")) continue;
+    const m = t.date.slice(0, 7);
+    editDelta.set(m, (editDelta.get(m) ?? 0) + (to === "transfer" ? t.amount : -t.amount));
+  }
   const debits = metric<ArrayMetricValue>(d.bankStatement, "AM2004").monthly_values ?? {};
   const internal = internalMetric<ArrayMetricValue>(d.bankStatement, "AM2047").monthly_values ?? {};
   const firstMonth = metric<string>(d.bankStatement, "AM2035").slice(0, 7);
@@ -22,7 +31,7 @@ export function sixMonthSpending(d: PersonaData): MonthBar[] {
     const v = debits[k];
     if (!v) return [];
     const transfers = Object.values(internal).find((x) => x.month === v.month)?.sum_amount ?? 0;
-    const total = v.month < firstMonth ? null : Math.max(0, Math.round((v.sum_amount - transfers) * 100) / 100);
+    const total = v.month < firstMonth ? null : Math.max(0, Math.round((v.sum_amount - transfers + (editDelta.get(v.month) ?? 0)) * 100) / 100);
     return [{ month: v.month, total, partial: v.month === asOfMonth }];
   });
 }

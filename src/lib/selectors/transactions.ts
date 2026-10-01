@@ -1,6 +1,6 @@
-import type { CategoryId, PersonaData, Transaction } from "@/lib/api/types";
+import type { CategoryId, Transaction } from "@/lib/api/types";
 import { inRange } from "@/lib/format/dates";
-import type { Period } from "./periods";
+import type { Period, SpendData } from "./periods";
 
 /** Recategorisation overrides, keyed by transaction id (mock: localStorage; real: Tippla DB). */
 export type CategoryOverrides = Record<string, CategoryId>;
@@ -27,11 +27,16 @@ export const isIncome = (t: Transaction) => t.amount > 0 && t.category === "inco
 export const inPeriod = (tx: Transaction[], p: Period) => tx.filter((t) => inRange(t.date, p.start, p.end));
 
 /** Posted debits in a period: the basis of every "spent" figure. */
-export const debitsIn = (d: PersonaData, p: Period, overrides?: CategoryOverrides) =>
+export const debitsIn = (d: SpendData, p: Period, overrides?: CategoryOverrides) =>
   inPeriod(posted(applyOverrides(d.transactions, overrides)), p).filter(isDebit);
 
+/** Search by merchant, description or amount ("52" finds $52.00; "$18.99" finds $18.99). */
 export function searchTransactions(tx: Transaction[], q: string): Transaction[] {
   const s = q.trim().toLowerCase();
   if (!s) return tx;
-  return tx.filter((t) => t.merchant.toLowerCase().includes(s) || t.description.toLowerCase().includes(s));
+  const num = s.replace(/[$,\s]/g, "");
+  const isAmount = /^\d+(\.\d{0,2})?$/.test(num);
+  return tx.filter((t) =>
+    t.merchant.toLowerCase().includes(s) || t.description.toLowerCase().includes(s) ||
+    (isAmount && Math.abs(t.amount).toFixed(2).startsWith(num)));
 }
