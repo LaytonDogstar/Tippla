@@ -12,3 +12,4 @@ export * from "./gambling";
 export * from "./banners";
 export * from "./subscriptions";
 export * from "./transfers";
+export * from "./recommendations";
