@@ -82,7 +82,7 @@ export const copy = {
     spent: (amt: string) => `${amt} spent`,
     paidIn: (amt: string) => `${amt} paid in`,
     payAdvance: (amt: string, repay: string, date: string, fee: string) =>
-      `Includes a ${amt} pay advance, ${repay} due back ${date} (${amt} + ${fee} fee)`,
+      `Plus a ${amt} pay advance (not income): ${repay} due back ${date} (${amt} + ${fee} fee)`,
     short: (amt: string) => `About ${amt} short before payday`,
     left: (amt: string) => `About ${amt} left after bills`,
     due: (amt: string) => `${amt} due before payday`,

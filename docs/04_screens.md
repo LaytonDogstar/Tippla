@@ -46,7 +46,7 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
   4. **Pay cycle card:** "{spent} spent · {days} days to payday · {left_after_bills} left after bills" with the spent/due track (from `derived.json`). Link to Spending.
    - **Days to payday** = calendar days from the data date to the next payday (jess: Fri 25/09 → Thu 01/10 = 6 days). Show the payday too: "6 days to payday (Thu 01/10)".
    - **Definition:** `left_after_bills = current available balance − predicted bills due before next payday`. Not "income − spending" for the cycle, which ignores money carried in or owed from last cycle.
-   - **"Paid in"** counts income only; pay advances are shown separately ("Includes a $300 pay advance, due back 30/09").
+   - **"Paid in"** counts income only; pay advances are shown separately and never added to it ("Plus a $300 pay advance (not income): $315 due back 30/09"). Jess's $2,483 is wages only.
    - **Short before payday** (jess: $314 balance − $367 due = −$53): headline "About $53 short before payday" in `caution` (not red), with two options: "See what's due" (calendar) and "Options if money's tight" (hardship). This is the most useful thing the app can tell her.
   5. **Next bill:** the next upcoming bill (date, merchant, amount, "predicted").
   6. **Six-month spending** mini bar chart (monthly totals from AM2004 monthly_values) — tappable to Spending.

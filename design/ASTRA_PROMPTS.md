@@ -95,7 +95,7 @@ A) Dashboard for Jess, light mode, top to bottom:
    - Pay cycle card, in its short-before-payday (caution, not red) state:
      - Headline: "About $53 short before payday" (balance $314 − $367 due before payday).
      - "Pay cycle 17/09 – 30/09 · 6 days to payday (Thu 01/10)".
-     - "$1,832 spent" · "$2,483 paid in" · "Includes a $300 pay advance, $315 due back 30/09 ($300 + $15 fee)".
+     - "$1,832 spent" · "$2,483 paid in" (wages only) · "Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)".
      - "$367 due before payday: Telstra $52 (Sat 26/09), Beforepay $315 (Wed 30/09)".
      - Two links: "See what's due" (calendar) and "Options if money's tight" (hardship).
    - Next bill: "Sat 26/09 · Telstra · $52 · predicted".
@@ -227,6 +227,34 @@ Save as design/illustration-and-motion.md and design/empty-states/*.svg.
 
 ```
 Give me a handoff manifest (Markdown) listing every file you produced with its path under design/ and what it's for. Then self-review against the hard rules in Prompt 0 and list anything that breaks them (red used for money states, rankings, green for spending increases, gambling highlighted, US spelling, contrast fails, missing dark variants, any figure, date or weekday that differs from the data in Prompts 1, 2 and 7). Fix anything you find and re-output only the corrected files.
+```
+
+---
+
+## Prompt 10 — Corrections after the first handoff (01/10/2026)
+
+```
+Thanks — the handoff is strong and the tokens pass our automated checks. Please make these corrections, then re-output only the changed files and add them to MANIFEST.md.
+
+1. MARCUS DASHBOARD USES OLD DATA. Screens 04 (dashboard-improving, -pay-cycle, -due, light and dark) and screens.md use the earlier pay cycle. The current data is:
+   - "Pay cycle 23/09 – 06/10 · 12 days to payday (Wed 07/10)"
+   - "$301 spent" · "$1,747 paid in"
+   - Paid in is two equal income lines, identical styling: "Centrelink $412 · Wed 23/09" and "Southside Logistics $1,335 · Thu 24/09"
+   - "$663 due before payday": Qld Housing Rent $560 (Sat 26/09), Telstra $52 (Sat 26/09), Afterpay $32 (Thu 01/10), Netflix $18.99 (Tue 06/10) — unchanged
+   - "About $1,700 left after bills" — unchanged. His balance is $2,363 if you need it ($2,363 − $663 = $1,700).
+   - Coming in next: "Centrelink $412 · Wed 07/10" and "Southside Logistics about $1,350 · Thu 08/10"
+
+2. JESS'S PAID IN DOES NOT INCLUDE THE ADVANCE. My wording "Includes a $300 pay advance" was ambiguous — sorry. $2,483 is wages only. The $300 Beforepay advance is separate and is not income. Replace the line everywhere (dashboard pay-cycle continuation, due sheet, loans notes, screens.md fixtures) with:
+   "Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)"
+   Remove the note that the 21% debt figure is "not calculated from the $2,483 paid-in total, which includes a pay advance".
+
+3. DARK-MODE HOUSING AND BNPL ARE ALMOST IDENTICAL (#91ACFF vs #8AAAFF). Separate them clearly (keep 3:1 on surface and surface2). Our checker also notes these are close but acceptable: transport/income, entertainment/centrelink, gambling/uncategorised.
+
+4. THE NINTH FACTOR IS INTENTIONALLY HIDDEN. Jess has nine factors; the ninth (government payments in income) is never shown as a tile or scored item, so customers on Centrelink are never told to "improve" it. Showing eight is correct. Please change the manifest note from "missing source data" to "by design", and add one line under "How your score works": "Your score also looks at the mix of wages and government payments in your income."
+
+5. COMPARISON RATE IS VERIFIED. 21.9% p.a. matches the repayment schedule ($2,500, 39 fortnightly repayments of $75.47). Show it as "21.9% p.a. comparison rate"; drop the caveat. Label the $443.33 line "Total cost of borrowing $443 (includes the $150 fee)".
+
+6. GAMBLING SHEET "WHAT IT WOULD CHANGE". There is copy for this block: "Keeping gambling lower over the next 90 days is one of the ways to lift this factor." Please add it to screen 08 (light and dark).
 ```
 
 ---
