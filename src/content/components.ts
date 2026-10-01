@@ -59,7 +59,7 @@ export const payCycleHero = {
   seeWhatsDue: "See what's due",
   moneyTight: "Options if money's tight",
   unavailable: "Pay-cycle estimate unavailable",
-  leftHeadline: (amt: string) => `About ${amt} left before payday`,
+  leftHeadline: (amt: string) => `About ${amt} left after bills`,
 };
 
 export const insight = {

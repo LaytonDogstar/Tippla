@@ -1,6 +1,6 @@
 # Tippla screen specifications — mobile and desktop
 
-Approved direction: **Banking Clarity**, using `tokens.json` v1.0.1 and `components.md`. Snapshot date: **Fri 25/09/2026**. Palette, Inter typography and Lucide icon family are unchanged. Mobile PNGs are exactly **390 × 844 pixels**. The desktop dashboard and its drawer frame are exactly **1440 × 900 pixels**. These are viewport captures, not stretched full-page images.
+Approved direction: **Banking Clarity**, using `tokens.json` v1.0.2 and `components.md`. Snapshot date: **Fri 25/09/2026**. Inter typography and Lucide icons are unchanged; dark housing now separates clearly from BNPL. Mobile PNGs are exactly **390 × 844 pixels**. The desktop dashboard and its drawer frame are exactly **1440 × 900 pixels**. These are viewport captures, not stretched full-page images.
 
 The 26 requested opening frames are named `<name>-<theme>.png` under `screens/`. Screens 1–12 have both themes; onboarding consents and the desktop dashboard use the requested light-only option. Forty-five supporting captures show scroll positions, detail sheets/drawers, consent states, the lender-message template and support destinations. They complete the supplied data without shrinking text or pretending an entire dashboard fits above the fold. The light/dark variants use identical geometry and data. No score count-up, celebratory gain styling, urgency banner, green spending increase or red financial state is introduced.
 
@@ -46,9 +46,9 @@ The opening view follows the requested order: update timestamp, gentle hardship 
 - [Frame dashboard-due — light](screens/dashboard-due-light.png)
 - [Frame dashboard-due — dark](screens/dashboard-due-dark.png)
 
-The pay-cycle continuation shows the exact historical totals and the forecast equation. The covered strip is **314/367**; the neutral hatched short portion is **53/367**. Paid-in/spent totals are not used as the forecast balance. The $300 advance, $315 repayment, $15 fee and 30/09 due date remain explicit. The next-bill row is Telstra, Sat 26/09, $52, predicted. The six-month chart preserves all six values and marks September as partial.
+The pay-cycle continuation shows the exact historical totals and the forecast equation. The covered strip is **314/367**; the neutral hatched short portion is **53/367**. Paid-in/spent totals are not used as the forecast balance. The $2,483 paid-in total is wages only. The separate borrowing disclosure reads: “Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)” The next-bill row is Telstra, Sat 26/09, $52, predicted. The six-month chart preserves all six values and marks September as partial.
 
-“See what's due” opens the supplied due sheet: Telstra $52 (Sat 26/09, predicted) and Beforepay $315 (Wed 30/09). Beforepay is predicted, as explicitly supplied in the later calendar fixture; both due rows use the predicted outline and label. “Options if money's tight” and the top banner open Hardship support. The advance disclosure opens Beforepay details. Spent and paid-in totals open separately filtered transactions for the same cycle. The Home tab is active.
+“See what's due” opens the supplied due sheet: Telstra $52 (Sat 26/09, predicted) and Beforepay $315 (Wed 30/09). Beforepay is predicted, as explicitly supplied in the later calendar fixture; both due rows use the predicted outline and label. “Options if money's tight” and the top banner open Hardship support. The advance disclosure opens Beforepay details. Spent and paid-in totals open separately filtered transactions for the same cycle; the income filter excludes pay advances. The Home tab is active.
 
 ## 4. dashboard-improving — Marcus
 
@@ -65,7 +65,7 @@ The **only contextual banner** is “You have 1 new offer →”, reflecting mat
 - [Frame dashboard-improving-due — light](screens/dashboard-improving-due-light.png)
 - [Frame dashboard-improving-due — dark](screens/dashboard-improving-due-dark.png)
 
-The action preserves the supplied Money left over title and rationale. The cycle is 24/09–07/10, with 13 days to payday on Thu 08/10; $221 spent and $1,335 paid in. The forecast headline is exactly “About $1,700 left after bills”. **No current balance was supplied**, so there is no invented balance or coverage ratio. The supplied forecast can be shown independently of that missing input.
+The action preserves the supplied Money left over title and rationale. The cycle is “Pay cycle 23/09 – 06/10 · 12 days to payday (Wed 07/10)”, with “$301 spent” and “$1,747 paid in”. Paid in has two equal income rows: “Centrelink $412 · Wed 23/09” and “Southside Logistics $1,335 · Thu 24/09”. Both use the same neutral ArrowDownToLine icon, size, colour, typography, opacity and spacing. Coming in next uses the same equal treatment: “Centrelink $412 · Wed 07/10” and “Southside Logistics about $1,350 · Thu 08/10”. The forecast headline remains “About $1,700 left after bills”; current balance is $2,363 and $2,363 − $663 = $1,700. Historical paid-in and spent totals are not the forecast balance.
 
 The due sheet lists Qld Housing Rent $560 (Sat 26/09), Telstra $52 (Sat 26/09), Afterpay $32 (Thu 01/10) and Netflix $18.99 (Tue 06/10). Their precise sum is $662.99; the supplied **$663** headline is retained, with a quiet rounding note. Qld Housing Rent is labelled predicted, as explicitly supplied in the next-bill fixture. The other three have no invented prediction status. All historical bars use the same cobalt treatment; July and August increases are not green.
 
@@ -88,7 +88,7 @@ The precise strength is visible in the opening view: “Income stability is your
 - [Frame smartscore-more-factors — light](screens/smartscore-more-factors-light.png)
 - [Frame smartscore-more-factors — dark](screens/smartscore-more-factors-dark.png)
 
-The continuation contains all **eight supplied factors**. No ninth factor, missing-factor score, name or weight is invented. The service's eventual nine-factor schema must provide the missing factor before a ninth row is added. Every row opens its own factor sheet; the range is out of 10 and values such as 5.0 retain one decimal place. Score is active.
+The continuation contains **eight visible factors by design**. The score uses nine factors; government payments in income is intentionally hidden as a tile or scored item and must never receive an improvement recommendation. Under “How your score works”, display: “Your score also looks at the mix of wages and government payments in your income.” The existing `smartscore-more-factors` captures show this explanation in both themes. All eight visible rows open their own factor sheet; their values remain out of 10 with one decimal place.
 
 ## 6. factor-sheet — Jess
 
@@ -127,7 +127,7 @@ Tap a slice to select that category, update the centre to its name and amount, a
 
 Period chips are mutually exclusive, 44 px high, with `space[2]` gaps. They form one horizontally scrollable, labelled group; the partially visible Custom chip indicates overflow. Keyboard focus scrolls the selected/focused option fully into view. Custom opens a date-range sheet. A period change updates hero, insight applicability, chart and rows together; stale data is not relabelled as the new period.
 
-The compact PayCycleHero is 246 px high: a 150 px fixed cobalt brand header, historical totals and a 44 px “See what's due” action. The shortfall is stated plainly with the same brand colour as other pay-cycle states. The totals are $1,832 spent and $2,483 paid in; paid in is not relabelled income. Spent/paid-in each have separate non-overlapping targets opening their own transaction direction. The due action reuses `dashboard-due` and the full pay-cycle details: $314 balance, $367 due, $53 short, the $300 advance and $315 repayment including its $15 fee. No new arithmetic or forecast is inferred. Optional support stays reachable in the persistent navigation row.
+The compact PayCycleHero is 246 px high: a 150 px fixed cobalt brand header, historical totals and a 44 px “See what's due” action. The shortfall is stated plainly with the same brand colour as other pay-cycle states. The totals are $1,832 spent and $2,483 paid in; the paid-in total is wages only and excludes the separate advance. Spent/paid-in each have separate non-overlapping targets opening their own transaction direction. The due action reuses `dashboard-due` and the full pay-cycle details: $314 balance, $367 due, $53 short, the $300 advance and $315 repayment including its $15 fee. No new arithmetic or forecast is inferred. Optional support stays reachable in the persistent navigation row.
 
 The insight uses the ordinary InsightCard treatment: `C.accentSoft` container, `C.text` title, `C.textMuted` explanation, manual pager and “Read insight” link. That link opens screen 8. “1 of 3” is preserved as supplied; the other two insight contents require the service data and are not fabricated here. Do not autoplay, assign a fabricated point gain, or repeatedly reopen a dismissed sheet.
 
@@ -137,7 +137,7 @@ The insight uses the ordinary InsightCard treatment: `C.accentSoft` container, `
 
 ![Frame spending-sheet — Jess, dark mode](screens/spending-sheet-dark.png)
 
-The gambling insight opens as an ordinary neutral sheet over Spending. The title is `type.h2`; the supplied paragraphs are `type.body` in `C.textMuted`. The 16.5% and 3.2 / 10 are inline facts, with no risk badge, warning icon, red treatment or giant percentage. Blocks are “What's happening” and “If you want them”. The optional “What it would change” block is omitted because no outcome copy was supplied; no score uplift is invented.
+The gambling insight opens as an ordinary neutral sheet over Spending. The title uses `type.h2`; block headings use `type.h3`, and this compact sheet uses `type.small` (14/20) for paragraphs in `C.textMuted`. The 16.5% and 3.2 / 10 remain inline facts. Blocks are “What's happening”, “What it would change” and “If you want them”. The middle block reads: “Keeping gambling lower over the next 90 days is one of the ways to lift this factor.” It makes no point-gain or approval promise. Body and actions remain separate; at larger text sizes the body scrolls above the fixed action footer.
 
 The footer has the exact three actions in the supplied order. “See how your score is worked out” opens the score-method explanation with this factor in context. It does not open an application. “View support options” replaces the insight with the same optional support content captured in `hardship-gambling-support`, with Back returning to the insight. “Not now”, close, Escape and scrim dismissal close without changing a relevance preference or deleting data. This is deliberately different from component 05's “Not relevant to me” action.
 
@@ -149,7 +149,7 @@ Footer divider y=644; first action y=660, height 56; support action y=724, heigh
 
 ![Frame loans — Jess, Overview tab, dark mode](screens/loans-dark.png)
 
-The Overview tab leads with the supplied fact “Debt repayments are about 21% of income.” It is not calculated from the $2,483 paid-in total, which includes a pay advance. The three instalment-loan cards come first; BNPL and the pay advance follow as separate product groups. All three estimated loan balances are explicitly labelled “estimated from your transactions”, including the approximately $2,140 Right Road Finance balance.
+The Overview tab leads with the supplied fact “Debt repayments are about 21% of income.” Jess's $2,483 paid in is wages only; the $300 advance is separate borrowing, not income. The three instalment-loan cards come first; BNPL and the pay advance follow as separate product groups. All three loan balances retain “estimated from your transactions”. The Beforepay note reads: “Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)”
 
 - [Frame loans-more — light](screens/loans-more-light.png)
 - [Frame loans-more — dark](screens/loans-more-dark.png)
@@ -174,11 +174,11 @@ The single neutral OfferCard shows Harbour Lending with “(sample)” directly 
 
 ![Frame offers-why-matched — Marcus, terms continuation and matching reasons, dark mode](screens/offers-why-matched-dark.png)
 
-All supplied terms are preserved. The extra **$443.33** cost line is a labelled arithmetic derivative, not a new lender quote: `$2,943.33 − $2,500`. It excludes principal and does not add the included $150 fee again. The supplied schedule also reconciles exactly: `78 weeks / 2 = 39` fortnightly payments and `$75.47 × 39 = $2,943.33`. This arithmetic does not validate the comparison rate. The fixture supplies `21.9%` without a calculation basis or annual-unit disclosure; the mock-up retains that exact value. Component 13's live comparison-rate basis and `p.a.` disclosure must be sourced with real offer terms before enabling a live lender handoff, not fabricated for this sample.
+The verified sample comparison rate is displayed as “21.9% p.a. comparison rate”. The cost line reads “Total cost of borrowing $443 (includes the $150 fee)”. The whole-dollar cost is the rounded display of $443.33 = $2,943.33 − $2,500; the included $150 fee is not added again. The supplied schedule is 39 fortnightly repayments of $75.47 over 78 weeks, totalling $2,943.33. The comparison rate is verified by the user for these terms; no caveat is shown.
 
 The card is 350 × 736 at reference size, with `space[4]` padding and `radius.md`. Amount and fortnightly repayment use `type.figureL`; comparison fields `type.small` labels plus `type.h3` values; total repayable `type.h3`; derived cost `type.bodyStrong`. All values use `C.text`. Labels and qualifications use `C.textMuted`; dividers are decorative `C.line`. Matching reasons are open in this capture, ordinary bullets rather than ticks or badges, followed by the component's “Matching is not approval. The lender makes its own assessment.” The disclosure row toggles only this region.
 
-“View details” is a 48 px secondary button; “Not interested” is a 44 px tertiary button. The former opens a Tippla offer-details sheet, retaining the displayed comparison terms and identifying any unavailable source disclosures in this sample. A real handoff requires full terms and an explicitly named lender destination; no application is submitted by opening details. The latter hides this offer ID after preference save, offers Undo, and does not turn off all matching. On failure keep the offer and show a neutral retry. The information icon opens the matching explanation and preference controls. Marcus's matching is on as supplied by the prior dashboard fixture; do not infer consent for Jess.
+“View details” is a 48 px secondary button; “Not interested” is a 44 px tertiary button. The former opens a Tippla offer-details sheet, retaining the verified displayed comparison terms. A real handoff requires full terms and an explicitly named lender destination; no application is submitted by opening details. The latter hides this offer ID after preference save, offers Undo, and does not turn off all matching. On failure keep the offer and show a neutral retry. The information icon opens the matching explanation and preference controls. Marcus's matching is on as supplied by the prior dashboard fixture; do not infer consent for Jess.
 
 ## 11. hardship
 
@@ -266,9 +266,9 @@ Reference geometry: header 112; form y=112–686; footer y=686–844. Cards are 
 
 All supplied Prompt 2 dashboard content fits in the 1440 × 900 reference viewport. The score and next step form the first content row; the pay-cycle card occupies the main column, with the next bill and six-month spending in the adjacent column. The reading order remains score → next action → pay cycle → next bill → spending. The only contextual banner is the supplied gentle money-tight prompt. No desktop-only financial summary, additional balance, forecast income or new KPI has been invented.
 
-The SmartScore remains 472 / Steadying, with “Down 17 since 11/09” in neutral text, a 22/150 stage-progress arc, and “128 points to Healthy at 600”. The path remains larger than the score number. The action preserves the exact title, rationale and “See how” button. Pay cycle preserves the shortfall $53, $314 balance, $367 due, dates and six-day countdown, $1,832 spent, $2,483 paid in, the $300 advance and $315 due including its $15 fee. The full Telstra/Beforepay due summary is visible. Next bill is Sat 26/09 · Telstra · $52 · predicted. Monthly values remain $4,529, $6,361, $4,989, $5,385, $5,257 and $4,821, with September clearly partial to 25/09. The bars share a 0–7,000 scale and never turn green when spending rises.
+The SmartScore remains 472 / Steadying, with “Down 17 since 11/09” in neutral text, a 22/150 stage-progress arc, and “128 points to Healthy at 600”. The path remains larger than the score number. The action preserves the exact title, rationale and “See how” button. Pay cycle preserves the shortfall $53, $314 balance, $367 due, dates and six-day countdown, $1,832 spent, $2,483 paid in, the separate disclosure “Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)”. The full Telstra/Beforepay due summary is visible. Next bill is Sat 26/09 · Telstra · $52 · predicted. Monthly values remain $4,529, $6,361, $4,989, $5,385, $5,257 and $4,821, with September clearly partial to 25/09. The bars share a 0–7,000 scale and never turn green when spending rises.
 
-**Desktop width:** `layout.desktopSidebar` is **260 px** in tokens v1.0.1, matching this screen and component 17. No local width override is needed. The 420 px drawer remains exactly `layout.drawerWidth`.
+**Desktop width:** `layout.desktopSidebar` is **260 px** in tokens v1.0.2, matching this screen and component 17. No local width override is needed. The 420 px drawer remains exactly `layout.drawerWidth`.
 
 The main content begins at x=292: 260 px rail plus `space[7]` = 32 px gutter. The right outer gutter is also 32. Main/side columns are 656 and 436 px with `space[6]` = 24 px between them. Top cards are y=180–360; lower cards y=384–848. Content is never scaled as a larger screenshot of the mobile page. Typography and colours remain the shared tokens; only layout and information placement change. The fixed cobalt pay-cycle gradient is the same brand treatment used on mobile.
 
@@ -310,9 +310,9 @@ The SmartScore summary embeds StageScale in a 216 px card. Its inner strip width
 
 FactorTile gains a list-density variant: width 350, `radius.md`, padding `space[4]`, 80 px minimum height, 20 px Lucide icon, `type.h3` name and `type.small` numeric value. Current borrowing is 100 px because its supplied explanation adds a line. Gap is `space[2]`. A two-line factor name fits without changing emphasis; at 200% text the row grows and the value may move below the name. No factor-value bar or colour-coded risk scale is introduced. All eight rows are equally interactive.
 
-### PayCycleHero with a supplied forecast but no balance
+### PayCycleHero with equal income-source rows
 
-Jess uses the existing shortfall equation and bill-coverage strip. Marcus uses the same branded header and neutral historical totals but omits the coverage strip because a balance denominator was not supplied. The $1,700 figure is a supplied forecast, not a value reconstructed from paid-in minus spent. Future discretionary spending is not silently assumed to be zero in any additional calculation.
+Jess uses the existing shortfall equation and bill-coverage strip. Marcus uses the same branded header, with neutral historical totals, two paid-in source rows and two upcoming-income rows. All source rows share an icon, type, colour and spacing regardless of wages or Centrelink. Rows wrap and grow for long employer names. Marcus's reference card is 350 × 590; Jess's is 350 × 548. Marcus's $2,363 balance less the rounded $663 due supports the supplied $1,700 forecast. No future discretionary spending is silently included in that calculation.
 
 Due items sit one tap down in a 390 px BottomSheet. Main copy uses `type.h2`, `type.h1`, `type.h3` and `type.small` as shown; rows are 80 high with `space[3]` gaps and `radius.sm`. Predicted rows have the complete dashed `CH.predicted` outline and the visible word “predicted”. Unknown prediction status is not the same as confirmed. The footer is a 48 px secondary support action with safe-area space. Closing restores focus to “See what's due”.
 
@@ -324,17 +324,17 @@ Both charts share a zero baseline and a 0–$7,000 height domain. Each bar is 24
 
 ### Trend controls and reading order
 
-The trend's six equally spaced points have non-overlapping ≥44 px hit zones. The line is `C.accent`, 2 px, with 6 px hollow points; value/date labels are `type.caption` in text tokens. A semantic date/value list exposes all six readings to assistive technology. Selection uses a value/date detail sheet and an outline, not a red/green change badge. Header Info opens “About SmartScore”; dashboard Bell opens notifications without a fabricated unread count.
+The trend's six equally spaced points have non-overlapping ≥44 px hit zones. The line is `C.accent`, 2 px, with 6 px hollow points; value/date labels are `type.caption` in text tokens. A semantic date/value list exposes all six readings to assistive technology. Selection uses a value/date detail sheet and an outline, not a red/green change badge. Header Info opens “How your score works”, including the same income-mix explanation shown after the factor list; dashboard Bell opens notifications without a fabricated unread count.
 
 ### Responsive and accessibility rules
 
 Keep native links/buttons, clear accessible names and visible focus from `focusRing`. Static screenshots do not demonstrate focus, keyboard operation, hit-area behaviour or 200% text support; those require implementation testing. At larger text, stack dense two-column content, grow fixed regions and recalculate the scroll inset. Remove nonessential movement under reduced motion. Do not expose braced placeholders or unavailable financial values as zero.
 
-No token values are changed. Every display/caption contrast pair is checked at the normal-text 4.5:1 target; stage/category graphics, hatching and essential outlines use 3:1. Decorative dividers and empty ring tracks do not carry unique state information. Future production accessibility testing remains necessary.
+Token v1.0.2 changes only dark housing identity to `#3C86BA` plus the version; dark BNPL remains `#8AAAFF`. Every display/caption contrast pair is checked at the normal-text 4.5:1 target; stage/category graphics, hatching and essential outlines use 3:1. Decorative dividers and empty ring tracks do not carry unique state information. Future production accessibility testing remains necessary.
 
 ## Fixture data — screens 1–5
 
-The following data is the implementation fixture, not new scoring logic. `predicted: null` means the prompt did not provide prediction status. Priya's missing score and Marcus's missing current balance are deliberately null.
+The following data is the implementation fixture, not new scoring logic. `predicted: null` means the prompt did not provide prediction status. Priya's unavailable score is null. Marcus's supplied current balance is $2,363. Jess's paid-in total is wages only; the advance is a separate borrowing event.
 
 ```json
 {
@@ -366,7 +366,7 @@ The following data is the implementation fixture, not new scoring logic. `predic
     "dueBeforePayday": "$367",
     "spent": "$1,832",
     "paidIn": "$2,483",
-    "advanceDisclosure": "Includes a $300 pay advance, $315 due back 30/09 ($300 + $15 fee)",
+    "advanceDisclosure": "Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)",
     "dueItems": [
       {
         "name": "Telstra",
@@ -459,7 +459,14 @@ The following data is the implementation fixture, not new scoring logic. `predic
         "value": 7.4
       }
     ],
-    "strength": "Income stability is your strongest factor at 7.4."
+    "strength": "Income stability is your strongest factor at 7.4.",
+    "paidInIsWagesOnly": true,
+    "payAdvanceIsIncome": false,
+    "scoreFactorCount": 9,
+    "visibleFactorCount": 8,
+    "hiddenFactor": "government payments in income",
+    "hiddenFactorVisibility": "hidden by design; no tile, scored item or improvement advice",
+    "scoreMethodExplanation": "Your score also looks at the mix of wages and government payments in your income."
   },
   "priya": {
     "name": "Priya",
@@ -491,10 +498,10 @@ The following data is the implementation fixture, not new scoring logic. `predic
     "delta": "Up 11 since 11/09",
     "actionTitle": "Money left over is your lowest factor at 5.9",
     "actionBody": "Keeping more of each pay left after bills is one of the ways to lift it.",
-    "cycle": "Pay cycle 24/09 – 07/10",
-    "countdown": "13 days to payday (Thu 08/10)",
-    "spent": "$221",
-    "paidIn": "$1,335",
+    "cycle": "Pay cycle 23/09 – 06/10",
+    "countdown": "12 days to payday (Wed 07/10)",
+    "spent": "$301",
+    "paidIn": "$1,747",
     "dueBeforePayday": "$663",
     "dueItems": [
       {
@@ -523,7 +530,7 @@ The following data is the implementation fixture, not new scoring logic. `predic
       }
     ],
     "forecastHeadline": "About $1,700 left after bills",
-    "currentBalance": null,
+    "currentBalance": "$2,363",
     "nextBill": "Sat 26/09 · Qld Housing Rent · $560 · predicted",
     "spendingMonths": [
       "Apr",
@@ -541,7 +548,15 @@ The following data is the implementation fixture, not new scoring logic. `predic
       4433,
       2249
     ],
-    "partialMonth": "Sep to 25/09"
+    "partialMonth": "Sep to 25/09",
+    "incomeLines": [
+      "Centrelink $412 · Wed 23/09",
+      "Southside Logistics $1,335 · Thu 24/09"
+    ],
+    "comingInNext": [
+      "Centrelink $412 · Wed 07/10",
+      "Southside Logistics about $1,350 · Thu 08/10"
+    ]
   }
 }
 ```
@@ -591,7 +606,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Home",
     "scrollY": 0,
-    "contentHeight": 1316,
+    "contentHeight": 1340,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -602,7 +617,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Home",
     "scrollY": 400,
-    "contentHeight": 1316,
+    "contentHeight": 1340,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -612,8 +627,8 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "theme": "light",
     "person": "Jess",
     "tab": "Home",
-    "scrollY": 726,
-    "contentHeight": 1316,
+    "scrollY": 750,
+    "contentHeight": 1340,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -624,7 +639,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Home",
     "scrollY": 400,
-    "contentHeight": 1316,
+    "contentHeight": 1340,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": true
@@ -635,7 +650,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Marcus",
     "tab": "Home",
     "scrollY": 0,
-    "contentHeight": 1148,
+    "contentHeight": 1382,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -646,7 +661,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Marcus",
     "tab": "Home",
     "scrollY": 400,
-    "contentHeight": 1148,
+    "contentHeight": 1382,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -656,8 +671,8 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "theme": "light",
     "person": "Marcus",
     "tab": "Home",
-    "scrollY": 558,
-    "contentHeight": 1148,
+    "scrollY": 792,
+    "contentHeight": 1382,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -668,7 +683,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Marcus",
     "tab": "Home",
     "scrollY": 400,
-    "contentHeight": 1148,
+    "contentHeight": 1382,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": true
@@ -679,7 +694,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Score",
     "scrollY": 0,
-    "contentHeight": 1338,
+    "contentHeight": 1426,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -690,7 +705,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Score",
     "scrollY": 502,
-    "contentHeight": 1338,
+    "contentHeight": 1426,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -700,8 +715,8 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "theme": "light",
     "person": "Jess",
     "tab": "Score",
-    "scrollY": 748,
-    "contentHeight": 1338,
+    "scrollY": 836,
+    "contentHeight": 1426,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -745,7 +760,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Home",
     "scrollY": 0,
-    "contentHeight": 1316,
+    "contentHeight": 1340,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -756,7 +771,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Home",
     "scrollY": 400,
-    "contentHeight": 1316,
+    "contentHeight": 1340,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -766,8 +781,8 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "theme": "dark",
     "person": "Jess",
     "tab": "Home",
-    "scrollY": 726,
-    "contentHeight": 1316,
+    "scrollY": 750,
+    "contentHeight": 1340,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -778,7 +793,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Home",
     "scrollY": 400,
-    "contentHeight": 1316,
+    "contentHeight": 1340,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": true
@@ -789,7 +804,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Marcus",
     "tab": "Home",
     "scrollY": 0,
-    "contentHeight": 1148,
+    "contentHeight": 1382,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -800,7 +815,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Marcus",
     "tab": "Home",
     "scrollY": 400,
-    "contentHeight": 1148,
+    "contentHeight": 1382,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -810,8 +825,8 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "theme": "dark",
     "person": "Marcus",
     "tab": "Home",
-    "scrollY": 558,
-    "contentHeight": 1148,
+    "scrollY": 792,
+    "contentHeight": 1382,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -822,7 +837,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Marcus",
     "tab": "Home",
     "scrollY": 400,
-    "contentHeight": 1148,
+    "contentHeight": 1382,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": true
@@ -833,7 +848,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Score",
     "scrollY": 0,
-    "contentHeight": 1338,
+    "contentHeight": 1426,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -844,7 +859,7 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "person": "Jess",
     "tab": "Score",
     "scrollY": 502,
-    "contentHeight": 1338,
+    "contentHeight": 1426,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -854,8 +869,8 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
     "theme": "dark",
     "person": "Jess",
     "tab": "Score",
-    "scrollY": 748,
-    "contentHeight": 1338,
+    "scrollY": 836,
+    "contentHeight": 1426,
     "viewportContentTop": 112,
     "viewportContentBottom": 702,
     "overlay": false
@@ -867,11 +882,11 @@ Scroll positions are measured from the beginning of each screen’s scrollable c
 
 All 28 mobile PNGs passed exact-size and PNG-integrity checks. All local image links resolve, and the scroll captures collectively expose the full content of each screen. Fixture strings, monthly values, factor values and the two stage-progress fractions were checked against the supplied data.
 
-All 61 screen colour pairs passed their stated target. Lowest checked text contrast: 5.49:1; lowest checked essential graphic contrast: 3.88:1. These checks are for the rendered design palette, not a certification of a future implementation.
+All 61 screen colour pairs passed their stated target. Lowest checked text contrast: 5.49:1; lowest checked essential graphic contrast: 3.69:1. These checks are for the rendered design palette, not a certification of a future implementation.
 
 ## Additional handoff rules — screens 6–11
 
-These screens refine composition without changing `tokens.json` or the icon mapping. Use the new screen-level measurements when a compact variant is specified; all shared component state, focus, semantics and source-provenance requirements remain in force. Fixed screenshots show one reading position, not hard-coded content heights. Never shrink type to fit all cards into 844 px. Respect the dynamic safe area and 200% text scaling.
+These screens use the current token revision without changing the icon mapping. Use the new screen-level measurements when a compact variant is specified; all shared component state, focus, semantics and source-provenance requirements remain in force. Fixed screenshots show one reading position, not hard-coded content heights. Never shrink type to fit all cards into 844 px. Respect the dynamic safe area and 200% text scaling.
 
 The status/header region is y=0–112; scroll content y=112–702. The existing support row (44), five tabs (64), and bottom safe area (34 in the specimen) remain fixed. Modal sheets cover the full navigation stack and apply exactly `C.scrim`; underlying content is inert. Focus the sheet heading, trap focus, support Escape, and restore the trigger and scroll position on closing. Background tab navigation is not available through the scrim. A support sheet reached from another sheet replaces its contents with a Back affordance rather than stacking dialogs.
 
@@ -1006,7 +1021,8 @@ Thank you,
       "See how your score is worked out",
       "View support options",
       "Not now"
-    ]
+    ],
+    "whatItWouldChange": "Keeping gambling lower over the next 90 days is one of the ways to lift this factor."
   },
   "loans": {
     "person": "Jess",
@@ -1053,17 +1069,19 @@ Thank you,
         "receivedDate": "2026-09-24",
         "dueBack": 315,
         "dueDate": "2026-09-30",
-        "fee": 15
+        "fee": 15,
+        "isIncome": false
       }
-    ]
+    ],
+    "advanceDisclosure": "Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)"
   },
   "offer": {
     "person": "Marcus",
     "lender": "Harbour Lending (sample)",
     "amount": 2500,
     "termWeeks": 78,
-    "comparisonRateDisplay": "21.9%",
-    "comparisonRateBasis": null,
+    "comparisonRateDisplay": "21.9% p.a. comparison rate",
+    "comparisonRateBasis": "User-verified: $2,500, 39 fortnightly repayments of $75.47",
     "establishmentFee": 150,
     "feeIncludedInRepayments": true,
     "repaymentPerFortnight": 75.47,
@@ -1079,7 +1097,10 @@ Thank you,
       "View details",
       "Not interested"
     ],
-    "isSample": true
+    "isSample": true,
+    "comparisonRateVerified": true,
+    "totalCostDisplay": "Total cost of borrowing $443 (includes the $150 fee)",
+    "roundedCostOfBorrowing": 443
   },
   "hardship": {
     "headline": "If money's tight right now, these are real options.",
@@ -1160,7 +1181,7 @@ Thank you,
     "group": "loans",
     "theme": "light",
     "scrollY": 0,
-    "contentHeight": 1366,
+    "contentHeight": 1402,
     "modal": false,
     "viewportContentTop": 112,
     "viewportContentBottom": 702
@@ -1170,7 +1191,7 @@ Thank you,
     "group": "loans",
     "theme": "light",
     "scrollY": 460,
-    "contentHeight": 1366,
+    "contentHeight": 1402,
     "modal": false,
     "viewportContentTop": 112,
     "viewportContentBottom": 702
@@ -1179,8 +1200,8 @@ Thank you,
     "file": "loans-pay-advance-light.png",
     "group": "loans",
     "theme": "light",
-    "scrollY": 776,
-    "contentHeight": 1366,
+    "scrollY": 812,
+    "contentHeight": 1402,
     "modal": false,
     "viewportContentTop": 112,
     "viewportContentBottom": 702
@@ -1320,7 +1341,7 @@ Thank you,
     "group": "loans",
     "theme": "dark",
     "scrollY": 0,
-    "contentHeight": 1366,
+    "contentHeight": 1402,
     "modal": false,
     "viewportContentTop": 112,
     "viewportContentBottom": 702
@@ -1330,7 +1351,7 @@ Thank you,
     "group": "loans",
     "theme": "dark",
     "scrollY": 460,
-    "contentHeight": 1366,
+    "contentHeight": 1402,
     "modal": false,
     "viewportContentTop": 112,
     "viewportContentBottom": 702
@@ -1339,8 +1360,8 @@ Thank you,
     "file": "loans-pay-advance-dark.png",
     "group": "loans",
     "theme": "dark",
-    "scrollY": 776,
-    "contentHeight": 1366,
+    "scrollY": 812,
+    "contentHeight": 1402,
     "modal": false,
     "viewportContentTop": 112,
     "viewportContentBottom": 702
@@ -1422,7 +1443,7 @@ Thank you,
 
 All 32 new PNGs passed integrity and exact 390 × 844 dimension checks: 12 requested opening frames plus 20 scroll/support captures. Light and dark use the same data and geometry. Every supplied category, loan, offer and factor string was checked in the render data. Non-modal scroll captures cover each full page with no gap. All referenced local images resolve; screens 1–5 remain present. The package now contains 60 mobile screen PNGs.
 
-All 108 checked new-screen colour pairs passed their targets. Lowest text contrast: 5.49:1; lowest checked essential-graphic contrast: 3.88:1. Category fills were checked on both surface and surface2. These are palette checks for the designs, not a certification of a future app. The rounded category sum, sample repayment schedule and derived offer cost were also checked; their qualifications are documented above.
+All 108 checked new-screen colour pairs passed their targets. Lowest text contrast: 5.49:1; lowest checked essential-graphic contrast: 3.69:1. Category fills were checked on both surface and surface2. These are palette checks for the designs, not a certification of a future app. The rounded category sum, sample repayment schedule and derived offer cost were also checked; their qualifications are documented above.
 
 ## Fixture data — screens 12–14
 
@@ -1647,7 +1668,10 @@ All 108 checked new-screen colour pairs passed their targets. Lowest text contra
           true
         ]
       ]
-    }
+    },
+    "advanceDisclosure": "Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)",
+    "paidInIsWagesOnly": true,
+    "payAdvanceIsIncome": false
   }
 }
 ```

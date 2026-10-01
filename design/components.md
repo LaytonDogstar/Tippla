@@ -1,6 +1,6 @@
 # Tippla — component specifications 01–17
 
-**Direction: Banking Clarity.** Implementation source of truth: `tokens.json` v1.0.1 and `icons.md`. This consolidated handoff retains components 01–10 and adds 11–17. It does not change the token schema or palette. Component 17 is reconciled with the final screen designs: a plain mobile support row and a grouped 260 px desktop rail.
+**Direction: Banking Clarity.** Implementation source of truth: `tokens.json` v1.0.2 and `icons.md`. This consolidated handoff retains components 01–10 and adds 11–17. It preserves the token schema; v1.0.2 separates dark housing from BNPL. Component 17 is reconciled with the final screen designs: a plain mobile support row and a grouped 260 px desktop rail.
 
 Twenty-three PNG state sheets are in `components/`, rendered at 2× with Inter and Lucide. Every sheet explicitly labels light and dark themes (light left, dark right). These are exact static component references, not evidence of a built or accessibility-tested app. Mobile geometry is based on 390 × 844; inset components are 350 wide. Wider state boards compare multiple component fragments at their stated CSS sizes.
 
@@ -91,7 +91,7 @@ Marker x-position is `segmentStart + clamp(progress, 0, 1) × segmentWidth`, acc
 | Focused | 2 px outline, 3 px offset per `focusRing`; never clip at a parent overflow boundary. | Unchanged. | `C.focus`; underlying state's fill/foregrounds unchanged. | Visible keyboard focus, with Enter/Space activation. |
 | Accessible name | Include name, available value, explanation and “Strongest factor” only when applicable. | — | — | Use the actual factor identifier for the destination. Null label describes missing history; do not announce an absent value as zero. |
 
-No value bar is used: the number is precise, the explanation is readable, and missing strongest-factor data does not require a fabricated visual proportion. The nine factors remain ordinary, equally interactive rows.
+No value bar is used: the number is precise, the explanation is readable, and missing strongest-factor data does not require a fabricated visual proportion. Eight factors remain ordinary, equally interactive rows. The ninth factor, government payments in income, is hidden by design: never show a tile, score or improvement advice for it. “How your score works” includes: “Your score also looks at the mix of wages and government payments in your income.”
 
 ## 4. PayCycleHero
 
@@ -99,14 +99,14 @@ No value bar is used: the number is precise, the explanation is readable, and mi
 
 | Element / state | Size / padding / gap | Typography | Colour token, light and dark | Interaction / semantics |
 | --- | --- | --- | --- | --- |
-| Card shell | 350 wide; radius `radius.lg`; padding `space[5]` within each section. Reference height 524 with two-line headline and advance disclosure; height is content-driven. No shadow. | — | Body `C.surface`; upper summary uses the fixed brand gradient in both states/themes. | A section with separate controls, not a button containing buttons. The normal amount is a binding in the sheet because no normal-state data was supplied. |
+| Card shell | 350 wide; radius `radius.lg`; padding `space[5]` within each section. Reference height 552 with two-line headline and advance disclosure; height is content-driven. No shadow. | — | Body `C.surface`; upper summary uses the fixed brand gradient in both states/themes. | A section with separate controls, not a button containing buttons. The normal amount is a binding in the sheet because no normal-state data was supplied. |
 | Summary heading | Label, then `space[3]` gap to the headline. Headline wraps without truncation. Reference upper panel 192 high. | “Pay cycle” `type.small`; headline `type.h1`. | All summary text `color.light.onAccent`, including dark mode. | Normal: “About {amount} left before payday”. Short: “About $53 short before payday”. No urgency icon or red styling. |
 | Cycle dates / payday | `space[5]` after headline; date and payday rows separated by `space[2]`. | Date `type.small`; payday `type.caption`. | `color.light.onAccent`. | Jess: “Pay cycle 17/09 – 30/09” and “6 days to payday (Thu 01/10)”. Derive production timing from the data snapshot and account timezone, not this document's render date. |
 | Forecast control | Full inner width 310; inset padding `space[3]`; radius `radius.sm`; 80 high at default type. Top separation `space[4]`. | Balance/due summary `type.small`; chart labels `type.caption`. | Normal panel `C.surface2`, text `C.text`, labels `C.textMuted`. Short panel `C.cautionSoft`, text/labels `C.caution`. | Entire panel is a named ≥44 px button opening the pay-cycle forecast sheet. Visible Jess summary: “Balance $314 − $367 due”. |
 | Coverage strip | 8 px high (`space[2]`), `radius.pill`; `space[1]` above, `space[2]` below before legend. | Legend `type.caption`. | Covered portion `C.accent`. Context track `CH.ringTrack`. Short remainder uses `C.cautionSoft` plus 1 px diagonal `CH.hatch` lines spaced 6 px; do not use a black fill. | Jess: coverage `314/367`, remainder `53/367`; legend “Covered” / “Short”. This describes bill coverage, not a spending-success meter. Graphic is decorative to the fully labelled forecast button. |
-| Historical totals | Two columns with `space[3]` minimum gap; `space[3]` after forecast. Wrap to separate rows if needed. | Both `type.bodyStrong`; amounts use `font.numeric`. | Both `C.text`, regardless of spending direction or income source. | “$1,832 spent” and “$2,483 paid in”. Spent opens transactions filtered to this cycle; paid in opens income transactions including the advance. Use separate ≥44 px controls. |
+| Historical totals | Two columns with `space[3]` minimum gap; `space[3]` after forecast. Wrap to separate rows if needed. | Both `type.bodyStrong`; amounts use `font.numeric`. | Both `C.text`, regardless of spending direction or income source. | “$1,832 spent” and “$2,483 paid in”. Spent opens transactions filtered to this cycle; paid in opens income transactions and excludes pay advances. Use separate ≥44 px controls. |
 | Divider | 1 px; vertical separation `space[3]` minimum from interactive contents. | — | `C.line`. | Decorative only. |
-| Advance disclosure | Full-width row; min-height 64; text/chevron gap `space[3]`; Lucide `ChevronRight` 20. Omit the whole row when no advance is included. | First line `type.small`; repayment line `type.caption`. | First line `C.text`; repayment line and chevron `C.textMuted`. | Jess: “Includes a $300 pay advance,” then “$315 due back 30/09 ($300 + $15 fee)”. Opens the advance detail sheet. |
+| Advance disclosure | Full inner width; text wraps at 310 px; min-height 64; no trailing icon in this long-copy specimen. Omit only when there is no advance. | `type.small` throughout. | `C.textMuted` on `C.surface`. | Jess: “Plus a $300 pay advance (not income): $315 due back 30/09 ($300 + $15 fee)”. Entire disclosure has a ≥44 px target opening advance details. |
 | Primary due action | Full inner width; height `layout.minTap` = 44; radius `radius.sm`; horizontal padding `space[4]`. | “See what's due”: `type.bodyStrong`. | Background `C.accent`; label `C.onAccent`. | Opens calendar/due-items sheet for the remaining days before payday, with the entries listed below. |
 | Hardship action | Full inner-width target; min-height 44; `space[2]` after primary action. | “Options if money's tight”: `type.small`. | Label `C.accent`; transparent background over `C.surface`. | Opens Hardship support. Available in both states. No lender-offer routing. |
 | Normal / money left | `balance − due > 0`. Same structure and brand treatment as short state. | Same tokens. | Forecast `C.surface2` / `C.text`; no positive green. | With real data, strip shows the bills-covered share and remaining-money share; labels “Bills covered” / “Left”. Template graphics carry no invented ratios. |
@@ -117,11 +117,11 @@ No value bar is used: the number is precise, the explanation is readable, and mi
 ### Data and destination contract
 
 - Store amounts in integer cents. Jess: balance 31,400 cents; due 36,700 cents; derived remaining −5,300 cents. Display the supplied whole-dollar amounts exactly. Do not subtract the $315 repayment twice: it is already inside the $367 due total.
-- Paid in ($2,483) and spent ($1,832) are historical cycle totals. They are not the forecast balance and do not get added to the current $314 again. The paid-in total includes the $300 advance; it is not all wages or benefit income.
+- Paid in ($2,483) and spent ($1,832) are historical cycle totals. They are not the forecast balance and do not get added to the current $314 again. The $2,483 paid-in total is wages only. The separate $300 advance is borrowing and is not income.
 - Forecast denominator is `max(max(balance, 0), due)`. Covered amount is `min(max(balance, 0), due)`. In normal state, the remaining width is money left; in short state, it is uncovered bills. Guard zero denominators. Negative current balances keep the numeric explanation and neutral hatch treatment; do not draw negative widths.
 - The forecast sheet explains that the estimate uses current balance and bills due before payday and does not include future discretionary spending. It includes the exact breakdown: **$367 due before payday: Telstra $52 (Sat 26/09), Beforepay $315 (Wed 30/09)**.
-- “See what's due” opens the calendar view of the same two items. Telstra is labelled “predicted”; its item outline uses a 1 px dashed `CH.predicted` stroke and the visible word “predicted” in `C.textMuted`. Do not mark Beforepay predicted without source data.
-- The advance sheet shows Beforepay, principal $300, fee $15, total repayment $315 and due date 30/09. Keep the fee explicit; never call the advance income without the borrowing explanation.
+- “See what's due” opens the calendar view of the same two items. Telstra is labelled “predicted”; its item outline uses a 1 px dashed `CH.predicted` stroke and the visible word “predicted” in `C.textMuted`. Beforepay is also predicted in the later supplied calendar fixture; use the same outline and label.
+- The advance sheet shows Beforepay, principal $300, fee $15, total repayment $315 and due date 30/09. Keep the fee explicit; never count or label the advance as income.
 - Parent dashboard owns “Updated Fri 25/09, 9:14am”. The fixture's six-day countdown is tied to this snapshot; do not silently replace it using today's date. Preserve supplied short dates in these fixtures. When a full year is available for production transaction details, format DD/MM/YYYY; all money uses AUD with `$`.
 
 
@@ -565,9 +565,9 @@ The table below reports the actual supplied colours, not rounded estimates of co
 | `chart.predicted / surface2` | 4.18:1 | 6.42:1 | 3:1 | Pass / Pass |
 | `chart.predicted / neutralSoft` | 4.07:1 | 5.83:1 | 3:1 | Pass / Pass |
 | `chart.predicted / accentSoft` | 3.96:1 | 5.47:1 | 3:1 | Pass / Pass |
-| `category.housing / surface` | 5.92:1 | 7.16:1 | 3:1 | Pass / Pass |
-| `category.housing / surface2` | 5.37:1 | 6.64:1 | 3:1 | Pass / Pass |
-| `category.housing / accentSoft` | 5.09:1 | 5.66:1 | 3:1 | Pass / Pass |
+| `category.housing / surface` | 5.92:1 | 3.98:1 | 3:1 | Pass / Pass |
+| `category.housing / surface2` | 5.37:1 | 3.69:1 | 3:1 | Pass / Pass |
+| `category.housing / accentSoft` | 5.09:1 | 3.15:1 | 3:1 | Pass / Pass |
 | `category.groceries / surface` | 5.04:1 | 8.29:1 | 3:1 | Pass / Pass |
 | `category.groceries / surface2` | 4.57:1 | 7.69:1 | 3:1 | Pass / Pass |
 | `category.groceries / accentSoft` | 4.33:1 | 6.56:1 | 3:1 | Pass / Pass |

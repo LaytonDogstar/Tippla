@@ -1,6 +1,6 @@
 # Tippla component specifications — 05–10
 
-Direction: **Banking Clarity**. Source of truth: `tokens.json` version `1.0.1` and `icons.md`. These specifications continue components 01–04 without changing the token schema.
+Direction: **Banking Clarity**. Source of truth: `tokens.json` version `1.0.2` and `icons.md`. These specifications continue components 01–04 without changing the token schema.
 
 The seven PNG state sheets use Inter and native Lucide SVGs, rendered at 2×. Light is left; dark is right. Sheet labels are documentation, not app UI. Mobile screens are 390 × 844 CSS px; full-width inset components are 350 px with `layout.gutter` on each side. Desktop examples in frame 09 are 1,024 × 768, displayed at approximately 82% scale.
 
