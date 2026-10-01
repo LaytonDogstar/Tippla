@@ -149,3 +149,22 @@ export function dishonours90(d: PersonaData): { count: number; latest: string | 
   const v = metric<ArrayMetricValue>(d.bankStatement, "AM2011")["90"];
   return { count: v?.count ?? 0, latest: v?.latest ?? null };
 }
+
+/**
+ * The current run of pay advances: consecutive fortnightly advances ending with the latest one.
+ * Jess: three $300 Beforepay advances since 27/08, $15 fee each, repaid the day before payday.
+ */
+export function payAdvanceRun(d: PersonaData): { provider: string; count: number; since: string; amount: number; fee: number | null } | null {
+  const credits = posted(d.transactions).filter((t) => t.category === "wage_advance" && t.amount > 0).sort((a, b) => a.date.localeCompare(b.date));
+  const last = credits.at(-1);
+  if (!last) return null;
+  const run = [last];
+  for (let i = credits.length - 2; i >= 0; i--) {
+    if (daysBetween(credits[i]!.date, run[0]!.date) <= 16) run.unshift(credits[i]!);
+    else break;
+  }
+  const repay = posted(d.transactions).find((t) => t.category === "wage_advance" && t.amount < 0 && t.date >= run[0]!.date && t.merchant === last.merchant)
+    ?? d.derived.upcoming_bills.find((b) => b.category === "wage_advance");
+  const repayAmount = repay ? ("expected_amount" in repay ? repay.expected_amount : -repay.amount) : null;
+  return { provider: last.merchant, count: run.length, since: run[0]!.date, amount: last.amount, fee: repayAmount !== null ? sumMoney([repayAmount, -last.amount]) : null };
+}

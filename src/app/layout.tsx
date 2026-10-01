@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import fonts from "@/styles/fonts.json";
 import "@/styles/globals.css";
+import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "Tippla",
@@ -18,7 +19,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link rel="stylesheet" href={fonts.href} />
       </head>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        {/* Sheets portal outside #app-root and make it inert while open. */}
+        <div id="app-root">
+          <Providers>{children}</Providers>
+        </div>
+      </body>
     </html>
   );
 }

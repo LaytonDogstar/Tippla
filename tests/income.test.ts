@@ -110,3 +110,14 @@ describe("inferring transfers across connected accounts", () => {
     for (const d of await Promise.all([load("jess"), load("marcus"), load("priya")])) expect(findTransferPairs(d.transactions)).toEqual([]);
   });
 });
+
+describe("pay-advance run", async () => {
+  const { payAdvanceRun } = await import("@/lib/selectors");
+  it("Jess: three fortnightly Beforepay advances since 27/08, $15 fee each", async () => {
+    expect(payAdvanceRun(await load("jess"))).toEqual({ provider: "Beforepay", count: 3, since: "2026-08-27", amount: 300, fee: 15 });
+  });
+  it("Marcus and Priya: none", async () => {
+    expect(payAdvanceRun(await load("marcus"))).toBeNull();
+    expect(payAdvanceRun(await load("priya"))).toBeNull();
+  });
+});
