@@ -64,7 +64,9 @@ Dev controls (all carried in cookies, so they stick as you click around):
   - `offline`: "Couldn't refresh. Showing data from …"
   - `one_off`: a $4,000 bond refund on 12/09, left out of monthly income with a note (Score › Income stability)
   - `two_accounts`: a second connected account, so the Spending account filter appears
-- Customer choices persist the same way: recategorised transactions, consents, subscription status, dismissed offers, read notifications and bank connection. Clear the site's cookies to reset.
+  - `payday`: the morning the next pay lands (Jess Thu 01/10, Marcus and Priya Thu 08/10): payday check-in, last pay cycle recap, payday notifications. Same history; the SmartScore is still the 25/09 one
+  - `bill_due`: Jess on Tue 29/09, the day before her Beforepay repayment, which is bigger than her balance (the "due tomorrow" notification). Other personas stay on 25/09
+- Customer choices persist the same way: recategorised transactions, consents, subscription status, dismissed offers, read notifications, bank connection, "Needs a look" choices, notification settings, and the in-app actions the value tally confirms ("I've cancelled it", "I'll try this"). Clear the site's cookies to reset.
 
 ## Changes since the first version (30/09/2026 review)
 

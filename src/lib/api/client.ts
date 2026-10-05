@@ -1,7 +1,7 @@
 // Mock TaleFin + Tippla API. Mimics response shapes and latency (200–600 ms) so real calls can
 // replace this file without touching UI. Simulate failures with ?fail=score (or bank, all).
 import { sanitiseBankStatement } from "@/lib/dataUse";
-import { RAW } from "./fixtures";
+import { RAW, RAW_BILLDUE, RAW_PAYDAY } from "./fixtures";
 import { normaliseBankStatement } from "./talefin";
 import { applyTransferDetection } from "@/lib/selectors/transfers";
 import type { CustomerScore, PersonaData, PersonaId, TaleFinScore } from "./types";
@@ -17,7 +17,12 @@ export interface ClientOptions {
   fail?: FailTarget | null;
   /** Override simulated latency; tests pass 0. Defaults to MOCK_LATENCY env or 200–600 ms. */
   latencyMs?: number;
+  /** Which fixture snapshot: the main one (25/09), payday (dev state "payday") or bill eve (dev state "bill_due", Jess). */
+  snapshot?: "main" | "payday" | "billdue";
 }
+
+const rawFor = (id: PersonaId, opts: ClientOptions) =>
+  opts.snapshot === "payday" ? RAW_PAYDAY[id] : opts.snapshot === "billdue" ? RAW_BILLDUE[id] ?? RAW[id] : RAW[id];
 
 export class MockApiError extends Error {
   constructor(public endpoint: "score" | "bank", message = `Mock ${endpoint} request failed`) {
@@ -45,18 +50,18 @@ export function toCustomerScore(s: TaleFinScore): CustomerScore {
 export async function getBankStatement(id: PersonaId, opts: ClientOptions = {}) {
   await delay(opts);
   if (opts.fail === "bank" || opts.fail === "all") throw new MockApiError("bank");
-  return sanitiseBankStatement(normaliseBankStatement(RAW[id].bankStatement));
+  return sanitiseBankStatement(normaliseBankStatement(rawFor(id, opts).bankStatement));
 }
 
 export async function getScore(id: PersonaId, opts: ClientOptions = {}) {
   await delay(opts);
   if (opts.fail === "score" || opts.fail === "all") throw new MockApiError("score");
-  return toCustomerScore(RAW[id].score);
+  return toCustomerScore(rawFor(id, opts).score);
 }
 
 /** Loads one persona in the shape selectors consume. The score may fail independently (null). */
 export async function loadPersona(id: PersonaId, opts: ClientOptions = {}): Promise<{ data: PersonaData; scoreError: MockApiError | null }> {
-  const raw = RAW[id];
+  const raw = rawFor(id, opts);
   const [bankStatement, scoreResult] = await Promise.all([
     getBankStatement(id, opts),
     getScore(id, opts).then((s) => ({ s, e: null }), (e: MockApiError) => ({ s: null, e })),

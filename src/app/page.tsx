@@ -2,7 +2,7 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
+import { lastRefresh, cycleRecap, paydayCheckIn, safeToSpend, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
 import { formatUpdated, formatDate, toAESTDate } from "@/lib/format";
 import { dashboard as t } from "@/content/dashboard";
 import { PageHeader } from "@/components/shell/Shells";
@@ -23,6 +23,11 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
   const rawBanner = dashboardBanner(data, { bankExpiredSince: account.bank?.disconnected ? data.asOf : expired, hardshipSelfSelected: account.hardshipSelfSelected });
   // The hardship banner steps aside when a feed card already offers the same options (no repetition).
   const banner = rawBanner?.kind === "hardship" && f.top.some((i) => i.hardship) ? null : rawBanner;
+  const checkIn = paydayCheckIn(data);
+  const recap = checkIn ? cycleRecap(data, edits) : null;
+  const tally = valueTally(data, account);
+  // Fees the customer avoided in the cycle being recapped (confirmed tally items dated in it).
+  const feesAvoided = recap ? tally.items.filter((i) => i.kind !== "subscription" && i.date >= recap.cycle.start && i.date <= recap.cycle.end).reduce((a, i) => a + i.amount, 0) : 0;
   const bannerView = banner && (
     banner.kind === "hardship" ? { text: t.banners.hardship, href: "/hardship" }
       : banner.kind === "score_drop" ? { text: t.banners.scoreDrop(banner.points), href: "/score" }
@@ -30,7 +35,7 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
 
   return (
     <PortalShell path="/" persona={persona} present={presentationMode(searchParams.present)} wide
-      header={<PageHeader title={t.hi(data.profile.first_name)} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined}
+      header={<PageHeader title={t.hi(data.profile.first_name)} sub={data.score?.scoredAt ? formatUpdated(lastRefresh(data).at) : undefined}
         action={<HeaderActions unread={unreadCount(notifications(data, account))} />} />}>
       <HomeView
         persona={persona}
@@ -47,6 +52,12 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
         nextBill={nextBill(data)}
         bars={sixMonthSpending(data, edits)}
         lapsed={states.includes("lapsed")}
+        safe={safeToSpend(data)}
+        checkIn={checkIn}
+        recap={recap}
+        feesAvoided={feesAvoided}
+        tally={tally}
+        present={presentationMode(searchParams.present)}
       />
     </PortalShell>
   );

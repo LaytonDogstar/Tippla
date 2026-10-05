@@ -1,0 +1,124 @@
+// Phase 2 (loop): safe to spend, payday check-in and recap, score projection, value tally (with the actions
+// that feed it), and event-driven notifications with a daily cap and weekly digest.
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test, type Page } from "@playwright/test";
+
+const axe = (page: Page) =>
+  new AxeBuilder({ page: page as unknown as ConstructorParameters<typeof AxeBuilder>[0]["page"] })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+async function expectNoAxe(page: Page) {
+  const r = await axe(page);
+  const s = r.violations.map((v) => `${page.url()} ${v.id}: ${v.nodes[0]?.target.join(" ")} — ${v.help}`);
+  expect(s, s.join("\n")).toEqual([]);
+}
+const region = (page: Page, name: string | RegExp) => page.getByRole("region", { name });
+
+test("safe to spend: nothing spare for Jess before payday, with the working and hardship options", async ({ page }) => {
+  await page.goto("/?persona=jess&present=1");
+  const card = region(page, "Safe to spend today");
+  await expect(card).toContainText("Nothing spare before payday");
+  await expect(card.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  await card.getByRole("button", { name: "How we worked this out" }).click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet.getByText("Forecast balance on Wed 30/09")).toBeVisible();
+  await expect(sheet.getByText("Kept aside as a buffer")).toBeVisible();
+  await expect(sheet.getByText("÷ 6 days")).toBeVisible();
+  await expectNoAxe(page);
+});
+
+test("payday: check-in and recap replace the snapshot; no offers, nothing about gambling", async ({ page }) => {
+  await page.goto("/?persona=jess&present=1&state=payday");
+  await expect(page.getByText(/Checked \d+ new transactions this morning/)).toBeVisible();
+  const checkIn = region(page, "Payday check-in");
+  await expect(checkIn).toContainText("$2,305.49 from Harbourside Hospitality Pty landed this morning");
+  await expect(checkIn).toContainText("Safe to spend: about $24 a day");
+  await expect(checkIn).toContainText("No pay advance to repay this pay cycle.");
+  const recap = region(page, "Your last pay cycle");
+  await expect(recap).toContainText("17/09 – 30/09");
+  await expect(recap).toContainText("You took 1 pay advance ($300).");
+  await expect(recap).toContainText("SmartScore 489 → 472.");
+  await expect(recap).not.toContainText(/in a row|streak/);
+  for (const r of [checkIn, recap]) await expect(r).not.toContainText(/offer|lender|gambl|alcohol/i);
+  await expect(page.getByRole("main")).not.toContainText(/offer|lender/i);
+  await checkIn.getByRole("button", { name: "How we worked this out" }).click();
+  await expect(page.getByRole("dialog").getByText("÷ 14 days")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expectNoAxe(page);
+});
+
+test("payday recap celebrates a positive streak (Marcus)", async ({ page }) => {
+  await page.goto("/?persona=marcus&present=1&state=payday");
+  await expect(region(page, "Your last pay cycle")).toContainText("You got through without a new pay advance. That's 13 pay cycles in a row.");
+});
+
+test("score projection on /score is an estimate (Jess), and absent without a score (Priya)", async ({ page }) => {
+  await page.goto("/score?persona=jess&present=1");
+  const box = region(page, "If you act on your next step");
+  await expect(box).toContainText("Skip the next pay advance: about 490 by 23/10");
+  await expect(box).toContainText("Estimate");
+  await expect(box.getByText(/Sample logic/)).toHaveCount(0);
+  await page.goto("/score?persona=jess&present=0");
+  await expect(region(page, "If you act on your next step").getByText("Sample logic · Q3")).toBeVisible();
+  await page.goto("/score?persona=priya&present=1");
+  await expect(region(page, "If you act on your next step")).toHaveCount(0);
+});
+
+test("value tally: actions in the app are pending, then confirmed from bank data at payday", async ({ page }) => {
+  await page.goto("/?persona=jess&present=1");
+  await expect(region(page, "Tippla has helped you save")).toHaveCount(0); // nothing done yet
+
+  // 1. "I'll try this" on the pay-advance next step.
+  await page.getByRole("button", { name: /^See how: Skip the next pay advance/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "I'll try this" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Noted. We'll show you how it goes at payday" })).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("You're trying this.")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(region(page, "Tippla has helped you save")).toContainText("we'll confirm after payday 01/10");
+
+  // 2. "I've cancelled it" for Binge.
+  await page.goto("/subscriptions?persona=jess&present=1");
+  await page.getByRole("article", { name: /Binge/ }).getByRole("button", { name: "How to cancel" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "I've cancelled it" }).click();
+  await expect(page.getByRole("dialog").getByText("Marked as cancelled. We'll confirm after 11/10.")).toBeVisible();
+
+  // 3. Done on the "Beforepay bigger than your balance" card, before the bill date.
+  await page.goto("/?persona=jess&present=1");
+  await page.getByRole("button", { name: /^Done: Beforepay \$315/ }).click();
+
+  // Payday: the Beforepay repayment went through without a failed-payment fee.
+  await page.goto("/?persona=jess&present=1&state=payday");
+  const tally = region(page, "Tippla has helped you save");
+  await expect(tally).toContainText("$15");
+  await expect(region(page, "Your last pay cycle")).toContainText("$15 in fees avoided.");
+  await tally.getByRole("button", { name: "What we've counted" }).click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet).toContainText("Beforepay went through on 30/09 with no failed-payment fee");
+  await expect(sheet).toContainText("Binge cancellation: we'll confirm after 11/10");
+  await expect(sheet).toContainText("Skipping the next advance: we'll confirm after payday 15/10");
+  await expectNoAxe(page);
+});
+
+test("notifications: events only; bill tomorrow on 29/09; cap and weekly digest from settings", async ({ page }) => {
+  await page.goto("/notifications?persona=jess&present=1&state=bill_due");
+  const main = page.getByRole("main");
+  await expect(main.getByText("Beforepay $315 is due tomorrow")).toBeVisible();
+  await expect(main).not.toContainText(/refreshed|went through|offer|lender|gambl/i);
+  await expect(main.getByText("Sent to your phone").first()).toBeVisible();
+
+  // Cap 1 a day: on 25/09 the shortfall goes to the phone, the score update waits in the inbox.
+  await page.goto("/account/profile?persona=jess&present=1");
+  await page.getByText("Up to 1 a day").click();
+  await expect(page.getByRole("status").filter({ hasText: "Notification settings saved" })).toBeVisible();
+  await page.goto("/notifications?persona=jess&present=1&state=none");
+  await expect(page.getByRole("main").getByText("Kept here (you'd reached your daily limit)")).toBeVisible();
+
+  // Weekly digest: score updates move to the summary instead.
+  await page.goto("/account/profile?persona=jess&present=1");
+  await page.getByText("Weekly summary for SmartScore updates and recaps").click();
+  await expectNoAxe(page);
+  await page.goto("/notifications?persona=jess&present=1");
+  await expect(page.getByRole("main").getByText("In your weekly summary").first()).toBeVisible();
+  await expect(page.getByRole("main").getByText("Kept here (you'd reached your daily limit)")).toHaveCount(0);
+  await page.goto("/account/profile?persona=jess&present=1");
+  await expect(page.getByLabel("Up to 1 a day")).toBeChecked();
+});

@@ -30,3 +30,30 @@ export const SCORE_DROP_BANNER_POINTS = 20;
 
 /** Thin file: TaleFin needs about this many days of history before it scores. */
 export const THIN_FILE_DAYS_NEEDED = 90;
+
+/** SAMPLE LOGIC: kept aside before working out "safe to spend today", so a surprise cost doesn't tip under. */
+export const SAFE_TO_SPEND_BUFFER = 50;
+
+/**
+ * Q3 SAMPLE LOGIC: how much one factor is assumed to lift (of 10) if the customer acts on a recommendation
+ * for the next two refreshes. Points then come from SAMPLE_FACTOR_WEIGHTS. Labelled "Estimate".
+ */
+export const PROJECTION_LIFTS: Record<string, { factor: keyof typeof SAMPLE_FACTOR_WEIGHTS; lift: number }> = {
+  "pay-advance": { factor: "LOAN_AMOUNT_AND_TYPE", lift: 1.0 },
+  "money-left": { factor: "DISPOSABLE_INCOME", lift: 0.3 },
+  gambling: { factor: "ADVERSE_SPEND", lift: 0.5 },
+  "failed-payments": { factor: "MISSED_PAYMENT", lift: 0.5 },
+  subscriptions: { factor: "DISPOSABLE_INCOME", lift: 0.1 },
+  cash: { factor: "CASH_SPEND", lift: 0.3 },
+  payoff: { factor: "LOAN_AMOUNT_AND_TYPE", lift: 0.5 },
+};
+/** Score refreshes come fortnightly; a projection looks two refreshes ahead. */
+export const PROJECTION_REFRESHES = 2;
+
+/** SAMPLE LOGIC (value tally): a failed-payment fee, if the customer's own history has none to go by. */
+export const DEFAULT_DISHONOUR_FEE = 15;
+
+/** SAMPLE LOGIC: most notifications sent to the phone per day; the rest wait in the inbox. Customer can change it. */
+export const NOTIFY_CAP_DEFAULT = 2;
+/** Shortfall notifications only when the balance is forecast to go under within this many days. */
+export const SHORTFALL_NOTIFY_DAYS = 5;

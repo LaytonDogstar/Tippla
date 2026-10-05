@@ -18,7 +18,10 @@ export const loadCustomer = cache(async (persona: PersonaId, opts?: ClientOption
 
 async function loadCustomerUncached(persona: PersonaId, opts: ClientOptions) {
   const states = devStates();
-  const { data: loaded, scoreError } = await loadPersona(persona, opts);
+  // "payday" swaps in the snapshot taken the morning the next pay lands (check-in and recap).
+  // "bill_due" swaps in Jess's 29/09 snapshot (a repayment tomorrow bigger than her balance).
+  const snapshot = states.includes("payday") ? "payday" : states.includes("bill_due") ? "billdue" : opts.snapshot;
+  const { data: loaded, scoreError } = await loadPersona(persona, { ...opts, snapshot });
   const data = applyDevStates(loaded, states);
   const account = parseAccount(cookies().get(ACCOUNT_COOKIE)?.value, persona);
   return { data: applyAccount(data, account), raw: data, account, edits: categoryEdits(persona), scoreError, states };

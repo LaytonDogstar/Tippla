@@ -4,7 +4,7 @@
 import type { PersonaData, Transaction } from "@/lib/api/types";
 import { addDays } from "@/lib/format/dates";
 
-export const DEV_STATES = ["analysing", "lapsed", "bank_expired", "offline", "one_off", "two_accounts"] as const;
+export const DEV_STATES = ["analysing", "lapsed", "bank_expired", "offline", "one_off", "two_accounts", "payday", "bill_due"] as const;
 export type DevState = (typeof DEV_STATES)[number];
 export const DEV_COOKIE = "tippla-dev";
 

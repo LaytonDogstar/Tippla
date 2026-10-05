@@ -6,6 +6,7 @@ import { factorDrivers, factors, loanTotals, recommendations, scoreAttribution, 
 import { formatUpdated } from "@/lib/format";
 import { scorePage as t } from "@/content/factors";
 import { onboarding } from "@/content/onboarding";
+import { projectScore } from "@/lib/scoring/estimate";
 import { STAGES_ARE_SAMPLE } from "@/config/stages";
 import { factorFromSlug } from "@/lib/ui/factorSlugs";
 import type { FactorKey } from "@/lib/api/types";
@@ -35,7 +36,7 @@ export async function ScorePage({ searchParams, slug }: { searchParams: { person
     <PortalShell path="/score" persona={persona} present={present}
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined}
         action={<Link href="/help#score" aria-label={t.howItWorks} className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-pill bg-surface2 text-text hover:bg-neutral-soft"><Info aria-hidden size={24} /></Link>} />}>
-      <ScoreView state={scoreState(data)} attribution={scoreAttribution(data)} trend={scoreTrend(data)} top={top} others={others} strongest={strongestFactor(data)}
+      <ScoreView state={scoreState(data)} attribution={scoreAttribution(data)} projection={projectScore(data)} trend={scoreTrend(data)} top={top} others={others} strongest={strongestFactor(data)}
         panels={panels} scoredAt={data.score?.scoredAt ?? null} initial={slug ? factorFromSlug(slug) : null} present={present} stagesSample={STAGES_ARE_SAMPLE} />
     </PortalShell>
   );

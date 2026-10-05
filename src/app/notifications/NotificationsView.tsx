@@ -1,5 +1,5 @@
 "use client";
-import { Bell, CircleGauge, CalendarClock, Repeat, RefreshCw, type LucideIcon } from "lucide-react";
+import { Bell, CircleGauge, CalendarClock, Landmark, Repeat, Sun, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { PersonaId } from "@/lib/api/types";
 import { notificationsCopy as t } from "@/content/account";
@@ -10,15 +10,15 @@ import { groupNotifications, type Notification, type NotificationType } from "@/
 import { Button } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
 
-const ICONS: Record<NotificationType, LucideIcon> = { score: CircleGauge, bill: CalendarClock, subscription: Repeat, bank: RefreshCw };
+const ICONS: Record<NotificationType, LucideIcon> = { money: CalendarClock, payday: Sun, score: CircleGauge, subscription: Repeat, bank: Landmark };
 
 export function NotificationsView({ persona, account: initial, asOf, items }: { persona: PersonaId; account: AccountState; asOf: string; items: Notification[] }) {
-  const { account, save } = useAccount(persona, initial);
+  const { account, update } = useAccount(persona, initial);
   const read = new Set(account.readNotifications ?? []);
   const list = items.map((n) => ({ ...n, read: n.read || read.has(n.id) }));
   const groups = groupNotifications(list, asOf);
   const unread = list.filter((n) => !n.read);
-  const markRead = (ids: string[]) => save({ ...account, readNotifications: [...new Set([...(account.readNotifications ?? []), ...ids])] });
+  const markRead = (ids: string[]) => update((l) => ({ ...l, readNotifications: [...new Set([...(l.readNotifications ?? []), ...ids])] }));
 
   if (!list.length) return <p className="mt-t4 rounded-md bg-surface p-t5 text-small text-text">{t.empty}</p>;
   return (
@@ -45,6 +45,7 @@ export function NotificationsView({ persona, account: initial, asOf, items }: { 
                         <span className="text-caption text-text-muted">{formatShortDay(n.date)}</span>
                       </span>
                       <span className="mt-t1 block text-small text-text-muted">{n.body}</span>
+                      <span className="mt-t1 block text-caption text-text-muted">{t.delivery[n.delivery]}</span>
                       {!n.read && <span className="mt-t1 inline-flex items-center gap-t1 text-caption text-accent"><span aria-hidden className="h-[8px] w-[8px] rounded-pill bg-accent" />{t.unread}</span>}
                     </span>
                   </Link>

@@ -8,6 +8,7 @@ import type { FeedState } from "@/lib/feed/types";
 export const ACCOUNT_COOKIE = "tippla-account";
 
 export type ConsentId = Consent["id"];
+export interface CustomerAction { type: "cancelled_subscription" | "skip_advance"; key?: string; at: string }
 export interface SubscriptionState { status: "active" | "paused" | "cancelled"; plan: PlanId; effective: string; changedAt: string }
 export interface AccountState {
   consents?: Partial<Record<ConsentId, { granted: boolean; at: string }>>;
@@ -15,6 +16,10 @@ export interface AccountState {
   dismissedOffers?: string[];
   readNotifications?: string[];
   bank?: { disconnected?: boolean; refreshedAt?: string };
+  /** Things the customer did in the app that the value tally can later confirm in the bank data. */
+  actions?: CustomerAction[];
+  /** Notification preferences the server applies (frequency cap, weekly digest). */
+  notify?: { cap: number; digest: boolean };
   /** "Needs a look" choices: done, snoozed (until a date) or dismissed, by feed item id. */
   feed?: FeedState;
   /** The customer said things are hard right now (docs/09 "in hardship", self-selected). */
@@ -49,6 +54,12 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   const s = a.subscription;
   if (s && ["active", "paused", "cancelled"].includes(s.status) && ["standard", "pro"].includes(s.plan) && typeof s.effective === "string") out.subscription = s;
   if (a.hardshipSelfSelected === true) out.hardshipSelfSelected = true;
+  if (Array.isArray(a.actions)) {
+    out.actions = a.actions.filter((x): x is CustomerAction => !!x && ["cancelled_subscription", "skip_advance"].includes(x.type) && typeof x.at === "string" && (x.key === undefined || typeof x.key === "string"));
+  }
+  if (a.notify && typeof a.notify === "object" && typeof a.notify.cap === "number" && typeof a.notify.digest === "boolean") {
+    out.notify = { cap: Math.max(0, Math.min(10, Math.round(a.notify.cap))), digest: a.notify.digest };
+  }
   if (a.feed && typeof a.feed === "object") {
     out.feed = {};
     for (const [id, v] of Object.entries(a.feed)) {

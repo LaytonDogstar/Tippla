@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Feedback";
 import { RadioGroup, TextInput, Toggle } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
+import { NOTIFY_CAP_DEFAULT } from "@/config/flags";
 import { Sheet } from "@/components/ui/Sheet";
 
 const load = <T,>(key: string, fallback: T): T => { try { const v = localStorage.getItem(key); return v ? (JSON.parse(v) as T) : fallback; } catch { return fallback; } };
@@ -24,15 +25,22 @@ const store = (key: string, v: unknown) => { try { localStorage.setItem(key, JSO
 // ---- Profile ---------------------------------------------------------------------------------------
 type Channel = "email" | "sms" | "push";
 type Prefs = Record<NotificationType, Record<Channel, boolean>>;
-const TYPES: NotificationType[] = ["score", "bill", "subscription", "bank"];
+const TYPES: NotificationType[] = ["money", "payday", "score", "subscription", "bank"];
 const DEFAULT_PREFS: Prefs = {
-  score: { email: true, sms: false, push: true }, bill: { email: false, sms: true, push: true },
-  subscription: { email: true, sms: false, push: false }, bank: { email: true, sms: false, push: true },
+  money: { email: false, sms: true, push: true }, payday: { email: false, sms: false, push: true },
+  score: { email: true, sms: false, push: true }, subscription: { email: true, sms: false, push: false }, bank: { email: true, sms: false, push: true },
 };
 type Theme = "system" | "light" | "dark";
 
-export function ProfileView({ persona, profile, matching }: { persona: PersonaId; profile: { name: string; email: string; mobile: string }; matching: boolean }) {
+export function ProfileView({ persona, profile, account: initial, present }: { persona: PersonaId; profile: { name: string; email: string; mobile: string }; account: AccountState; present: boolean }) {
   const toast = useToast();
+  // Cap and digest change what the inbox shows, so they live in the account state (server-applied).
+  const { account, update } = useAccount(persona, initial);
+  const notify = account.notify ?? { cap: NOTIFY_CAP_DEFAULT, digest: false };
+  const setNotify = (next: { cap: number; digest: boolean }) => {
+    update((l) => ({ ...l, notify: next }));
+    toast({ kind: "confirm", message: t.profile.notifySaved });
+  };
   const key = `tippla-profile:${persona}`;
   const [details, setDetails] = useState(profile);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
@@ -87,7 +95,17 @@ export function ProfileView({ persona, profile, matching }: { persona: PersonaId
 
       <section id="notifications" aria-labelledby="ch-h" className="scroll-mt-t6 rounded-md bg-surface p-t4">
         <h2 id="ch-h" className="text-h3 text-text">{t.profile.channelsHeading}</h2>
-        <p className="mt-t1 text-small text-text-muted">{t.profile.channelsIntro}</p>
+        <p className="mt-t1 text-small text-text-muted">{t.profile.eventsOnly}</p>
+        <div className="mt-t4 border-t border-line pt-t3">
+          <RadioGroup legend={t.profile.howOften} value={String(notify.cap) as "1" | "2" | "3"} onChange={(v) => setNotify({ ...notify, cap: Number(v) })}
+            options={(["1", "2", "3"] as const).map((v) => ({ value: v, label: t.profile.cap(Number(v)) }))} />
+          <p className="mt-t1 text-caption text-text-muted">{t.profile.capNote} <SampleTag q="Q15 default" present={present} /></p>
+        </div>
+        <div className="mt-t3 border-t border-line pt-t2">
+          <Toggle label={t.profile.digest} checked={notify.digest} onChange={(v) => setNotify({ ...notify, digest: v })} />
+          <p className="text-caption text-text-muted">{t.profile.digestNote}</p>
+        </div>
+        <p className="mt-t4 border-t border-line pt-t3 text-small text-text-muted">{t.profile.channelsIntro}</p>
         {TYPES.map((type) => (
           <fieldset key={type} className="mt-t4 border-t border-line pt-t3">
             <legend className="sr-only">{t.profile.types[type]}</legend>

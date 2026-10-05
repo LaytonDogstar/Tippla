@@ -22,6 +22,8 @@ export const statesCopy = {
     offline: "Offline / API error",
     one_off: "One-off $4,000 deposit",
     two_accounts: "Second account",
+    payday: "Payday (morning pay lands)",
+    bill_due: "Bill tomorrow (Jess, 29/09)",
   },
   clearStates: "Clear states",
   hardshipSelf: {

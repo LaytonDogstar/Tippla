@@ -6,19 +6,29 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { PersonaId } from "@/lib/api/types";
 import { subscriptionsPage as t } from "@/content/spending";
-import { formatCents, formatShortDay, formatWhole } from "@/lib/format";
+import { addDays, formatCents, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
 import type { subscriptions } from "@/lib/selectors/subscriptions";
 import { catVar } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { EmptyState, useToast } from "@/components/ui/Feedback";
 import { Sheet } from "@/components/ui/Sheet";
+import { tallyCopy } from "@/content/loop";
+import { useAccount } from "@/lib/account/client";
+import { mockNow, type AccountState } from "@/lib/account/state";
 
 type Subs = ReturnType<typeof subscriptions>;
 interface Prefs { kept: Record<string, boolean>; reminders: Record<string, string> }
 const KEY = "tippla-subscriptions";
 
-export function SubscriptionsView({ persona, subs }: { persona: PersonaId; subs: Subs }) {
+export function SubscriptionsView({ persona, subs, account, asOf, confirm }: { persona: PersonaId; subs: Subs; account: AccountState; asOf: string; confirm: Record<string, string> }) {
   const router = useRouter();
+  const { account: acct, update } = useAccount(persona, account);
+  const cancelled = new Set((acct.actions ?? []).filter((a) => a.type === "cancelled_subscription").map((a) => a.key));
+  // Recorded so the value tally can confirm it once the next charge doesn't come out.
+  const markCancelled = (merchant: string) => {
+    update((l) => ({ ...l, actions: [...(l.actions ?? []).filter((a) => !(a.type === "cancelled_subscription" && a.key === merchant)), { type: "cancelled_subscription", key: merchant, at: mockNow({ asOf }) }] }));
+    toast({ kind: "confirm", message: tallyCopy.cancelledToast(merchant) });
+  };
   const toast = useToast();
   const key = `${KEY}:${persona}`;
   const [prefs, setPrefs] = useState<Prefs>({ kept: {}, reminders: {} });
@@ -84,7 +94,10 @@ export function SubscriptionsView({ persona, subs }: { persona: PersonaId; subs:
           );
         })}
       </ul>
-      <Sheet open={!!row} onClose={() => setHowTo(null)} title={row ? t.cancelTitle(row.merchant) : ""}>
+      <Sheet open={!!row} onClose={() => setHowTo(null)} title={row ? t.cancelTitle(row.merchant) : ""}
+        footer={row ? (cancelled.has(row.merchant)
+          ? <p role="status" className="text-small text-text-muted">{tallyCopy.cancelledNote(formatDayMonth(confirm[row.merchant] ?? addDays(row.nextCharge, 3)))}</p>
+          : <Button full variant="secondary" onClick={() => markCancelled(row.merchant)}>{tallyCopy.cancelled}</Button>) : undefined}>
         {row && (
           <div className="flex flex-col gap-t4">
             <ol className="flex list-decimal flex-col gap-t2 pl-t5 text-body text-text">

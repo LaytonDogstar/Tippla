@@ -1,0 +1,23 @@
+{
+  "_note": "Mock lender offers. Only shown when lender-matching consent is on. Lender names are fictional.",
+  "lender_matching_consent": true,
+  "offers": [
+    {
+      "id": "off_001",
+      "lender": "Harbour Lending (sample)",
+      "amount": 2500,
+      "term_weeks": 78,
+      "comparison_rate_pct": 21.9,
+      "establishment_fee": 150,
+      "repayment_per_fortnight": 75.47,
+      "total_repayable": 2943.33,
+      "_fee_note": "Establishment fee is included in the repayments; 39 x $75.47 = $2,943.33, comparison rate 21.9% (medium loan, not a SACC)",
+      "matched_on": [
+        "Income steady for 6 months",
+        "No failed payments in 90 days",
+        "One fewer open loan than 3 months ago"
+      ],
+      "expires": null
+    }
+  ]
+}

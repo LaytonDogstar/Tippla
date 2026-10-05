@@ -1,0 +1,95 @@
+{
+  "_note": "Tippla-stored history: one TaleFin Score per bank-statement refresh (fortnightly), with its factor breakdown. TaleFin does not return history; Tippla must persist each score_id and result.",
+  "history": [
+    {
+      "scored_date": "2026-07-17",
+      "score": 548,
+      "breakdown": {
+        "INCOME": 6.2,
+        "CASH_SPEND": 7.8,
+        "ADVERSE_SPEND": 9.6,
+        "MISSED_PAYMENT": 7.2,
+        "PRODUCTIVE_SPEND": 6.1,
+        "DISPOSABLE_INCOME": 5.3,
+        "GOVERNMENT_RELIANCE": 4.1,
+        "LOAN_AMOUNT_AND_TYPE": 5.6,
+        "RELIABLE_PAYMENT_HISTORY": 7.5
+      }
+    },
+    {
+      "scored_date": "2026-07-31",
+      "score": 561,
+      "breakdown": {
+        "INCOME": 6.2,
+        "CASH_SPEND": 7.8,
+        "ADVERSE_SPEND": 9.6,
+        "MISSED_PAYMENT": 7.6,
+        "PRODUCTIVE_SPEND": 6.1,
+        "DISPOSABLE_INCOME": 5.4,
+        "GOVERNMENT_RELIANCE": 4.1,
+        "LOAN_AMOUNT_AND_TYPE": 5.9,
+        "RELIABLE_PAYMENT_HISTORY": 7.6
+      }
+    },
+    {
+      "scored_date": "2026-08-14",
+      "score": 577,
+      "breakdown": {
+        "INCOME": 6.2,
+        "CASH_SPEND": 7.8,
+        "ADVERSE_SPEND": 9.6,
+        "MISSED_PAYMENT": 7.9,
+        "PRODUCTIVE_SPEND": 6.1,
+        "DISPOSABLE_INCOME": 5.6,
+        "GOVERNMENT_RELIANCE": 4.1,
+        "LOAN_AMOUNT_AND_TYPE": 6.3,
+        "RELIABLE_PAYMENT_HISTORY": 7.7
+      }
+    },
+    {
+      "scored_date": "2026-08-28",
+      "score": 589,
+      "breakdown": {
+        "INCOME": 6.2,
+        "CASH_SPEND": 7.8,
+        "ADVERSE_SPEND": 9.6,
+        "MISSED_PAYMENT": 8.1,
+        "PRODUCTIVE_SPEND": 6.1,
+        "DISPOSABLE_INCOME": 5.7,
+        "GOVERNMENT_RELIANCE": 4.1,
+        "LOAN_AMOUNT_AND_TYPE": 6.4,
+        "RELIABLE_PAYMENT_HISTORY": 7.8
+      }
+    },
+    {
+      "scored_date": "2026-09-11",
+      "score": 601,
+      "breakdown": {
+        "INCOME": 6.2,
+        "CASH_SPEND": 7.8,
+        "ADVERSE_SPEND": 9.6,
+        "MISSED_PAYMENT": 8.2,
+        "PRODUCTIVE_SPEND": 6.1,
+        "DISPOSABLE_INCOME": 5.8,
+        "GOVERNMENT_RELIANCE": 4.1,
+        "LOAN_AMOUNT_AND_TYPE": 6.5,
+        "RELIABLE_PAYMENT_HISTORY": 7.9
+      }
+    },
+    {
+      "scored_date": "2026-09-25",
+      "score": 612,
+      "breakdown": {
+        "INCOME": 6.2,
+        "CASH_SPEND": 7.8,
+        "ADVERSE_SPEND": 9.6,
+        "MISSED_PAYMENT": 8.4,
+        "PRODUCTIVE_SPEND": 6.1,
+        "DISPOSABLE_INCOME": 5.9,
+        "GOVERNMENT_RELIANCE": 4.1,
+        "LOAN_AMOUNT_AND_TYPE": 6.7,
+        "RELIABLE_PAYMENT_HISTORY": 7.9
+      }
+    }
+  ]
+}

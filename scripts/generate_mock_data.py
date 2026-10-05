@@ -14,7 +14,8 @@ import json, random, statistics, os
 from datetime import date, timedelta
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "mock-data")
-AS_OF = date(2026, 9, 25)          # "today" for all fixtures (a Friday)
+BASE_AS_OF = date(2026, 9, 25)     # "today" for the main fixtures (a Friday)
+AS_OF = BASE_AS_OF                  # the snapshot being generated (main, or each persona's next payday)
 PERIODS = [14, 30, 60, 90, 180, 365]
 
 # Tippla category taxonomy mapped to TaleFin AM2151 debit category ids (real ids, from a production
@@ -153,13 +154,16 @@ def r2(x): return round(x + 0.0, 2)
 
 def build(pid, p):
     rnd = random.Random(p["seed"])
-    start = AS_OF - timedelta(days=p["days"] - 1)
+    # History always starts on the same day, so a later snapshot replays the same days (same RNG draws)
+    # and only adds what happened after 25/09.
+    start = BASE_AS_OF - timedelta(days=p["days"] - 1)
+    span = (AS_OF - start).days + 1
     tx = []
     def add(d, desc, amt, cat, merchant=None, recurring=False, sub=None, status="posted"):
         tx.append({"date": d.isoformat(), "description": desc, "merchant": merchant or desc.title(),
                    "amount": r2(amt), "category": cat, "subcategory": sub, "is_recurring": recurring,
                    "status": status, "account_id": 1})
-    for i in range(p["days"]):
+    for i in range(span):
         d = start + timedelta(days=i)
         di = i  # day index from start
         w = p["wage"]
@@ -189,16 +193,21 @@ def build(pid, p):
             if d.day == dom: add(d, m, -a, "subscriptions", display_name(m), True)
         if d.day == 20: add(d, "ORIGIN ENERGY", -rnd.uniform(78, 118), "bills", "Origin Energy", True)
         if d.day == 26: add(d, "TELSTRA PREPAID", -52.0, "bills", "Telstra", True)
+        # A later snapshot is taken the morning pay lands: that day has pay but no spending yet. The draws
+        # still happen (it's the last day, so nothing after it changes).
+        morning = AS_OF > BASE_AS_OF and d == AS_OF
         for cat, (merchants, per_week, lo, hi) in EVERYDAY.items():
             if rnd.random() < per_week / 7:
                 m = rnd.choice(merchants)
-                add(d, m, -rnd.uniform(lo, hi), cat, display_name(m))
+                amt = -rnd.uniform(lo, hi)
+                if not morning: add(d, m, amt, cat, display_name(m))
         g = p["gambling"]
         if g:
             growth = 1 + (g["growth"] - 1) * (di / p["days"]) ** 2
             if rnd.random() < g["per_cycle"] / 14 * (0.8 + di / p["days"]):
                 m = rnd.choice(g["merchants"])
-                add(d, f"{m} DEPOSIT", -round(g["base"] * growth * rnd.uniform(0.6, 1.6) / 5) * 5, "gambling", display_name(m))
+                amt = -round(g["base"] * growth * rnd.uniform(0.6, 1.6) / 5) * 5
+                if not morning: add(d, f"{m} DEPOSIT", amt, "gambling", display_name(m))
     for dday in p["dishonour_days"]:
         if dday < p["days"]:
             d = start + timedelta(days=dday)
@@ -212,14 +221,14 @@ def build(pid, p):
         daily[t["date"]] = bal
     # end of day balance for every day
     eod, last = [], p["start_balance"]
-    for i in range(p["days"]):
+    for i in range(span):
         ds = (start + timedelta(days=i)).isoformat()
         last = daily.get(ds, last); eod.append({"date": ds, "balance": r2(last)})
     # pending transaction today, to exercise UI state
     tx.append({"id": f"{pid}_tx_pending", "date": AS_OF.isoformat(), "description": "WOOLWORTHS PENDING", "merchant": "Woolworths",
                "amount": -23.40, "category": "groceries", "subcategory": None, "is_recurring": False, "status": "pending", "account_id": 1, "balance_after": None})
     spike = (p.get("extras") or {}).get("pending_spike")
-    if spike:
+    if spike and AS_OF == BASE_AS_OF:
         name, amt, cat = spike
         tx.append({"id": f"{pid}_tx_pending2", "date": AS_OF.isoformat(), "description": f"{name} PENDING", "merchant": "JB Hi-Fi",
                    "amount": -amt, "category": cat, "subcategory": None, "is_recurring": False, "status": "pending", "account_id": 1, "balance_after": None})
@@ -255,9 +264,15 @@ def feed_extras(p, tx, start):
             host["amount"] = r2(host["amount"] + amt)
             tx.append({"date": ds, "description": name, "merchant": display_name(name), "amount": -amt, "category": "subscriptions",
                        "subcategory": None, "is_recurring": True, "status": "posted", "account_id": 1})
+    # The purchase pending on 25/09 has posted by any later snapshot.
+    spike = ex.get("pending_spike")
+    if spike and AS_OF > BASE_AS_OF:
+        name, amt, cat = spike
+        tx.append({"date": (BASE_AS_OF + timedelta(days=1)).isoformat(), "description": name, "merchant": "JB Hi-Fi", "amount": -amt,
+                   "category": cat, "subcategory": None, "is_recurring": False, "status": "posted", "account_id": 1})
     # Possible duplicate: one food purchase this pay cycle becomes two identical charges the same day.
     if ex.get("duplicate_in_cycle"):
-        cyc = [t for t in tx if t["category"] in ("food", "transport", "groceries", "shopping") and t["merchant"] not in ("McDonald's",) and "2026-09-17" <= t["date"] < AS_OF.isoformat()
+        cyc = [t for t in tx if t["category"] in ("food", "transport", "groceries", "shopping") and t["merchant"] not in ("McDonald's",) and "2026-09-17" <= t["date"] < BASE_AS_OF.isoformat()
                and round(-t["amount"] * 100) % 2 == 0]
         prio = ["shopping", "food", "groceries", "transport"]
         cyc.sort(key=lambda t: (prio.index(t["category"]), t["date"]))
@@ -466,15 +481,17 @@ def build_talefin(pid, p, start, tx, eod):
     prof = p["profile"]
     seed = p["seed"]
     bal = f"{eod[-1]['balance']:.4f}"
+    # Main snapshot keeps its pinned timestamp; later snapshots refresh at 9:12am AEST that morning.
+    stamp = lambda mm: f"{AS_OF.isoformat()}T09:{mm}:00.000Z" if AS_OF == BASE_AS_OF else f"{(AS_OF - timedelta(days=1)).isoformat()}T23:{mm}:00.000Z"
     return {
       "version": "2.0", "application_id": 39440000 + seed, "type": "summary", "id": 39440000 + seed,
-      "vendor_specific_id": f"VS-{seed}0925", "timestamp": f"{AS_OF.isoformat()}T09:12:00.000Z",
+      "vendor_specific_id": f"VS-{seed}0925", "timestamp": stamp("12"),
       "_note": ("Mock TaleFin bank statement 'summary' response, shaped like production: timestamps with offsets, month names, "
                 "string balances, UNMASKED fictional account numbers and holder details (so the app's masking is tested). "
                 "Only the metrics the portal uses are included (production has 139). Values are computed from transactions.json."),
       "metrics": m,
       "profiles": [{
-        "id": 1000 + seed, "timestamp": f"{AS_OF.isoformat()}T09:10:00.000Z",
+        "id": 1000 + seed, "timestamp": stamp("10"),
         "full_name": prof["full_name"].upper(), "owner": prof["full_name"].upper(), "email": prof["email"],
         "bank": {"id": 1, "name": "CBA", "slug": "cba", "country_code": "AU", "institution_type": "banking"},
         "application": {"id": 39440000 + seed, "full_name": prof["full_name"], "email": prof["email"], "mobile": prof["mobile"].replace(" ", ""),
@@ -500,14 +517,14 @@ def build_score(pid, p):
     resp = {
       "score": {"SCORE": s["SCORE"], "OVERRIDE": s["override"]["OVERRIDE"] if s["override"] else None,
                 "RISK_GRADE": s["RISK_GRADE"], "OVERRIDE_SCORE": s["override"]["OVERRIDE_SCORE"] if s["override"] else None},
-      "metadata": {"BANKS_REFERENCE": 2458 + p["seed"], "SCORED_DATETIME": f"{AS_OF.isoformat()} 09:14:03", "BUREAU_REFERENCE": None},
+      "metadata": {"BANKS_REFERENCE": 2458 + p["seed"], "SCORED_DATETIME": f"{BASE_AS_OF.isoformat()} 09:14:03", "BUREAU_REFERENCE": None},
       "score_breakdown": s["breakdown"], "Consumer": {"FULL_NAME": p["profile"]["full_name"]},
       "score_id": f"{pid}{'0'*(8-len(pid))}af4e418c86807592833f{p['seed']:02d}",
     }
     hist = []
     for k, v in enumerate(s["prev"] + ([s["SCORE"]] if s["SCORE"] else [])):
         n = len(s["prev"]) - k
-        entry = {"scored_date": (AS_OF - timedelta(days=14 * n)).isoformat(), "score": v}
+        entry = {"scored_date": (BASE_AS_OF - timedelta(days=14 * n)).isoformat(), "score": v}
         if s["SCORE"]:
             fh = p.get("factor_history") or []
             entry["breakdown"] = dict(s["breakdown"]) if n == 0 else {**s["breakdown"], **(fh[k] if k < len(fh) else {})}
@@ -530,6 +547,11 @@ def derived(pid, p, tx):
     for mname, items in rec.items():
         items.sort(key=lambda t: t["date"])
         if len(items) < 2: continue
+        # A pay advance repayment is only expected while an advance is outstanding: the next advance is
+        # the customer's choice, never a bill we predict.
+        if items[-1]["category"] == "wage_advance":
+            credits = [t["date"] for t in tx if t["category"] == "wage_advance" and t["amount"] > 0 and t["merchant"] == mname and t["status"] == "posted"]
+            if not credits or max(credits) <= items[-1]["date"]: continue
         gap = (date.fromisoformat(items[-1]["date"]) - date.fromisoformat(items[-2]["date"])).days
         nxt = date.fromisoformat(items[-1]["date"]) + timedelta(days=gap)
         if AS_OF < nxt <= cyc_end + timedelta(days=14):
@@ -542,11 +564,8 @@ def derived(pid, p, tx):
             "as_of": AS_OF.isoformat(), "pay_cycle": {"start": cyc_start.isoformat(), "end": cyc_end.isoformat(), "next_payday": (cyc_end + timedelta(days=1)).isoformat()},
             "upcoming_bills": upcoming, "subscriptions": subs}
 
-def main():
-    os.makedirs(OUT, exist_ok=True)
-    index = {"as_of": AS_OF.isoformat(), "personas": []}
-    for pid, p in PERSONAS.items():
-        d = os.path.join(OUT, pid); os.makedirs(d, exist_ok=True)
+def write_snapshot(pid, p, d, index=None):
+        os.makedirs(d, exist_ok=True)
         start, tx, eod = build(pid, p)
         files = {
           "profile.json": {**p["profile"], "id": pid, "data_from": start.isoformat(), "data_days": p["days"]},
@@ -568,8 +587,29 @@ def main():
         files["talefin_score.json"] = sc; files["score_history.json"] = hist
         for fn, obj in files.items():
             with open(os.path.join(d, fn), "w") as f: json.dump(obj, f, indent=2)
-        index["personas"].append({"id": pid, "name": p["profile"]["full_name"], "state_under_test": p["profile"]["story"],
-                                  "score": p["score"]["SCORE"], "override": p["score"]["override"], "transactions": len(tx)})
+        if index is not None:
+            index["personas"].append({"id": pid, "name": p["profile"]["full_name"], "state_under_test": p["profile"]["story"],
+                                      "score": p["score"]["SCORE"], "override": p["score"]["override"], "transactions": len(tx)})
+        return files
+
+def main():
+    global AS_OF
+    os.makedirs(OUT, exist_ok=True)
+    index = {"as_of": BASE_AS_OF.isoformat(), "personas": []}
+    for pid, p in PERSONAS.items():
+        AS_OF = BASE_AS_OF
+        files = write_snapshot(pid, p, os.path.join(OUT, pid), index)
+        # Payday snapshot (dev state "payday"): the morning pay lands, for the payday check-in and the
+        # end-of-cycle recap. Same history; the SmartScore is still the 25/09 one (refreshes fortnightly).
+        last_wage = max(t["date"] for t in files["transactions.json"]["transactions"] if t["subcategory"] == "wages")
+        AS_OF = date.fromisoformat(last_wage) + timedelta(days=14)
+        write_snapshot(pid, p, os.path.join(OUT, pid, "payday"))
+        # Bill-eve snapshot (dev state "bill_due"), Jess only: the morning of 29/09, the day before her
+        # Beforepay repayment is bigger than her balance (the "bill tomorrow" notification).
+        if pid == "jess":
+            AS_OF = date(2026, 9, 29)
+            write_snapshot(pid, p, os.path.join(OUT, pid, "billdue"))
+        AS_OF = BASE_AS_OF
     with open(os.path.join(OUT, "index.json"), "w") as f: json.dump(index, f, indent=2)
     print(json.dumps(index, indent=2))
 

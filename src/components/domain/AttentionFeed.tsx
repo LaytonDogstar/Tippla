@@ -20,7 +20,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday }
   persona: PersonaId; account: AccountState; items: FeedItem[]; asOf: string; payday: string;
 }) {
   const toast = useToast();
-  const { account, save } = useAccount(persona, initial);
+  const { account, update } = useAccount(persona, initial);
   const [all, setAll] = useState(false);
   const [snoozing, setSnoozing] = useState<FeedItem | null>(null);
   const state = account.feed ?? {};
@@ -28,9 +28,14 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday }
   const shown = all ? open : open.slice(0, FEED_MAX);
 
   const set = (item: FeedItem, s: FeedItemState, message: string) => {
-    const before = account;
-    save({ ...account, feed: { ...state, [item.id]: s } });
-    toast({ kind: "confirm", message, onUndo: () => save(before) });
+    const prev = state[item.id];
+    const put = (v: FeedItemState | undefined) => update((l) => {
+      const feed = { ...l.feed };
+      if (v) feed[item.id] = v; else delete feed[item.id];
+      return { ...l, feed };
+    });
+    put(s);
+    toast({ kind: "confirm", message, onUndo: () => put(prev) });
   };
 
   return (

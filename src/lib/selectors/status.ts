@@ -4,10 +4,17 @@ import { statusCopy as t } from "@/content/feed";
 import { formatShortDay, toAEST } from "@/lib/format/dates";
 import { posted } from "./transactions";
 
-export function refreshStatus(d: PersonaData, openItems: number) {
+/** The latest refresh: the score's, unless bank data has been refreshed on a later day since (payday). */
+export function lastRefresh(d: PersonaData): { at: string; since: string | null } {
   const h = d.scoreHistory;
-  const prev = h.length >= 2 ? h[h.length - 2]!.scored_date : null;
-  const refreshedAt = d.score?.scoredAt ?? d.bankStatement.timestamp;
+  const scoredAt = d.score?.scoredAt;
+  const bankAt = d.bankStatement.timestamp;
+  if (scoredAt && toAEST(bankAt).date > toAEST(scoredAt).date) return { at: bankAt, since: toAEST(scoredAt).date };
+  return { at: scoredAt ?? bankAt, since: h.length >= 2 ? h[h.length - 2]!.scored_date : null };
+}
+
+export function refreshStatus(d: PersonaData, openItems: number) {
+  const { at: refreshedAt, since: prev } = lastRefresh(d);
   const { date, minutes } = toAEST(refreshedAt);
   const fresh = posted(d.transactions).filter((x) => (prev ? x.date > prev : true) && x.date <= d.asOf).length;
   const when = date !== d.asOf ? t.when.day(formatShortDay(date)) : minutes < 12 * 60 ? t.when.morning : minutes < 17 * 60 ? t.when.afternoon : t.when.evening;

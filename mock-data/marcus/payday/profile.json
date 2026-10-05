@@ -1,0 +1,14 @@
+{
+  "first_name": "Marcus",
+  "full_name": "Marcus Webb",
+  "age": 44,
+  "state": "QLD",
+  "postcode": "4114",
+  "email": "marcus.webb@example.com",
+  "mobile": "0433 210 987",
+  "tier": "pro",
+  "story": "Part-time warehouse work plus Centrelink Family Tax Benefit. Paid off one SACC two months ago; score improving and close to lender-ready.",
+  "id": "marcus",
+  "data_from": "2026-03-30",
+  "data_days": 180
+}

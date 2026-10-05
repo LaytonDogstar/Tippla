@@ -1,0 +1,73 @@
+{
+  "_note": "Tippla-derived from transactions (not TaleFin metrics). Recurring detection and bill prediction are Tippla logic.",
+  "as_of": "2026-10-08",
+  "pay_cycle": {
+    "start": "2026-10-07",
+    "end": "2026-10-20",
+    "next_payday": "2026-10-21"
+  },
+  "upcoming_bills": [
+    {
+      "date": "2026-10-10",
+      "merchant": "Qld Housing Rent",
+      "expected_amount": 560.0,
+      "category": "housing",
+      "confidence": "predicted",
+      "cadence_days": 14
+    },
+    {
+      "date": "2026-10-11",
+      "merchant": "Latitude",
+      "expected_amount": 60.0,
+      "category": "loan_repayment",
+      "confidence": "predicted",
+      "cadence_days": 31
+    },
+    {
+      "date": "2026-10-13",
+      "merchant": "Kayo",
+      "expected_amount": 25.0,
+      "category": "subscriptions",
+      "confidence": "predicted",
+      "cadence_days": 31
+    },
+    {
+      "date": "2026-10-15",
+      "merchant": "Afterpay",
+      "expected_amount": 32.0,
+      "category": "bnpl",
+      "confidence": "predicted",
+      "cadence_days": 14
+    },
+    {
+      "date": "2026-10-21",
+      "merchant": "Origin Energy",
+      "expected_amount": 90.45,
+      "category": "bills",
+      "confidence": "predicted",
+      "cadence_days": 31
+    },
+    {
+      "date": "2026-10-27",
+      "merchant": "Telstra",
+      "expected_amount": 52.0,
+      "category": "bills",
+      "confidence": "predicted",
+      "cadence_days": 31
+    }
+  ],
+  "subscriptions": [
+    {
+      "merchant": "Kayo",
+      "amount": 25.0,
+      "last_charged": "2026-09-12",
+      "cadence": "monthly"
+    },
+    {
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "last_charged": "2026-10-05",
+      "cadence": "monthly"
+    }
+  ]
+}

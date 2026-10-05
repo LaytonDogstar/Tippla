@@ -4,6 +4,8 @@ import { copy } from "@/content/en-AU";
 import { formatDayMonth } from "@/lib/format";
 import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 import { SampleTag } from "@/components/ui/SampleTag";
+import { projectionCopy } from "@/content/loop";
+import type { ScoreProjection } from "@/lib/scoring/estimate";
 
 const EstimateTag = () => <span className="inline-flex min-h-[20px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.estimate}</span>;
 
@@ -43,6 +45,23 @@ export function ScoreChangeDetail({ attribution, present }: { attribution: Score
         </ul>
       ) : <p className="mt-t3 text-small text-text-muted">{t.noChange}</p>}
       <p className="mt-t2 text-caption text-text-muted">{t.estimateNote}</p>
+    </section>
+  );
+}
+
+/** "Skip the next pay advance: about 490 by 23/10". Q3 sample logic, always labelled as an estimate. */
+export function ScoreProjectionCard({ projection, present }: { projection: ScoreProjection; present: boolean }) {
+  const p = projectionCopy;
+  const action = p.actions[projection.liftKey] ?? projection.factor;
+  return (
+    <section aria-labelledby="projection" className="rounded-lg bg-surface p-t4">
+      <div className="flex flex-wrap items-center gap-t2">
+        <h2 id="projection" className="text-h3 text-text">{p.heading}</h2>
+        <EstimateTag />
+        <SampleTag q="Q3" present={present} />
+      </div>
+      <p className="tnum mt-t2 text-body-strong text-text">{p.line(action, projection.to, formatDayMonth(projection.by))}</p>
+      <p className="mt-t1 text-caption text-text-muted">{p.note}</p>
     </section>
   );
 }

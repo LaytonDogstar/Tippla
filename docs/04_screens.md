@@ -42,6 +42,10 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
   0. **Status line** from the refresh timestamp: "Checked 32 new transactions this morning · 7 things to look at" (transactions since the previous refresh).
   1. Urgent state banner, only if one exists (priority order): bank connection expired → hardship trigger → score dropped ≥ 20 pts since last refresh. One at a time. **Never an offer** (05/10 guardrail). The hardship banner steps aside when a "Needs a look" card already offers "Options if money's tight".
   1a. **Needs a look** (`src/lib/feed/`): at most 3 ranked cards (urgency × amount at stake), each with one clear action plus Done / Snooze (until tomorrow, until payday) / Dismiss, all with Undo, persisted per customer. "Show all" lists the rest. Rules: shortfall before payday, bill bigger than the forecast balance, repayment due within 3 days, new subscription, subscription price rise, possible duplicate charge, unusual spend vs the usual (never gambling or alcohol), score change with explanation. Lender offers are never a rule.
+  1b. **Safe to spend today** (05/10, `selectors/safeToSpend.ts`): `(forecast balance the day before payday − $50 buffer) ÷ days to payday`, rounded down, never below $0. The forecast is balance − predicted bills + expected income before payday. "How we worked this out" opens the working as a sheet. When nothing is spare it says "Nothing spare before payday" and links to hardship options (jess on 25/09; $24 a day on payday 01/10).
+  1c. **Payday check-in** (replaces 1b on the morning wages or Centrelink land): what landed, the bills and repayments due this pay cycle, whether a pay advance is due back, and safe to spend.
+  1d. **Your last pay cycle** recap (payday only, below the feed): spent and paid in, pay advances (or "You got through without a new pay advance", plus "That's N pay cycles in a row" only when N ≥ 2), SmartScore from → to, bank fees, fees avoided, the three biggest category changes (never gambling or alcohol). Never an offer. Nothing is ever said about a streak ending.
+  1e. **Tippla has helped you save** (right column, only once something is counted or pending): savings we can see in bank data after an in-app action. Counts: a subscription marked "I've cancelled it" whose next charge doesn't come (3-day grace); each whole pay cycle without a new advance after "I'll try this" on "Skip the next pay advance" (the advance fee); a "bill bigger than your balance" card marked Done before the date where the bill then went through with no failed-payment fee. Pending items say when they'll be confirmed.
   2. **SmartScore card:** ScoreRing (medium), stage, change since last refresh **with its explanation** ("Down 17 since 11/09: new pay advance −9, gambling deposits −6, money left over −2 · Estimate"), link to Score.
   3. **Next thing to do:** one RecommendationCard (highest projected impact the customer can act on **within this pay cycle** — don't lead with an action that costs money the customer doesn't have; when "left after bills" is negative, prefer a no-cost action). Opens the recommendation sheet.
    - jess (−$53 before payday): "Skip the next pay advance if you can" — "You've taken a $300 Beforepay advance every fortnight since 27/08. Each costs $15 and comes out the day before payday." Paying off Nimble (~$610, estimated) is second, on `/savings`.
@@ -55,6 +59,7 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 - **States:** declining (jess), improving (marcus: "Up 11 since 11/09"), no score (priya), lapsed subscription (limited: score visible, drill-downs show a reactivate prompt), bank link broken (banner + stale timestamp).
 
 ### P2 SmartScore (`/score`)
+- **If you act on your next step** (05/10, Q3 sample logic, `scoring/estimate.ts`): "Skip the next pay advance: about 490 by 23/10", labelled Estimate. Points = sample factor weight × assumed factor lift; the date is two fortnightly refreshes after the last one. Hidden when there's no score.
 - **What changed** (05/10): each factor that moved since the last refresh, from → to, its estimated points (labelled "Estimate", Q3) and the transactions behind it ("New Beforepay pay advance (24/09)"). The points always add up to the actual change.
 - **Job:** explain the score and show the path to the next stage.
 - **Content:**
@@ -84,7 +89,7 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 - Tap a day → sheet: that day's transactions + predicted bills. Range selection (drag or tap-tap) → totals for the range.
 
 ### P6 Subscriptions (`/subscriptions`)
-- List from `derived.json → subscriptions`: merchant, amount, cadence, last charged, per-pay-cycle and per-year cost. Actions per row: Keep · Remind me before next charge · How to cancel (sheet with steps). No fake urgency.
+- List from `derived.json → subscriptions`: merchant, amount, cadence, last charged, per-pay-cycle and per-year cost. Actions per row: Keep · Remind me before next charge · How to cancel (sheet with steps, and "I've cancelled it", which the value tally later confirms). No fake urgency.
 
 ### P7 Ways to lift your score (`/savings`)
 - RecommendationCards ordered by projected impact: what, why, projected impact (dollars per pay cycle and factor points), one action, "Not relevant to me" (hides for this pay cycle), "Snooze".
@@ -111,13 +116,13 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 - Search first. Seed questions a stressed customer would ask: "Why was I declined?", "Will checking my score hurt my credit?", "Who sees my data?", "How do I stop lenders contacting me?", "How do I cancel?", "Why is my income wrong?", "I changed banks".
 
 ### P13 Account
-- **Profile & settings:** name, email, mobile, notification channels (email/SMS/push) per notification type, theme.
+- **Profile & settings:** name, email, mobile, notifications (at most 1, 2 or 3 a day to the phone, default 2; weekly summary for SmartScore updates and recaps), channels (email/SMS/push) per notification type, theme.
 - **Subscription & billing:** plan, next charge, history, change plan, **cancel in one tap** with a confirmation sheet (no retention dark patterns).
 - **Consents:** each consent with status, date given, version, withdraw/grant. Withdrawing lender matching shows: "Lender matching is paused. Lenders won't see your profile."
 - **Bank connections:** connected accounts, last refresh, reconnect, disconnect.
 
 ### P14 Notifications (`/notifications`)
-- Inbox, grouped by today / this week / earlier; types: score change, bill reminder, offer (consent-gated), subscription event, bank connection. Mark read, settings link.
+- Inbox, grouped by today / this week / earlier. **Event-driven only** (05/10): shortfall forecast within 5 days (links to hardship), a bill tomorrow bigger than the balance, pay landed (check-in), the pay-cycle recap, SmartScore updates (amount only, never factor detail), and changes to the customer's account (subscription cancelled or paused, bank disconnected). No routine "refreshed" or "payment went through" messages. **Never offers or lenders; never gambling or alcohol.** Each item says how it was delivered: to the phone, kept in the inbox (over the daily limit, money first), or in the weekly summary. Mark read, settings link.
 
 ---
 
