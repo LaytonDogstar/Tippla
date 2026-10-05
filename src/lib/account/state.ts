@@ -3,6 +3,7 @@
 // so server-rendered screens agree immediately. Real build: Tippla's own API.
 import type { Consent, PersonaData, PersonaId } from "@/lib/api/types";
 import type { PlanId } from "@/config/plans";
+import type { FeedState } from "@/lib/feed/types";
 
 export const ACCOUNT_COOKIE = "tippla-account";
 
@@ -14,6 +15,8 @@ export interface AccountState {
   dismissedOffers?: string[];
   readNotifications?: string[];
   bank?: { disconnected?: boolean; refreshedAt?: string };
+  /** "Needs a look" choices: done, snoozed (until a date) or dismissed, by feed item id. */
+  feed?: FeedState;
   /** The customer said things are hard right now (docs/09 "in hardship", self-selected). */
   hardshipSelfSelected?: boolean;
 }
@@ -46,6 +49,12 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   const s = a.subscription;
   if (s && ["active", "paused", "cancelled"].includes(s.status) && ["standard", "pro"].includes(s.plan) && typeof s.effective === "string") out.subscription = s;
   if (a.hardshipSelfSelected === true) out.hardshipSelfSelected = true;
+  if (a.feed && typeof a.feed === "object") {
+    out.feed = {};
+    for (const [id, v] of Object.entries(a.feed)) {
+      if (v && ["done", "dismissed", "snoozed"].includes(v.status) && typeof v.at === "string") out.feed[id] = { status: v.status, at: v.at, ...(typeof v.until === "string" ? { until: v.until } : {}) };
+    }
+  }
   if (a.bank && typeof a.bank === "object") out.bank = { disconnected: a.bank.disconnected === true, refreshedAt: typeof a.bank.refreshedAt === "string" ? a.bank.refreshedAt : undefined };
   return out;
 }

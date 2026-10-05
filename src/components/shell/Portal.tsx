@@ -14,10 +14,12 @@ import { statesCopy as t } from "@/content/states";
 import { InlineAlert } from "@/components/ui/Feedback";
 import { AnalysingState, LapsedSheet } from "./States";
 import { PortalFrame } from "./Shells";
+import { loadCustomer } from "@/lib/customer";
+import { feed } from "@/lib/feed";
 
 const UNGATED = ["/hardship", "/help", "/account", "/notifications"];
 
-export function PortalShell(props: {
+export async function PortalShell(props: {
   path: string; title?: string; backHref?: string; persona: PersonaId; present: boolean;
   header?: ReactNode; wide?: boolean; cta?: ReactNode; children: ReactNode;
 }) {
@@ -29,5 +31,8 @@ export function PortalShell(props: {
   let body = props.children;
   if (states.includes("analysing") && !ungated) body = <AnalysingState home={props.path === "/"} />;
   else if (states.includes("lapsed") && !ungated && props.path !== "/") body = <>{props.children}<LapsedSheet /></>;
-  return <PortalFrame {...props} notice={notice}>{body}</PortalFrame>;
+  // Nav badges: open "Needs a look" items per section (same rules and choices as Home).
+  const { data, edits, account } = await loadCustomer(props.persona);
+  const { bySection } = feed({ d: data, edits }, account.feed);
+  return <PortalFrame {...props} notice={notice} badges={bySection}>{body}</PortalFrame>;
 }

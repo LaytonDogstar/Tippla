@@ -49,13 +49,15 @@ describe("repayments", async () => {
 describe("account state", async () => {
   const [jess, marcus] = await Promise.all([load("jess"), load("marcus")]);
 
-  it("withdrawing lender matching hides offers and the offer banner straight away", () => {
+  it("withdrawing lender matching hides offers straight away", () => {
     expect(visibleOffers(marcus)).toHaveLength(1);
     const off = applyAccount(marcus, { consents: { lender_matching: { granted: false, at: "2026-09-25T09:30:00+10:00" } } });
     expect(visibleOffers(off)).toEqual([]);
-    expect(dashboardBanner(off)?.kind).not.toBe("new_offer");
-    expect(notifications(off).some((n) => n.type === "offer")).toBe(false);
-    expect(notifications(marcus).some((n) => n.type === "offer")).toBe(true);
+  });
+
+  it("offers are never a banner or a notification, even with matching on (05/10 guardrail)", () => {
+    expect(dashboardBanner(marcus)).toBeNull();
+    for (const n of notifications(marcus)) expect(`${n.title} ${n.body} ${n.href}`).not.toMatch(/offer|lender/i);
   });
 
   it("Not interested hides only that offer and leaves matching on", () => {

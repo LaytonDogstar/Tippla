@@ -17,18 +17,18 @@ test("withdrawing lender matching hides Offers immediately (Marcus), and Undo br
   await page.goto("/offers?persona=marcus&present=1");
   await expect(page.getByRole("heading", { name: "Harbour Lending" })).toBeVisible();
   await page.goto("/?persona=marcus&present=1");
-  await expect(page.getByRole("link", { name: /You have 1 new offer/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /new offer/ })).toHaveCount(0); // offers never appear on Today
 
   await page.goto("/account/consents?persona=marcus&present=1");
   const matching = page.getByRole("region", { name: /partner lenders/ });
   await matching.getByText("On", { exact: true }).click();
   await expect(matching.getByRole("status")).toHaveText("Lender matching is paused. Lenders won't see your profile.");
 
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Loans" }).first().click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /^Borrowing/ }).first().click();
   await page.getByRole("link", { name: /^Offers from partner lenders/ }).click();
   await expect(page.getByRole("heading", { name: "Lender matching is off" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Harbour Lending" })).toHaveCount(0);
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Home" }).first().click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /^Today/ }).first().click();
   await expect(page.getByRole("link", { name: /new offer/ })).toHaveCount(0);
 
   await page.goto("/account/consents?persona=marcus&present=1");

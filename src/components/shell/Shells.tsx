@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { onboarding as t } from "@/content/onboarding";
 import { nav } from "@/content/components";
-import { DesktopSidebar, MobileDock } from "@/components/nav/Navigation";
+import { DesktopSidebar, MobileDock, type Badges } from "@/components/nav/Navigation";
 import { PersonaSwitcher } from "@/components/dev/PersonaSwitcher";
 import type { PersonaId } from "@/lib/api/types";
 
@@ -64,8 +64,10 @@ export function PageHeader({ title, sub, action }: { title: string; sub?: string
 }
 
 /** The portal frame. Pages use PortalShell from ./Portal (server), which adds state notices and gates. */
-export function PortalFrame({ path, title, backHref, persona, present, cta, header, wide, notice, children }: {
+export function PortalFrame({ path, title, backHref, persona, present, cta, header, wide, notice, badges, children }: {
   path: string; title?: string; backHref?: string; persona: PersonaId; present: boolean;
+  /** Open "Needs a look" items per nav section. */
+  badges?: Badges;
   /** Above the content: offline / stale-data notices. */
   notice?: ReactNode;
   /** Replaces the default small header (dashboard, SmartScore). */
@@ -90,8 +92,8 @@ export function PortalFrame({ path, title, backHref, persona, present, cta, head
           <div className="mx-auto max-w-[720px] px-gutter py-t4">{cta}</div>
         </div>
       )}
-      <MobileDock path={path} />
-      <DesktopSidebar path={path} />
+      <MobileDock path={path} badges={badges} />
+      <DesktopSidebar path={path} badges={badges} />
       {!present && <PersonaSwitcher current={persona} raised={!!cta} />}
     </div>
   );

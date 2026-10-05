@@ -118,7 +118,8 @@ describe("Marcus (Prompt 7 items 4 and 10)", async () => {
     expect(st.stage.next).toMatchObject({ name: "Thriving", at: 750, pointsToGo: 138 });
     expect(scoreChange(d)).toEqual({ delta: 11, since: "2026-09-11" });
     expect(topThreeFactors(d)[0]).toMatchObject({ name: "Money left over", value: 5.9 });
-    expect(dashboardBanner(d)).toEqual({ kind: "new_offer", count: 1 });
+    // The "1 new offer" banner in Astra's improving-dashboard screen is retired: offers never appear on Today.
+    expect(dashboardBanner(d)).toBeNull();
   });
 
   it("pay cycle includes Centrelink like wages", () => {

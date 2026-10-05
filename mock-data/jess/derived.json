@@ -96,6 +96,12 @@
       "cadence": "monthly"
     },
     {
+      "merchant": "Binge",
+      "amount": 18.0,
+      "last_charged": "2026-09-08",
+      "cadence": "monthly"
+    },
+    {
       "merchant": "Spotify",
       "amount": 13.99,
       "last_charged": "2026-09-15",

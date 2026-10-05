@@ -36,11 +36,13 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 
 ## Portal
 
-### P1 Dashboard (Home)
-- **Job:** point to the next two taps. Not a data fire-hose.
+### P1 Today (Home, `/`)
+- **Job:** show what Tippla has done and what needs a look, so the customer doesn't have to scan. Not a data fire-hose. *(Updated 05/10/2026: the snapshot became a loop.)*
 - **Content (top to bottom, mobile):**
-  1. Urgent state banner, only if one exists (priority order): bank connection expired → hardship trigger → score dropped ≥ 20 pts since last refresh → new offer (if lender consent on). One at a time.
-  2. **SmartScore card:** ScoreRing (medium), stage, change since last refresh (neutral styling for drops: "Down 17 since 11/09"), link to Score.
+  0. **Status line** from the refresh timestamp: "Checked 32 new transactions this morning · 7 things to look at" (transactions since the previous refresh).
+  1. Urgent state banner, only if one exists (priority order): bank connection expired → hardship trigger → score dropped ≥ 20 pts since last refresh. One at a time. **Never an offer** (05/10 guardrail). The hardship banner steps aside when a "Needs a look" card already offers "Options if money's tight".
+  1a. **Needs a look** (`src/lib/feed/`): at most 3 ranked cards (urgency × amount at stake), each with one clear action plus Done / Snooze (until tomorrow, until payday) / Dismiss, all with Undo, persisted per customer. "Show all" lists the rest. Rules: shortfall before payday, bill bigger than the forecast balance, repayment due within 3 days, new subscription, subscription price rise, possible duplicate charge, unusual spend vs the usual (never gambling or alcohol), score change with explanation. Lender offers are never a rule.
+  2. **SmartScore card:** ScoreRing (medium), stage, change since last refresh **with its explanation** ("Down 17 since 11/09: new pay advance −9, gambling deposits −6, money left over −2 · Estimate"), link to Score.
   3. **Next thing to do:** one RecommendationCard (highest projected impact the customer can act on **within this pay cycle** — don't lead with an action that costs money the customer doesn't have; when "left after bills" is negative, prefer a no-cost action). Opens the recommendation sheet.
    - jess (−$53 before payday): "Skip the next pay advance if you can" — "You've taken a $300 Beforepay advance every fortnight since 27/08. Each costs $15 and comes out the day before payday." Paying off Nimble (~$610, estimated) is second, on `/savings`.
   4. **Pay cycle card:** "{spent} spent · {days} days to payday · {left_after_bills} left after bills" with the spent/due track (from `derived.json`). Link to Spending.
@@ -53,6 +55,7 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 - **States:** declining (jess), improving (marcus: "Up 11 since 11/09"), no score (priya), lapsed subscription (limited: score visible, drill-downs show a reactivate prompt), bank link broken (banner + stale timestamp).
 
 ### P2 SmartScore (`/score`)
+- **What changed** (05/10): each factor that moved since the last refresh, from → to, its estimated points (labelled "Estimate", Q3) and the transactions behind it ("New Beforepay pay advance (24/09)"). The points always add up to the actual change.
 - **Job:** explain the score and show the path to the next stage.
 - **Content:**
   1. ScoreRing hero, stage scale (Building 0–449 · Steadying 450–599 · Healthy 600–749 · Thriving 750–1,000 — **placeholder bands**, Q4), "Next stage: Healthy at 600 — 128 points to go" (jess at 472; always computed live from the bands).

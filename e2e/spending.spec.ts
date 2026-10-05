@@ -18,7 +18,7 @@ const row = (page: Page, name: RegExp) => page.getByRole("button", { name, expan
 test("journey 2: dashboard → spending → category → merchant sheet → recategorise (Jess)", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
   await expect(page.getByText("$1,832 spent").first()).toBeVisible();
-  await page.getByRole("navigation").getByRole("link", { name: "Spending" }).first().click();
+  await page.getByRole("navigation").getByRole("link", { name: /^Money/ }).first().click();
   await expect(page).toHaveURL(/\/spending/);
   await expect(page.getByRole("img", { name: /^Total \$1,832/ })).toBeVisible();
 
@@ -58,7 +58,7 @@ test("journey 2: dashboard → spending → category → merchant sheet → reca
   await page.getByText("Budgets", { exact: true }).click();
   await expect(page.getByText("$90 of $100")).toBeVisible();
 
-  await page.getByRole("navigation").getByRole("link", { name: "Home" }).first().click();
+  await page.getByRole("navigation").getByRole("link", { name: /^Today/ }).first().click();
   await expect(page.getByText("$1,804 spent").first()).toBeVisible();
 
   // Undo is one tap away: back on Spending, the edit is still there after a reload (cookie).
@@ -126,7 +126,7 @@ test("calendar: Home's next bill opens its day; range totals; forecast below $0 
 
 test("subscriptions: keep, remind, how to cancel", async ({ page }) => {
   await page.goto("/subscriptions?persona=jess&present=1");
-  await expect(page.getByText("About $23 a pay cycle · $594 a year")).toBeVisible();
+  await expect(page.getByText("About $31 a pay cycle · $810 a year")).toBeVisible(); // includes Binge (new 08/09)
   const netflix = page.getByRole("article", { name: "Netflix" });
   await netflix.getByRole("button", { name: "Remind me before next charge" }).click();
   await expect(page.getByRole("status").filter({ hasText: "We'll remind you about Netflix on Thu 01/10" })).toBeVisible();

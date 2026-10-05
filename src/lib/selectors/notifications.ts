@@ -6,9 +6,9 @@ import type { AccountState } from "@/lib/account/state";
 import { addDays, daysBetween, formatShortDay, toAESTDate, type ISODate } from "@/lib/format/dates";
 import { formatAUD, formatCents } from "@/lib/format/money";
 import { billing } from "./account";
-import { lenderMatchingOn } from "./banners";
 
-export type NotificationType = "score" | "bill" | "offer" | "subscription" | "bank";
+/** No "offer" type: lender offers are never a notification (05/10 guardrail). */
+export type NotificationType = "score" | "bill" | "subscription" | "bank";
 export interface Notification { id: string; type: NotificationType; date: ISODate; title: string; body: string; href: string; read: boolean }
 
 export function notifications(d: PersonaData, a: AccountState = {}): Notification[] {
@@ -26,9 +26,7 @@ export function notifications(d: PersonaData, a: AccountState = {}): Notificatio
     out.push({ id: `bill-${b.merchant}-${b.date}`, type: "bill", date: d.asOf, title: t.bill.title(b.merchant), body: t.bill.body(amt, formatShortDay(b.date)), href: `/calendar?day=${b.date}` });
   }
 
-  if (lenderMatchingOn(d) && d.offers.offers.length) {
-    out.push({ id: `offer-${d.offers.offers.map((o) => o.id).join("-")}`, type: "offer", date: d.asOf, title: t.offer.title(d.offers.offers.length), body: t.offer.body, href: "/offers" });
-  }
+  // Offers are never a notification (05/10 guardrail): they stay on Borrowing › Offers only.
 
   const bill = billing(d, a);
   const last = bill.history[0];

@@ -65,6 +65,20 @@ PERSONAS = {
                            "LOAN_AMOUNT_AND_TYPE": 2.9, "RELIABLE_PAYMENT_HISTORY": 6.8},
              "override": None},
    "dishonour_days": [118, 163],
+   # Attention-feed demo events, added value-neutrally (see feed_extras) so every figure in the Astra
+   # screens (category rows, six-month bars, $1,832 spent, $367 due) stays exactly as it was.
+   "extras": {"duplicate_in_cycle": True, "price_rise": ("NETFLIX", 16.99, "2026-09-01"), "new_sub": ("BINGE", 18.0, "2026-09-08"),
+              # Pending today, so no posted total moves; the unusual-spend rule counts pending spend.
+              "pending_spike": ("JB HI-FI", 189.0, "shopping")},
+   # Factor values at each earlier refresh (oldest first, matching "prev"). The last step tells the story:
+   # a new Beforepay advance (Current borrowing) and more gambling deposits (Gambling & alcohol).
+   "factor_history": [
+     {"LOAN_AMOUNT_AND_TYPE": 4.0, "ADVERSE_SPEND": 4.6, "DISPOSABLE_INCOME": 4.2, "MISSED_PAYMENT": 6.2, "CASH_SPEND": 6.3},
+     {"LOAN_AMOUNT_AND_TYPE": 4.0, "ADVERSE_SPEND": 4.3, "DISPOSABLE_INCOME": 4.0, "MISSED_PAYMENT": 6.0, "CASH_SPEND": 6.3},
+     {"LOAN_AMOUNT_AND_TYPE": 3.9, "ADVERSE_SPEND": 4.0, "DISPOSABLE_INCOME": 3.8, "MISSED_PAYMENT": 5.7, "CASH_SPEND": 6.2},
+     {"LOAN_AMOUNT_AND_TYPE": 3.4, "ADVERSE_SPEND": 3.9, "DISPOSABLE_INCOME": 3.7, "MISSED_PAYMENT": 5.7, "CASH_SPEND": 6.2},
+     {"LOAN_AMOUNT_AND_TYPE": 3.4, "ADVERSE_SPEND": 3.7, "DISPOSABLE_INCOME": 3.5, "MISSED_PAYMENT": 5.6, "CASH_SPEND": 6.1},
+   ],
  },
  "marcus": {
    "profile": {"first_name": "Marcus", "full_name": "Marcus Webb", "age": 44, "state": "QLD",
@@ -88,6 +102,13 @@ PERSONAS = {
                            "LOAN_AMOUNT_AND_TYPE": 6.7, "RELIABLE_PAYMENT_HISTORY": 7.9},
              "override": None},
    "dishonour_days": [],
+   "factor_history": [
+     {"MISSED_PAYMENT": 7.2, "LOAN_AMOUNT_AND_TYPE": 5.6, "DISPOSABLE_INCOME": 5.3, "RELIABLE_PAYMENT_HISTORY": 7.5},
+     {"MISSED_PAYMENT": 7.6, "LOAN_AMOUNT_AND_TYPE": 5.9, "DISPOSABLE_INCOME": 5.4, "RELIABLE_PAYMENT_HISTORY": 7.6},
+     {"MISSED_PAYMENT": 7.9, "LOAN_AMOUNT_AND_TYPE": 6.3, "DISPOSABLE_INCOME": 5.6, "RELIABLE_PAYMENT_HISTORY": 7.7},
+     {"MISSED_PAYMENT": 8.1, "LOAN_AMOUNT_AND_TYPE": 6.4, "DISPOSABLE_INCOME": 5.7, "RELIABLE_PAYMENT_HISTORY": 7.8},
+     {"MISSED_PAYMENT": 8.2, "LOAN_AMOUNT_AND_TYPE": 6.5, "DISPOSABLE_INCOME": 5.8, "RELIABLE_PAYMENT_HISTORY": 7.9},
+   ],
  },
  "priya": {
    "profile": {"first_name": "Priya", "full_name": "Priya Raman", "age": 26, "state": "VIC",
@@ -123,7 +144,7 @@ EVERYDAY = {
 DISPLAY_NAMES = {
   "APPLE ICLOUD": "Apple iCloud", "MCDONALDS": "McDonald's", "GRILL'D": "Grill'd", "DAN MURPHYS": "Dan Murphy's",
   "BWS": "BWS", "BIG W": "BIG W", "KMART": "Kmart", "AMAZON AU": "Amazon AU", "TAB": "TAB", "ATM WITHDRAWAL": "ATM withdrawal",
-  "7-ELEVEN FUEL": "7-Eleven Fuel",
+  "7-ELEVEN FUEL": "7-Eleven Fuel", "BINGE": "Binge",
 }
 def display_name(m):
     return DISPLAY_NAMES.get(m, m.title())
@@ -182,6 +203,7 @@ def build(pid, p):
         if dday < p["days"]:
             d = start + timedelta(days=dday)
             add(d, "DISHONOUR FEE - NIMBLE DD", -15.0, "fees", "Bank fee", False, "dishonour")
+    feed_extras(p, tx, start)
     tx.sort(key=lambda t: (t["date"], -t["amount"]))
     bal = p["start_balance"]; daily = {}
     for n, t in enumerate(tx):
@@ -196,7 +218,53 @@ def build(pid, p):
     # pending transaction today, to exercise UI state
     tx.append({"id": f"{pid}_tx_pending", "date": AS_OF.isoformat(), "description": "WOOLWORTHS PENDING", "merchant": "Woolworths",
                "amount": -23.40, "category": "groceries", "subcategory": None, "is_recurring": False, "status": "pending", "account_id": 1, "balance_after": None})
+    spike = (p.get("extras") or {}).get("pending_spike")
+    if spike:
+        name, amt, cat = spike
+        tx.append({"id": f"{pid}_tx_pending2", "date": AS_OF.isoformat(), "description": f"{name} PENDING", "merchant": "JB Hi-Fi",
+                   "amount": -amt, "category": cat, "subcategory": None, "is_recurring": False, "status": "pending", "account_id": 1, "balance_after": None})
     return start, tx, eod
+
+def feed_extras(p, tx, start):
+    """Demo events for the attention feed, each value-neutral per day (so day-end balances, monthly
+    totals and this pay cycle's category totals are unchanged)."""
+    ex = p.get("extras")
+    if not ex: return
+    def same_day_partner(ds, exclude):
+        # Same day keeps every day-end balance identical; otherwise the next day (one day-end shifts slightly).
+        for off in (0, 1, 2):
+            d2 = (date.fromisoformat(ds) + timedelta(days=off)).isoformat()
+            c = [t for t in tx if t["date"] == d2 and t["amount"] < 0 and t is not exclude and t["category"] in EVERYDAY]
+            if c: return max(c, key=lambda t: -t["amount"])
+        return None
+    # Price rise: the subscription cost less before `from`; the difference moves to a same-day purchase.
+    if ex.get("price_rise"):
+        name, old, frm = ex["price_rise"]
+        for t in tx:
+            if t["description"] == name and t["date"] < frm:
+                diff = r2(-t["amount"] - old)
+                partner = same_day_partner(t["date"], t)
+                if not partner: continue
+                t["amount"] = -old
+                partner["amount"] = r2(partner["amount"] - diff)
+    # New subscription: carved out of a same-day shopping purchase, first (and only) charge so far.
+    if ex.get("new_sub"):
+        name, amt, ds = ex["new_sub"]
+        host = next((t for t in tx if t["date"] == ds and t["category"] in ("shopping", "entertainment", "food") and -t["amount"] > amt + 5), None)
+        if host:
+            host["amount"] = r2(host["amount"] + amt)
+            tx.append({"date": ds, "description": name, "merchant": display_name(name), "amount": -amt, "category": "subscriptions",
+                       "subcategory": None, "is_recurring": True, "status": "posted", "account_id": 1})
+    # Possible duplicate: one food purchase this pay cycle becomes two identical charges the same day.
+    if ex.get("duplicate_in_cycle"):
+        cyc = [t for t in tx if t["category"] in ("food", "transport", "groceries", "shopping") and t["merchant"] not in ("McDonald's",) and "2026-09-17" <= t["date"] < AS_OF.isoformat()
+               and round(-t["amount"] * 100) % 2 == 0]
+        prio = ["shopping", "food", "groceries", "transport"]
+        cyc.sort(key=lambda t: (prio.index(t["category"]), t["date"]))
+        if cyc:
+            t = cyc[0]
+            t["amount"] = r2(t["amount"] / 2)
+            tx.append(dict(t))
 
 def window(tx, days, pred=lambda t: True):
     cut = AS_OF - timedelta(days=days - 1)
@@ -439,8 +507,12 @@ def build_score(pid, p):
     hist = []
     for k, v in enumerate(s["prev"] + ([s["SCORE"]] if s["SCORE"] else [])):
         n = len(s["prev"]) - k
-        hist.append({"scored_date": (AS_OF - timedelta(days=14 * n)).isoformat(), "score": v})
-    return resp, {"_note": "Tippla-stored history: one TaleFin Score per bank-statement refresh (fortnightly). TaleFin does not return history; Tippla must persist each score_id and result.", "history": hist}
+        entry = {"scored_date": (AS_OF - timedelta(days=14 * n)).isoformat(), "score": v}
+        if s["SCORE"]:
+            fh = p.get("factor_history") or []
+            entry["breakdown"] = dict(s["breakdown"]) if n == 0 else {**s["breakdown"], **(fh[k] if k < len(fh) else {})}
+        hist.append(entry)
+    return resp, {"_note": "Tippla-stored history: one TaleFin Score per bank-statement refresh (fortnightly), with its factor breakdown. TaleFin does not return history; Tippla must persist each score_id and result.", "history": hist}
 
 def derived(pid, p, tx):
     """Tippla-computed values (NOT from TaleFin): pay cycle and upcoming bills."""

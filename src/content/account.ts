@@ -214,7 +214,7 @@ export const accountPage = {
     channelsHeading: "Notifications",
     channelsIntro: "Choose how you hear about each thing. You can change this any time.",
     channels: { email: "Email", sms: "SMS", push: "Push" },
-    types: { score: "SmartScore changes", bill: "Bill reminders", offer: "Offers", subscription: "Subscription and billing", bank: "Bank connection" },
+    types: { score: "SmartScore changes", bill: "Bill reminders", subscription: "Subscription and billing", bank: "Bank connection" },
     offerNeedsMatching: "Only sent when lender matching is on.",
     readOnly: "To change your name, contact Tippla.",
     invalidEmail: "Enter an email address like name@example.com",
@@ -316,7 +316,6 @@ export const notificationsCopy = {
     pendingBody: "We need a bit more history. We'll let you know when it's ready.",
   },
   bill: { title: (m: string) => `${m} is coming up`, body: (amt: string, date: string) => `About ${amt}, expected ${date}.` },
-  offer: { title: (n: number) => (n === 1 ? "1 offer from a partner lender" : `${n} offers from partner lenders`), body: "Matching is not approval. Have a look if you're interested." },
   subscription: {
     paid: (amt: string) => `Tippla payment of ${amt} went through`,
     paidBody: (plan: string) => `${plan} plan, monthly.`,

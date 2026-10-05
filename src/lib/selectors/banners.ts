@@ -16,16 +16,14 @@ export const lenderMatchingOn = (d: PersonaData) => d.consents.find((c) => c.id 
 export type Banner =
   | { kind: "bank_expired"; since: string }
   | { kind: "hardship" }
-  | { kind: "score_drop"; points: number }
-  | { kind: "new_offer"; count: number };
+  | { kind: "score_drop"; points: number };
 
-/** One dashboard banner at a time, in priority order (docs/04 P1). */
+/** One dashboard banner at a time, in priority order (docs/04 P1). Never an offer (05/10 guardrail). */
 export function dashboardBanner(d: PersonaData, state: { bankExpiredSince?: string | null; hardshipSelfSelected?: boolean } = {}): Banner | null {
   if (state.bankExpiredSince) return { kind: "bank_expired", since: state.bankExpiredSince };
   if (hardshipTriggered(d, state.hardshipSelfSelected)) return { kind: "hardship" };
   const drop = scoreDroppedForBanner(d);
   if (drop !== null) return { kind: "score_drop", points: drop };
-  if (lenderMatchingOn(d) && d.offers.offers.length) return { kind: "new_offer", count: d.offers.offers.length };
   return null;
 }
 

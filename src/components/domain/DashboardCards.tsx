@@ -11,6 +11,8 @@ import type { ScoreState } from "@/lib/selectors/score";
 import type { UpcomingBill } from "@/lib/api/types";
 import { ringGeometry } from "@/lib/ui/geometry";
 import { Button } from "@/components/ui/Button";
+import { ScoreChangeLine } from "./ScoreChange";
+import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 
 export function HomeBanner({ text, href }: { text: string; href: string }) {
   return (
@@ -21,7 +23,7 @@ export function HomeBanner({ text, href }: { text: string; href: string }) {
   );
 }
 
-export function SmartScoreCard({ state, change }: { state: ScoreState; change: { delta: number; since: string } | null }) {
+export function SmartScoreCard({ state, change, attribution = null }: { state: ScoreState; change: { delta: number; since: string } | null; attribution?: ScoreAttribution | null }) {
   if (state.kind !== "scored") {
     return (
       <section className="rounded-lg bg-surface p-t4" aria-labelledby="ssc">
@@ -57,7 +59,7 @@ export function SmartScoreCard({ state, change }: { state: ScoreState; change: {
               <p className="text-small text-text-muted">{t.toStage(stage.next.name, stage.next.at)}</p>
             </>
           ) : <p className="text-h2 font-display text-text">{t.topStage}</p>}
-          {change && <p className="mt-t2 text-caption text-text-muted">{copy.score.change(change.delta, formatDayMonth(change.since))}</p>}
+          <ScoreChangeLine change={change} attribution={attribution} />
         </div>
       </div>
       <Link href="/score" className="mt-t2 flex min-h-tap items-center justify-between rounded-sm text-small text-accent hover:bg-surface2">{t.seeShaping}<ChevronRight aria-hidden size={20} /></Link>

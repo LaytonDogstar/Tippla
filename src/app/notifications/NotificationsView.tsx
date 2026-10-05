@@ -1,5 +1,5 @@
 "use client";
-import { Bell, CircleGauge, CalendarClock, Landmark, Repeat, RefreshCw, type LucideIcon } from "lucide-react";
+import { Bell, CircleGauge, CalendarClock, Repeat, RefreshCw, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { PersonaId } from "@/lib/api/types";
 import { notificationsCopy as t } from "@/content/account";
@@ -10,7 +10,7 @@ import { groupNotifications, type Notification, type NotificationType } from "@/
 import { Button } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
 
-const ICONS: Record<NotificationType, LucideIcon> = { score: CircleGauge, bill: CalendarClock, offer: Landmark, subscription: Repeat, bank: RefreshCw };
+const ICONS: Record<NotificationType, LucideIcon> = { score: CircleGauge, bill: CalendarClock, subscription: Repeat, bank: RefreshCw };
 
 export function NotificationsView({ persona, account: initial, asOf, items }: { persona: PersonaId; account: AccountState; asOf: string; items: Notification[] }) {
   const { account, save } = useAccount(persona, initial);

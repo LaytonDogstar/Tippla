@@ -16,10 +16,16 @@ import { DueSheet } from "@/components/domain/DueSheet";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { statesCopy } from "@/content/states";
 import { Sheet } from "@/components/ui/Sheet";
+import { AttentionFeed } from "@/components/domain/AttentionFeed";
+import type { PersonaId } from "@/lib/api/types";
+import type { AccountState } from "@/lib/account/state";
+import type { FeedItem } from "@/lib/feed/types";
+import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 
 type SheetId = "due" | "advance" | "action" | null;
 
-export function HomeView({ asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed }: {
+export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed }: {
+  persona: PersonaId; account: AccountState; status: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; banner: { text: string; href: string } | null; score: ScoreState; change: { delta: number; since: string } | null;
   action: FirstAction | null; payCycle: PayCycleSummary; nextBill: UpcomingBill | null; bars: MonthBar[];
 }) {
@@ -31,7 +37,7 @@ export function HomeView({ asOf, banner, score, change, action, payCycle, nextBi
     // Lapsed subscription: the score stays visible; everything else waits for reactivation.
     return (
       <div className="flex flex-col gap-t3">
-        <SmartScoreCard state={score} change={change} />
+        <SmartScoreCard state={score} change={change} attribution={attribution} />
         <section className="rounded-lg bg-surface p-t5">
           <p className="text-body text-text">{statesCopy.lapsed.homeCard}</p>
           <ButtonLink className="mt-t4" href="/account/subscription">{statesCopy.lapsed.reactivate}</ButtonLink>
@@ -39,19 +45,21 @@ export function HomeView({ asOf, banner, score, change, action, payCycle, nextBi
       </div>
     );
   }
+  // Order: what Tippla did → what needs a look → where things stand → the details.
   return (
     <div className="flex flex-col gap-t3 desktop:grid desktop:grid-cols-[minmax(0,656fr)_minmax(0,436fr)] desktop:gap-t6">
+      <p className="text-small text-text-muted desktop:col-span-2">{status}</p>
       {banner && <div className="desktop:col-span-2"><HomeBanner {...banner} /></div>}
       <div className="flex flex-col gap-t3 desktop:gap-t6">
-        <SmartScoreCard state={score} change={change} />
-        <div className="desktop:hidden">{action && <NextStepCard title={action.title} rationale={action.wouldChange ?? action.summary} onSeeHow={() => setSheet("action")} />}</div>
+        <AttentionFeed persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} />
         <PayCycleHero summary={payCycle}
           onForecast={() => setSheet("due")} onDue={() => setSheet("due")} onAdvance={() => setSheet("advance")}
           onSpent={() => router.push("/spending?direction=out")} onPaidIn={() => router.push("/spending?direction=in")}
           onHardship={() => router.push("/hardship")} />
       </div>
       <div className="flex flex-col gap-t3 desktop:gap-t6">
-        <div className="hidden desktop:block">{action && <NextStepCard title={action.title} rationale={action.wouldChange ?? action.summary} onSeeHow={() => setSheet("action")} />}</div>
+        <SmartScoreCard state={score} change={change} attribution={attribution} />
+        {action && <NextStepCard title={action.title} rationale={action.wouldChange ?? action.summary} onSeeHow={() => setSheet("action")} />}
         {nextBill && <NextBillCard bill={nextBill} />}
         <SixMonthChart bars={bars} asOf={asOf} />
       </div>

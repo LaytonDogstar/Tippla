@@ -21,3 +21,5 @@ export * from "./spendingInsights";
 export * from "./repayments";
 export * from "./account";
 export * from "./notifications";
+export * from "./scoreAttribution";
+export * from "./status";

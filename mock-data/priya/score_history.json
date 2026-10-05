@@ -1,4 +1,4 @@
 {
-  "_note": "Tippla-stored history: one TaleFin Score per bank-statement refresh (fortnightly). TaleFin does not return history; Tippla must persist each score_id and result.",
+  "_note": "Tippla-stored history: one TaleFin Score per bank-statement refresh (fortnightly), with its factor breakdown. TaleFin does not return history; Tippla must persist each score_id and result.",
   "history": []
 }

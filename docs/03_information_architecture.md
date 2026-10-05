@@ -10,16 +10,17 @@
 
 ## Portal navigation
 
-**Mobile bottom tab bar (5):** Home · Score · Spending · Loans · Support
-**Desktop sidebar:** grouped as below; "Hardship support" must always be visible without scrolling the nav.
+**Mobile bottom tab bar (5):** Today · Money · Score · Borrowing · Help *(renamed 05/10/2026; routes unchanged)*
+**Desktop sidebar:** grouped as below; "Hardship support" must always be visible without scrolling the nav. Account and Notifications sit with the profile at the bottom.
+**Badges:** each section shows how many open "Needs a look" items belong to it (Today 1 · Money 4 · Score 1 · Borrowing 1 for Jess).
 
 | Tab / group | Routes |
 |---|---|
-| Home | `/` Dashboard |
+| Today | `/` Today (status line, Needs a look, pay cycle, score) |
 | Score | `/score` SmartScore · `/score/[factor]` factor detail · `/savings` Ways to lift your score |
-| Spending | `/spending` (Overview · Categories · Budgets tabs) · `/spending/compare` · `/calendar` · `/subscriptions` |
-| Loans | `/loans` (Overview · Upcoming · History · Other credit tabs) · `/loans/repayment` calculator · `/offers` |
-| Support | `/hardship` · `/help` (search-led FAQ) |
+| Money | `/spending` (Overview · Categories · Budgets tabs) · `/spending/compare` · `/calendar` · `/subscriptions` |
+| Borrowing | `/loans` (Overview · Upcoming · History · Other credit tabs) · `/loans/repayment` calculator · `/offers` |
+| Help | `/hardship` · `/help` (search-led FAQ) |
 | Account (avatar menu) | `/account/profile` · `/account/subscription` · `/account/consents` · `/account/bank` |
 | Global | `/notifications` (bell in header), sheets/drawers for detail |
 

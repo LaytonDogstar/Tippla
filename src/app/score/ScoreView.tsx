@@ -17,12 +17,14 @@ import { InsightSheetBody } from "@/components/domain/Insight";
 import { Button } from "@/components/ui/Button";
 import { SampleTag } from "@/components/ui/SampleTag";
 import { Sheet } from "@/components/ui/Sheet";
+import { ScoreChangeDetail } from "@/components/domain/ScoreChange";
+import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 
 type Key = Exclude<FactorKey, "GOVERNMENT_RELIANCE">;
 export interface FactorPanel { factor: Factor; drivers: DriverFact[]; related: Recommendation | null; explanation?: string }
 
-export function ScoreView({ state, trend, top, others, strongest, panels, scoredAt, initial, present, stagesSample }: {
-  state: ScoreState; trend: { date: string; score: number }[]; top: Factor[]; others: Factor[]; strongest: Factor | null;
+export function ScoreView({ state, attribution, trend, top, others, strongest, panels, scoredAt, initial, present, stagesSample }: {
+  state: ScoreState; attribution: ScoreAttribution | null; trend: { date: string; score: number }[]; top: Factor[]; others: Factor[]; strongest: Factor | null;
   panels: Record<Key, FactorPanel>; scoredAt: string | null; initial: Key | null; present: boolean; stagesSample: boolean;
 }) {
   const router = useRouter();
@@ -49,6 +51,8 @@ export function ScoreView({ state, trend, top, others, strongest, panels, scored
         </section>
       )}
       {stagesSample && state.kind === "scored" && <SampleTag q="Q4 stage bands" present={present} className="self-start" />}
+
+      {attribution && <ScoreChangeDetail attribution={attribution} present={present} />}
 
       <TrendChart points={trend} onPoint={setPoint} />
 

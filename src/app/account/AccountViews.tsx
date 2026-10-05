@@ -24,9 +24,9 @@ const store = (key: string, v: unknown) => { try { localStorage.setItem(key, JSO
 // ---- Profile ---------------------------------------------------------------------------------------
 type Channel = "email" | "sms" | "push";
 type Prefs = Record<NotificationType, Record<Channel, boolean>>;
-const TYPES: NotificationType[] = ["score", "bill", "offer", "subscription", "bank"];
+const TYPES: NotificationType[] = ["score", "bill", "subscription", "bank"];
 const DEFAULT_PREFS: Prefs = {
-  score: { email: true, sms: false, push: true }, bill: { email: false, sms: true, push: true }, offer: { email: true, sms: false, push: false },
+  score: { email: true, sms: false, push: true }, bill: { email: false, sms: true, push: true },
   subscription: { email: true, sms: false, push: false }, bank: { email: true, sms: false, push: true },
 };
 type Theme = "system" | "light" | "dark";
@@ -92,7 +92,6 @@ export function ProfileView({ persona, profile, matching }: { persona: PersonaId
           <fieldset key={type} className="mt-t4 border-t border-line pt-t3">
             <legend className="sr-only">{t.profile.types[type]}</legend>
             <p aria-hidden className="text-body-strong text-text">{t.profile.types[type]}</p>
-            {type === "offer" && !matching && <p className="text-caption text-text-muted">{t.profile.offerNeedsMatching}</p>}
             {(["email", "sms", "push"] as Channel[]).map((ch) => (
               <Toggle key={ch} label={`${t.profile.channels[ch]}`} checked={prefs[type][ch]} onChange={(v) => setPref(type, ch, v)} />
             ))}

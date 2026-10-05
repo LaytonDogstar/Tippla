@@ -178,17 +178,19 @@ export const buttons = { loading: "Loading…" };
 
 export const nav = {
   label: "Main",
-  home: "Home",
+  home: "Today",
   score: "Score",
-  spending: "Spending",
-  loans: "Loans",
-  support: "Support",
+  spending: "Money",
+  loans: "Borrowing",
+  support: "Help",
+  badge: (n: number) => (n === 1 ? "1 thing to look at" : `${n} things to look at`),
+  badgeTail: (n: number) => (n === 1 ? "thing to look at" : "things to look at"),
   hardship: "Hardship support",
   groups: {
     score: "Score",
-    spending: "Spending",
-    loans: "Loans",
-    support: "Support",
+    spending: "Money",
+    loans: "Borrowing",
+    support: "Help",
     account: "Account",
   },
   items: {

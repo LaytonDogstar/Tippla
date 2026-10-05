@@ -100,7 +100,8 @@ export interface CustomerScore {
   breakdown: Record<FactorKey, number | null>;
 }
 
-export interface ScoreHistory { history: { scored_date: string; score: number }[] }
+/** One stored TaleFin Score per refresh, with that refresh's factor breakdown (Tippla persists it). */
+export interface ScoreHistory { history: { scored_date: string; score: number; breakdown?: Record<FactorKey, number | null> }[] }
 
 export interface Profile {
   id: PersonaId;
