@@ -124,6 +124,17 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 ### P14 Notifications (`/notifications`)
 - Inbox, grouped by today / this week / earlier. **Event-driven only** (05/10): shortfall forecast within 5 days (links to hardship), a bill tomorrow bigger than the balance, pay landed (check-in), the pay-cycle recap, SmartScore updates (amount only, never factor detail), and changes to the customer's account (subscription cancelled or paused, bank disconnected). No routine "refreshed" or "payment went through" messages. **Never offers or lenders; never gambling or alcohol.** Each item says how it was delivered: to the phone, kept in the inbox (over the daily limit, money first), or in the weekly summary. Mark read, settings link.
 
+- **Weekly summary (`/notifications/summary`)** (05/10): the last seven days' events from the inbox, plus safe to spend today, the goal and the value tally. Same guardrails as the inbox. Linked from the inbox; it's what the weekly digest setting sends.
+
+### P15 Your progress (`/progress`, Today section)
+- **Job:** answer "is my effort working?" without judging. Linked from Today ("Your progress", with the goal if there is one).
+- **Your goal** (one at a time, optional, Q22 sample logic): an amount to have left the day before payday ($100 / $200 / $500 / another amount, $20–$5,000) by the day before one of the next eight paydays (default: the fourth). It builds up evenly: this pay cycle's step = amount × (cycle number ÷ cycles in the goal), and that step is set aside in safe to spend (Today, the check-in, the payday notification and the working all show it). If the step would leave nothing to spend, the goal waits that pay cycle ("That's fine") rather than take the daily figure to $0. Progress = the balance the day before the most recent payday since the goal was set; before one has passed it says when it will show. Change and Remove (with Undo). Never a fail state.
+- **Going well:** streaks of 2+ pay cycles in a row: no new pay advance, no failed payments, money left before payday. Nothing is said when a streak ends; with none, a neutral line explains what shows here.
+- **Money left the day before payday:** the last six completed pay cycles (the most recent is the same cycle, with the same figures, as the payday recap). Bars only for money left; a cycle that ended below $0 is words, not a bar. Pay advances and bank fees noted plainly.
+- **Your SmartScore and what you did:** the last six score updates with the customer's in-app actions on the same timeline (cancelled a subscription, chose to skip the next advance, acted on a bill-over-balance card).
+- **Tippla has helped you save:** shown once something is counted or pending, with the same breakdown sheet as Today.
+- No comparisons with other people. No offers.
+
 ---
 
 ## Pro vs Standard (Q9)

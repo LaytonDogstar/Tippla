@@ -5,7 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
 const ROUTES = ["/", "/score", "/score/current-borrowing", "/savings", "/spending", "/spending?tab=categories", "/spending?tab=budgets",
   "/spending/compare", "/spending/compare?tab=cohort", "/calendar", "/calendar?view=month", "/subscriptions", "/loans", "/loans?tab=upcoming",
   "/loans?tab=history", "/loans?tab=other", "/loans/repayment", "/offers", "/hardship", "/help", "/notifications", "/account",
-  "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/onboarding", "/onboarding/consents", "/onboarding/score-reveal"];
+  "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/onboarding", "/onboarding/consents", "/onboarding/score-reveal", "/progress", "/notifications/summary"];
 const url = (r: string, persona: string, extra = "") => `${r}${r.includes("?") ? "&" : "?"}persona=${persona}&present=1${extra}`;
 
 /** Text that overflows the page, or is clipped, or spills out of a fixed-height box. */

@@ -66,7 +66,7 @@ Dev controls (all carried in cookies, so they stick as you click around):
   - `two_accounts`: a second connected account, so the Spending account filter appears
   - `payday`: the morning the next pay lands (Jess Thu 01/10, Marcus and Priya Thu 08/10): payday check-in, last pay cycle recap, payday notifications. Same history; the SmartScore is still the 25/09 one
   - `bill_due`: Jess on Tue 29/09, the day before her Beforepay repayment, which is bigger than her balance (the "due tomorrow" notification). Other personas stay on 25/09
-- Customer choices persist the same way: recategorised transactions, consents, subscription status, dismissed offers, read notifications, bank connection, "Needs a look" choices, notification settings, and the in-app actions the value tally confirms ("I've cancelled it", "I'll try this"). Clear the site's cookies to reset.
+- Customer choices persist the same way: recategorised transactions, consents, subscription status, dismissed offers, read notifications, bank connection, "Needs a look" choices, notification settings, the goal, and the in-app actions the value tally confirms ("I've cancelled it", "I'll try this"). Clear the site's cookies to reset.
 
 ## Changes since the first version (30/09/2026 review)
 

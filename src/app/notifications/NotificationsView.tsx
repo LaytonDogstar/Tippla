@@ -3,6 +3,7 @@ import { Bell, CircleGauge, CalendarClock, Landmark, Repeat, Sun, type LucideIco
 import Link from "next/link";
 import type { PersonaId } from "@/lib/api/types";
 import { notificationsCopy as t } from "@/content/account";
+import { summaryCopy } from "@/content/progress";
 import { formatShortDay } from "@/lib/format";
 import { useAccount } from "@/lib/account/client";
 import type { AccountState } from "@/lib/account/state";
@@ -55,7 +56,8 @@ export function NotificationsView({ persona, account: initial, asOf, items }: { 
           </ul>
         </section>
       ))}
-      <Link href="/account/profile#notifications" className="mt-t4 flex min-h-tap items-center rounded-sm px-t1 text-small text-accent hover:bg-surface2">{t.settings}</Link>
+      <Link href="/notifications/summary" className="mt-t4 flex min-h-tap items-center rounded-sm px-t1 text-small text-accent hover:bg-surface2">{summaryCopy.link}</Link>
+      <Link href="/account/profile#notifications" className="flex min-h-tap items-center rounded-sm px-t1 text-small text-accent hover:bg-surface2">{t.settings}</Link>
     </div>
   );
 }

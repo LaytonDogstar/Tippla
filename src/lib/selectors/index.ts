@@ -26,3 +26,5 @@ export * from "./status";
 export * from "./safeToSpend";
 export * from "./payCycleLoop";
 export * from "./tally";
+export * from "./goal";
+export * from "./progress";

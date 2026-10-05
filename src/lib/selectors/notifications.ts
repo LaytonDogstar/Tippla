@@ -13,6 +13,7 @@ import { billing } from "./account";
 import { currentBalance, projectedBalances } from "./balance";
 import { billsBeforePayday, payCycleSummary } from "./payCycle";
 import { cycleRecap, paydayCheckIn } from "./payCycleLoop";
+import { goalPlan } from "./goal";
 import { balanceBefore } from "@/lib/feed/rules/_helpers";
 
 /** No "offer" type: lender offers are never a notification (05/10 guardrail). */
@@ -43,7 +44,7 @@ export function notificationEvents(d: PersonaData, a: AccountState = {}): Omit<N
     if (b.expected_amount > bal) out.push({ id: `bill-${b.merchant}-${b.date}`, type: "money", date: d.asOf, title: t.billTomorrow.title(b.merchant, money(b.expected_amount)), body: bal <= 0 ? t.billTomorrow.overdrawn : t.billTomorrow.body(formatWhole(bal)), href: `/calendar?day=${b.date}` });
   }
   // Pay landed: the check-in, and the recap of the cycle that just ended.
-  const checkIn = paydayCheckIn(d);
+  const checkIn = paydayCheckIn(d, goalPlan(d, a.goal)?.thisCycle ?? 0);
   if (checkIn) {
     const safe = checkIn.safe.nothingSpare ? null : formatWhole(checkIn.safe.perDay);
     out.push({ id: `payday-${checkIn.cycle.start}`, type: "payday", date: d.asOf, title: t.payday.title(formatCents(checkIn.incomeTotal)), body: safe ? t.payday.body(safe, checkIn.bills.length) : t.payday.nothingSpare(checkIn.bills.length), href: "/" });
@@ -98,3 +99,9 @@ export function groupNotifications(list: Notification[], asOf: ISODate) {
 }
 
 export const unreadCount = (list: Notification[]) => list.filter((n) => !n.read).length;
+
+/** The weekly summary (digest): the week's events in one place. Same events, same guardrails. */
+export function weeklySummary(d: PersonaData, a: AccountState = {}) {
+  const from = addDays(d.asOf, -6);
+  return { from, to: d.asOf, items: notifications(d, a).filter((n) => n.date >= from && n.date <= d.asOf) };
+}

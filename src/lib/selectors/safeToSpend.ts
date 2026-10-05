@@ -22,9 +22,15 @@ export interface SafeToSpend {
   payday: ISODate;
   /** True when the forecast doesn't clear the buffer: nothing spare before payday. */
   nothingSpare: boolean;
+  /** Set aside this pay cycle for the customer's goal (0 when there's no goal or it's on hold). */
+  goal: number;
+  /** The goal would leave nothing to spend, so it waits this pay cycle (bills and everyday spending first). */
+  goalOnHold: boolean;
 }
 
-export function safeToSpend(d: PersonaData, buffer = SAFE_TO_SPEND_BUFFER): SafeToSpend {
+/** `goal` is this pay cycle's goal target (selectors/goal.ts → goalPlan().thisCycle). */
+export function safeToSpend(d: PersonaData, opts: { buffer?: number; goal?: number } = {}): SafeToSpend {
+  const buffer = opts.buffer ?? SAFE_TO_SPEND_BUFFER;
   const payday = d.derived.pay_cycle.next_payday;
   const forecastDate = addDays(payday, -1);
   const days = Math.max(1, daysBetween(d.asOf, payday));
@@ -34,9 +40,13 @@ export function safeToSpend(d: PersonaData, buffer = SAFE_TO_SPEND_BUFFER): Safe
   const billsTotal = sumMoney(bills.map((b) => b.amount));
   const forecast = forecastDate > d.asOf ? projectedBalances(d, forecastDate).at(-1)?.balance ?? balance : balance;
   const spare = forecast - buffer;
+  const wanted = Math.max(0, opts.goal ?? 0);
+  // A goal never takes the daily figure to $0: if it would, it waits until a pay cycle with room.
+  const goalOnHold = wanted > 0 && spare - wanted <= 0;
+  const goal = goalOnHold ? 0 : wanted;
   return {
-    perDay: spare > 0 ? Math.floor(spare / days) : 0,
+    perDay: spare - goal > 0 ? Math.floor((spare - goal) / days) : 0,
     balance, bills, billsTotal, incomeTotal, forecast, forecastDate, buffer, days, payday,
-    nothingSpare: spare <= 0,
+    nothingSpare: spare <= 0, goal, goalOnHold,
   };
 }

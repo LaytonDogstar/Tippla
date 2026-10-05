@@ -40,7 +40,7 @@ describe("safe to spend", async () => {
       expect(Number.isInteger(s.perDay)).toBe(true);
       if (!s.nothingSpare) expect(s.perDay * s.days + s.buffer).toBeLessThanOrEqual(s.forecast);
     }
-    expect(safeToSpend(marcus, 100_000)).toMatchObject({ perDay: 0, nothingSpare: true });
+    expect(safeToSpend(marcus, { buffer: 100_000 })).toMatchObject({ perDay: 0, nothingSpare: true });
   });
 
   it("bills reconcile: balance − bills + income = forecast (when nothing else moves)", () => {

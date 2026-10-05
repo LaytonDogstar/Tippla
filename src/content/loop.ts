@@ -15,12 +15,15 @@ export const safeCopy = {
     income: "Expected income before payday",
     forecast: (date: string) => `Forecast balance on ${date}`,
     buffer: "Kept aside as a buffer",
+    goal: "Towards your goal this pay cycle",
     days: (n: number) => (n === 1 ? "÷ 1 day" : `÷ ${n} days`),
     result: "Safe to spend each day",
   },
   note: "Bills are predicted from past payments. Everyday spending (food, transport) is what this daily figure is for.",
   bufferNote: (amt: string) => `We keep ${amt} aside so an unexpected cost doesn't tip you under.`,
   hardship: "Options if money's tight",
+  goalOnHold: "Your goal waits this pay cycle: bills and everyday spending come first.",
+  goalIncluded: (amt: string) => `Includes ${amt} towards your goal`,
 } as const;
 
 export const checkInCopy = {

@@ -1,7 +1,8 @@
 "use client";
 // The pay-cycle loop on Today: safe to spend (with the working on tap), the payday check-in, the
 // end-of-cycle recap and the value tally. No offers, no gambling or alcohol, no streak-ending messages.
-import { ChevronRight, PiggyBank, Sun } from "lucide-react";
+import { ChevronRight, Flag, PiggyBank, Sun } from "lucide-react";
+import { progressCopy } from "@/content/progress";
 import Link from "next/link";
 import { checkInCopy as c, recapCopy as r, safeCopy as s, tallyCopy as v } from "@/content/loop";
 import { formatCents, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
@@ -31,6 +32,7 @@ export function SafeToSpendCard({ safe, onHow }: { safe: SafeToSpend; onHow: () 
         <>
           <p className="tnum mt-t1 text-figure-l font-numeric text-text">{s.perDay(formatWhole(safe.perDay))}</p>
           <p className="mt-t1 text-small text-text-muted">{s.untilPayday(safe.days, formatShortDay(safe.payday))}</p>
+          {safe.goal > 0 && <p className="mt-t1 text-caption text-text-muted">{s.goalIncluded(formatWhole(safe.goal))}</p>}
         </>
       )}
       <div className="mt-t2 flex flex-col">
@@ -48,6 +50,7 @@ export function SafeToSpendSheet({ safe, open, onClose, present }: { safe: SafeT
     ...(safe.incomeTotal > 0 ? [[s.steps.income, `+${formatCents(safe.incomeTotal)}`] as [string, string]] : []),
     [s.steps.forecast(formatShortDay(safe.forecastDate)), formatCents(safe.forecast)],
     [s.steps.buffer, `−${formatWhole(safe.buffer)}`],
+    ...(safe.goal > 0 ? [[s.steps.goal, `−${formatWhole(safe.goal)}`] as [string, string]] : []),
     [s.steps.days(safe.days), ""],
     [s.steps.result, safe.nothingSpare ? formatWhole(0) : formatWhole(safe.perDay)],
   ];
@@ -67,8 +70,9 @@ export function SafeToSpendSheet({ safe, open, onClose, present }: { safe: SafeT
           {safe.bills.map((b) => <li key={b.date + b.merchant} className="flex justify-between gap-t3"><span>{formatShortDay(b.date)} · {b.merchant}</span><span className="tnum">{formatCents(b.amount)}</span></li>)}
         </ul>
       )}
+      {safe.goalOnHold && <p className="mt-t3 text-small text-text">{s.goalOnHold}</p>}
       <p className="mt-t4 text-small text-text-muted">{s.note}</p>
-      <p className="mt-t2 text-small text-text-muted">{s.bufferNote(formatWhole(safe.buffer))} <SampleTag q="Q15" present={present} /></p>
+      <p className="mt-t2 text-small text-text-muted">{s.bufferNote(formatWhole(safe.buffer))} <SampleTag q="Q21" present={present} /></p>
     </Sheet>
   );
 }
@@ -88,6 +92,7 @@ export function CheckInCard({ checkIn, onHow }: { checkIn: PaydayCheckIn; onHow:
         {checkIn.repaymentsTotal > 0 && <li>{c.repayments(formatWhole(checkIn.repaymentsTotal))}</li>}
         <li>{checkIn.advance ? c.advance(checkIn.advance.provider, formatWhole(checkIn.advance.amount), formatShortDay(checkIn.advance.date)) : c.noAdvance}</li>
         <li className="text-body-strong">{checkIn.safe.nothingSpare ? s.none : c.safe(formatWhole(checkIn.safe.perDay))}</li>
+        {checkIn.safe.goal > 0 && <li className="text-caption text-text-muted">{s.goalIncluded(formatWhole(checkIn.safe.goal))}</li>}
       </ul>
       <Button variant="tertiary" onClick={onHow} className="mt-t1 self-start">{s.how}</Button>
       <LinkRow href="/calendar">{c.seeBills}</LinkRow>
@@ -171,7 +176,21 @@ export function TallySheet({ tally, open, onClose, present }: { tally: Tally; op
         </>
       )}
       {!tally.items.length && !tally.pending.length && <p className="text-body text-text-muted">{v.none}</p>}
-      <p className="mt-t4 text-small text-text-muted">{v.rule} <SampleTag q="Q15" present={present} /></p>
+      <p className="mt-t4 text-small text-text-muted">{v.rule} <SampleTag q="Q21" present={present} /></p>
     </Sheet>
+  );
+}
+
+/** Home: one quiet row to the progress page, with the goal if there is one. */
+export function ProgressLink({ text }: { text: string }) {
+  return (
+    <Link href="/progress" className="flex min-h-tap items-center gap-t3 rounded-lg bg-surface p-t4 hover:bg-surface2">
+      <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><Flag size={24} /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-body-strong text-text">{progressCopy.homeLink}</span>
+        <span className="block text-small text-text-muted">{text}</span>
+      </span>
+      <ChevronRight aria-hidden size={20} className="text-accent" />
+    </Link>
   );
 }

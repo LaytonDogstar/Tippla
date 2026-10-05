@@ -23,7 +23,7 @@ export interface PaydayCheckIn {
 const REPAYMENT: CategoryId[] = ["loan_repayment", "bnpl", "wage_advance"];
 
 /** Shown when regular income (wages or Centrelink) landed today, on the first day of a new pay cycle. */
-export function paydayCheckIn(d: PersonaData): PaydayCheckIn | null {
+export function paydayCheckIn(d: PersonaData, goal = 0): PaydayCheckIn | null {
   const cycle = currentCycle(d);
   const today = posted(d.transactions).filter((t) => t.date === d.asOf && isIncome(t) && (t.subcategory === "wages" || t.subcategory === "centrelink"));
   if (!today.length || cycle.start > d.asOf || addDays(cycle.start, 1) < d.asOf) return null;
@@ -39,7 +39,7 @@ export function paydayCheckIn(d: PersonaData): PaydayCheckIn | null {
     billsTotal: sumMoney(bills.map((b) => b.amount)),
     repaymentsTotal: sumMoney(bills.filter((b) => REPAYMENT.includes(b.category)).map((b) => b.amount)),
     advance: adv ? { provider: adv.merchant, amount: adv.amount, date: adv.date } : null,
-    safe: safeToSpend(d),
+    safe: safeToSpend(d, { goal }),
   };
 }
 
@@ -64,35 +64,57 @@ function advancesIn(d: PersonaData, p: Period) {
   return { count: a.length, total: sumMoney(a.map((t) => t.amount)) };
 }
 
+export interface CycleFacts {
+  cycle: Period;
+  spent: number;
+  paidIn: number;
+  advances: { count: number; total: number };
+  fees: { count: number; total: number };
+  /** End-of-day balance on the last day of the cycle (the day before payday). */
+  endBalance: number | null;
+}
+
+/** The plain facts of one pay cycle. The recap and the progress page both read these, so they agree. */
+export function cycleFacts(d: PersonaData, cycle: Period, edits?: CategoryOverrides): CycleFacts {
+  const tx = inPeriod(posted(d.transactions), cycle);
+  const fees = tx.filter((t) => t.subcategory === "dishonour");
+  return {
+    cycle,
+    spent: sumMoney(categoryTotals(d, cycle, edits).map((r) => r.total)),
+    paidIn: sumMoney(tx.filter(isIncome).map((t) => t.amount)),
+    advances: advancesIn(d, cycle),
+    fees: { count: fees.length, total: sumMoney(fees.map((t) => -t.amount)) },
+    endBalance: dailyBalances(d).find((b) => b.date === cycle.end)?.balance ?? null,
+  };
+}
+
+/** Completed pay cycles in a row, most recent first, for which `ok` holds. Only ever counts up. */
+export function streak(d: PersonaData, ok: (f: CycleFacts) => boolean, edits?: CategoryOverrides): number {
+  let n = 0;
+  for (let i = 1; i <= 26; i++) {
+    const c = cycleBefore(d, i);
+    if (c.limitedByHistory || !ok(cycleFacts(d, c, edits))) break;
+    n++;
+  }
+  return n;
+}
+
 /** The pay cycle that has just ended (offered on payday, alongside the check-in). */
 export function cycleRecap(d: PersonaData, edits?: CategoryOverrides): CycleRecap | null {
   const last = cycleBefore(d, 1);
   if (last.limitedByHistory) return null;
-  const tx = inPeriod(posted(d.transactions), last);
-  const advances = advancesIn(d, last);
-  let streak = 0;
-  for (let n = 1; n <= 26; n++) {
-    const c = cycleBefore(d, n);
-    if (c.limitedByHistory || advancesIn(d, c).count > 0) break;
-    streak++;
-  }
+  const facts = cycleFacts(d, last, edits);
   const scored = d.scoreHistory.filter((h) => h.scored_date >= last.start && h.scored_date <= last.end).at(-1);
   const before = scored ? [...d.scoreHistory].reverse().find((h) => h.scored_date < scored.scored_date) : undefined;
-  const fees = tx.filter((t) => t.subcategory === "dishonour");
   const changes = categoryTotals(d, last, edits)
     .filter((r) => !QUIET.includes(r.category) && r.previousTotal > 0 && Math.abs(r.change) >= 20)
     .sort((a, b) => Math.abs(b.change) - Math.abs(a.change))
     .slice(0, 3)
     .map((r) => ({ category: r.category, name: r.name, change: r.change }));
   return {
-    cycle: last,
-    spent: sumMoney(categoryTotals(d, last, edits).map((r) => r.total)),
-    paidIn: sumMoney(tx.filter(isIncome).map((t) => t.amount)),
-    advances,
-    noAdvanceStreak: streak,
+    ...facts,
+    noAdvanceStreak: streak(d, (f) => f.advances.count === 0, edits),
     score: scored && before ? { from: before.score, to: scored.score } : null,
-    fees: { count: fees.length, total: sumMoney(fees.map((t) => -t.amount)) },
-    endBalance: dailyBalances(d).find((b) => b.date === last.end)?.balance ?? null,
     changes,
   };
 }

@@ -24,7 +24,7 @@ import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 import type { CycleRecap, PaydayCheckIn } from "@/lib/selectors/payCycleLoop";
 import type { SafeToSpend } from "@/lib/selectors/safeToSpend";
 import type { valueTally } from "@/lib/selectors/tally";
-import { CheckInCard, RecapCard, SafeToSpendCard, SafeToSpendSheet, TallyCard, TallySheet } from "@/components/domain/LoopCards";
+import { CheckInCard, ProgressLink, RecapCard, SafeToSpendCard, SafeToSpendSheet, TallyCard, TallySheet } from "@/components/domain/LoopCards";
 import { tallyCopy } from "@/content/loop";
 import { useAccount } from "@/lib/account/client";
 import { useToast } from "@/components/ui/Feedback";
@@ -32,11 +32,11 @@ import { mockNow } from "@/lib/account/state";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | null;
 
-export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present }: {
+export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText }: {
   persona: PersonaId; account: AccountState; status: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; banner: { text: string; href: string } | null; score: ScoreState; change: { delta: number; since: string } | null;
   action: FirstAction | null; payCycle: PayCycleSummary; nextBill: UpcomingBill | null; bars: MonthBar[];
-  safe: SafeToSpend; checkIn: PaydayCheckIn | null; recap: CycleRecap | null; feesAvoided: number; tally: ReturnType<typeof valueTally>; present: boolean;
+  safe: SafeToSpend; checkIn: PaydayCheckIn | null; recap: CycleRecap | null; feesAvoided: number; tally: ReturnType<typeof valueTally>; present: boolean; progressText: string;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -80,6 +80,7 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
       <div className="flex flex-col gap-t3 desktop:gap-t6">
         <SmartScoreCard state={score} change={change} attribution={attribution} />
         {showTally && <TallyCard tally={tally} onOpen={() => setSheet("tally")} />}
+        <ProgressLink text={progressText} />
         {action && <NextStepCard title={action.title} rationale={action.wouldChange ?? action.summary} onSeeHow={() => setSheet("action")} />}
         {nextBill && <NextBillCard bill={nextBill} />}
         <SixMonthChart bars={bars} asOf={asOf} />

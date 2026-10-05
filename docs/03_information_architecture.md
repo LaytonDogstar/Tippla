@@ -16,13 +16,13 @@
 
 | Tab / group | Routes |
 |---|---|
-| Today | `/` Today (status line, Needs a look, pay cycle, score) |
+| Today | `/` Today (status line, safe to spend or payday check-in, Needs a look, recap on payday, pay cycle, score, progress link) · `/progress` Your progress (goal, streaks, money left before each payday, score and actions) |
 | Score | `/score` SmartScore · `/score/[factor]` factor detail · `/savings` Ways to lift your score |
 | Money | `/spending` (Overview · Categories · Budgets tabs) · `/spending/compare` · `/calendar` · `/subscriptions` |
 | Borrowing | `/loans` (Overview · Upcoming · History · Other credit tabs) · `/loans/repayment` calculator · `/offers` |
 | Help | `/hardship` · `/help` (search-led FAQ) |
 | Account (avatar menu) | `/account/profile` · `/account/subscription` · `/account/consents` · `/account/bank` |
-| Global | `/notifications` (bell in header), sheets/drawers for detail |
+| Global | `/notifications` (bell in header) · `/notifications/summary` weekly summary, sheets/drawers for detail |
 
 ## Global elements
 

@@ -99,7 +99,7 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
         <div className="mt-t4 border-t border-line pt-t3">
           <RadioGroup legend={t.profile.howOften} value={String(notify.cap) as "1" | "2" | "3"} onChange={(v) => setNotify({ ...notify, cap: Number(v) })}
             options={(["1", "2", "3"] as const).map((v) => ({ value: v, label: t.profile.cap(Number(v)) }))} />
-          <p className="mt-t1 text-caption text-text-muted">{t.profile.capNote} <SampleTag q="Q15 default" present={present} /></p>
+          <p className="mt-t1 text-caption text-text-muted">{t.profile.capNote} <SampleTag q="Q21 default" present={present} /></p>
         </div>
         <div className="mt-t3 border-t border-line pt-t2">
           <Toggle label={t.profile.digest} checked={notify.digest} onChange={(v) => setNotify({ ...notify, digest: v })} />

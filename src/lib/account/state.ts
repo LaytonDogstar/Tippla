@@ -6,9 +6,13 @@ import type { PlanId } from "@/config/plans";
 import type { FeedState } from "@/lib/feed/types";
 
 export const ACCOUNT_COOKIE = "tippla-account";
+export const GOAL_MIN = 20;
+export const GOAL_MAX = 5000;
 
 export type ConsentId = Consent["id"];
 export interface CustomerAction { type: "cancelled_subscription" | "skip_advance"; key?: string; at: string }
+/** One goal at a time: have `amount` left the day before payday, by the pay cycle containing `by`. */
+export interface Goal { amount: number; by: string; setAt: string }
 export interface SubscriptionState { status: "active" | "paused" | "cancelled"; plan: PlanId; effective: string; changedAt: string }
 export interface AccountState {
   consents?: Partial<Record<ConsentId, { granted: boolean; at: string }>>;
@@ -18,6 +22,8 @@ export interface AccountState {
   bank?: { disconnected?: boolean; refreshedAt?: string };
   /** Things the customer did in the app that the value tally can later confirm in the bank data. */
   actions?: CustomerAction[];
+  /** The customer's buffer goal (Phase 3, progress and goals). */
+  goal?: Goal;
   /** Notification preferences the server applies (frequency cap, weekly digest). */
   notify?: { cap: number; digest: boolean };
   /** "Needs a look" choices: done, snoozed (until a date) or dismissed, by feed item id. */
@@ -59,6 +65,11 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   }
   if (a.notify && typeof a.notify === "object" && typeof a.notify.cap === "number" && typeof a.notify.digest === "boolean") {
     out.notify = { cap: Math.max(0, Math.min(10, Math.round(a.notify.cap))), digest: a.notify.digest };
+  }
+  const g = a.goal;
+  const isDate = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v);
+  if (g && typeof g === "object" && typeof g.amount === "number" && g.amount >= GOAL_MIN && g.amount <= GOAL_MAX && isDate(g.by) && isDate(g.setAt)) {
+    out.goal = { amount: Math.round(g.amount), by: g.by.slice(0, 10), setAt: g.setAt.slice(0, 10) };
   }
   if (a.feed && typeof a.feed === "object") {
     out.feed = {};

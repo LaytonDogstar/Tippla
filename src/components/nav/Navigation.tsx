@@ -12,7 +12,7 @@ import type { FeedSection } from "@/lib/feed/types";
 export type Badges = Partial<Record<FeedSection, number>>;
 
 export const TABS: { section: FeedSection; href: string; label: string; icon: LucideIcon; match: string[] }[] = [
-  { section: "today", href: "/", label: nav.home, icon: House, match: ["/"] },
+  { section: "today", href: "/", label: nav.home, icon: House, match: ["/", "/progress"] },
   { section: "money", href: "/spending", label: nav.spending, icon: ChartNoAxesColumn, match: ["/spending", "/calendar", "/subscriptions"] },
   { section: "score", href: "/score", label: nav.score, icon: CircleGauge, match: ["/score", "/savings"] },
   { section: "borrowing", href: "/loans", label: nav.loans, icon: Wallet, match: ["/loans", "/offers"] },

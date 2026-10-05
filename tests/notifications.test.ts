@@ -87,3 +87,21 @@ describe("notifications: frequency cap and weekly digest", async () => {
     expect(parseAccount(bad, "marcus").notify).toBeUndefined();
   });
 });
+
+describe("weekly summary and goals in notifications", async () => {
+  const { weeklySummary } = await import("@/lib/selectors");
+  const [jess, jessP] = await Promise.all([load("jess"), loadPayday("jess")]);
+
+  it("the summary is this week's events only, with the same guardrails", () => {
+    const w = weeklySummary(jess);
+    expect([w.from, w.to]).toEqual(["2026-09-19", "2026-09-25"]);
+    expect(ids(w.items)).toEqual(["shortfall-2026-09-17", "score-2026-09-25"]);
+    for (const n of w.items) expect(`${n.title} ${n.body}`).not.toMatch(/offer|lender|gambl|alcohol/i);
+  });
+
+  it("the payday notification's safe-to-spend figure allows for the goal, like Today does", () => {
+    const goal = { amount: 200, by: "2026-12-09", setAt: "2026-10-01" };
+    expect(notifications(jessP, { goal }).find((n) => n.id.startsWith("payday-"))!.body).toContain("about $22 a day");
+    expect(notifications(jessP).find((n) => n.id.startsWith("payday-"))!.body).toContain("about $24 a day");
+  });
+});

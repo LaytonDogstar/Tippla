@@ -57,3 +57,8 @@ export const DEFAULT_DISHONOUR_FEE = 15;
 export const NOTIFY_CAP_DEFAULT = 2;
 /** Shortfall notifications only when the balance is forecast to go under within this many days. */
 export const SHORTFALL_NOTIFY_DAYS = 5;
+
+/** SAMPLE LOGIC (Q22): a goal builds up evenly, pay cycle by pay cycle, from $0 to the amount by its date. */
+export const GOAL_PRESETS = [100, 200, 500] as const;
+/** Shortest goal, in pay cycles, so the per-cycle step stays achievable. */
+export const GOAL_MIN_CYCLES = 2;

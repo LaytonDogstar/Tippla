@@ -2,8 +2,9 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { lastRefresh, cycleRecap, paydayCheckIn, safeToSpend, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
-import { formatUpdated, formatDate, toAESTDate } from "@/lib/format";
+import { goalPlan, lastRefresh, cycleRecap, paydayCheckIn, safeToSpend, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
+import { formatUpdated, formatDate, formatDayMonth, formatWhole, toAESTDate } from "@/lib/format";
+import { progressCopy as p } from "@/content/progress";
 import { dashboard as t } from "@/content/dashboard";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
@@ -23,7 +24,8 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
   const rawBanner = dashboardBanner(data, { bankExpiredSince: account.bank?.disconnected ? data.asOf : expired, hardshipSelfSelected: account.hardshipSelfSelected });
   // The hardship banner steps aside when a feed card already offers the same options (no repetition).
   const banner = rawBanner?.kind === "hardship" && f.top.some((i) => i.hardship) ? null : rawBanner;
-  const checkIn = paydayCheckIn(data);
+  const plan = goalPlan(data, account.goal);
+  const checkIn = paydayCheckIn(data, plan?.thisCycle ?? 0);
   const recap = checkIn ? cycleRecap(data, edits) : null;
   const tally = valueTally(data, account);
   // Fees the customer avoided in the cycle being recapped (confirmed tally items dated in it).
@@ -52,7 +54,8 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
         nextBill={nextBill(data)}
         bars={sixMonthSpending(data, edits)}
         lapsed={states.includes("lapsed")}
-        safe={safeToSpend(data)}
+        safe={safeToSpend(data, { goal: plan?.thisCycle ?? 0 })}
+        progressText={plan ? (plan.latest ? p.homeGoal(formatWhole(plan.amount), formatDayMonth(plan.by), plan.percent) : p.homeGoalPending(formatWhole(plan.amount), formatDayMonth(plan.by))) : p.homeNoGoal}
         checkIn={checkIn}
         recap={recap}
         feesAvoided={feesAvoided}
