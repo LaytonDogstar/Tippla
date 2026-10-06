@@ -28,3 +28,4 @@ export * from "./payCycleLoop";
 export * from "./tally";
 export * from "./goal";
 export * from "./progress";
+export * from "./firstValue";

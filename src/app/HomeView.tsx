@@ -32,16 +32,20 @@ import { useAccount } from "@/lib/account/client";
 import { useToast } from "@/components/ui/Feedback";
 import { InstallPrompt } from "@/components/notify/InstallPrompt";
 import { mockNow } from "@/lib/account/state";
+import { GoalRow } from "@/components/domain/GoalRow";
+import type { GoalOption } from "@/components/domain/GoalPicker";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null;
 
-export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText, statusStale = false, checked = "", movement = null, adjustBills = [], oneOffDates = [], focus = null, payPending = false, flags = { feed: true, status: true, safe: true, tally: true, buffer: true } }: {
+export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText, statusStale = false, checked = "", movement = null, adjustBills = [], oneOffDates = [], focus = null, payPending = false, focusGoal = null, firstPayday = false, recapLead = null, flags = { feed: true, status: true, safe: true, tally: true, buffer: true } }: {
   persona: PersonaId; account: AccountState; status: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; banner: { text: string; href: string } | null; score: ScoreState; change: { delta: number; since: string } | null;
   action: FirstAction | null; payCycle: PayCycleSummary; nextBill: UpcomingBill | null; bars: MonthBar[];
   safe: SafeToSpend; checkIn: PaydayCheckIn | null; recap: CycleRecap | null; feesAvoided: number; tally: ReturnType<typeof valueTally>; present: boolean; progressText: string; statusStale?: boolean; checked?: string;
   movement?: { up: number; since: string } | null; adjustBills?: { id: string; merchant: string; amount: number; date: string; paid: boolean }[];
   oneOffDates?: string[]; focus?: string | null; payPending?: boolean;
+  /** Spec 04: the member's goal (null when goals_v1 is off), the enhanced first payday, and the recap's lead line. */
+  focusGoal?: { current: GoalOption | null; options: GoalOption[] } | null; firstPayday?: boolean; recapLead?: "balance" | "advances" | "score" | null;
   /** Feature flags (retention pack): each part of Today can be switched off. */
   flags?: { feed: boolean; status: boolean; safe: boolean; tally: boolean; buffer: boolean };
 }) {
@@ -103,12 +107,13 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
         ? <Link href="/account/bank" className="text-small text-accent underline-offset-2 hover:underline desktop:col-span-2">{status}</Link>
         : <p className="text-small text-text-muted desktop:col-span-2">{status}</p>}
       {banner && <div className="desktop:col-span-2"><HomeBanner {...banner} /></div>}
+      {focusGoal && <div className="desktop:col-span-2"><GoalRow persona={persona} account={account} asOf={asOf} goal={focusGoal.current} options={focusGoal.options} /></div>}
       <div className="flex flex-col gap-t3 desktop:gap-t6">
-        {checkIn ? <CheckInCard checkIn={checkIn} onHow={() => setSheet("safe")} onAdjust={() => setSheet("adjust")} focus={focus} />
+        {checkIn ? <CheckInCard checkIn={checkIn} onHow={() => setSheet("safe")} onAdjust={() => setSheet("adjust")} focus={focus} goal={focusGoal?.current?.label ?? null} firstPayday={firstPayday} />
           : payPending ? <PayPendingCard payday={asOf} />
           : flags.safe ? <SafeToSpendCard safe={safe} onHow={() => setSheet("safe")} movement={movement} /> : null}
         {flags.feed && <AttentionFeed persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} />}
-        {recap && <RecapCard recap={recap} feesAvoided={feesAvoided} next={focus} />}
+        {recap && <RecapCard recap={recap} feesAvoided={feesAvoided} next={focus} lead={recapLead} />}
         <PayCycleHero summary={payCycle}
           onForecast={() => setSheet("due")} onDue={() => setSheet("due")} onAdvance={() => setSheet("advance")}
           onSpent={() => router.push("/spending?direction=out")} onPaidIn={() => router.push("/spending?direction=in")}

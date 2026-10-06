@@ -6,14 +6,9 @@ import type { PersonaId } from "@/lib/api/types";
 import { pushCopy as t } from "@/content/notify";
 import { track } from "@/lib/analytics/client";
 import { Button } from "@/components/ui/Button";
+import { enablePush, standalone } from "@/lib/notify/enablePush";
 
 type State = "checking" | "unsupported" | "ios" | "denied" | "off" | "on";
-
-const b64ToBytes = (b64: string) => {
-  const s = atob((b64 + "=".repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/"));
-  return Uint8Array.from(s, (c) => c.charCodeAt(0));
-};
-const standalone = () => window.matchMedia?.("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 export function PushSetup({ persona }: { persona: PersonaId }) {
   const [state, setState] = useState<State>("checking");
@@ -33,20 +28,10 @@ export function PushSetup({ persona }: { persona: PersonaId }) {
 
   const turnOn = async () => {
     setBusy(true); setMessage("");
-    try {
-      const permission = await Notification.requestPermission();
-      track("push_permission", { granted: permission === "granted" });
-      if (permission !== "granted") { setState(permission === "denied" ? "denied" : "off"); return; }
-      const reg = await navigator.serviceWorker.register("/sw.js");
-      await navigator.serviceWorker.ready;
-      const { publicKey } = (await (await fetch("/api/push/key")).json()) as { publicKey: string };
-      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
-      const res = await fetch("/api/push/subscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ subscription: sub.toJSON(), platform: standalone() ? "pwa" : "web" }) });
-      setState(res.ok ? "on" : "off");
-      if (!res.ok) setMessage(t.failed);
-    } catch {
-      setMessage(t.failed);
-    } finally { setBusy(false); }
+    const r = await enablePush();
+    setState(r === "on" ? "on" : r === "denied" ? "denied" : r === "unsupported" ? "unsupported" : "off");
+    if (r === "failed") setMessage(t.failed);
+    setBusy(false);
   };
 
   const turnOff = async () => {

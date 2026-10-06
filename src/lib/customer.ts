@@ -5,6 +5,7 @@ import { loadPersona, type ClientOptions } from "@/lib/api/client";
 import type { PersonaId } from "@/lib/api/types";
 import { ACCOUNT_COOKIE, applyAccount, parseAccount } from "@/lib/account/state";
 import { categoryEdits } from "@/lib/persona";
+import { isOn } from "@/config/featureFlags";
 import { applyDevStates, DEV_COOKIE, parseDevStates } from "@/lib/dev/states";
 
 /** Dev state toggles (docs/09), from the cookie the middleware sets for ?state=. */
@@ -24,5 +25,7 @@ async function loadCustomerUncached(persona: PersonaId, opts: ClientOptions) {
   const { data: loaded, scoreError } = await loadPersona(persona, { ...opts, snapshot });
   const data = applyDevStates(loaded, states);
   const account = parseAccount(cookies().get(ACCOUNT_COOKIE)?.value, persona);
-  return { data: applyAccount(data, account), raw: data, account, edits: categoryEdits(persona), scoreError, states };
+  // Spec 04: the member's goal shapes the plan, check-in and recap only while goals_v1 is on.
+  const goal = isOn("goals_v1", persona) ? account.focusGoal : undefined;
+  return { data: applyAccount(data, account), raw: data, account, goal, edits: categoryEdits(persona), scoreError, states };
 }

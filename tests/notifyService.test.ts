@@ -5,7 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { resetDbForTests, type Db } from "@/lib/db";
 import { DEFAULT_PREFS } from "@/lib/notify/policy";
 import { saveSubscription, setPushSender, type PushPayload } from "@/lib/notify/push";
-import { dispatch, notificationLog, notify, sendWeeklyDigest, sendWinBack } from "@/lib/notify/service";
+import { dispatch, notificationLog, notify, sendFirstWeekNudge, sendWeeklyDigest, sendWinBack } from "@/lib/notify/service";
 import { loadPayday } from "./helpers";
 import { outbox, unsubscribe, unsubscribeToken, verifyUnsubscribe } from "@/lib/notify/email";
 import { load } from "./helpers";
@@ -125,3 +125,29 @@ describe("block list, digest and unsubscribe", async () => {
     expect(verifyUnsubscribe("jess", "weekly_digest", "x".repeat(32))).toBe(false);
   });
 });
+
+describe("first-week nudge (spec 04)", async () => {
+  const jess = await load("jess");
+  const ctx = { prefs: DEFAULT_PREFS, now: DAY, consent: false, email: "jess@example.com" };
+
+  it("day 2, not back since: one push with a new insight (not the shortfall she already saw), sent once", async () => {
+    await device();
+    const r = await sendFirstWeekNudge("jess", jess, { onboardedAt: "2026-09-23" }, ctx, "2026-09-23T01:00:00.000Z");
+    expect(r).toMatchObject({ key: "nudge:first_week", status: "sent", channel: "push" });
+    const row = (await notificationLog("jess")).find((x) => x.key === "nudge:first_week")!;
+    expect(row.title).toMatch(/^Possible double charge/);
+    expect(pushed[0]!.payload.body).toBe("You have an update from Tippla"); // lock screen stays generic
+    expect((await sendFirstWeekNudge("jess", jess, { onboardedAt: "2026-09-23" }, ctx, null))!.status).toBe("suppressed");
+    expect(pushed).toHaveLength(1);
+  });
+
+  it("not on day 1 or day 5, and not if they came back in the last day", async () => {
+    await device();
+    expect(await sendFirstWeekNudge("jess", jess, { onboardedAt: "2026-09-24" }, ctx, null)).toBeNull();
+    expect(await sendFirstWeekNudge("jess", jess, { onboardedAt: "2026-09-20" }, ctx, null)).toBeNull();
+    expect(await sendFirstWeekNudge("jess", jess, { onboardedAt: "2026-09-23" }, ctx, "2026-09-24T23:00:00.000Z")).toBeNull();
+    expect(await sendFirstWeekNudge("jess", jess, {}, ctx, null)).toBeNull();
+    expect(pushed).toHaveLength(0);
+  });
+});
+

@@ -12,6 +12,8 @@ import { payCycleSummary } from "./payCycle";
 import { factors } from "./score";
 import { subscriptions } from "./subscriptions";
 import { posted } from "./transactions";
+import { orderForGoal } from "./firstValue";
+import type { FocusGoal } from "@/lib/account/state";
 
 export interface Recommendation {
   id: string;
@@ -33,7 +35,7 @@ export interface Recommendation {
  * Ordered steps for "Ways to lift your score". Order: no-cost steps first when short before payday (docs/04),
  * then by dollars per pay cycle, then by how low the factor is. GOVERNMENT_RELIANCE never gets a recommendation.
  */
-export function recommendations(d: PersonaData): Recommendation[] {
+export function recommendations(d: PersonaData, goal?: FocusGoal): Recommendation[] {
   if (!d.score || d.score.score === null) return [];
   const value = (k: FactorKey) => factors(d).find((f) => f.key === k)?.value ?? null;
   const isLowest = (k: FactorKey) => {
@@ -124,19 +126,21 @@ export function recommendations(d: PersonaData): Recommendation[] {
   // step written for that factor (pay advance, money left) before general ones; then dollars per pay cycle.
   const short = payCycleSummary(d).isShort;
   const primary: Record<string, number> = { "pay-advance": 0, "money-left": 0 };
-  return out.sort((a, b) =>
+  const sorted = out.sort((a, b) =>
     (short ? Number(b.noCost) - Number(a.noCost) : 0) ||
     (value(a.factorKey) ?? 10) - (value(b.factorKey) ?? 10) ||
     (primary[a.id] ?? 1) - (primary[b.id] ?? 1) ||
     b.dollarsPerCycle - a.dollarsPerCycle,
   );
+  // Spec 04: the member's goal brings its steps to the front.
+  return orderForGoal(sorted, goal, short);
 }
 
 export interface FirstAction { id: string; factor: string; title: string; summary: string; happening: string; wouldChange?: string; ifYouWant?: string }
 
 /** The first action on the reveal and "Next thing to do": the top recommendation. */
-export function firstAction(d: PersonaData): FirstAction | null {
-  const r = recommendations(d)[0];
+export function firstAction(d: PersonaData, goal?: FocusGoal): FirstAction | null {
+  const r = recommendations(d, goal)[0];
   if (!r) return null;
   return { id: r.id, factor: r.factor, title: r.title, summary: r.why, happening: r.sheet.happening, wouldChange: r.sheet.wouldChange, ifYouWant: r.sheet.ifYouWant };
 }

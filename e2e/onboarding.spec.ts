@@ -13,7 +13,12 @@ async function expectNoAxe(page: Page) {
 }
 
 async function throughConnect(page: Page, persona: string) {
+  // Spec 04: one-sentence welcome first.
   await page.goto(`/onboarding?persona=${persona}`);
+  await expect(page.getByRole("heading", { name: "Welcome to Tippla" })).toBeVisible();
+  await expect(page.getByText("We'll tell you what's coming, what needs a look, and how to get ahead, every pay cycle.")).toBeVisible();
+  await expectNoAxe(page);
+  await page.getByRole("link", { name: "Get started" }).click();
   await expect(page.getByRole("heading", { name: "Let's get you set up" })).toBeVisible();
   await expectNoAxe(page);
 
@@ -65,34 +70,79 @@ async function throughConnect(page: Page, persona: string) {
   await expectNoAxe(page);
 }
 
-test("journey 1 — Jess: onboarding to score reveal", async ({ page }) => {
+test("journey 1 — Jess: onboarding to score reveal, then her goal (spec 04: shortfall aha → score → goal → Home)", async ({ page }) => {
   await throughConnect(page, "jess");
   await page.getByRole("button", { name: "That's all of them" }).click();
   await page.waitForURL("**/onboarding/analysing");
   await page.goto("/onboarding/analysing?fast=1");
   await expect(page.getByRole("listitem").filter({ hasText: "Reading 6 months of transactions" })).toBeVisible();
-  await page.waitForURL("**/onboarding/score-reveal", { timeout: 15_000 });
 
-  // O5: score, stage, path to next stage, biggest factor, one first action. No confetti, no congratulations.
+  // The first insight: the shortfall, full screen, with the detail in a sheet.
+  await page.waitForURL("**/onboarding/insight", { timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "Heads up: you could be about $53 short before your 01/10 payday" })).toBeVisible();
+  await expect(page.getByText("You have $314 and 2 bills totalling $367 due before then.")).toBeVisible();
+  await expectNoAxe(page);
+  await page.getByRole("button", { name: "See what's due" }).click();
+  const due = page.getByRole("dialog", { name: "Due before payday" });
+  await expect(due).toContainText("Beforepay · 30/09");
+  await expect(due).toContainText("$315");
+  await page.keyboard.press("Escape");
+  await page.getByRole("link", { name: "Next" }).click();
+
+  // O5 / spec 04 step 4: score, stage, path to next stage, biggest factor. Short: no first action here.
   await expect(page.getByRole("heading", { name: "Your SmartScore is 472." })).toBeVisible();
   await expect(page.getByRole("meter", { name: "SmartScore" })).toHaveAttribute("aria-valuetext", "SmartScore 472. Steadying. 128 points to Healthy.");
   await expect(page.getByText("Biggest factor with room to move")).toBeVisible();
   await expect(page.getByRole("button", { name: /Current borrowing 2\.9 \/ 10 you have 3 loans open\./ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Skip the next pay advance if you can" })).toBeVisible();
   await expect(page.locator("body")).not.toContainText(/congratulations|well done|great job/i);
   await expectNoAxe(page);
+  await page.getByRole("link", { name: "Next" }).click();
 
-  await page.getByRole("button", { name: "See how" }).click();
-  await expect(page.getByRole("dialog", { name: "Skip the next pay advance if you can" })).toContainText("Fewer pay advances is one of the ways to lift Current borrowing.");
-  await page.keyboard.press("Escape");
-  await page.getByRole("link", { name: "See your dashboard" }).click();
+  // Goal: nothing preselected; gambling offered (detected), last, neutral; Continue waits for a choice.
+  await expect(page.getByRole("heading", { name: "What would help most right now?" })).toBeVisible();
+  const radios = page.getByRole("radio");
+  await expect(radios).toHaveCount(6);
+  for (const r of await radios.all()) await expect(r).not.toBeChecked();
+  await expect(radios.last()).toHaveAccessibleName("Spend less on gambling");
+  await expect(page.getByRole("button", { name: "Continue" })).toBeDisabled();
+  await expectNoAxe(page);
+  await page.getByText("Stop relying on pay advances").click();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // Alerts, asked after the aha. Headless Chromium denies permission: say so plainly and carry on.
+  await expect(page.getByRole("heading", { name: "Want a heads-up before you run short?" })).toBeVisible();
+  await expectNoAxe(page);
+  await page.getByRole("button", { name: "Not now" }).click();
+
+  // Today: the feed is there and the goal is shown; the goal leads the plan.
   await page.waitForURL((u) => u.pathname === "/");
+  await expect(page.getByRole("region", { name: "Your goal" })).toContainText("Your goal: Stop relying on pay advances");
+  await expect(page.getByRole("heading", { name: "Needs a look" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^See how: Skip the next pay advance/ })).toBeVisible();
+});
+
+test("Today: change the goal in a sheet; the plan follows it", async ({ page }) => {
+  await page.goto("/?persona=jess&present=1");
+  const row = page.getByRole("region", { name: "Your goal" });
+  await row.getByRole("button", { name: "Pick a goal" }).click();
+  const sheet = page.getByRole("dialog", { name: "Change your goal" });
+  await sheet.getByText("Cut my bills and subscriptions").click();
+  await sheet.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Goal saved" })).toBeVisible();
+  await expect(row).toContainText("Your goal: Cut my bills and subscriptions");
+  await expect(page.getByRole("button", { name: /^See how: Check your subscriptions/ })).toBeVisible();
+  await page.goto("/savings?persona=jess&present=1");
+  await expect(page.getByRole("main").getByRole("article").first().getByRole("heading", { level: 2 })).toHaveText("Check your subscriptions");
+  await expectNoAxe(page);
 });
 
 test("journey 1 — Priya: onboarding ends on the no-score reveal", async ({ page }) => {
   await throughConnect(page, "priya");
   await page.goto("/onboarding/analysing?fast=1");
-  await page.waitForURL("**/onboarding/score-reveal", { timeout: 15_000 });
+  // No score and no issues: the positive fallback (spec 04).
+  await page.waitForURL("**/onboarding/insight", { timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "Your pay comes in every second Thursday, about $1,960. That steady rhythm is a good start." })).toBeVisible();
+  await page.getByRole("link", { name: "Next" }).click();
   await expect(page.getByRole("heading", { name: "Not enough history yet" })).toBeVisible();
   await expect(page.getByText("We expect to have enough history around 10/11/2026.")).toBeVisible();
   await expect(page.getByText("24/09 – 07/10")).toBeVisible();
@@ -119,7 +169,8 @@ test("presentation mode hides the persona pill", async ({ page }) => {
 
 test("onboarding screens: axe clean in dark mode too", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
-  for (const url of ["/onboarding/create-account", "/onboarding/consents", "/onboarding/connect-bank", "/onboarding/connect-bank/done?persona=jess", "/onboarding/score-reveal?persona=jess", "/onboarding/score-reveal?persona=priya"]) {
+  for (const url of ["/onboarding/create-account", "/onboarding/consents", "/onboarding/connect-bank", "/onboarding/connect-bank/done?persona=jess", "/onboarding/score-reveal?persona=jess", "/onboarding/score-reveal?persona=priya",
+    "/onboarding/welcome", "/onboarding/insight?persona=jess", "/onboarding/insight?persona=marcus", "/onboarding/goal?persona=jess", "/onboarding/alerts?persona=jess"]) {
     await page.goto(url);
     await expectNoAxe(page);
   }

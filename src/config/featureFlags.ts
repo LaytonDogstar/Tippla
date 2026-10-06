@@ -21,8 +21,8 @@ export const FLAGS = {
   // 03 Billing
   payday_billing_v1: { spec: "03", description: "Tippla billing aligned to payday", built: true, gate: ["G7"] },
   // 04 Onboarding
-  onboarding_v2: { spec: "04", description: "First insight and goal selection", built: false },
-  goals_v1: { spec: "04", description: "Member goal drives plan, check-in and recap", built: false },
+  onboarding_v2: { spec: "04", description: "First insight and goal selection", built: true },
+  goals_v1: { spec: "04", description: "Member goal drives plan, check-in and recap", built: true },
   // 05 Data trust
   corrections_v1: { spec: "05", description: "Member corrections to bills, subscriptions, loans, income", built: false, gate: ["G3"] },
   forecast_accuracy_v1: { spec: "05", description: "Forecast accuracy tracking", built: false },

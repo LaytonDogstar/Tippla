@@ -6,6 +6,11 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 
 ## Onboarding
 
+*(06/10/2026, retention spec 04, flag `onboarding_v2`.)* The flow is now: **O0 Welcome → O1–O4 → O4a First insight → O5 SmartScore intro → O6 Goal → O7 Alerts → Today.** With the flag off it is O1–O5 → Today as before.
+
+### O0 Welcome (`/onboarding/welcome`)
+- One sentence: "We'll tell you what's coming, what needs a look, and how to get ahead, every pay cycle." Three short points, "Get started".
+
 ### O1 Create account
 - **Job:** feel like an opening, not a form.
 - **Content:** one line on what Tippla does ("See what's shaping your SmartScore and what would change a lender's answer"), email, mobile (`04XX XXX XXX` mask), continue. Password on the next step or passkey.
@@ -26,11 +31,28 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 ### O4 Analysing
 - Four steps tick through in plain language (see copy doc). ~8 s simulated. No bouncing illustrations. Reduced motion: steps appear without animation.
 
+### O4a First insight (`/onboarding/insight`)
+- **Job:** one concrete, personal win within a minute of the data loading.
+- The single most valuable finding, full screen, chosen in this order (`selectors/firstValue.ts`):
+  1. A shortfall this pay cycle: "Heads up: you could be about $53 short before your 01/10 payday" (jess), with "See what's due" (bills before payday in a sheet).
+  2. Three or more subscriptions: "You're paying $810 a year across 5 subscriptions".
+  3. Pay advance fees in the last 90 days: "You've paid $30 in pay advance fees in the last 3 months".
+  4. Positive fallback: the strongest factor, never Gambling & alcohol spending, Spending mix or Income sources ("Your payments go through on time. That's your strongest factor." for marcus). With no score: the pay rhythm ("Your pay comes in every second Thursday, about $1,960…" for priya).
+- The detail opens in a sheet so the flow carries on; "Next" goes to the score. Sample logic (Q29).
+
 ### O5 SmartScore reveal
 - **Job:** handle a lower-than-expected number gently, with context and a next step.
 - **Content:** ScoreRing (hero size) with stage label; one sentence of context; the single factor with most room to move (lowest factor that is actionable — exclude GOVERNMENT_RELIANCE); one first action card; "See everything" → Dashboard.
 - **priya (override -998):** no number. "We need a bit more history to work out your SmartScore — usually 90 days. We'll calculate it automatically. Meanwhile, here's what we can already see." Then pay cycle and spending.
 - **No confetti. No "Congratulations".**
+- *(spec 04)* With `onboarding_v2` this is the short score intro: no first-action card (the goal decides the first step), and "Next" goes to the goal picker.
+
+### O6 Goal (`/onboarding/goal`)
+- "What would help most right now?" Pick one, changeable later: Get to payday without running short · Stop relying on pay advances · Lift my SmartScore to {next stage} ("Build my SmartScore" with no score) · Cut my bills and subscriptions · Build a small buffer · Spend less on gambling (only when gambling transactions are detected, last, with "Only you see this choice."). Nothing preselected; Continue waits for a choice.
+- The goal (`focusGoal` in the account state, flag `goals_v1`) drives: which step leads "Your plan" and "Next thing to do" (when short before payday a no-cost step still leads), the check-in ("Your goal: …"), and which recap line comes first (money left the day before payday, pay advances, or SmartScore; never gambling).
+
+### O7 Alerts (`/onboarding/alerts`)
+- "Want a heads-up before you run short?" with what we'd send and the limits. "Yes, turn on alerts" asks the browser; if it's refused: "Your browser didn't allow notifications. You can turn them on later in Account › Profile." "Not now" goes straight on. Either way it records the onboarding date and lands on Today.
 
 ---
 
@@ -59,6 +81,8 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
    - **Short before payday** (jess: $314 balance − $367 due = −$53): headline "About $53 short before payday" in `caution` (not red), with two options: "See what's due" (calendar) and "Options if money's tight" (hardship). This is the most useful thing the app can tell her.
   5. **Next bill:** the next upcoming bill (date, merchant, amount, "predicted").
   6. **Six-month spending** mini bar chart (monthly totals from AM2004 monthly_values) — tappable to Spending.
+- **Your goal** *(06/10, spec 04)*: a row near the top, "Your goal: Stop relying on pay advances · Change" ("Pick a goal" if none), opening the same picker in a sheet.
+- **First payday after onboarding** *(spec 04)*: the check-in opens with "Your first payday with Tippla. Here's your pay cycle, with your goal in view."
 - **Gambling insights setting** *(06/10, spec 01)*: Profile › Insights › "Show gambling insights" (on by default). When off, the Spending gambling insight is hidden and gambling is folded into "Spending mix and other factors" in the score explanation.
 - **Feature flags** (`config/featureFlags.ts`): the feed, status line, safe to spend, buffer, check-in, recap, score attribution and value tally each sit behind their pack flag; demo personas see them all.
 - **States:** declining (jess), improving (marcus: "Up 11 since 11/09"), no score (priya), lapsed subscription (limited: score visible, drill-downs show a reactivate prompt), bank link broken (banner + stale timestamp).

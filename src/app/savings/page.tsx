@@ -11,10 +11,10 @@ export const dynamic = "force-dynamic";
 
 export default async function Savings({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
   const persona = currentPersona(searchParams.persona);
-  const { data } = await loadCustomer(persona);
+  const { data, goal } = await loadCustomer(persona);
   return (
     <PortalShell path="/savings" persona={persona} present={presentationMode(searchParams.present)} header={<PageHeader title={recs.pageTitle} sub={recs.pageIntro} />}>
-      <SavingsView items={recommendations(data)} cycleKey={`${persona}:${currentCycle(data).start}`} />
+      <SavingsView items={recommendations(data, goal)} cycleKey={`${persona}:${currentCycle(data).start}`} />
     </PortalShell>
   );
 }

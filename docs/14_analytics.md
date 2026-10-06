@@ -39,6 +39,12 @@ Four candidates from the spec are defined as drafts (feed card count, safe-to-sp
 
 Session start and page views on every portal page; the feed (viewed, acted on, done, snoozed, dismissed, see all); navigation sections; safe to spend (viewed, working opened); payday check-in and recap opened; subscription cancel guide and "I've cancelled it"; goal created; notification opened and settings changed; usage-data consent; onboarding steps and bank connection time; hardship letter started and copied; offers viewed (with the guardrail context). The rest are registered and get wired as each workstream is built.
 
+Spec 04 added: welcome, first insight, goal and alerts steps; `aha_shown` / `aha_actioned` (by type); `goal_selected` (onboarding and Today); `push_opt_in`.
+
+## First session (spec 04)
+
+`/dev/analytics` › First session: median seconds from bank connected to first insight (target under 60), share within 60 seconds, share who picked a goal, share who said yes to alerts, goals picked, and day-7 / day-30 retention (a session in days 7–13 / 30–36 after the first insight) by first-insight type. Demo onboarding events use their own random stream, so the other demo numbers didn't move.
+
 ## Guardrails on the dashboard
 
 - Offers shown to members short before payday, in hardship or in Building: **must be 0**. The demo data and the app both keep it at 0, and a test proves a breach would show.

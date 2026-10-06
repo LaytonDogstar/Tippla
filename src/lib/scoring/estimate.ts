@@ -5,14 +5,15 @@ import type { PersonaData } from "@/lib/api/types";
 import { PROJECTION_LIFTS, PROJECTION_REFRESHES, SAMPLE_FACTOR_WEIGHTS, SHOW_SCORE_PROJECTIONS_DEFAULT } from "@/config/flags";
 import { addDays, type ISODate } from "@/lib/format/dates";
 import { recommendations } from "@/lib/selectors/recommendations";
+import type { FocusGoal } from "@/lib/account/state";
 
 export interface ScoreProjection { recommendationId: string; liftKey: string; from: number; to: number; by: ISODate; factor: string; estimated: true }
 
 const liftKeyFor = (id: string) => (id.startsWith("pay-off-") ? "payoff" : id);
 
-export function projectScore(d: PersonaData, enabled = SHOW_SCORE_PROJECTIONS_DEFAULT): ScoreProjection | null {
+export function projectScore(d: PersonaData, enabled = SHOW_SCORE_PROJECTIONS_DEFAULT, goal?: FocusGoal): ScoreProjection | null {
   if (!enabled || !d.score || d.score.override || d.score.score === null) return null;
-  const top = recommendations(d)[0];
+  const top = recommendations(d, goal)[0];
   if (!top) return null;
   const key = liftKeyFor(top.id);
   const lift = PROJECTION_LIFTS[key];

@@ -18,6 +18,8 @@ function mulberry32(seed: number) {
 const RULES = ["shortfall", "bill_over_balance", "repayment_due", "new_subscription", "price_rise", "duplicate_charge", "unusual_spend", "score_change"];
 const RULE_ACTION = [0.62, 0.55, 0.48, 0.35, 0.3, 0.42, 0.22, 0.4]; // how often a shown card is acted on
 const SECTIONS = ["today", "money", "score", "borrowing", "help"] as const;
+const AHA = ["shortfall", "shortfall", "subscriptions", "advance_fees", "positive"] as const;
+const GOALS = ["reach_payday", "off_advances", "lift_score", "cut_bills", "build_buffer"] as const;
 const DAY = 864e5;
 
 export function seedEvents(opts: { now?: Date; members?: number; weeks?: number; seed?: number } = {}): AnalyticsEvent[] {
@@ -25,6 +27,7 @@ export function seedEvents(opts: { now?: Date; members?: number; weeks?: number;
   const weeks = opts.weeks ?? 12;
   const n = opts.members ?? 360;
   const rand = mulberry32(opts.seed ?? 25092026);
+  const onboardingRand = mulberry32((opts.seed ?? 25092026) + 4);
   const flags = FLAG_NAMES.filter((f) => FLAGS[f].built);
   const out: AnalyticsEvent[] = [];
 
@@ -42,11 +45,26 @@ export function seedEvents(opts: { now?: Date; members?: number; weeks?: number;
     };
 
     emit("member_signed_up", signup);
-    for (const step of ["create_account", "consents", "connect_bank", "analysing", "score_reveal"] as const) {
-      if (step !== "create_account" && rand() < 0.04) break;
+    for (const step of ["welcome", "create_account", "consents", "connect_bank", "analysing"] as const) {
+      if (step !== "welcome" && rand() < 0.04) break;
       emit("onboarding_step_viewed", signup + 60e3, { step });
     }
     emit("bank_connected", signup + 120e3, { duration_ms: 20_000 + rand() * 90_000 });
+    // Spec 04: first insight within about a minute of the data loading, then the score, goal and alerts.
+    // Its own random stream, so adding it left the rest of the demo data unchanged.
+    const r4 = onboardingRand;
+    const ahaAt = signup + 120e3 + (15 + r4() * 75) * 1e3;
+    const aha = AHA[Math.floor(r4() * AHA.length)]!;
+    emit("onboarding_step_viewed", ahaAt, { step: "aha" });
+    emit("aha_shown", ahaAt, { type: aha });
+    if (r4() < 0.45) emit("aha_actioned", ahaAt + 8e3, { type: aha });
+    emit("onboarding_step_viewed", ahaAt + 20e3, { step: "score_reveal" });
+    if (r4() < 0.82) {
+      emit("onboarding_step_viewed", ahaAt + 30e3, { step: "goal" });
+      emit("goal_selected", ahaAt + 45e3, { goal_type: GOALS[Math.floor(r4() * GOALS.length)]! });
+      emit("onboarding_step_viewed", ahaAt + 50e3, { step: "notifications" });
+      emit("push_opt_in", ahaAt + 55e3, { accepted: r4() < 0.6 });
+    }
 
     for (let day = 0; signup + day * DAY < now && day < churnDay; day++) {
       const t = signup + day * DAY + (7 + rand() * 13) * 3600e3;

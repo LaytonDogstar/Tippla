@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
 
 const t = onboarding.analysing;
+// The first insight (spec 04); it hands over to the score reveal itself when onboarding_v2 is off.
+const NEXT = "/onboarding/insight";
 
 function Steps() {
   const router = useRouter();
@@ -18,14 +20,14 @@ function Steps() {
   const finished = done >= t.steps.length;
   useEffect(() => {
     if (finished) {
-      const h = setTimeout(() => router.push("/onboarding/score-reveal"), fast ? 100 : 1200);
+      const h = setTimeout(() => router.push(NEXT), fast ? 100 : 1200);
       return () => clearTimeout(h);
     }
     const h = setTimeout(() => setDone((n) => n + 1), fast ? 150 : 2000);
     return () => clearTimeout(h);
   }, [done, finished, fast, router]);
   return (
-    <OnboardingShell step="analysing" title={t.title} footer={finished ? <Button size="standard" full onClick={() => router.push("/onboarding/score-reveal")}>{t.continue}</Button> : undefined}>
+    <OnboardingShell step="analysing" title={t.title} footer={finished ? <Button size="standard" full onClick={() => router.push(NEXT)}>{t.continue}</Button> : undefined}>
       <p className="text-body text-text-muted">{t.intro}</p>
       <ol className="mt-t5 flex flex-col gap-t2" aria-busy={!finished}>
         {t.steps.map((s, i) => {

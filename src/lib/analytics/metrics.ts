@@ -152,3 +152,58 @@ export async function guardrails(now = new Date()): Promise<Guardrails> {
     FROM analytics_events WHERE ts > $1::timestamptz - interval '30 days' AND ts <= $1::timestamptz`, [now.toISOString()])).rows[0] ?? {};
   return { offersToVulnerable: num(r.vulnerable), offersShown: num(r.offers), notificationOptOuts: num(r.prefs), hardshipLettersStarted: num(r.letters) };
 }
+
+export interface OnboardingMetrics {
+  /** Median seconds from bank connected to first insight viewed (target under 60). */
+  medianSecondsToInsight: number | null;
+  under60: number | null;
+  /** % of members who saw the first insight and then picked a goal. */
+  goalCompletion: number | null;
+  goals: { goal: string; members: number }[];
+  pushOptIn: number | null;
+  /** Day-7 and day-30 retention (a session in days 7–13 / 30–36) by first-insight type, for members old enough. */
+  byAha: { type: string; members: number; actioned: number | null; day7: number | null; day30: number | null }[];
+}
+
+/** Spec 04: first-session value (signups in the last 12 weeks). */
+export async function onboardingMetrics(now = new Date()): Promise<OnboardingMetrics> {
+  const d = await db();
+  const at = now.toISOString();
+  const t = (await d.query<{ secs: string | null; under: string; n: string }>(`
+    WITH firsts AS (
+      SELECT member_id, min(ts) FILTER (WHERE event = 'bank_connected') AS connected, min(ts) FILTER (WHERE event = 'aha_shown') AS aha
+      FROM analytics_events WHERE ts <= $1::timestamptz AND ts > $1::timestamptz - interval '84 days' GROUP BY member_id),
+    gaps AS (SELECT extract(epoch FROM (aha - connected)) AS s FROM firsts WHERE connected IS NOT NULL AND aha IS NOT NULL AND aha >= connected)
+    SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY s) AS secs, count(*) FILTER (WHERE s < 60) AS under, count(*) AS n FROM gaps`, [at])).rows[0];
+  const g = (await d.query<{ aha: string; goal: string; push: string; accepted: string }>(`
+    SELECT count(DISTINCT member_id) FILTER (WHERE event = 'aha_shown') AS aha,
+      count(DISTINCT member_id) FILTER (WHERE event = 'goal_selected') AS goal,
+      count(DISTINCT member_id) FILTER (WHERE event = 'push_opt_in') AS push,
+      count(DISTINCT member_id) FILTER (WHERE event = 'push_opt_in' AND (props->>'accepted')::boolean) AS accepted
+    FROM analytics_events WHERE ts <= $1::timestamptz AND ts > $1::timestamptz - interval '84 days'`, [at])).rows[0];
+  const goals = (await d.query<{ goal: string; n: string }>(`
+    SELECT props->>'goal_type' AS goal, count(DISTINCT member_id) AS n FROM analytics_events
+    WHERE event = 'goal_selected' AND ts <= $1::timestamptz AND ts > $1::timestamptz - interval '84 days' GROUP BY 1 ORDER BY 2 DESC, 1`, [at])).rows;
+  const r = (await d.query<{ type: string; n: string; actioned: string; e7: string; r7: string; e30: string; r30: string }>(`
+    WITH aha AS (
+      SELECT DISTINCT ON (member_id) member_id, props->>'type' AS type, ts FROM analytics_events
+      WHERE event = 'aha_shown' AND ts <= $1::timestamptz AND ts > $1::timestamptz - interval '84 days' ORDER BY member_id, ts),
+    m AS (
+      SELECT a.member_id, a.type, a.ts,
+        EXISTS (SELECT 1 FROM analytics_events x WHERE x.member_id = a.member_id AND x.event = 'aha_actioned') AS actioned,
+        EXISTS (SELECT 1 FROM analytics_events s WHERE s.member_id = a.member_id AND s.event = 'session_started' AND s.ts >= a.ts + interval '7 days' AND s.ts < a.ts + interval '14 days') AS r7,
+        EXISTS (SELECT 1 FROM analytics_events s WHERE s.member_id = a.member_id AND s.event = 'session_started' AND s.ts >= a.ts + interval '30 days' AND s.ts < a.ts + interval '37 days') AS r30
+      FROM aha a)
+    SELECT type, count(*) AS n, count(*) FILTER (WHERE actioned) AS actioned,
+      count(*) FILTER (WHERE ts <= $1::timestamptz - interval '14 days') AS e7, count(*) FILTER (WHERE r7 AND ts <= $1::timestamptz - interval '14 days') AS r7,
+      count(*) FILTER (WHERE ts <= $1::timestamptz - interval '37 days') AS e30, count(*) FILTER (WHERE r30 AND ts <= $1::timestamptz - interval '37 days') AS r30
+    FROM m GROUP BY type ORDER BY type`, [at])).rows;
+  return {
+    medianSecondsToInsight: t?.secs === null || t?.secs === undefined ? null : Math.round(Number(t.secs)),
+    under60: pct(num(t?.under), num(t?.n)),
+    goalCompletion: pct(num(g?.goal), num(g?.aha)),
+    goals: goals.map((x) => ({ goal: x.goal, members: num(x.n) })),
+    pushOptIn: pct(num(g?.accepted), num(g?.push)),
+    byAha: r.map((x) => ({ type: x.type, members: num(x.n), actioned: pct(num(x.actioned), num(x.n)), day7: pct(num(x.r7), num(x.e7)), day30: pct(num(x.r30), num(x.e30)) })),
+  };
+}

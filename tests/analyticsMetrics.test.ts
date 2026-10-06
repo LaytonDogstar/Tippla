@@ -2,7 +2,7 @@
 // deterministic demo data.
 import { beforeAll, describe, expect, it } from "vitest";
 import { resetDbForTests } from "@/lib/db";
-import { cohortRetention, feedPerformance, guardrails, northStar, reseed, seededCount } from "@/lib/analytics/metrics";
+import { cohortRetention, feedPerformance, guardrails, northStar, onboardingMetrics, reseed, seededCount } from "@/lib/analytics/metrics";
 import { buildEvents, store } from "@/lib/analytics/server";
 import { seedEvents } from "@/lib/analytics/seed";
 
@@ -45,6 +45,18 @@ describe("dashboards on demo data", () => {
     const f = await feedPerformance(NOW);
     expect(f.map((r) => r.rule).sort()).toEqual(["bill_over_balance", "duplicate_charge", "new_subscription", "price_rise", "repayment_due", "score_change", "shortfall", "unusual_spend"]);
     for (const r of f) { expect(r.shown).toBeGreaterThanOrEqual(r.actioned); expect(r.actioned).toBeGreaterThanOrEqual(r.done); }
+  });
+
+  it("first session (spec 04): time to first insight, goal completion, retention by insight type", async () => {
+    const o = await onboardingMetrics(NOW);
+    expect(o.medianSecondsToInsight!).toBeGreaterThan(15);
+    expect(o.medianSecondsToInsight!).toBeLessThan(90);
+    expect(o.under60!).toBeGreaterThan(0);
+    expect(o.goalCompletion!).toBeGreaterThan(60);
+    expect(o.goalCompletion!).toBeLessThanOrEqual(100);
+    expect(o.byAha.map((r) => r.type)).toEqual(["advance_fees", "positive", "shortfall", "subscriptions"]);
+    for (const r of o.byAha) for (const v of [r.actioned, r.day7, r.day30]) if (v !== null) expect(v).toBeLessThanOrEqual(100);
+    expect(o.goals.reduce((a, g) => a + g.members, 0)).toBeGreaterThan(0);
   });
 
   it("guardrail: offers shown to anyone short, in hardship or in Building reads 0, and catches a breach", async () => {

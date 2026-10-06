@@ -2,7 +2,7 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { goalPlan, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
+import { goalLabel, goalOptions, isFirstPayday, recapLead, goalPlan, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
 import { addDays, daysBetween, formatShortDay, formatUpdated, formatDate, formatDayMonth, formatWhole, toAESTDate } from "@/lib/format";
 import { safeCopy } from "@/content/loop";
 import { flagsFor } from "@/config/featureFlags";
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
   const persona = currentPersona(searchParams.persona);
-  const { data, raw, account, edits, states } = await loadCustomer(persona);
+  const { data, raw, account, goal, edits, states } = await loadCustomer(persona);
   // Disconnected by the customer, or (dev state) the connection expired: numbers stopped at the last refresh.
   const expired = states.includes("bank_expired") && data.score?.scoredAt ? toAESTDate(data.score.scoredAt) : null;
   const on = flagsFor(persona);
@@ -47,6 +47,12 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
   const adjustBills = raw.derived.upcoming_bills.filter((b) => b.date > data.asOf && b.date < payday)
     .map((b) => ({ id: billId(b), merchant: b.merchant, amount: b.expected_amount, date: b.date, paid: paid.has(billId(b)) }));
   const oneOffDates = Array.from({ length: Math.max(0, daysBetween(data.asOf, payday) - 1) }, (_, i) => addDays(data.asOf, i + 1));
+  const next = firstAction(data, goal);
+  // Spec 04: the member's goal, shown on Today and changeable there.
+  const focusGoal = on.goals_v1 ? {
+    current: goal ? { type: goal.type, label: goalLabel(data, goal.type) } : null,
+    options: goalOptions(data).map((type) => ({ type, label: goalLabel(data, type) })),
+  } : null;
   const bannerView = banner && (
     banner.kind === "hardship" ? { text: t.banners.hardship, href: "/hardship" }
       : banner.kind === "score_drop" ? { text: t.banners.scoreDrop(banner.points), href: "/score" }
@@ -69,7 +75,7 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
         banner={bannerView}
         score={scoreState(data)}
         change={scoreChange(data)}
-        action={firstAction(data)}
+        action={next}
         payCycle={payCycleSummary(data, edits)}
         nextBill={nextBill(data)}
         bars={sixMonthSpending(data, edits)}
@@ -78,7 +84,10 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
         movement={movement}
         adjustBills={adjustBills}
         oneOffDates={oneOffDates}
-        focus={firstAction(data)?.title ?? null}
+        focus={next?.title ?? null}
+        focusGoal={focusGoal}
+        firstPayday={!!checkIn && on.onboarding_v2 && isFirstPayday(data, account.onboardedAt)}
+        recapLead={recapLead(goal?.type)}
         payPending={!checkIn && payday === data.asOf}
         progressText={plan ? (plan.latest ? p.homeGoal(formatWhole(plan.amount), formatDayMonth(plan.by), plan.percent) : p.homeGoalPending(formatWhole(plan.amount), formatDayMonth(plan.by))) : p.homeNoGoal}
         checkIn={checkIn}

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { EXPERIMENTS, FLAG_NAMES, FLAGS } from "@/config/featureFlags";
 import { EVENTS } from "@/lib/analytics/registry";
-import { cohortRetention, feedPerformance, guardrails, MIN_CYCLES, northStar, reseed, seededCount } from "@/lib/analytics/metrics";
+import { cohortRetention, feedPerformance, guardrails, MIN_CYCLES, northStar, onboardingMetrics, reseed, seededCount } from "@/lib/analytics/metrics";
 import { db } from "@/lib/db";
 import { ThemeToggle } from "@/components/dev/ThemeToggle";
 
@@ -24,7 +24,7 @@ const shortDate = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 export default async function AnalyticsPage() {
   if ((await seededCount()) === 0) await reseed();
   const now = new Date();
-  const [ns, cohorts, feed, guard, database] = await Promise.all([northStar(now), cohortRetention(now), feedPerformance(now), guardrails(now), db()]);
+  const [ns, cohorts, feed, guard, onb, database] = await Promise.all([northStar(now), cohortRetention(now), feedPerformance(now), guardrails(now), onboardingMetrics(now), db()]);
   const real = Number((await database.query<{ n: string }>("SELECT count(*) AS n FROM analytics_events WHERE NOT seeded")).rows[0]?.n ?? 0);
 
   return (
@@ -136,6 +136,40 @@ export default async function AnalyticsPage() {
               </tbody>
             </table>
           </div>
+        </section>
+
+        {/* 4. Onboarding (spec 04) */}
+        <section aria-labelledby="o-h" className="rounded-lg bg-surface p-t5">
+          <h2 id="o-h" className="text-h2 font-display">First session (12 weeks)</h2>
+          <dl className="mt-t4 grid grid-cols-2 gap-t3 tablet:grid-cols-4">
+            {([
+              ["Bank connected → first insight (median)", onb.medianSecondsToInsight === null ? "—" : `${onb.medianSecondsToInsight}s`],
+              ["First insight within 60s", fmtPct(onb.under60)],
+              ["Picked a goal", fmtPct(onb.goalCompletion)],
+              ["Said yes to alerts", fmtPct(onb.pushOptIn)],
+            ] as const).map(([k, v]) => (
+              <div key={k} className="rounded-md bg-surface2 p-t3"><dt className="text-caption text-text-muted">{k}</dt><dd className="tnum text-h3">{v}</dd></div>
+            ))}
+          </dl>
+          <p className="mt-t2 text-caption text-text-muted">Target: under 60 seconds at the median. Goals picked: {onb.goals.map((g) => `${g.goal.replace(/_/g, " ")} ${g.members}`).join(" · ") || "none yet"}.</p>
+          <div className="mt-t4 overflow-x-auto" tabIndex={0} role="region" aria-label="Retention by first insight table (scrolls sideways)">
+            <table className="tnum w-full text-small">
+              <caption className="sr-only">Members, share who opened the detail, and day-7 and day-30 retention, by first insight type</caption>
+              <thead className="text-caption text-text-muted"><tr>
+                {["First insight", "Members", "Opened the detail", "Day 7", "Day 30"].map((h, i) => <th key={h} scope="col" className={`p-t2 font-normal ${i ? "text-right" : "text-left"}`}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {onb.byAha.map((r) => (
+                  <tr key={r.type} className="border-t border-line">
+                    <th scope="row" className="p-t2 text-left font-normal">{r.type.replace(/_/g, " ")}</th>
+                    <td className="p-t2 text-right">{r.members}</td>
+                    {[r.actioned, r.day7, r.day30].map((v, i) => <td key={i} className="p-t2 text-right">{fmtPct(v)}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-t2 text-caption text-text-muted">Use this to tune the first-insight order (experiment <code>aha_priority</code>).</p>
         </section>
 
         {/* Registry and flags */}

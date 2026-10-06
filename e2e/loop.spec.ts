@@ -133,3 +133,12 @@ test("notifications: events only; one urgent alert a day; pause, quiet hours and
   await expect(page.getByLabel("Show amounts and names on my lock screen")).not.toBeChecked();
 });
 
+test("first payday after onboarding: the check-in says so and shows the goal; the recap leads with it (spec 04)", async ({ page, context }) => {
+  await context.addCookies([{ name: "tippla-account", value: encodeURIComponent(JSON.stringify({ jess: { focusGoal: { type: "reach_payday", startedAt: "2026-09-25" }, onboardedAt: "2026-09-25" } })), url: "http://localhost:3200" }]);
+  await page.goto("/?persona=jess&present=1&state=payday");
+  const checkIn = region(page, "Payday check-in");
+  await expect(checkIn).toContainText("Your first payday with Tippla. Here's your pay cycle, with your goal in view.");
+  await expect(checkIn).toContainText("Your goal: Get to payday without running short");
+  await expect(region(page, "Your last pay cycle").getByRole("listitem").first()).toHaveText("The day before payday you were $680 under.");
+  await expectNoAxe(page);
+});

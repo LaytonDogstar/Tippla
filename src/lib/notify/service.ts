@@ -10,6 +10,10 @@ import { trackServer } from "@/lib/analytics/server";
 import { db } from "@/lib/db";
 import { notificationEvents, toCandidate, weeklySummary } from "@/lib/selectors/notifications";
 import { safeToSpendFor } from "@/lib/selectors/goal";
+import { firstInsight } from "@/lib/selectors/firstValue";
+import { feed } from "@/lib/feed";
+import type { FeedItem, FeedType } from "@/lib/feed/types";
+import { daysBetween } from "@/lib/format/dates";
 import { formatShortDay, formatWhole } from "@/lib/format";
 import { compose, sendEmail } from "./email";
 import { decide, type Candidate, type Decision, type NotifyPrefs, type SentRecord } from "./policy";
@@ -117,6 +121,8 @@ export async function dispatch(member: string, d: PersonaData, a: AccountState, 
     await sendWeeklyDigest(member, d, a, ctx);
   }
   if (isOn("email_lifecycle_v1", member)) await sendWinBack(member, d, a, ctx, opts.lastSeen ?? null);
+  const nudge = await sendFirstWeekNudge(member, d, a, ctx, opts.lastSeen ?? null);
+  if (nudge) out.push(nudge);
   return out;
 }
 
@@ -154,6 +160,26 @@ export async function sendWinBack(member: string, d: PersonaData, a: AccountStat
      VALUES ($1, $2, $3, 'email', 'low', $4, $5, $5, $6, '', $7) ON CONFLICT DO NOTHING`,
     [member, `winback:${ctx.now.slice(0, 10)}`, insight.type, ok ? "sent" : "suppressed", ctx.now, emailCopy.winBack.subject, insight.href]);
   return ok;
+}
+
+/** First-week nudge (spec 04): days 2–3 after onboarding, not back since. */
+export const NUDGE_DAYS = [2, 3];
+/** Feed rules that repeat what each first insight already said (the nudge must be something new). */
+const SAME_AS_AHA: Record<string, FeedType[]> = { shortfall: ["shortfall"], subscriptions: ["new_subscription", "price_rise"], advance_fees: [], positive: [] };
+const CATEGORY: Record<FeedItem["section"], Candidate["category"]> = { today: "money", money: "money", score: "score", borrowing: "money", help: "money" };
+
+/**
+ * One push (or email, per the member's channels) with a single new insight from the feed, on day 2 or 3
+ * after onboarding if the member hasn't opened Tippla in the last day. Never a generic "come back", never a
+ * sensitive item, sent once (dedupe key), and through the normal policy (caps, quiet hours, lock screen).
+ */
+export async function sendFirstWeekNudge(member: string, d: PersonaData, a: AccountState, ctx: NotifyContext, lastSeen: string | null): Promise<NotifyResult | null> {
+  if (!isOn("onboarding_v2", member) || !a.onboardedAt || !NUDGE_DAYS.includes(daysBetween(a.onboardedAt, d.asOf))) return null;
+  if (lastSeen && new Date(ctx.now).getTime() - new Date(lastSeen).getTime() < 864e5) return null; // they came back
+  const skip = SAME_AS_AHA[firstInsight(d).type] ?? [];
+  const item = feed({ d, edits: {}, account: a }, a.feed).open.find((i) => !i.sensitive && !skip.includes(i.type));
+  if (!item) return null; // nothing genuinely new: say nothing
+  return notify(member, { key: "nudge:first_week", category: CATEGORY[item.section], priority: "normal", title: item.title, body: item.body, href: item.action.href, at: ctx.now }, ctx);
 }
 
 /** Bank consent ending soon (spec 05 schedules this at −14, −3 and 0 days). */

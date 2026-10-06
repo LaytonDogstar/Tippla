@@ -24,6 +24,10 @@ export interface NotifySettings {
 }
 /** One goal at a time: have `amount` left the day before payday, by the pay cycle containing `by`. */
 export interface Goal { amount: number; by: string; setAt: string }
+/** What the member said would help most (spec 04). Drives the first plan step, check-in focus and recap. */
+export const FOCUS_GOALS = ["reach_payday", "off_advances", "lift_score", "cut_bills", "build_buffer", "gambling_less"] as const;
+export type FocusGoalType = (typeof FOCUS_GOALS)[number];
+export interface FocusGoal { type: FocusGoalType; startedAt: string }
 export interface SubscriptionState { status: "active" | "paused" | "cancelled"; plan: PlanId; effective: string; changedAt: string }
 export interface AccountState {
   consents?: Partial<Record<ConsentId, { granted: boolean; at: string }>>;
@@ -47,6 +51,10 @@ export interface AccountState {
   hideGambling?: boolean;
   /** Usage analytics consent (spec 09). Undefined means the default: on, and the member can turn it off. */
   analytics?: boolean;
+  /** What would help most right now (spec 04), chosen at onboarding and changeable later. */
+  focusGoal?: FocusGoal;
+  /** The data date onboarding finished on (spec 04: first-week nudge, enhanced first payday). */
+  onboardedAt?: string;
   /** The customer's buffer goal (Phase 3, progress and goals). */
   goal?: Goal;
   /** Notification preferences the server applies (spec 10 policy: pause, quiet hours, lock-screen detail,
@@ -133,6 +141,9 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   if (g && typeof g === "object" && typeof g.amount === "number" && g.amount >= GOAL_MIN && g.amount <= GOAL_MAX && isDate(g.by) && isDate(g.setAt)) {
     out.goal = { amount: Math.round(g.amount), by: g.by.slice(0, 10), setAt: g.setAt.slice(0, 10) };
   }
+  const fg = a.focusGoal;
+  if (fg && typeof fg === "object" && (FOCUS_GOALS as readonly string[]).includes(fg.type) && isDate(fg.startedAt)) out.focusGoal = { type: fg.type, startedAt: fg.startedAt.slice(0, 10) };
+  if (isDate(a.onboardedAt)) out.onboardedAt = a.onboardedAt.slice(0, 10);
   if (a.feed && typeof a.feed === "object") {
     out.feed = {};
     for (const [id, v] of Object.entries(a.feed)) {

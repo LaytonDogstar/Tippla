@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { Checkbox, SelectInput, TextInput } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
+import { goalLines } from "@/content/firstValue";
 
 const LinkRow = ({ href, children }: { href: string; children: string }) => (
   <Link href={href} className="mt-t2 flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">
@@ -98,7 +99,7 @@ export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer }: { s
   );
 }
 
-export function CheckInCard({ checkIn, onHow, onAdjust, focus }: { checkIn: PaydayCheckIn; onHow: () => void; onAdjust?: () => void; focus?: string | null }) {
+export function CheckInCard({ checkIn, onHow, onAdjust, focus, goal = null, firstPayday = false }: { checkIn: PaydayCheckIn; onHow: () => void; onAdjust?: () => void; focus?: string | null; goal?: string | null; firstPayday?: boolean }) {
   useEffect(() => {
     track("checkin_opened", { source: "home" });
     track("sts_viewed", { value_cents: checkIn.safe.perDay * 100, days_left: checkIn.safe.days, nothing_spare: checkIn.safe.nothingSpare });
@@ -110,6 +111,7 @@ export function CheckInCard({ checkIn, onHow, onAdjust, focus }: { checkIn: Payd
         <Sun aria-hidden size={20} className="text-accent" />
         <h2 id="checkin" className="text-h3 text-text">{c.title}</h2>
       </div>
+      {firstPayday && <p className="mt-t2 text-small text-text">{goalLines.firstPayday}</p>}
       <p className="mt-t2 text-body text-text">{c.landed(formatCents(checkIn.incomeTotal), main.payer)}</p>
       <h3 className="mt-t3 text-caption text-text-muted">{c.heading} · {c.range(formatDayMonth(checkIn.cycle.start), formatDayMonth(checkIn.cycle.end))}</h3>
       <ul className="mt-t1 flex flex-col gap-t1 text-small text-text">
@@ -119,7 +121,8 @@ export function CheckInCard({ checkIn, onHow, onAdjust, focus }: { checkIn: Payd
         <li className="text-body-strong">{checkIn.safe.nothingSpare ? s.none : c.safe(formatWhole(checkIn.safe.perDay))}</li>
         {checkIn.safe.goal > 0 && <li className="text-caption text-text-muted">{s.goalIncluded(formatWhole(checkIn.safe.goal))}</li>}
       </ul>
-      {focus && <p className="mt-t3 text-small text-text">{c.focus(focus)}</p>}
+      {goal && <p className="mt-t3 text-small text-text-muted">{goalLines.checkIn(goal)}</p>}
+      {focus && <p className={goal ? "text-small text-text" : "mt-t3 text-small text-text"}>{c.focus(focus)}</p>}
       <div className="mt-t1 flex flex-wrap gap-x-t2">
         <Button variant="tertiary" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }}>{s.how}</Button>
         {onAdjust && <Button variant="tertiary" onClick={onAdjust}>{c.adjust}</Button>}
@@ -129,17 +132,24 @@ export function CheckInCard({ checkIn, onHow, onAdjust, focus }: { checkIn: Payd
   );
 }
 
-export function RecapCard({ recap, feesAvoided, next }: { recap: CycleRecap; feesAvoided: number; next?: string | null }) {
+export function RecapCard({ recap, feesAvoided, next, lead = null }: { recap: CycleRecap; feesAvoided: number; next?: string | null; lead?: "balance" | "advances" | "score" | null }) {
   useEffect(() => { track("recap_opened", { source: "home" }); }, [recap.cycle.start]);
-  const lines = [
-    r.spent(formatWhole(recap.spent), formatWhole(recap.paidIn)),
+  const advances = [
     recap.advances.count === 0 ? [r.noAdvance, r.streak(recap.noAdvanceStreak)].filter(Boolean).join(" ") : r.advances(recap.advances.count, formatWhole(recap.advances.total)),
     // Lead with the best-ever run when the current one is 0 (spec 07: positive only, never the reset).
     ...(recap.noAdvanceStreak === 0 && recap.bestNoAdvance >= 2 ? [r.best(recap.bestNoAdvance)] : []),
-    recap.score ? r.score(recap.score.from, recap.score.to) : r.noScore,
+  ];
+  const score = recap.score ? r.score(recap.score.from, recap.score.to) : r.noScore;
+  // Spec 04: the member's goal puts its line first (money left for payday/buffer goals).
+  const balance = lead === "balance" && recap.endBalance !== null ? goalLines.recap.reach_payday(formatWhole(Math.abs(recap.endBalance)), recap.endBalance < 0) : null;
+  const rest = [
+    r.spent(formatWhole(recap.spent), formatWhole(recap.paidIn)),
+    ...(lead === "advances" ? [] : advances),
+    ...(lead === "score" ? [] : [score]),
     recap.fees.count ? r.fees(recap.fees.count, formatWhole(recap.fees.total)) : r.noFees,
     ...(feesAvoided > 0 ? [r.feesAvoided(formatDollars(feesAvoided))] : []),
   ];
+  const lines = [...(balance ? [balance] : []), ...(lead === "advances" ? advances : []), ...(lead === "score" ? [score] : []), ...rest];
   return (
     <section aria-labelledby="recap" className="rounded-lg bg-surface p-t4">
       <h2 id="recap" className="text-h3 text-text">{r.title}</h2>
