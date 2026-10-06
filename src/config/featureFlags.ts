@@ -34,12 +34,12 @@ export const FLAGS = {
   bill_switch_v1: { spec: "06", description: "Bill switching pointers", built: true, gate: ["G2", "G4"] },
   entitlements_v1: { spec: "06", description: "Entitlements check", built: true, gate: ["G3"] },
   // 07 Progression
-  plans_v1: { spec: "07", description: "Multi-cycle plans", built: false, gate: ["G2"] },
+  plans_v1: { spec: "07", description: "Multi-cycle plans", built: true, gate: ["G2"] },
   streaks_v1: { spec: "07", description: "Positive streaks", built: true },
   buffer_v1: { spec: "07", description: "Member-set buffer (spec 02 safe to spend; spec 07 grows it)", built: true },
-  savings_goals_v1: { spec: "07", description: "Named savings goals", built: false },
-  credit_file_v1: { spec: "07", description: "Credit file tracking (prototype)", built: false, gate: ["G1", "G3", "G4"] },
-  refinance_step_v1: { spec: "07", description: "Cheaper-credit check (prototype)", built: false, gate: ["G1", "G4"] },
+  savings_goals_v1: { spec: "07", description: "Named savings goals", built: true },
+  credit_file_v1: { spec: "07", description: "Credit file tracking (prototype)", built: true, gate: ["G1", "G3", "G4"] },
+  refinance_step_v1: { spec: "07", description: "Cheaper-credit check (prototype)", built: true, gate: ["G1", "G4"] },
   // 08 Assistant
   assistant_v1: { spec: "08", description: "Ask Tippla assistant", built: false, gate: ["G1", "G2", "G3", "G6"] },
   // 10 Platform

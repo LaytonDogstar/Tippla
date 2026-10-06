@@ -36,11 +36,17 @@ import { GoalRow } from "@/components/domain/GoalRow";
 import type { GoalOption } from "@/components/domain/GoalPicker";
 import { ForecastMissCard } from "@/components/domain/ForecastMiss";
 import { SafeToSpendPaused } from "@/components/domain/Connection";
+import { PlanCompact } from "@/components/domain/PlanCard";
+import { StageMomentCard } from "@/components/domain/StageMoment";
+import type { StageMoment } from "@/lib/selectors/progression";
+import type { Streak } from "@/lib/selectors/progress";
+import type { PlanProgress } from "@/lib/selectors/plans";
+import { planCopy } from "@/content/plans";
 import type { ForecastPoint } from "@/lib/selectors/forecastAccuracy";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null;
 
-export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText, statusStale = false, checked = "", movement = null, adjustBills = [], oneOffDates = [], focus = null, payPending = false, focusGoal = null, firstPayday = false, recapLead = null, accuracyLine = null, miss = null, stsPaused = null, flags = { feed: true, status: true, safe: true, tally: true, buffer: true } }: {
+export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText, statusStale = false, checked = "", movement = null, adjustBills = [], oneOffDates = [], focus = null, payPending = false, focusGoal = null, firstPayday = false, recapLead = null, accuracyLine = null, miss = null, stsPaused = null, plan = null, bufferSteps = null, milestones = [], surplus = null, moment = null, savingsLines = [], flags = { feed: true, status: true, safe: true, tally: true, buffer: true } }: {
   persona: PersonaId; account: AccountState; status: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; banner: { text: string; href: string } | null; score: ScoreState; change: { delta: number; since: string } | null;
   action: FirstAction | null; payCycle: PayCycleSummary; nextBill: UpcomingBill | null; bars: MonthBar[];
@@ -53,6 +59,10 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
   accuracyLine?: string | null; miss?: ForecastPoint | null;
   /** Spec 05: the data is over 72 h old (the day it's from): safe to spend pauses. */
   stsPaused?: string | null;
+  /** Spec 07: the plan, compact (the gambling plan is never named here). */
+  plan?: { progress: PlanProgress; title: string } | null;
+  /** Spec 07: buffer growth choices, streak milestones and the payday surplus prompt, and the stage moment. */
+  bufferSteps?: { extra: number[]; next: number | null } | null; milestones?: Streak[]; surplus?: number | null; moment?: StageMoment | null; savingsLines?: string[];
   /** Feature flags (retention pack): each part of Today can be switched off. */
   flags?: { feed: boolean; status: boolean; safe: boolean; tally: boolean; buffer: boolean; corrections?: boolean };
 }) {
@@ -114,14 +124,15 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
         ? <Link href="/account/bank" className="text-small text-accent underline-offset-2 hover:underline desktop:col-span-2">{status}</Link>
         : <p className="text-small text-text-muted desktop:col-span-2">{status}</p>}
       {banner && <div className="desktop:col-span-2"><HomeBanner {...banner} /></div>}
+      {moment && <div className="desktop:col-span-2"><StageMomentCard persona={persona} account={account} moment={moment} /></div>}
       {focusGoal && <div className="desktop:col-span-2"><GoalRow persona={persona} account={account} asOf={asOf} goal={focusGoal.current} options={focusGoal.options} /></div>}
       <div className="flex flex-col gap-t3 desktop:gap-t6">
-        {checkIn ? <CheckInCard checkIn={checkIn} onHow={() => setSheet("safe")} onAdjust={() => setSheet("adjust")} focus={focus} goal={focusGoal?.current?.label ?? null} firstPayday={firstPayday} />
+        {checkIn ? <CheckInCard checkIn={checkIn} onHow={() => setSheet("safe")} onAdjust={() => setSheet("adjust")} focus={focus} goal={focusGoal?.current?.label ?? null} firstPayday={firstPayday} extra={savingsLines} />
           : payPending ? <PayPendingCard payday={asOf} />
           : flags.safe ? (stsPaused ? <SafeToSpendPaused dataFrom={stsPaused} /> : <SafeToSpendCard safe={safe} onHow={() => setSheet("safe")} movement={movement} />) : null}
         {flags.feed && <AttentionFeed persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} />}
         {miss && <ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} />}
-        {recap && <RecapCard recap={recap} feesAvoided={feesAvoided} next={focus} lead={recapLead} />}
+        {recap && <RecapCard recap={recap} feesAvoided={feesAvoided} next={focus} lead={recapLead} milestones={milestones} surplus={surplus ? { amount: surplus, onProtect: () => setBuffer((acct.buffer ?? 0) + surplus) } : null} plan={plan ? planCopy.recap(plan.title, plan.progress.current !== null ? planCopy.stepOf(plan.progress.current + 1, plan.progress.steps.length) : planCopy.completed) : null} />}
         <PayCycleHero summary={payCycle}
           onForecast={() => setSheet("due")} onDue={() => setSheet("due")} onAdvance={() => setSheet("advance")}
           onSpent={() => router.push("/spending?direction=out")} onPaidIn={() => router.push("/spending?direction=in")}
@@ -130,6 +141,7 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
       <div className="flex flex-col gap-t3 desktop:gap-t6">
         <SmartScoreCard state={score} change={change} attribution={attribution} />
         {showTally && <TallyCard tally={tally} onOpen={() => setSheet("tally")} />}
+        {plan && <PlanCompact plan={plan.progress} title={plan.title} />}
         <ProgressLink text={progressText} />
         <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
         {action && <NextStepCard title={action.title} rationale={action.wouldChange ?? action.summary} onSeeHow={() => setSheet("action")} />}
@@ -137,7 +149,7 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
         <SixMonthChart bars={bars} asOf={asOf} />
       </div>
 
-      <SafeToSpendSheet safe={shownSafe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} onBuffer={flags.buffer ? setBuffer : undefined} accuracy={accuracyLine} />
+      <SafeToSpendSheet safe={shownSafe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} onBuffer={flags.buffer ? setBuffer : undefined} accuracy={accuracyLine} bufferSteps={bufferSteps} />
       <CheckInAdjustSheet open={sheet === "adjust"} onClose={() => setSheet(null)} bills={adjustBills} oneOffs={adjust.oneOffs} dates={oneOffDates}
         onPaid={setPaid} onAddOneOff={addOneOff} onRemoveOneOff={removeOneOff} />
       <TallySheet tally={tally} open={sheet === "tally"} onClose={() => setSheet(null)} present={present} />

@@ -31,3 +31,5 @@ export * from "./progress";
 export * from "./firstValue";
 export * from "./forecastAccuracy";
 export * from "./connection";
+export * from "./plans";
+export * from "./progression";

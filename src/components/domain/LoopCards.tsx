@@ -17,6 +17,7 @@ import { Checkbox, SelectInput, TextInput } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
 import { goalLines } from "@/content/firstValue";
 import { billSwitchCopy } from "@/content/actions";
+import { bufferCopy, milestoneCopy } from "@/content/plans";
 
 const LinkRow = ({ href, children }: { href: string; children: string }) => (
   <Link href={href} className="mt-t2 flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">
@@ -53,7 +54,10 @@ export function SafeToSpendCard({ safe, onHow, movement }: { safe: SafeToSpend; 
 
 const BUFFERS = [0, 25, 50, 100] as const;
 
-export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer, accuracy = null }: { safe: SafeToSpend; open: boolean; onClose: () => void; present: boolean; onBuffer?: (amount: number) => void; accuracy?: string | null }) {
+export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer, accuracy = null, bufferSteps = null }: { safe: SafeToSpend; open: boolean; onClose: () => void; present: boolean; onBuffer?: (amount: number) => void; accuracy?: string | null;
+  /** Spec 07 growth path: $250 and one pay cycle of bills as extra choices, and the next step. */
+  bufferSteps?: { extra: number[]; next: number | null } | null }) {
+  const choices = [...new Set([...BUFFERS, ...(bufferSteps?.extra ?? [])])].sort((a, b) => a - b);
   const rows: [string, string][] = [
     [s.steps.balance, formatCents(safe.balance)],
     [s.steps.bills(safe.bills.length), `−${formatCents(safe.billsTotal)}`],
@@ -87,13 +91,14 @@ export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer, accur
         <fieldset className="mt-t4">
           <legend className="text-body-strong text-text">{s.bufferHeading}</legend>
           <div className="mt-t2 flex flex-wrap gap-t2">
-            {BUFFERS.map((b) => (
+            {choices.map((b) => (
               <button key={b} type="button" aria-pressed={safe.buffer === b} onClick={() => onBuffer(b)}
                 className={`min-h-tap min-w-tap rounded-pill px-t4 text-small ${safe.buffer === b ? "bg-accent text-on-accent" : "bg-surface2 text-text hover:bg-neutral-soft"}`}>
                 {formatWhole(b)}
               </button>
             ))}
           </div>
+          {bufferSteps?.next && <p className="mt-t2 text-small text-text">{bufferCopy.next(formatWhole(bufferSteps.next))}</p>}
         </fieldset>
       )}
       <p className="mt-t2 text-small text-text-muted">{safe.buffer > 0 ? s.bufferNote(formatWhole(safe.buffer)) : s.bufferNoteZero} <SampleTag q="Q21" present={present} /></p>
@@ -101,7 +106,7 @@ export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer, accur
   );
 }
 
-export function CheckInCard({ checkIn, onHow, onAdjust, focus, goal = null, firstPayday = false }: { checkIn: PaydayCheckIn; onHow: () => void; onAdjust?: () => void; focus?: string | null; goal?: string | null; firstPayday?: boolean }) {
+export function CheckInCard({ checkIn, onHow, onAdjust, focus, goal = null, firstPayday = false, extra = [] }: { checkIn: PaydayCheckIn; onHow: () => void; onAdjust?: () => void; focus?: string | null; goal?: string | null; firstPayday?: boolean; extra?: string[] }) {
   useEffect(() => {
     track("checkin_opened", { source: "home" });
     track("sts_viewed", { value_cents: checkIn.safe.perDay * 100, days_left: checkIn.safe.days, nothing_spare: checkIn.safe.nothingSpare });
@@ -121,6 +126,7 @@ export function CheckInCard({ checkIn, onHow, onAdjust, focus, goal = null, firs
         {checkIn.repaymentsTotal > 0 && <li>{c.repayments(formatWhole(checkIn.repaymentsTotal))}</li>}
         <li>{checkIn.advance ? c.advance(checkIn.advance.provider, formatWhole(checkIn.advance.amount), formatShortDay(checkIn.advance.date)) : c.noAdvance}</li>
         <li className="text-body-strong">{checkIn.safe.nothingSpare ? s.none : c.safe(formatWhole(checkIn.safe.perDay))}</li>
+        {extra.map((x) => <li key={x}>{x}</li>)}
         {checkIn.safe.goal > 0 && <li className="text-caption text-text-muted">{s.goalIncluded(formatWhole(checkIn.safe.goal))}</li>}
       </ul>
       {goal && <p className="mt-t3 text-small text-text-muted">{goalLines.checkIn(goal)}</p>}
@@ -134,7 +140,11 @@ export function CheckInCard({ checkIn, onHow, onAdjust, focus, goal = null, firs
   );
 }
 
-export function RecapCard({ recap, feesAvoided, next, lead = null }: { recap: CycleRecap; feesAvoided: number; next?: string | null; lead?: "balance" | "advances" | "score" | null }) {
+export function RecapCard({ recap, feesAvoided, next, lead = null, plan = null, milestones = [], surplus = null }: { recap: CycleRecap; feesAvoided: number; next?: string | null; lead?: "balance" | "advances" | "score" | null; plan?: string | null;
+  /** Spec 07: streaks that just reached 2, 4 or 6, and "Move $X to your buffer?" when the cycle ended with money left. */
+  milestones?: { kind: "no_advance" | "no_failed_payment" | "money_left"; cycles: number }[]; surplus?: { amount: number; onProtect: () => void } | null }) {
+  const [how, setHow] = useState(false);
+  useEffect(() => { for (const m of milestones) track("streak_milestone", { type: m.kind, length: m.cycles }); }, [milestones]);
   useEffect(() => { track("recap_opened", { source: "home" }); }, [recap.cycle.start]);
   const advances = [
     recap.advances.count === 0 ? [r.noAdvance, r.streak(recap.noAdvanceStreak)].filter(Boolean).join(" ") : r.advances(recap.advances.count, formatWhole(recap.advances.total)),
@@ -165,7 +175,27 @@ export function RecapCard({ recap, feesAvoided, next, lead = null }: { recap: Cy
           </ul>
         </>
       )}
-      {next && <p className="mt-t3 text-small text-text">{r.next(next)}</p>}
+      {milestones.length > 0 && (
+        <div className="mt-t3 rounded-md bg-accent-soft p-t3">
+          <h3 className="text-caption text-text-muted">{milestoneCopy.title}</h3>
+          <ul className="flex flex-col gap-t1 text-small text-text">{milestones.map((m) => <li key={m.kind}>{milestoneCopy[m.kind](m.cycles)}</li>)}</ul>
+        </div>
+      )}
+      {surplus && (
+        <div className="mt-t3 rounded-md bg-surface2 p-t3">
+          <h3 className="text-body-strong text-text">{bufferCopy.surplusTitle(formatWhole(surplus.amount))}</h3>
+          <p className="mt-t1 text-small text-text-muted">{bufferCopy.surplusBody}</p>
+          <div className="mt-t2 flex flex-wrap gap-t2">
+            <Button variant="secondary" onClick={surplus.onProtect}>{bufferCopy.setTo(formatWhole(surplus.amount))}</Button>
+            <Button variant="tertiary" onClick={() => setHow(true)}>{bufferCopy.how}</Button>
+          </div>
+          <Sheet open={how} onClose={() => setHow(false)} title={bufferCopy.howTitle}>
+            <ol className="flex list-decimal flex-col gap-t2 pl-t5 text-body text-text">{bufferCopy.howSteps.map((x) => <li key={x}>{x}</li>)}</ol>
+          </Sheet>
+        </div>
+      )}
+      {plan && <p className="mt-t3 text-small text-text">{plan}</p>}
+      {next && <p className={plan ? "text-small text-text" : "mt-t3 text-small text-text"}>{r.next(next)}</p>}
       <LinkRow href="/spending?period=last_cycle">{r.seeSpending}</LinkRow>
       <LinkRow href="/progress">{r.past}</LinkRow>
     </section>

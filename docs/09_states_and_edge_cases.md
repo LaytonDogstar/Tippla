@@ -27,6 +27,7 @@ Fixtures include a **pending** transaction for each persona (status `pending`, `
 - Multi-account — dev toggle adds a second account; account filter appears on Spending
 - Pending transactions — shown in feed, excluded from totals until posted
 - *(06/10, spec 05)* Stale bank data (`?state=stale`): no new data for 80 hours. Every page says "Based on data from Fri 25/09 · Reconnect", safe to spend pauses ("Reconnect to see today's figure"), and a "We haven't had new bank data for a while" card appears. Reconnecting clears it.
+- *(06/10, spec 07)* Five improving pay cycles (`?state=improved`): the score history is replayed as a steady climb to 604 (jess: 472 → 604), so Today shows "You've reached Healthy" and "What's next". Scores only: transactions and factors are unchanged (Q38).
 - *(spec 05)* Consent ending (`?state=consent_expiring`): the bank-data consent ends in 10 days (Mon 05/10). A feed card, the status line notice, "Ending soon" on Bank connections with the reminder dates, and "Renew access".
 
 ## Mode states

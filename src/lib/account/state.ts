@@ -29,6 +29,8 @@ export interface Goal { amount: number; by: string; setAt: string }
 export const FOCUS_GOALS = ["reach_payday", "off_advances", "lift_score", "cut_bills", "build_buffer", "gambling_less"] as const;
 export type FocusGoalType = (typeof FOCUS_GOALS)[number];
 export interface FocusGoal { type: FocusGoalType; startedAt: string }
+export const PLAN_TYPES = ["off_advances", "reach_payday", "cut_bills", "pay_on_time", "gambling_less"] as const;
+export type PlanType = (typeof PLAN_TYPES)[number];
 export interface SubscriptionState { status: "active" | "paused" | "cancelled"; plan: PlanId; effective: string; changedAt: string }
 export interface AccountState {
   consents?: Partial<Record<ConsentId, { granted: boolean; at: string }>>;
@@ -55,6 +57,12 @@ export interface AccountState {
   entitlements?: { completedAt: string; answers?: Record<string, string> };
   /** Self-reported bill switches (spec 06), counted in the tally as "you told us". */
   billSwitches?: { merchant: string; monthly: number; at: string }[];
+  /** The member's plan (spec 07). Without one, the plan suggested by their goal and band is shown. */
+  plan?: { type: PlanType; startedAt: string; manual?: Record<string, string>; limit?: number };
+  /** Named savings goals (spec 07). Progress from a linked savings account balance. */
+  savingsGoals?: { id: string; name: string; target: number; by: string; createdAt: string; accountId?: number }[];
+  /** Stage moments already shown (spec 07: "You've reached Healthy" once). */
+  bandsSeen?: string[];
   /** Answers to "We got this one wrong" (spec 05), by forecast date. */
   forecastAnswers?: Record<string, string>;
   /** Member rules (spec 05): how Tippla should treat a merchant or payer, now and in future. */
@@ -157,6 +165,17 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   if (g && typeof g === "object" && typeof g.amount === "number" && g.amount >= GOAL_MIN && g.amount <= GOAL_MAX && isDate(g.by) && isDate(g.setAt)) {
     out.goal = { amount: Math.round(g.amount), by: g.by.slice(0, 10), setAt: g.setAt.slice(0, 10) };
   }
+  const pl = a.plan;
+  if (pl && typeof pl === "object" && (PLAN_TYPES as readonly string[]).includes(pl.type) && day(pl.startedAt)) {
+    const manual = pl.manual && typeof pl.manual === "object" ? Object.fromEntries(Object.entries(pl.manual).filter(([k, v]) => /^\d$/.test(k) && day(v))) : {};
+    out.plan = { type: pl.type, startedAt: pl.startedAt, ...(Object.keys(manual).length ? { manual } : {}), ...(typeof pl.limit === "number" && pl.limit >= 0 && pl.limit <= 5000 ? { limit: Math.round(pl.limit) } : {}) };
+  }
+  if (Array.isArray(a.savingsGoals)) {
+    const sg = a.savingsGoals.filter((g) => g && typeof g.id === "string" && typeof g.name === "string" && g.name.trim().length >= 1 && g.name.length <= 30
+      && typeof g.target === "number" && g.target >= 10 && g.target <= 50000 && day(g.by) && day(g.createdAt) && (g.accountId === undefined || Number.isInteger(g.accountId))).slice(0, 3);
+    if (sg.length) out.savingsGoals = sg.map((g) => ({ id: g.id, name: g.name.trim(), target: Math.round(g.target), by: g.by, createdAt: g.createdAt, ...(g.accountId !== undefined ? { accountId: g.accountId } : {}) }));
+  }
+  if (Array.isArray(a.bandsSeen)) { const bs = strings(a.bandsSeen).filter((b) => ["building", "steadying", "healthy", "thriving"].includes(b)); if (bs.length) out.bandsSeen = [...new Set(bs)]; }
   if (Array.isArray(a.hardshipLetters)) {
     const hl = a.hardshipLetters.filter((x) => x && typeof x.lender === "string" && x.lender.length <= 60 && day(x.at) && ["copy", "email", "pdf"].includes(x.output))
       .map((x) => ({ lender: x.lender, at: x.at, output: x.output, ...(x.outcome && ["agreed", "declined", "not_yet"].includes(x.outcome) ? { outcome: x.outcome } : {}), ...(day(x.answeredAt) ? { answeredAt: x.answeredAt } : {}) }))

@@ -1,4 +1,6 @@
 import { Info } from "lucide-react";
+import { activePlan, publicPlanTitle } from "@/lib/selectors/plans";
+import { PlanCompact } from "@/components/domain/PlanCard";
 import Link from "next/link";
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
@@ -25,6 +27,7 @@ export async function ScorePage({ searchParams, slug }: { searchParams: { person
   const all = factors(data);
   const top = topThreeFactors(data);
   const recs = recommendations(data, goal);
+  const plan = isOn("plans_v1", persona) ? activePlan(data, account, goal) : null;
   const totals = loanTotals(data);
   const panels = Object.fromEntries(all.map((f) => [f.key, {
     factor: f,
@@ -39,6 +42,7 @@ export async function ScorePage({ searchParams, slug }: { searchParams: { person
         action={<Link href="/help#score" aria-label={t.howItWorks} className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-pill bg-surface2 text-text hover:bg-neutral-soft"><Info aria-hidden size={24} /></Link>} />}>
       <ScoreView state={scoreState(data)} attribution={isOn("score_attribution_v1", persona) ? scoreAttribution(data, { hideGambling: account.hideGambling }) : null} projection={projectScore(data, isOn("score_projection_v1", persona), goal)} trend={scoreTrend(data)} top={top} others={others} strongest={strongestFactor(data)}
         panels={panels} scoredAt={data.score?.scoredAt ?? null} initial={slug ? factorFromSlug(slug) : null} present={present} stagesSample={STAGES_ARE_SAMPLE} />
+      {plan && <div className="mt-t3 pb-t6"><PlanCompact plan={plan} title={publicPlanTitle(plan)} /></div>}
     </PortalShell>
   );
 }

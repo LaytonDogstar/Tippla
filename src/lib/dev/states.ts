@@ -4,7 +4,7 @@
 import type { PersonaData, Transaction } from "@/lib/api/types";
 import { addDays } from "@/lib/format/dates";
 
-export const DEV_STATES = ["analysing", "lapsed", "bank_expired", "offline", "one_off", "two_accounts", "payday", "bill_due", "billing_failed", "stale", "consent_expiring"] as const;
+export const DEV_STATES = ["analysing", "lapsed", "bank_expired", "offline", "one_off", "two_accounts", "payday", "bill_due", "billing_failed", "stale", "consent_expiring", "improved"] as const;
 export type DevState = (typeof DEV_STATES)[number];
 export const DEV_COOKIE = "tippla-dev";
 
@@ -23,6 +23,8 @@ export function applyDevStates(d: PersonaData, states: DevState[]): PersonaData 
   if (states.includes("two_accounts")) out = withSecondAccount(out);
   // Spec 05: the bank data consent ends in 10 days (granted 12 months less 10 days ago).
   if (states.includes("consent_expiring")) out = withConsentEnding(out, 10);
+  // Spec 07: five improving pay cycles that take the member into Healthy (scores only; Q38).
+  if (states.includes("improved")) out = withImprovement(out, 604);
   return out;
 }
 
@@ -70,4 +72,14 @@ function withConsentEnding(d: PersonaData, days: number): PersonaData {
   const end = addDays(d.asOf, days);
   const at = `${Number(end.slice(0, 4)) - 1}${end.slice(4)}T10:00:00+10:00`;
   return { ...d, consents: d.consents.map((c) => (c.id === "talefin_bank_data" ? { ...c, granted_at: at } : c)) };
+}
+
+/** Replay the score history as a steady climb from the first refresh's score... to `to` (at least Healthy). */
+function withImprovement(d: PersonaData, to: number): PersonaData {
+  if (!d.score || d.score.score === null || d.score.override || d.scoreHistory.length < 2) return d;
+  const from = d.score.score < to ? d.score.score : d.scoreHistory[0]!.score;
+  const target = Math.max(to, d.score.score);
+  const n = d.scoreHistory.length - 1;
+  const history = d.scoreHistory.map((h, i) => ({ ...h, score: Math.round(from + ((target - from) * i) / n) }));
+  return { ...d, scoreHistory: history, score: { ...d.score, score: target } };
 }

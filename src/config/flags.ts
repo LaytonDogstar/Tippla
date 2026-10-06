@@ -69,3 +69,10 @@ export const FORECAST_ACCURACY = { within: 20, of: 10, showMin: 8, missDollars: 
 /** Spec 05 connection health: stale after 48 h without new data, safe to spend paused after 72 h, consent
  *  reminders 14 and 3 days before it ends and on the day. */
 export const CONNECTION = { staleHours: 48, pauseHours: 72, expiringDays: 14, reminderDays: [14, 3, 0] } as const;
+
+/** Spec 07 plans (Q37, sample logic): the pay-advance steps, one per pay cycle. */
+export const PLAN_ADVANCE_STEPS = [150, 75, 0] as const;
+/** Spec 07 buffer growth suggestions; the last step is one pay cycle of bills. */
+export const BUFFER_STEPS = [50, 100, 250] as const;
+/** Streak milestones that get a card (spec 07). */
+export const STREAK_MILESTONES = [2, 4, 6] as const;

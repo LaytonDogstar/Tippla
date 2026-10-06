@@ -53,7 +53,7 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
     <div className="flex flex-col gap-t4 pb-t6 desktop:grid desktop:grid-cols-2 desktop:items-start desktop:gap-t6">
       <div className="flex flex-col gap-t4">
         {/* Goal */}
-        <section aria-labelledby="goal-h" className="rounded-lg bg-surface p-t4">
+        <section id="buffer" aria-labelledby="goal-h" className="rounded-lg bg-surface p-t4">
           <div className="flex flex-wrap items-center gap-t2">
             <Flag aria-hidden size={20} className="text-accent" />
             <h2 id="goal-h" className="text-h3 text-text">{t.goal.heading}</h2>

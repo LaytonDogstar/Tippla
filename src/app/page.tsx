@@ -2,7 +2,7 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { connectionHealth, forecastAccuracy, goalLabel, goalOptions, isFirstPayday, recapLead, goalPlan, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
+import { savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, goalOptions, isFirstPayday, recapLead, goalPlan, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
 import { addDays, daysBetween, formatShortDay, formatUpdated, formatDate, formatDayMonth, formatWhole, toAESTDate } from "@/lib/format";
 import { safeCopy } from "@/content/loop";
 import { flagsFor } from "@/config/featureFlags";
@@ -10,6 +10,7 @@ import { billId } from "@/lib/account/state";
 import { progressCopy as p } from "@/content/progress";
 import { dashboard as t } from "@/content/dashboard";
 import { accuracyCopy } from "@/content/corrections";
+import { savingsCopy } from "@/content/plans";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
 import { HeaderActions } from "@/components/shell/HeaderActions";
@@ -62,6 +63,7 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
   const acc = on.forecast_accuracy_v1 && !staleSince ? forecastAccuracy(data) : null;
   const accuracyLine = acc?.show ? accuracyCopy.line(formatWhole(acc.within), acc.hits, acc.of) : null;
   const miss = acc?.miss && !account.forecastAnswers?.[acc.miss.forDate] ? acc.miss : null;
+  const multiPlan = on.plans_v1 ? activePlan(data, account, goal) : null;
   const bannerView = banner && (
     banner.kind === "hardship" ? { text: t.banners.hardship, href: "/hardship" }
       : banner.kind === "score_drop" ? { text: t.banners.scoreDrop(banner.points), href: "/score" }
@@ -99,6 +101,12 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
         recapLead={recapLead(goal?.type)}
         accuracyLine={accuracyLine}
         miss={miss}
+        bufferSteps={on.buffer_v1 ? { extra: [250, cycleOfBills(data)], next: nextBufferStep(data, account.buffer ?? 0) } : null}
+        milestones={recap && on.streaks_v1 ? streakMilestones(data) : []}
+        surplus={recap && on.buffer_v1 ? surplusSuggestion(data, recap.endBalance, account.buffer ?? 0) : null}
+        savingsLines={checkIn && on.savings_goals_v1 ? (account.savingsGoals ?? []).map((g) => savingsGoalStatus(data, g)).filter((g) => !g.reached).map((g) => savingsCopy.checkIn(g.goal.name, formatWhole(g.perCycle))) : []}
+        moment={on.streaks_v1 ? stageMoment(data, account) : null}
+        plan={multiPlan ? { progress: multiPlan, title: publicPlanTitle(multiPlan) } : null}
         stsPaused={health?.pauseSafeToSpend ? health.dataFrom : null}
         payPending={!checkIn && payday === data.asOf}
         progressText={plan ? (plan.latest ? p.homeGoal(formatWhole(plan.amount), formatDayMonth(plan.by), plan.percent) : p.homeGoalPending(formatWhole(plan.amount), formatDayMonth(plan.by))) : p.homeNoGoal}
