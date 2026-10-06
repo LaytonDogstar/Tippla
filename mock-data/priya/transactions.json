@@ -17,7 +17,7 @@
     {
       "date": "2026-08-13",
       "description": "BWS",
-      "merchant": "Bws",
+      "merchant": "BWS",
       "amount": -50.53,
       "category": "alcohol",
       "subcategory": null,
@@ -95,7 +95,7 @@
     {
       "date": "2026-08-16",
       "description": "GRILL'D",
-      "merchant": "Grill'D",
+      "merchant": "Grill'd",
       "amount": -23.81,
       "category": "food",
       "subcategory": null,
@@ -290,7 +290,7 @@
     {
       "date": "2026-08-26",
       "description": "AMAZON AU",
-      "merchant": "Amazon Au",
+      "merchant": "Amazon AU",
       "amount": -24.1,
       "category": "shopping",
       "subcategory": null,
@@ -355,7 +355,7 @@
     {
       "date": "2026-08-28",
       "description": "BIG W",
-      "merchant": "Big W",
+      "merchant": "BIG W",
       "amount": -23.03,
       "category": "shopping",
       "subcategory": null,
@@ -420,7 +420,7 @@
     {
       "date": "2026-08-29",
       "description": "BWS",
-      "merchant": "Bws",
+      "merchant": "BWS",
       "amount": -42.47,
       "category": "alcohol",
       "subcategory": null,
@@ -459,7 +459,7 @@
     {
       "date": "2026-08-30",
       "description": "DAN MURPHYS",
-      "merchant": "Dan Murphys",
+      "merchant": "Dan Murphy's",
       "amount": -34.24,
       "category": "alcohol",
       "subcategory": null,
@@ -511,7 +511,7 @@
     {
       "date": "2026-09-02",
       "description": "BIG W",
-      "merchant": "Big W",
+      "merchant": "BIG W",
       "amount": -59.74,
       "category": "shopping",
       "subcategory": null,
@@ -563,7 +563,7 @@
     {
       "date": "2026-09-04",
       "description": "GRILL'D",
-      "merchant": "Grill'D",
+      "merchant": "Grill'd",
       "amount": -14.31,
       "category": "food",
       "subcategory": null,
@@ -589,7 +589,7 @@
     {
       "date": "2026-09-05",
       "description": "GRILL'D",
-      "merchant": "Grill'D",
+      "merchant": "Grill'd",
       "amount": -38.38,
       "category": "food",
       "subcategory": null,
@@ -706,7 +706,7 @@
     {
       "date": "2026-09-10",
       "description": "BIG W",
-      "merchant": "Big W",
+      "merchant": "BIG W",
       "amount": -58.47,
       "category": "shopping",
       "subcategory": null,
@@ -732,7 +732,7 @@
     {
       "date": "2026-09-11",
       "description": "GRILL'D",
-      "merchant": "Grill'D",
+      "merchant": "Grill'd",
       "amount": -39.24,
       "category": "food",
       "subcategory": null,
@@ -836,7 +836,7 @@
     {
       "date": "2026-09-14",
       "description": "MCDONALDS",
-      "merchant": "Mcdonalds",
+      "merchant": "McDonald's",
       "amount": -34.54,
       "category": "food",
       "subcategory": null,
@@ -888,7 +888,7 @@
     {
       "date": "2026-09-16",
       "description": "GRILL'D",
-      "merchant": "Grill'D",
+      "merchant": "Grill'd",
       "amount": -36.65,
       "category": "food",
       "subcategory": null,
@@ -914,7 +914,7 @@
     {
       "date": "2026-09-18",
       "description": "MCDONALDS",
-      "merchant": "Mcdonalds",
+      "merchant": "McDonald's",
       "amount": -27.37,
       "category": "food",
       "subcategory": null,
@@ -927,7 +927,7 @@
     {
       "date": "2026-09-18",
       "description": "ATM WITHDRAWAL",
-      "merchant": "Atm Withdrawal",
+      "merchant": "ATM withdrawal",
       "amount": -47.72,
       "category": "cash",
       "subcategory": null,
@@ -1031,7 +1031,7 @@
     {
       "date": "2026-09-22",
       "description": "MCDONALDS",
-      "merchant": "Mcdonalds",
+      "merchant": "McDonald's",
       "amount": -27.69,
       "category": "food",
       "subcategory": null,
@@ -1044,7 +1044,7 @@
     {
       "date": "2026-09-23",
       "description": "MCDONALDS",
-      "merchant": "Mcdonalds",
+      "merchant": "McDonald's",
       "amount": -39.55,
       "category": "food",
       "subcategory": null,

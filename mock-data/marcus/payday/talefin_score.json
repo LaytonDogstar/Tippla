@@ -1,0 +1,28 @@
+{
+  "score": {
+    "SCORE": 612,
+    "OVERRIDE": null,
+    "RISK_GRADE": "6",
+    "OVERRIDE_SCORE": null
+  },
+  "metadata": {
+    "BANKS_REFERENCE": 2469,
+    "SCORED_DATETIME": "2026-09-25 09:14:03",
+    "BUREAU_REFERENCE": null
+  },
+  "score_breakdown": {
+    "INCOME": 6.2,
+    "CASH_SPEND": 7.8,
+    "ADVERSE_SPEND": 9.6,
+    "MISSED_PAYMENT": 8.4,
+    "PRODUCTIVE_SPEND": 6.1,
+    "DISPOSABLE_INCOME": 5.9,
+    "GOVERNMENT_RELIANCE": 4.1,
+    "LOAN_AMOUNT_AND_TYPE": 6.7,
+    "RELIABLE_PAYMENT_HISTORY": 7.9
+  },
+  "Consumer": {
+    "FULL_NAME": "Marcus Webb"
+  },
+  "score_id": "marcus00af4e418c86807592833f11"
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120" viewBox="0 0 160 120" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+  <rect x="30" y="28" width="42" height="64" rx="6"/>
+  <rect x="88" y="28" width="42" height="64" rx="6"/>
+  <path d="M40 78h22m36 0h22"/>
+  <path d="M40 44h22m36 0h22" stroke="var(--color-accent, currentColor)"/>
+</svg>

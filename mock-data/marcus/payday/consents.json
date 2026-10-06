@@ -1,0 +1,28 @@
+{
+  "consents": [
+    {
+      "id": "ff_data_sharing",
+      "label": "Share my Friendly Finance application with Tippla",
+      "required": true,
+      "granted": true,
+      "granted_at": "2026-03-28T19:42:10+11:00",
+      "version": "1.2"
+    },
+    {
+      "id": "talefin_bank_data",
+      "label": "Let Tippla read my bank data through TaleFin",
+      "required": true,
+      "granted": true,
+      "granted_at": "2026-03-28T19:42:10+11:00",
+      "version": "1.2"
+    },
+    {
+      "id": "lender_matching",
+      "label": "Show my profile to partner lenders when I might qualify",
+      "required": false,
+      "granted": true,
+      "granted_at": "2026-03-28T19:42:10+11:00",
+      "version": "1.2"
+    }
+  ]
+}

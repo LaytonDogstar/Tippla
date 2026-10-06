@@ -10,23 +10,24 @@
 
 ## Portal navigation
 
-**Mobile bottom tab bar (5):** Home · Score · Spending · Loans · Support
-**Desktop sidebar:** grouped as below; "Hardship support" must always be visible without scrolling the nav.
+**Mobile bottom tab bar (5):** Today · Money · Score · Borrowing · Help *(renamed 05/10/2026; routes unchanged)*
+**Desktop sidebar:** grouped as below; "Hardship support" must always be visible without scrolling the nav. Account and Notifications sit with the profile at the bottom.
+**Badges:** each section shows how many open "Needs a look" items belong to it (Today 1 · Money 4 · Score 1 · Borrowing 1 for Jess).
 
 | Tab / group | Routes |
 |---|---|
-| Home | `/` Dashboard |
+| Today | `/` Today (status line, safe to spend or payday check-in, Needs a look, recap on payday, pay cycle, score, progress link) · `/progress` Your progress (goal, streaks, money left before each payday, score and actions) |
 | Score | `/score` SmartScore · `/score/[factor]` factor detail · `/savings` Ways to lift your score |
-| Spending | `/spending` (Overview · Categories · Budgets tabs) · `/spending/compare` · `/calendar` · `/subscriptions` |
-| Loans | `/loans` (Overview · Upcoming · History · Other credit tabs) · `/loans/repayment` calculator · `/offers` |
-| Support | `/hardship` · `/help` (search-led FAQ) |
+| Money | `/spending` (Overview · Categories · Budgets tabs) · `/spending/compare` · `/calendar` · `/subscriptions` |
+| Borrowing | `/loans` (Overview · Upcoming · History · Other credit tabs) · `/loans/repayment` calculator · `/offers` |
+| Help | `/hardship` · `/help` (search-led FAQ) |
 | Account (avatar menu) | `/account/profile` · `/account/subscription` · `/account/consents` · `/account/bank` |
-| Global | `/notifications` (bell in header), sheets/drawers for detail |
+| Global | `/notifications` (bell in header) · `/notifications/summary` weekly summary, sheets/drawers for detail |
 
 ## Global elements
 
 - Header: page title, notifications bell (badge count), avatar.
-- Bank data freshness line where numbers appear: "Updated Thu 25/09, 9:14am".
+- Bank data freshness line where numbers appear: "Updated Fri 25/09, 9:14am".
 - Sheets (mobile) / right drawers (desktop) for: transaction detail, merchant detail, category detail, loan detail, lender detail, recommendation detail, factor detail.
 - Toasts for confirmations ("Moved to Groceries. Totals updated").
 - Dev-only persona switcher and theme toggle.

@@ -1,0 +1,47 @@
+@import "./tokens.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
+}
+
+.tnum { font-variant-numeric: tabular-nums; font-family: var(--font-numeric); }
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+/* Controls on the fixed brand gradient use the light onAccent ring (components.md shared contract). */
+.on-brand :focus-visible { outline-color: var(--brand-on); }
+
+.brand-surface {
+  background: linear-gradient(118deg, var(--brand-from), var(--brand-to));
+  color: var(--brand-on);
+}
+
+/* Press feedback: additive inset outlines, never opacity (components.md shared contract). */
+.press-accent:active { box-shadow: inset 0 0 0 2px var(--color-accent); }
+.press-on-accent:active { box-shadow: inset 0 0 0 2px var(--color-on-accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+@media (forced-colors: active) {
+  .tippla-empty-illustration { color: CanvasText; --color-accent: CanvasText; }
+}
+
+/* The hidden attribute always wins over utility display classes. */
+[hidden] { display: none !important; }
+/* Programmatically focused headings (sheet titles) aren't controls: no ring. */
+[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none; }
+
+/* Dynamic type to 200%: a single long word ("Subscriptions") must wrap rather than push the page sideways. */
+h1, h2, h3, h4, dd, dt, p, li, a, button, label { overflow-wrap: break-word; }
+h1, h2, h3 { hyphens: auto; overflow-wrap: anywhere; }

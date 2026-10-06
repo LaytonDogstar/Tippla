@@ -40,6 +40,7 @@ Tippla is an Australian financial health subscription for people who have just b
 9. `docs/09_states_and_edge_cases.md` — personas and states to support
 10. `docs/10_open_questions.md` — unknowns; stub them, don't invent answers
 11. `docs/11_build_plan.md` — phases and acceptance criteria
+11a. `docs/12_talefin_response_review.md` — what a real TaleFin response looks like, its quirks, and data we can use
 12. `reference/spending_interaction_prototype.html` — open in a browser; it is the behavioural reference for the Spending screen
 13. `design/` — Astra's outputs land here (`tokens.json`, `components/`, `screens/`, `icons/`)
 

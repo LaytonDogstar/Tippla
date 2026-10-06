@@ -43,7 +43,7 @@ act now, limited time, hurry, don't miss out, pre-approved, guaranteed approval
 |---|---|
 | "You spend more on gambling than 98% of your peers. This is a significant concern." | Remove. Gambling is never in peer comparisons. |
 | "Gambling Impact — Significantly above safe levels" | "Gambling & alcohol spending · 3.2 / 10 — this is one of the factors lowering your score." |
-| "140% increase over 6 months — escalating pattern" | "Up from $260 in April to $705 in September." |
+| "140% increase over 6 months — escalating pattern" | "Up from $260 in April to $845 in August." (compare full calendar months; the current month is partial) |
 | "Knowing the pattern is the first step — you can set a limit or find support whenever you're ready." | Use the gambling insight template below. |
 | "37% Gambling + entertainment — Worth a closer look" | Separate categories. No nudge label. |
 | "Set a gambling limit — $1,923 unbudgeted gambling is your biggest gap" | Only offer actions Tippla can actually perform; link to real tools instead. |

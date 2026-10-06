@@ -1,0 +1,56 @@
+// Recommendation templates for "Ways to lift your score". Facts first, no lifestyle imperatives,
+// support offered not prescribed. Dollar impacts are computed; score-point impacts only behind the flag (Q3).
+export const recs = {
+  payAdvance: {
+    title: "Skip the next pay advance if you can",
+    why: (amount: string, provider: string, since: string, fee: string) => `You've taken a ${amount} ${provider} advance every fortnight since ${since}. Each costs ${fee} and comes out the day before payday.`,
+    impact: (fee: string) => `Keeps ${fee} a fortnight in fees, and the advance out of your next pay`,
+    action: "See what's due before payday",
+  },
+  smallestLoan: {
+    title: (provider: string) => `Look at paying off ${provider} before taking new credit`,
+    why: (provider: string, repay: string) => `${provider} takes ${repay} each fortnight. Fewer open loans is one of the ways to lift Current borrowing.`,
+    impact: (repay: string) => `Frees up ${repay} a pay cycle once it's paid off`,
+    action: "Work out an early repayment",
+  },
+  failedPayments: {
+    title: "Keep enough in the account for direct debits",
+    why: (n: number, latest: string) => `${n === 1 ? "1 payment" : `${n} payments`} didn't go through in the last 90 days, most recently on ${latest}. Each failed payment can add a bank fee.`,
+    impact: (fees: string) => `${fees} in dishonour fees over the last 90 days`,
+    action: "See what's due and when",
+  },
+  gambling: {
+    title: "Tools if you want them",
+    why: "Lenders look at gambling transactions when they review bank statements. Keeping gambling lower over the next 90 days is one of the ways to lift this factor.",
+    impact: (amt: string) => `${amt} in gambling deposits over the last 90 days`,
+    action: "View support options",
+  },
+  subscriptions: {
+    title: "Check your subscriptions",
+    why: (n: number) => `${n} regular subscription${n === 1 ? "" : "s"} come out of your account.`,
+    impact: (perCycle: string) => `${perCycle} a pay cycle in total`,
+    action: "Review subscriptions",
+  },
+  cash: {
+    title: "Pay by card where you can",
+    why: "Lenders can't see where cash goes, so cash withdrawals count against Cash use.",
+    impact: (amt: string) => `${amt} taken out as cash over the last 90 days`,
+    action: "See cash withdrawals",
+  },
+  moneyLeft: {
+    title: (v: string) => `Money left over is your lowest factor at ${v}`,
+    titleNotLowest: (v: string) => `Money left over is at ${v} out of 10`,
+    why: "Keeping more of each pay left after bills is one of the ways to lift it.",
+    impact: (amt: string) => `About ${amt} left after bills this pay cycle`,
+    action: "See this pay cycle",
+  },
+  wouldChange: "What it would change",
+  notRelevant: "Not relevant to me",
+  snooze: "Remind me next pay cycle",
+  snoozed: "We'll show this again next pay cycle.",
+  hidden: "Hidden for this pay cycle.",
+  pageTitle: "Your plan",
+  pageIntro: "Specific steps, with what each would change. They're options, not rules.",
+  hiddenCount: (n: number) => `${n} hidden for this pay cycle`,
+  showHidden: "Show hidden steps",
+};

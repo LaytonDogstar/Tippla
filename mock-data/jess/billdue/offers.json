@@ -1,0 +1,5 @@
+{
+  "_note": "Mock lender offers. Only shown when lender-matching consent is on. Lender names are fictional.",
+  "lender_matching_consent": false,
+  "offers": []
+}

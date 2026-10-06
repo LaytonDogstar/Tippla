@@ -4,7 +4,7 @@
 
 | Persona | Story | Score | Key states exercised |
 |---|---|---|---|
-| **jess** (default) | Hospitality shift worker, NSW, paid fortnightly (Thu). Declined by FF for $2,500. | 472, down from 521 over 5 refreshes | Declining; 2 SACC + 1 MACC + Afterpay + Zip; new Beforepay pay advance; gambling deposits rising (Apr $260 → Sep $705); overdrawn 16 of last 90 days; two dishonour fees; spending above income; no offers |
+| **jess** (default) | Hospitality shift worker, NSW, paid fortnightly (Thu). Declined by FF for $2,500. | 472, down from 521 over 5 refreshes | Declining; 2 SACC + 1 MACC + Afterpay + Zip; a $300 Beforepay advance every fortnight since 27/08 ($315 repaid the day before payday); gambling deposits rising (Apr $260 → Aug $845; Sep $705 to 25/09); overdrawn 16 of last 90 days; two dishonour fees; spending above income; no offers |
 | **marcus** | Warehouse part-time + Centrelink FTB, QLD, Pro tier | 612, up from 548 | Improving; Centrelink shown as ordinary income; one SACC paid off; Latitude AOCC; one matched offer (lender consent on); dependants flag present in fixture (must never render) |
 | **priya** | Retail, VIC, changed banks | none (override -998 thin file) | Insufficient history (45 days); onboarding and dashboard without a score; estimated date score will be available |
 
@@ -26,6 +26,9 @@ Fixtures include a **pending** transaction for each persona (status `pending`, `
 - Anomalous data — a large one-off (dev toggle adds a $4,000 bond refund credit): exclude from "monthly income" with a note "We've left out a one-off $4,000 deposit on 12/09"
 - Multi-account — dev toggle adds a second account; account filter appears on Spending
 - Pending transactions — shown in feed, excluded from totals until posted
+- *(06/10, spec 05)* Stale bank data (`?state=stale`): no new data for 80 hours. Every page says "Based on data from Fri 25/09 · Reconnect", safe to spend pauses ("Reconnect to see today's figure"), and a "We haven't had new bank data for a while" card appears. Reconnecting clears it.
+- *(06/10, spec 07)* Five improving pay cycles (`?state=improved`): the score history is replayed as a steady climb to 604 (jess: 472 → 604), so Today shows "You've reached Healthy" and "What's next". Scores only: transactions and factors are unchanged (Q38).
+- *(spec 05)* Consent ending (`?state=consent_expiring`): the bank-data consent ends in 10 days (Mon 05/10). A feed card, the status line notice, "Ending soon" on Bank connections with the reminder dates, and "Renew access".
 
 ## Mode states
 

@@ -1,0 +1,115 @@
+// Phase 2 (loop): notifications are event-driven, capped per day, optionally digested weekly, and never
+// about offers, lenders, gambling or alcohol.
+import { describe, expect, it } from "vitest";
+import { notifications, notificationEvents } from "@/lib/selectors";
+import { parseAccount, serialiseAccount } from "@/lib/account/state";
+import { load, loadBillDue, loadPayday } from "./helpers";
+
+const ids = (list: { id: string }[]) => list.map((n) => n.id);
+
+describe("notifications: events only", async () => {
+  const [jess, jessP, jessB, marcus, marcusP, priya, priyaP] = await Promise.all([
+    load("jess"), loadPayday("jess"), loadBillDue("jess"), load("marcus"), loadPayday("marcus"), load("priya"), loadPayday("priya"),
+  ]);
+  const everyone = [jess, jessP, jessB, marcus, marcusP, priya, priyaP];
+
+  it("Jess 25/09: shortfall within 5 days (goes under Wed 30/09), plus score updates", () => {
+    expect(ids(notifications(jess))).toEqual(["shortfall-2026-09-17", "score-2026-09-25", "score-2026-09-11", "score-2026-08-28"]);
+    const s = notifications(jess)[0]!;
+    expect(s.title).toBe("Heads up: about $53 short before payday");
+    expect(s.body).toContain("Wed 30/09");
+    expect(s.href).toBe("/hardship"); // hardship options one tap away when a shortfall is forecast
+  });
+
+  it("Jess 29/09: tomorrow's Beforepay $315 is bigger than her balance", () => {
+    const n = notifications(jessB).find((x) => x.id === "bill-Beforepay-2026-09-30")!;
+    expect(n.title).toBe("Beforepay $315 is due tomorrow");
+    expect(n.body).toContain("overdrawn");
+    expect(notifications(jessB).find((x) => x.type === "money" && x.id.startsWith("shortfall"))?.body).toContain("options if money's tight");
+  });
+
+  it("payday: pay landed (check-in) and the recap, for everyone", () => {
+    for (const d of [jessP, marcusP, priyaP]) {
+      const list = notifications(d);
+      expect(list.some((n) => n.id.startsWith("payday-"))).toBe(true);
+      expect(list.some((n) => n.id.startsWith("recap-"))).toBe(true);
+    }
+    expect(notifications(jessP).find((n) => n.id.startsWith("payday-"))!.title).toBe("Payday: $2,305.49 landed");
+    expect(notifications(marcusP).find((n) => n.id.startsWith("recap-"))!.body).toContain("13 pay cycles in a row");
+  });
+
+  it("the recap never mentions a streak that ended", () => {
+    const r = notifications(jessP).find((n) => n.id.startsWith("recap-"))!;
+    expect(r.body).toBe("$2,826 spent, $2,483 paid in.");
+  });
+
+  it("no routine messages: nothing about a refresh or a payment going through", () => {
+    for (const d of everyone) for (const n of notifications(d)) expect(`${n.title} ${n.body}`).not.toMatch(/refreshed|went through|up to date/i);
+    expect(notifications(priya)).toEqual([]); // nothing has happened yet: an empty inbox
+  });
+
+  it("never offers, lenders, gambling or alcohol, in any persona or snapshot", () => {
+    for (const d of everyone) {
+      for (const n of notificationEvents(d)) expect(`${n.title} ${n.body} ${n.href}`).not.toMatch(/offer|lender|gambl|betting|casino|alcohol|liquor|bottle/i);
+    }
+  });
+
+  it("account changes still notify (bank disconnected)", () => {
+    expect(ids(notifications(jess, { bank: { disconnected: true } }))).toContain("bank-off-2026-09-25");
+  });
+});
+
+describe("notifications: the spec 10 policy decides delivery", async () => {
+  const [jessB, jessP] = await Promise.all([loadBillDue("jess"), loadPayday("jess")]);
+  const today = (d: typeof jessB, a = {}) => notifications(d, a).filter((n) => n.date === d.asOf).map((n) => [n.id.split("-")[0], n.delivery]);
+
+  it("one urgent money alert a day, plus one other; the rest wait in the inbox", () => {
+    expect(today(jessB, { bank: { disconnected: true } })).toEqual([["shortfall", "push"], ["bill", "inbox"], ["bank", "push"]]);
+  });
+
+  it("payday: the check-in goes out; the recap waits in the inbox (one normal a day)", () => {
+    expect(today(jessP)).toEqual([["payday", "push"], ["recap", "inbox"]]);
+  });
+
+  it("weekly digest takes low-priority score updates; money alerts and payday still come straight away", () => {
+    const list = notifications(jessP, { notify: { digest: true } });
+    for (const n of list.filter((x) => x.type === "score" && x.date >= "2026-09-25")) expect(n.delivery).toBe("digest");
+    expect(list.find((n) => n.id.startsWith("payday-"))!.delivery).toBe("push");
+    expect(notifications(jessB, { notify: { digest: true } }).find((n) => n.type === "money")!.delivery).toBe("push");
+  });
+
+  it("paused: nothing goes out; categories turned off stay in the inbox; email when push is off", () => {
+    expect(today(jessB, { notify: { digest: false, paused: true } }).map((x) => x[1])).toEqual(["paused", "paused"]);
+    const off = { notify: { digest: false, channels: { money: { push: false, email: false } } } };
+    expect(today(jessB, off).map((x) => x[1])).toEqual(["off", "off"]);
+    const email = { notify: { digest: false, channels: { payday: { push: false, email: true } } } };
+    expect(today(jessP, email)).toEqual([["payday", "email"], ["recap", "inbox"]]);
+  });
+
+  it("notification settings survive the cookie round trip; bad values are dropped", () => {
+    const n = { digest: true, paused: false, detailed: true, quiet: { start: "22:00", end: "07:00" }, channels: { money: { push: true, email: true } } };
+    expect(parseAccount(serialiseAccount(undefined, "jess", { notify: n }), "jess").notify).toEqual(n);
+    const bad = encodeURIComponent(JSON.stringify({ jess: { notify: { digest: true, quiet: { start: "9pm", end: "8am" }, channels: { money: { push: "yes" } } } }, marcus: { notify: { cap: 2 } } }));
+    expect(parseAccount(bad, "jess").notify).toEqual({ digest: true, channels: {} });
+    expect(parseAccount(bad, "marcus").notify).toBeUndefined();
+  });
+});
+
+
+describe("weekly summary and goals in notifications", async () => {
+  const { weeklySummary } = await import("@/lib/selectors");
+  const [jess, jessP] = await Promise.all([load("jess"), loadPayday("jess")]);
+
+  it("the summary is this week's events only, with the same guardrails", () => {
+    const w = weeklySummary(jess);
+    expect([w.from, w.to]).toEqual(["2026-09-19", "2026-09-25"]);
+    expect(ids(w.items)).toEqual(["shortfall-2026-09-17", "score-2026-09-25"]);
+    for (const n of w.items) expect(`${n.title} ${n.body}`).not.toMatch(/offer|lender|gambl|alcohol/i);
+  });
+
+  it("the payday notification's safe-to-spend figure allows for the goal, like Today does", () => {
+    const goal = { amount: 200, by: "2026-12-09", setAt: "2026-10-01" };
+    expect(notifications(jessP, { goal }).find((n) => n.id.startsWith("payday-"))!.body).toContain("about $25 a day");
+    expect(notifications(jessP).find((n) => n.id.startsWith("payday-"))!.body).toContain("about $28 a day");
+  });
+});
