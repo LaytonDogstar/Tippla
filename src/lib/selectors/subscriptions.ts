@@ -2,6 +2,7 @@ import { addDays, daysBetween, type ISODate } from "@/lib/format/dates";
 import { applyOverrides, type CategoryOverrides } from "./transactions";
 import { cents, sumMoney } from "@/lib/format/money";
 import type { SpendData } from "./periods";
+import type { PersonaData } from "@/lib/api/types";
 
 /** Same day next month, clamped to the month's last day (31/01 → 28/02). */
 export function addMonth(date: ISODate): ISODate {
@@ -33,10 +34,12 @@ const SINGLE_CHARGE_DAYS = 35;
  * charge counts only if it's recent (a new subscription); an old one-off, weekly or yearly charge doesn't.
  * The feed uses the history for "new" and "price rise".
  */
-export function detectSubscriptions(d: Pick<SpendData, "transactions" | "asOf">, edits: CategoryOverrides = {}): SubscriptionHistory[] {
+export function detectSubscriptions(d: Pick<SpendData, "transactions" | "asOf"> & { memberRules?: PersonaData["memberRules"] }, edits: CategoryOverrides = {}): SubscriptionHistory[] {
   const m = new Map<string, SubscriptionHistory["charges"]>();
+  // Spec 05: "Not a subscription" / "This has ended" take the merchant out.
+  const ended = new Set(d.memberRules?.endedSubscriptions ?? []);
   for (const t of applyOverrides(d.transactions, edits)) {
-    if (t.status !== "posted" || t.amount >= 0 || t.category !== "subscriptions") continue;
+    if (t.status !== "posted" || t.amount >= 0 || t.category !== "subscriptions" || ended.has(t.merchant)) continue;
     m.set(t.merchant, [...(m.get(t.merchant) ?? []), { id: t.id, date: t.date, amount: -t.amount }]);
   }
   return [...m.entries()].flatMap(([merchant, charges]) => {

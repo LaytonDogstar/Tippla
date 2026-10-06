@@ -25,6 +25,8 @@ export const statesCopy = {
     payday: "Payday (morning pay lands)",
     bill_due: "Bill tomorrow (Jess, 29/09)",
     billing_failed: "Tippla payment failed",
+    stale: "Bank data 3+ days old",
+    consent_expiring: "Bank consent ends in 10 days",
   },
   clearStates: "Clear states",
   hardshipSelf: {

@@ -1,6 +1,9 @@
 // Dev-only analytics dashboards (spec 09): 1. north-star and supporting metrics, 2. signup cohort retention,
 // 3. feed performance by rule, plus the guardrail panel. Demo data is generated on first visit (synthetic
 // members, flagged `seeded`); real events from using the app are counted alongside it.
+import { loadPersona, PERSONAS } from "@/lib/api/client";
+import { forecastAccuracy, HORIZONS } from "@/lib/selectors/forecastAccuracy";
+import { storedAccuracy } from "@/lib/forecast/snapshots";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { CircleAlert, CircleCheck } from "lucide-react";
@@ -25,6 +28,9 @@ export default async function AnalyticsPage() {
   if ((await seededCount()) === 0) await reseed();
   const now = new Date();
   const [ns, cohorts, feed, guard, onb, database] = await Promise.all([northStar(now), cohortRetention(now), feedPerformance(now), guardrails(now), onboardingMetrics(now), db()]);
+  // Spec 05: forecast accuracy per member segment (each demo persona) and horizon, backtested, plus snapshots.
+  const accuracy = await Promise.all(PERSONAS.map(async (id) => ({ id, a: forecastAccuracy((await loadPersona(id, { latencyMs: 0 })).data) })));
+  const stored = await storedAccuracy();
   const real = Number((await database.query<{ n: string }>("SELECT count(*) AS n FROM analytics_events WHERE NOT seeded")).rows[0]?.n ?? 0);
 
   return (
@@ -170,6 +176,31 @@ export default async function AnalyticsPage() {
             </table>
           </div>
           <p className="mt-t2 text-caption text-text-muted">Use this to tune the first-insight order (experiment <code>aha_priority</code>).</p>
+        </section>
+
+        {/* 5. Forecast accuracy (spec 05) */}
+        <section aria-labelledby="fa-h" className="rounded-lg bg-surface p-t5">
+          <h2 id="fa-h" className="text-h2 font-display">Forecast accuracy</h2>
+          <p className="mt-t1 text-small text-text-muted">Mean absolute error of the end-of-day balance forecast, last 30 days, by how far ahead it was made. Backtested on bank balances (sample logic, Q31).</p>
+          <div className="mt-t4 overflow-x-auto" tabIndex={0} role="region" aria-label="Forecast accuracy table (scrolls sideways)">
+            <table className="tnum w-full text-small">
+              <caption className="sr-only">Mean absolute error in dollars by segment and horizon, and 1-day hits within the member-facing threshold</caption>
+              <thead className="text-caption text-text-muted"><tr>
+                {["Segment", ...HORIZONS.map((h) => `${h} day${h === 1 ? "" : "s"}`), "1-day within $20 (last 10)", "Shown to member"].map((h, i) => <th key={h} scope="col" className={`p-t2 font-normal ${i ? "text-right" : "text-left"}`}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {accuracy.map(({ id, a }) => (
+                  <tr key={id} className="border-t border-line">
+                    <th scope="row" className="p-t2 text-left font-normal">{id}</th>
+                    {HORIZONS.map((h) => <td key={h} className="p-t2 text-right">{a.mae[h] === null ? "—" : `$${a.mae[h]}`}</td>)}
+                    <td className="p-t2 text-right">{a.hits} of {a.of}</td>
+                    <td className="p-t2 text-right">{a.show ? "Yes" : "No"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-t2 text-caption text-text-muted">Stored daily snapshots compared so far: {stored.length ? stored.map((s) => `${s.horizon}d ${s.compared}${s.mae === null ? "" : ` ($${s.mae})`}`).join(" · ") : "none yet"}.</p>
         </section>
 
         {/* Registry and flags */}

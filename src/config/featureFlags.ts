@@ -24,9 +24,10 @@ export const FLAGS = {
   onboarding_v2: { spec: "04", description: "First insight and goal selection", built: true },
   goals_v1: { spec: "04", description: "Member goal drives plan, check-in and recap", built: true },
   // 05 Data trust
-  corrections_v1: { spec: "05", description: "Member corrections to bills, subscriptions, loans, income", built: false, gate: ["G3"] },
-  forecast_accuracy_v1: { spec: "05", description: "Forecast accuracy tracking", built: false },
-  connection_health_v1: { spec: "05", description: "Bank connection health and re-consent", built: false },
+  corrections_v1: { spec: "05", description: "Member corrections to bills, subscriptions, loans, income", built: true },
+  corrections_sharing_v1: { spec: "05", description: "Anonymised corrections shared with the categorisation team", built: true, gate: ["G3"] },
+  forecast_accuracy_v1: { spec: "05", description: "Forecast accuracy tracking", built: true },
+  connection_health_v1: { spec: "05", description: "Bank connection health and re-consent", built: true },
   // 06 Action tools
   hardship_autofill_v1: { spec: "06", description: "Hardship letter pre-filled from data", built: false, gate: ["G6"] },
   cancel_helper_v1: { spec: "06", description: "Subscription cancellation helper", built: true },

@@ -1,6 +1,8 @@
 "use client";
 // P3 Spending, after reference/spending_interaction_prototype.html: the chart is a control, rows expand to
 // merchants, any transaction can be recategorised and every figure (donut, rows, budgets, hero, Home) moves.
+import { useCorrections } from "@/lib/account/useCorrections";
+import { correctionCopy } from "@/content/corrections";
 import { ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -68,7 +70,9 @@ function vsLabel(p: Period): string {
   return t.vsLabel.rolling;
 }
 
-export function SpendingView({ persona, data, initialEdits, payCycle, gambling, accounts, params }: {
+export function SpendingView({ persona, data, initialEdits, payCycle, gambling, accounts, params, asOf, corrections = null }: {
+  /** Spec 05: corrections on (with the payers the member has marked one-off or regular). */
+  asOf?: string; corrections?: { oneOff: string[]; regular: string[] } | null;
   persona: PersonaId; present: boolean; data: SpendData; initialEdits: CategoryOverrides; payCycle: PayCycleSummary;
   gambling: GamblingFacts | null; accounts: { id: number; label: string }[]; params: SpendingParams;
 }) {
@@ -269,10 +273,11 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
       )}
 
       {/* ---- Sheets (one at a time; follow-ons replace content with Back) ---- */}
-      <DueSheet open={sheet?.kind === "due"} onClose={() => setSheet(null)} payCycle={payCycle} />
+      <DueSheet open={sheet?.kind === "due"} onClose={() => setSheet(null)} payCycle={payCycle} persona={corrections ? persona : undefined} asOf={asOf} />
       <InsightSheets sheet={sheet} setSheet={setSheet} items={insightItems} insights={insights} budgets={budgets} onBudget={(c) => setSheet({ kind: "budget", category: c })} />
       <MerchantSheet sheet={sheet} setSheet={setSheet} data={scoped} p={p} edits={edits} original={original} onRecategorise={recategorise} />
       <TransactionSheet sheet={sheet} setSheet={setSheet} tx={sheet?.kind === "tx" ? txById.get(sheet.id) ?? null : null} original={original} edits={edits} onRecategorise={recategorise}
+        persona={persona} corrections={corrections}
         onReset={(id) => recategorise(id, original[id]!)} />
       <BudgetSheet sheet={sheet} setSheet={setSheet} data={data} budgets={budgets} edits={edits}
         onSave={(c, v) => {
@@ -457,13 +462,17 @@ function MerchantSheet({ sheet, setSheet, data, p, edits, original, onRecategori
 }
 
 // ---- Transaction sheet -------------------------------------------------------------------------------
-function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise, onReset }: {
+function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise, onReset, persona, corrections }: {
+  persona: PersonaId; corrections: { oneOff: string[]; regular: string[] } | null;
   sheet: SheetState; setSheet: (s: SheetState) => void; tx: Transaction | null; original: Record<string, CategoryId>;
   edits: CategoryOverrides; onRecategorise: (id: string, c: CategoryId) => void; onReset: (id: string) => void;
 }) {
   const from = sheet?.kind === "tx" ? sheet.fromMerchant : undefined;
   const Icon = tx ? categoryIcons[tx.subcategory === "centrelink" ? "centrelink" : tx.category] : null;
   const debit = !!tx && tx.amount < 0;
+  const { addRule } = useCorrections(persona);
+  const c = correctionCopy.transaction;
+  const kind = tx && corrections ? (corrections.oneOff.includes(tx.merchant) ? "one_off" : corrections.regular.includes(tx.merchant) ? "regular" : null) : null;
   return (
     <Sheet open={!!tx} onClose={() => setSheet(null)} title={tx?.merchant ?? ""}
       subtitle={tx ? `${formatShortDay(tx.date)} · ${tx.amount < 0 ? "−" : "+"}${formatCents(Math.abs(tx.amount))}` : undefined}
@@ -486,10 +495,24 @@ function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise
                 </div>
               )}
               {tx.category === "transfer" && <p className="text-small text-text-muted">{t.tx.transferNote}</p>}
+              {/* Spec 05: make it a member rule, so future payments from this merchant follow it. */}
+              {corrections && <Button variant="secondary" full onClick={() => addRule({ kind: "category", merchant: tx.merchant, category: tx.category }, { from: original[tx.id] })}>{c.allFrom(tx.merchant)}</Button>}
               <p className="text-small text-text-muted">{t.tx.hint}</p>
             </>
           ) : (
-            <p className="text-small text-text">{categoryNames[tx.category]}</p>
+            <>
+              <p className="text-small text-text">{categoryNames[tx.category]}</p>
+              {corrections && tx.category === "income" && (
+                <fieldset>
+                  <legend className="text-body-strong text-text">{c.income}</legend>
+                  <div className="mt-t2 flex flex-wrap gap-t2">
+                    <Button variant={kind === "one_off" ? "primary" : "secondary"} aria-pressed={kind === "one_off"} onClick={() => addRule({ kind: "income_one_off", merchant: tx.merchant })}>{c.oneOff}</Button>
+                    <Button variant={kind === "regular" ? "primary" : "secondary"} aria-pressed={kind === "regular"} onClick={() => addRule({ kind: "income_regular", merchant: tx.merchant })}>{c.regular}</Button>
+                  </div>
+                  <p className="mt-t2 text-caption text-text-muted">{c.incomeNote}</p>
+                </fieldset>
+              )}
+            </>
           )}
         </div>
       )}

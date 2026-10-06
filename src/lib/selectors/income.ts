@@ -35,8 +35,10 @@ export function oneOffDeposits(d: PersonaData): OneOff[] {
   const since = addDays(d.asOf, -89);
   const credits = posted(d.transactions).filter((t) => t.category === "income" && t.amount > 0 && t.date >= since);
   const fromPayer = (m: string) => credits.filter((t) => t.merchant === m).length;
+  // Spec 05: the member's word wins: "One-off" leaves a payer out, "Regular pay" keeps it in.
+  const oneOff = new Set(d.memberRules?.oneOffIncome ?? []), regular = new Set(d.memberRules?.regularIncome ?? []);
   return credits
-    .filter((t) => !t.is_recurring && t.subcategory !== "wages" && t.subcategory !== "centrelink" && t.amount >= 1000 && fromPayer(t.merchant) === 1)
+    .filter((t) => !regular.has(t.merchant) && (oneOff.has(t.merchant) || (!t.is_recurring && t.subcategory !== "wages" && t.subcategory !== "centrelink" && t.amount >= 1000 && fromPayer(t.merchant) === 1)))
     .map((t) => ({ id: t.id, date: t.date, amount: t.amount, payer: t.merchant }));
 }
 
@@ -181,7 +183,8 @@ export interface ExpectedIncome { date: ISODate; source: IncomeSource; payer: st
 export function upcomingIncome(d: PersonaData, until: ISODate): ExpectedIncome[] {
   const horizon = Math.max(0, daysBetween(d.asOf, until));
   const streams = d.transactions.length ? incomeStreams(d, horizon) : incomeStreamsFromSummary(d, horizon);
-  return streams
+  const oneOff = new Set(d.memberRules?.oneOffIncome ?? []); // spec 05: the member said it won't repeat
+  return streams.filter((s) => !oneOff.has(s.payer))
     .flatMap((s) => s.next.map((date) => ({ date, source: s.source, payer: s.payer, amount: s.typicalAmount, exact: s.exact })))
     .sort((a, b) => a.date.localeCompare(b.date) || a.payer.localeCompare(b.payer));
 }

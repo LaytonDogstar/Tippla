@@ -4,6 +4,7 @@
 import type { Consent, PersonaData, PersonaId } from "@/lib/api/types";
 import type { PlanId } from "@/config/plans";
 import type { FeedState } from "@/lib/feed/types";
+import { applyRules, parseRules, type BillAdjust, type MemberRule } from "./corrections";
 
 export const ACCOUNT_COOKIE = "tippla-account";
 export const GOAL_MIN = 20;
@@ -34,7 +35,8 @@ export interface AccountState {
   subscription?: SubscriptionState;
   dismissedOffers?: string[];
   readNotifications?: string[];
-  bank?: { disconnected?: boolean; refreshedAt?: string };
+  /** renewedOn: the data date the member last reconnected / renewed consent (spec 05). */
+  bank?: { disconnected?: boolean; refreshedAt?: string; renewedOn?: string };
   /** Things the customer did in the app that the value tally can later confirm in the bank data. */
   actions?: CustomerAction[];
   /** Tippla billing preference (spec 03). */
@@ -46,7 +48,11 @@ export interface AccountState {
   /** Last two safe-to-spend figures seen on different days, for "Up $4 since yesterday" (spec 02). */
   stsSeen?: { date: string; perDay: number; prev?: { date: string; perDay: number } };
   /** Check-in adjustments (spec 02): predicted bills already paid, and known one-off costs. */
-  billAdjust?: { paid: string[]; oneOffs: { id: string; label: string; amount: number; date: string }[] };
+  billAdjust?: BillAdjust;
+  /** Answers to "We got this one wrong" (spec 05), by forecast date. */
+  forecastAnswers?: Record<string, string>;
+  /** Member rules (spec 05): how Tippla should treat a merchant or payer, now and in future. */
+  rules?: MemberRule[];
   /** The member hid gambling insights (spec 01): no gambling in explanations or Spending insights. */
   hideGambling?: boolean;
   /** Usage analytics consent (spec 09). Undefined means the default: on, and the member can turn it off. */
@@ -109,6 +115,10 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
       oneOffs: (Array.isArray(adj.oneOffs) ? adj.oneOffs : []).filter((o): o is { id: string; label: string; amount: number; date: string } =>
         !!o && typeof o.id === "string" && typeof o.label === "string" && o.label.length <= 40 && typeof o.amount === "number" && o.amount > 0 && o.amount <= 10000 && day(o.date)).slice(0, 20),
     };
+    const amounts = Object.entries(adj.amounts ?? {}).filter(([k, v]) => k.length <= 120 && typeof v === "number" && v > 0 && v <= 20000).slice(0, 50);
+    const moved = Object.entries(adj.moved ?? {}).filter(([k, v]) => k.length <= 120 && day(v)).slice(0, 50);
+    if (amounts.length) out.billAdjust.amounts = Object.fromEntries(amounts.map(([k, v]) => [k, Math.round(v * 100) / 100]));
+    if (moved.length) out.billAdjust.moved = Object.fromEntries(moved);
   }
   const bp = a.billingPref;
   if (bp && typeof bp === "object" && ["after_payday", "fixed_date"].includes(bp.mode) && ["monthly", "per_cycle"].includes(bp.cadence) && typeof bp.changedAt === "string") {
@@ -141,6 +151,12 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   if (g && typeof g === "object" && typeof g.amount === "number" && g.amount >= GOAL_MIN && g.amount <= GOAL_MAX && isDate(g.by) && isDate(g.setAt)) {
     out.goal = { amount: Math.round(g.amount), by: g.by.slice(0, 10), setAt: g.setAt.slice(0, 10) };
   }
+  if (a.forecastAnswers && typeof a.forecastAnswers === "object") {
+    const fa = Object.entries(a.forecastAnswers).filter(([k, v]) => day(k) && ["one_off", "bill_moved", "pay_different", "nothing"].includes(v as string)).slice(-30);
+    if (fa.length) out.forecastAnswers = Object.fromEntries(fa) as Record<string, string>;
+  }
+  const rules = parseRules(a.rules);
+  if (rules.length) out.rules = rules;
   const fg = a.focusGoal;
   if (fg && typeof fg === "object" && (FOCUS_GOALS as readonly string[]).includes(fg.type) && isDate(fg.startedAt)) out.focusGoal = { type: fg.type, startedAt: fg.startedAt.slice(0, 10) };
   if (isDate(a.onboardedAt)) out.onboardedAt = a.onboardedAt.slice(0, 10);
@@ -150,7 +166,7 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
       if (v && ["done", "dismissed", "snoozed"].includes(v.status) && typeof v.at === "string") out.feed[id] = { status: v.status, at: v.at, ...(typeof v.until === "string" ? { until: v.until } : {}), ...(typeof v.amount === "number" && Number.isFinite(v.amount) ? { amount: v.amount } : {}) };
     }
   }
-  if (a.bank && typeof a.bank === "object") out.bank = { disconnected: a.bank.disconnected === true, refreshedAt: typeof a.bank.refreshedAt === "string" ? a.bank.refreshedAt : undefined };
+  if (a.bank && typeof a.bank === "object") out.bank = { disconnected: a.bank.disconnected === true, refreshedAt: typeof a.bank.refreshedAt === "string" ? a.bank.refreshedAt : undefined, ...(typeof a.bank.renewedOn === "string" && /^\d{4}-\d{2}-\d{2}$/.test(a.bank.renewedOn) ? { renewedOn: a.bank.renewedOn } : {}) };
   return out;
 }
 
@@ -168,15 +184,11 @@ export function applyAccount(d: PersonaData, a: AccountState): PersonaData {
   });
   const dismissed = new Set(a.dismissedOffers ?? []);
   const matching = consents.find((c) => c.id === "lender_matching")?.granted ?? false;
-  // Check-in adjustments: bills the member has already paid drop out of the forecast; one-offs go in.
-  const paid = new Set(a.billAdjust?.paid ?? []);
-  const oneOffs = (a.billAdjust?.oneOffs ?? []).filter((o) => o.date > d.asOf).map((o) => ({
-    date: o.date, merchant: o.label, expected_amount: o.amount, category: "bills" as const, confidence: "confirmed" as const, cadence_days: 0,
-  }));
-  const upcoming = [...d.derived.upcoming_bills.filter((b) => !paid.has(billId(b))), ...oneOffs].sort((x, y) => x.date.localeCompare(y.date));
+  // Corrections (spec 05) and check-in adjustments (spec 02): member rules rewrite categories and drop
+  // bills that ended; paid bills drop out of the forecast, changed amounts and dates apply, one-offs go in.
+  const corrected = applyRules(d, a.rules, a.billAdjust);
   return {
-    ...d,
-    derived: { ...d.derived, upcoming_bills: upcoming },
+    ...corrected,
     consents,
     offers: { lender_matching_consent: matching, offers: d.offers.offers.filter((o) => !dismissed.has(o.id)) },
   };

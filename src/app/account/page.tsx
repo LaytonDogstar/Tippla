@@ -10,6 +10,8 @@ import { formatShortDay, formatUpdated } from "@/lib/format";
 import { accountPage as t, notificationsCopy } from "@/content/account";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
+import { isOn } from "@/config/featureFlags";
+import { correctionCopy } from "@/content/corrections";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,8 @@ export default async function Account({ searchParams }: { searchParams: { person
     { href: "/account/consents", label: t.sections.consents, sub: lenderMatchingOn(data) ? t.consents.matchingOn.split(".")[0]! : t.consents.matchingPaused.split(".")[0]! },
     { href: "/account/bank", label: t.sections.bank, sub: account.bank?.disconnected ? t.bank.disconnectedNote.split(".")[0]! : `${accounts.map((a) => t.bank.account(a.nickname, a.last4)).join(", ")}${data.score?.scoredAt ? ` · ${formatUpdated(data.score.scoredAt).replace(/^Updated /, "")}` : ""}` },
     { href: "/notifications", label: notificationsCopy.title, sub: "" },
+    // Spec 05: what the member has corrected, with remove.
+    ...(isOn("corrections_v1", persona) ? [{ href: "/account/corrections", label: correctionCopy.page.title, sub: correctionCopy.page.count((account.rules?.length ?? 0) + (account.billAdjust?.paid.length ?? 0) + Object.keys(account.billAdjust?.amounts ?? {}).length + Object.keys(account.billAdjust?.moved ?? {}).length) }] : []),
     // Spec 02: the value tally on Account, with the ledger on Your progress.
     (() => { const v = valueTally(data, account); return { href: "/progress", label: tallyCopy.label, sub: v.items.length ? `${formatDollars(v.total)} · ${tallyCopy.since}` : tallyCopy.none }; })(),
   ];

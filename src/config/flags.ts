@@ -62,3 +62,10 @@ export const SHORTFALL_NOTIFY_DAYS = 5;
 export const GOAL_PRESETS = [100, 200, 500] as const;
 /** Shortest goal, in pay cycles, so the per-cycle step stays achievable. */
 export const GOAL_MIN_CYCLES = 2;
+
+/** Spec 05 forecast accuracy (Q31): show "within $20 on 9 of the last 10 days" only at 8+ of 10; ask what
+ *  happened when yesterday's forecast missed by more than $100 or 30%. */
+export const FORECAST_ACCURACY = { within: 20, of: 10, showMin: 8, missDollars: 100, missShare: 0.3 } as const;
+/** Spec 05 connection health: stale after 48 h without new data, safe to spend paused after 72 h, consent
+ *  reminders 14 and 3 days before it ends and on the day. */
+export const CONNECTION = { staleHours: 48, pauseHours: 72, expiringDays: 14, reminderDays: [14, 3, 0] } as const;

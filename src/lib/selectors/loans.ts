@@ -66,9 +66,10 @@ export function activeLoans(d: PersonaData): Loan[] {
   const types = lenderTypes(d);
   const since90 = addDays(d.asOf, -89);
   const loans: Loan[] = [];
+  const ended = new Set(d.memberRules?.endedLoans ?? []);
   for (const [provider, r] of repaymentsBy(d, "loan_repayment")) {
     const type = types.get(provider);
-    if (!type) continue;
+    if (!type || ended.has(provider)) continue; // spec 05: "This has ended" / "This isn't a loan"
     const lastPaid = r.dates.at(-1)!;
     const upcoming = d.derived.upcoming_bills.find((b) => b.merchant === provider);
     if (!upcoming && daysBetween(lastPaid, d.asOf) > 35) continue; // paid off
@@ -110,6 +111,7 @@ export function otherCredit(d: PersonaData): OtherCredit[] {
   const out: OtherCredit[] = [];
   for (const kind of ["bnpl", "wage_advance"] as const) {
     for (const [provider, r] of repaymentsBy(d, kind)) {
+      if (d.memberRules?.endedLoans.includes(provider)) continue;
       const upcoming = d.derived.upcoming_bills.find((b) => b.merchant === provider);
       if (!upcoming && daysBetween(r.dates.at(-1)!, d.asOf) > 35) continue;
       out.push({ provider, kind, repayment: upcoming?.expected_amount ?? r.amounts.at(-1)!, cadenceDays: upcoming?.cadence_days ?? null, nextDue: upcoming?.date ?? null });

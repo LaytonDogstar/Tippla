@@ -13,6 +13,7 @@ export const dashboard = {
   seeHow: "See how",
   nextBill: (day: string) => `Next bill · ${day}`,
   predicted: "predicted",
+  confirmed: "confirmed",
   spending: "Spending",
   sixMonths: "6 months",
   range: (from: string, to: string, partial: string | null) => `${from}–${to}${partial ? ` · ${partial}` : ""}`,

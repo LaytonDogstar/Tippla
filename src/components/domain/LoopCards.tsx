@@ -52,7 +52,7 @@ export function SafeToSpendCard({ safe, onHow, movement }: { safe: SafeToSpend; 
 
 const BUFFERS = [0, 25, 50, 100] as const;
 
-export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer }: { safe: SafeToSpend; open: boolean; onClose: () => void; present: boolean; onBuffer?: (amount: number) => void }) {
+export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer, accuracy = null }: { safe: SafeToSpend; open: boolean; onClose: () => void; present: boolean; onBuffer?: (amount: number) => void; accuracy?: string | null }) {
   const rows: [string, string][] = [
     [s.steps.balance, formatCents(safe.balance)],
     [s.steps.bills(safe.bills.length), `−${formatCents(safe.billsTotal)}`],
@@ -81,6 +81,7 @@ export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer }: { s
       )}
       {safe.goalOnHold && <p className="mt-t3 text-small text-text">{s.goalOnHold}</p>}
       <p className="mt-t4 text-small text-text-muted">{s.note}</p>
+      {accuracy && <p className="mt-t2 text-small text-text">{accuracy}</p>}
       {onBuffer && (
         <fieldset className="mt-t4">
           <legend className="text-body-strong text-text">{s.bufferHeading}</legend>

@@ -20,7 +20,7 @@ export default async function Subscriptions({ searchParams }: { searchParams: { 
   return (
     <PortalShell path="/subscriptions" persona={persona} present={presentationMode(searchParams.present)}
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} />}>
-      <SubscriptionsView persona={persona} subs={subscriptions(data, edits)} account={account} asOf={data.asOf} confirm={confirm} chargedAgain={tally.chargedAgain} cancelHelper={isOn("cancel_helper_v1", persona)} />
+      <SubscriptionsView persona={persona} subs={subscriptions(data, edits)} account={account} asOf={data.asOf} confirm={confirm} chargedAgain={tally.chargedAgain} cancelHelper={isOn("cancel_helper_v1", persona)} corrections={isOn("corrections_v1", persona)} />
     </PortalShell>
   );
 }

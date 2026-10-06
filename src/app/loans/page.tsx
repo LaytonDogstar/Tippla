@@ -9,6 +9,7 @@ import { loansPage as t } from "@/content/account";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
 import { LoansView } from "./LoansView";
+import { isOn } from "@/config/featureFlags";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,8 @@ export default async function Loans({ searchParams }: { searchParams: { persona?
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined}
         action={<Link href="/spending?category=loan_repayment&direction=out" aria-label={t.search} className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-pill bg-surface2 text-text hover:bg-neutral-soft"><Search aria-hidden size={24} /></Link>} />}>
       <LoansView
+        persona={persona}
+        corrections={isOn("corrections_v1", persona)}
         initialTab={searchParams.tab}
         initialProvider={searchParams.provider ?? null}
         loans={activeLoans(data)}

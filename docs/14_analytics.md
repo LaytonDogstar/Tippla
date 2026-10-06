@@ -45,6 +45,10 @@ Spec 04 added: welcome, first insight, goal and alerts steps; `aha_shown` / `aha
 
 `/dev/analytics` › First session: median seconds from bank connected to first insight (target under 60), share within 60 seconds, share who picked a goal, share who said yes to alerts, goals picked, and day-7 / day-30 retention (a session in days 7–13 / 30–36 after the first insight) by first-insight type. Demo onboarding events use their own random stream, so the other demo numbers didn't move.
 
+## Forecast accuracy (spec 05)
+
+`/dev/analytics` › Forecast accuracy: mean absolute error by segment (each demo persona) and horizon (1, 3, 7, 14 days), backtested on bank balances, with 1-day hits within $20 and whether the member-facing line would show; plus stored daily snapshots once real days have passed (dispatch records them). Events: `correction_made`, `forecast_error_prompt_shown` / `_answered`, `connection_status_changed`, `reconnect_started` / `_completed`, `add_account_prompt_shown`.
+
 ## Guardrails on the dashboard
 
 - Offers shown to members short before payday, in hardship or in Building: **must be 0**. The demo data and the app both keep it at 0, and a test proves a breach would show.

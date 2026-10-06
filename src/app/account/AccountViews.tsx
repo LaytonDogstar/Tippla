@@ -1,6 +1,9 @@
 "use client";
 // P13 Account views. Choices that change other screens (consents, subscription, bank) go through the account
 // cookie; personal preferences (contact details, notification channels, theme) are per-device (localStorage).
+import Link from "next/link";
+import { healthCopy as h } from "@/content/corrections";
+import type { ConnectionHealth } from "@/lib/selectors/connection";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Consent, PersonaId } from "@/lib/api/types";
@@ -338,9 +341,13 @@ export function ConsentsView({ persona, account: initial, consents, asOf }: { pe
 }
 
 // ---- Bank connections ------------------------------------------------------------------------------
-export function BankView({ persona, account: initial, accounts, refreshedAt }: {
+export function BankView({ persona, account: initial, accounts, refreshedAt, health = null, unconnected = 0, reminders = [] }: {
+  reminders?: string[];
   persona: PersonaId; account: AccountState; accounts: { id: number; nickname: string; last4: string; type: string }[]; refreshedAt: string | null;
+  /** Spec 05 connection health (null when the flag is off) and transfers to an unconnected own account. */
+  health?: ConnectionHealth | null; unconnected?: number;
 }) {
+  useEffect(() => { if (unconnected > 0) track("add_account_prompt_shown", {}); }, [unconnected]);
   const toast = useToast();
   const { account, save } = useAccount(persona, initial);
   const [sheet, setSheet] = useState<"disconnect" | "reconnect" | "add" | null>(null);
@@ -355,11 +362,18 @@ export function BankView({ persona, account: initial, accounts, refreshedAt }: {
       {accounts.map((a) => (
         <section key={a.id} aria-label={t.bank.account(a.nickname, a.last4)} className="rounded-md bg-surface p-t4">
           <h2 className="text-h3 text-text">{t.bank.account(a.nickname, a.last4)}</h2>
-          <p className="text-caption text-text-muted">{a.type}</p>
+          <p className="text-caption text-text-muted">{a.type}{health ? ` · ${h.bank.status[health.status]}` : ""}</p>
+          {health?.consentEndsOn && <p className="mt-t1 text-small text-text">{h.bank.consentEnds(formatShortDay(health.consentEndsOn))}</p>}
+          {reminders.length > 0 && <p className="mt-t1 text-small text-text-muted">{h.bank.reminders(reminders.map((r) => formatShortDay(r)))}</p>}
           <p role="status" className="mt-t2 text-small text-text">{off ? t.bank.disconnectedNote : refreshedAt ? t.bank.refreshed(formatUpdated(refreshedAt).replace(/^Updated /, "")) : ""}</p>
           <div className="mt-t3 flex flex-col gap-t2">
             {off ? <Button full onClick={() => setSheet("reconnect")}>{t.bank.reconnect}</Button> : (
               <>
+                {health && health.status !== "healthy" && (
+                  <Link href="/account/bank/reconnect?return=/account/bank" className="inline-flex min-h-[48px] w-full items-center justify-center rounded-sm bg-accent px-t4 text-body-strong text-on-accent">
+                    {health.status === "expiring" ? h.bank.renew : h.bank.reconnect}
+                  </Link>
+                )}
                 <Button full variant="secondary" loading={refreshing} loadingLabel={t.bank.refreshing} onClick={refresh}>{t.bank.refresh}</Button>
                 <Button full variant="tertiary" onClick={() => setSheet("disconnect")}>{t.bank.disconnect}</Button>
               </>
@@ -367,6 +381,13 @@ export function BankView({ persona, account: initial, accounts, refreshedAt }: {
           </div>
         </section>
       ))}
+      {unconnected > 0 && (
+        <section aria-labelledby="add-acc" className="rounded-md bg-accent-soft p-t4">
+          <h2 id="add-acc" className="text-h3 text-text">{h.bank.addTitle}</h2>
+          <p className="mt-t1 text-small text-text">{h.bank.addBody(unconnected)}</p>
+          <Button full className="mt-t3" onClick={() => setSheet("add")}>{h.bank.add}</Button>
+        </section>
+      )}
       <section className="rounded-md bg-surface p-t4">
         <Button full variant="secondary" onClick={() => setSheet("add")}>{t.bank.add}</Button>
         <p className="mt-t2 text-small text-text-muted">{t.bank.addNote}</p>

@@ -8,11 +8,13 @@ import { writeOnboarding } from "@/lib/onboarding/store";
 
 const t = onboarding.talefin;
 
-export function TaleFinLogin({ bank }: { bank: string }) {
+/** The mock TaleFin login. Onboarding by default; the reconnect flow (spec 05) passes its own completion. */
+export function TaleFinLogin({ bank, onDone, cancelHref = "/onboarding/connect-bank" }: { bank: string; onDone?: () => void; cancelHref?: string }) {
   const router = useRouter();
   const [returning, setReturning] = useState(false);
   const submit = () => {
     setReturning(true);
+    if (onDone) { setTimeout(onDone, 900); return; }
     writeOnboarding({ bankConnected: true });
     setTimeout(() => router.push("/onboarding/connect-bank/done"), 900);
   };
@@ -43,7 +45,7 @@ export function TaleFinLogin({ bank }: { bank: string }) {
           <p className="text-caption text-text-muted">{t.readOnly}</p>
           <button type="submit" className="min-h-[48px] rounded-xs bg-text text-body-strong text-bg">{t.login}</button>
         </form>
-        <Link href="/onboarding/connect-bank" className="mt-t4 flex min-h-tap items-center justify-center text-small text-text-muted underline">{t.cancel}</Link>
+        <Link href={cancelHref} className="mt-t4 flex min-h-tap items-center justify-center text-small text-text-muted underline">{t.cancel}</Link>
       </div>
     </main>
   );

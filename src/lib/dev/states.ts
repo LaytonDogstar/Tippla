@@ -4,7 +4,7 @@
 import type { PersonaData, Transaction } from "@/lib/api/types";
 import { addDays } from "@/lib/format/dates";
 
-export const DEV_STATES = ["analysing", "lapsed", "bank_expired", "offline", "one_off", "two_accounts", "payday", "bill_due", "billing_failed"] as const;
+export const DEV_STATES = ["analysing", "lapsed", "bank_expired", "offline", "one_off", "two_accounts", "payday", "bill_due", "billing_failed", "stale", "consent_expiring"] as const;
 export type DevState = (typeof DEV_STATES)[number];
 export const DEV_COOKIE = "tippla-dev";
 
@@ -21,6 +21,8 @@ export function applyDevStates(d: PersonaData, states: DevState[]): PersonaData 
   let out = d;
   if (states.includes("one_off")) out = withOneOff(out);
   if (states.includes("two_accounts")) out = withSecondAccount(out);
+  // Spec 05: the bank data consent ends in 10 days (granted 12 months less 10 days ago).
+  if (states.includes("consent_expiring")) out = withConsentEnding(out, 10);
   return out;
 }
 
@@ -61,4 +63,11 @@ function withSecondAccount(d: PersonaData): PersonaData {
     transactions: [...d.transactions, ...txs].sort((a, b) => a.date.localeCompare(b.date)),
     bankStatement: { ...d.bankStatement, profiles: [{ ...profile, accounts: [...profile.accounts, { id, nickname: "Savings", last4: "7731", type: "Savings", balance: 412.6, available: 412.6 }] }, ...d.bankStatement.profiles.slice(1)] },
   };
+}
+
+/** Back-date the TaleFin bank-data consent so its 12-month term ends `days` after the data date. */
+function withConsentEnding(d: PersonaData, days: number): PersonaData {
+  const end = addDays(d.asOf, days);
+  const at = `${Number(end.slice(0, 4)) - 1}${end.slice(4)}T10:00:00+10:00`;
+  return { ...d, consents: d.consents.map((c) => (c.id === "talefin_bank_data" ? { ...c, granted_at: at } : c)) };
 }

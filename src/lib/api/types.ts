@@ -125,6 +125,8 @@ export interface UpcomingBill {
   category: CategoryId;
   confidence: "predicted" | "confirmed";
   cadence_days: number;
+  /** The predicted bill's original id (merchant:date) when a member correction changed it (spec 05). */
+  origin?: string;
 }
 
 export interface Derived {
@@ -170,4 +172,6 @@ export interface PersonaData {
   derived: Derived;
   offers: Offers;
   consents: Consent[];
+  /** Member corrections that selectors consult (spec 05), set when the account is applied. */
+  memberRules?: import("@/lib/account/corrections").AppliedRules;
 }

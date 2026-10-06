@@ -1,5 +1,8 @@
 "use client";
 import { CalendarClock, ChevronRight, HandCoins } from "lucide-react";
+import type { PersonaId } from "@/lib/api/types";
+import { RuleChoiceSheet, LOAN_OPTIONS } from "@/components/domain/RuleChoice";
+import { correctionCopy } from "@/content/corrections";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { loansPage as t } from "@/content/account";
@@ -14,7 +17,8 @@ type Tab = "overview" | "upcoming" | "history" | "other";
 const TABS: Tab[] = ["overview", "upcoming", "history", "other"];
 const money = (n: number) => (Number.isInteger(n) ? formatWhole(n) : formatCents(n));
 
-export function LoansView({ initialTab, initialProvider, loans, other, totals, advance, upcoming, history, failed, offersCount }: {
+export function LoansView({ persona, corrections = false, initialTab, initialProvider, loans, other, totals, advance, upcoming, history, failed, offersCount }: {
+  persona: PersonaId; corrections?: boolean;
   initialTab?: string; initialProvider: string | null; loans: Loan[]; other: OtherCredit[]; totals: ReturnType<typeof loanTotals>;
   advance: PayAdvance | null; upcoming: Record<30 | 60 | 90, UpcomingRepayment[]>; history: HistoryMonth[];
   failed: ReturnType<typeof failedPayments>; offersCount: number;
@@ -22,6 +26,7 @@ export function LoansView({ initialTab, initialProvider, loans, other, totals, a
   const [tab, setTab] = useState<Tab>(TABS.includes(initialTab as Tab) ? (initialTab as Tab) : "overview");
   const [range, setRange] = useState<30 | 60 | 90>(30);
   const [provider, setProvider] = useState<string | null>(initialProvider);
+  const [fixing, setFixing] = useState<string | null>(null);
   useEffect(() => {
     const u = new URL(window.location.href);
     if (tab === "overview") u.searchParams.delete("tab"); else u.searchParams.set("tab", tab);
@@ -37,6 +42,7 @@ export function LoansView({ initialTab, initialProvider, loans, other, totals, a
 
   return (
     <div className="pb-t6">
+      <RuleChoiceSheet persona={persona} merchant={fixing ?? ""} title={fixing ? correctionCopy.loan.title(fixing) : ""} options={LOAN_OPTIONS} open={!!fixing} onClose={() => setFixing(null)} scoreNote />
       <SegmentedControl label={t.tabsLabel} value={tab} onChange={setTab} options={TABS.map((v) => ({ value: v, label: t.tabs[v] }))} />
 
       {tab === "overview" && (
@@ -52,7 +58,7 @@ export function LoansView({ initialTab, initialProvider, loans, other, totals, a
               <h2 className="mt-t3 text-h2 font-display text-text">{t.loansHeading}</h2>
               {[...loans].sort((a, b) => (a.type === "SACC" ? 0 : 1) - (b.type === "SACC" ? 0 : 1)).map((l) => (
                 <LoanCard key={l.provider} loan={l} combinedBalance={l.estimatedBalance === null && l.type === "SACC" ? combined : undefined}
-                  onViewRepayments={() => viewRepayments(l.provider)} />
+                  onViewRepayments={() => viewRepayments(l.provider)} onNotRight={corrections ? () => setFixing(l.provider) : undefined} />
               ))}
               {totals.totalOutstanding > 0 && <p className="tnum px-t1 text-small text-text-muted">{t.totalLeft(formatWhole(totals.totalOutstanding))}</p>}
             </>

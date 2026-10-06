@@ -12,6 +12,8 @@ import { SpendingSearchButton, SpendingView, type SpendingParams } from "./Spend
 
 export const dynamic = "force-dynamic";
 
+import { isOn } from "@/config/featureFlags";
+
 type Search = { persona?: string; present?: string; tab?: string; period?: string; month?: string; category?: string; direction?: string; q?: string };
 
 export default async function Spending({ searchParams }: { searchParams: Search }) {
@@ -43,6 +45,8 @@ export default async function Spending({ searchParams }: { searchParams: Search 
         gambling={g ? { pctOfIncome90: g.pctOfIncome90, factor: g.factor } : null}
         accounts={accounts.length > 1 ? accounts : []}
         params={params}
+        asOf={data.asOf}
+        corrections={isOn("corrections_v1", persona) ? { oneOff: data.memberRules?.oneOffIncome ?? [], regular: data.memberRules?.regularIncome ?? [] } : null}
       />
     </PortalShell>
   );

@@ -1,6 +1,7 @@
 "use client";
 // Component 12. Header button owns expansion. "Estimated" is attached to each estimated value.
 import { ChevronDown, ChevronUp, Landmark } from "lucide-react";
+import { correctionCopy } from "@/content/corrections";
 import { useId, useState } from "react";
 import { loan as t } from "@/content/components";
 import { copy } from "@/content/en-AU";
@@ -10,7 +11,9 @@ import { Button } from "@/components/ui/Button";
 
 const typeLabel = { SACC: copy.loans.typeSACC, MACC: copy.loans.typeMACC, AOCC: copy.loans.typeAOCC, NON_SACC: copy.loans.typeMACC } as const;
 
-export function LoanCard({ loan, combinedBalance, onViewRepayments, defaultExpanded }: {
+export function LoanCard({ loan, combinedBalance, onViewRepayments, defaultExpanded, onNotRight }: {
+  /** Spec 05: "Not right?" (this has ended / this isn't a loan). */
+  onNotRight?: () => void;
   loan: Loan;
   /** When the balance can't be split per lender: e.g. "About $1,060 left across 2 small loans (estimated)". */
   combinedBalance?: string;
@@ -61,6 +64,7 @@ export function LoanCard({ loan, combinedBalance, onViewRepayments, defaultExpan
         </dl>
         <p className="mt-t4 rounded-sm bg-neutral-soft p-t3 text-small text-text-muted">{t.estimateNote}</p>
         <Button variant="secondary" full className="mt-t3" onClick={onViewRepayments}>{t.viewRepayments}</Button>
+        {onNotRight && <Button variant="tertiary" full className="mt-t2" onClick={onNotRight} aria-label={correctionCopy.notRightFor(loan.provider)}>{correctionCopy.notRight}</Button>}
       </div>
     </article>
   );

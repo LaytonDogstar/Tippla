@@ -9,14 +9,26 @@ import { sumMoney } from "@/lib/format/money";
 import type { PayCycleSummary } from "@/lib/selectors/payCycle";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { useState } from "react";
+import type { PersonaId, UpcomingBill } from "@/lib/api/types";
+import { correctionCopy as c } from "@/content/corrections";
+import { BillCorrect } from "./BillCorrect";
 
-export function DueSheet({ open, onClose, payCycle }: { open: boolean; onClose: () => void; payCycle: PayCycleSummary }) {
+/** With `persona` (and corrections on), each bill has "Not right?" to correct it in place (spec 05). */
+export function DueSheet({ open, onClose, payCycle, persona, asOf }: { open: boolean; onClose: () => void; payCycle: PayCycleSummary; persona?: PersonaId; asOf?: string }) {
   const router = useRouter();
+  const [fixing, setFixing] = useState<UpcomingBill | null>(null);
+  const close = () => { setFixing(null); onClose(); };
+  if (fixing && persona && asOf) return (
+    <Sheet open={open} onClose={close} onBack={() => setFixing(null)} title={c.bill.title(fixing.merchant)}>
+      <BillCorrect persona={persona} bill={fixing} asOf={asOf} onDone={() => setFixing(null)} />
+    </Sheet>
+  );
   const advance = payCycle.payAdvances[0];
   const exactDue = sumMoney(payCycle.dueBeforePayday.map((b) => b.expected_amount));
   const rounded = payCycle.dueBeforePayday.some((b) => Math.round(b.expected_amount) !== b.expected_amount);
   return (
-    <Sheet open={open} onClose={onClose} title={t.dueTitle}
+    <Sheet open={open} onClose={close} title={t.dueTitle}
       subtitle={copy.payCycle.range(formatDayMonth(payCycle.cycle.start), formatDayMonth(payCycle.cycle.end))}
       footer={<>
         <Button full variant="secondary" onClick={() => router.push("/calendar")}>{t.openCalendar}</Button>
@@ -27,7 +39,10 @@ export function DueSheet({ open, onClose, payCycle }: { open: boolean; onClose: 
         {payCycle.dueBeforePayday.map((b) => (
           <li key={`${b.merchant}-${b.date}`} className="rounded-sm border border-dashed p-t4" style={{ borderColor: "var(--chart-predicted)" }}>
             <div className="flex justify-between gap-t3"><span className="text-h3 text-text">{b.merchant}</span><span className="tnum text-h3 text-text">{Number.isInteger(b.expected_amount) ? formatWhole(b.expected_amount) : formatCents(b.expected_amount)}</span></div>
-            <p className="mt-t1 text-small text-text-muted">{formatShortDay(b.date)} · {t.predicted}</p>
+            <div className="mt-t1 flex items-center justify-between gap-t3">
+              <p className="text-small text-text-muted">{formatShortDay(b.date)} · {b.confidence === "confirmed" ? t.confirmed : t.predicted}</p>
+              {persona && <Button variant="tertiary" onClick={() => setFixing(b)} aria-label={c.notRightFor(b.merchant)}>{c.notRight}</Button>}
+            </div>
           </li>
         ))}
         {!payCycle.dueBeforePayday.length && <li className="text-body text-text-muted">{t.dueEmpty}</li>}

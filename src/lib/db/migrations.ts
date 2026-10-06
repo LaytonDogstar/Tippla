@@ -86,4 +86,29 @@ export const MIGRATIONS: { id: string; sql: string }[] = [
       );
     `,
   },
+  {
+    // Spec 05: anonymised corrections for the categorisation team (no member id; gate G3), and daily
+    // forecast snapshots compared with the actual balance once the date passes.
+    id: "004_data_trust",
+    sql: `
+      CREATE TABLE IF NOT EXISTS correction_reports (
+        id BIGSERIAL PRIMARY KEY,
+        entity TEXT NOT NULL,
+        correction TEXT NOT NULL,
+        merchant TEXT NOT NULL,
+        from_category TEXT,
+        to_category TEXT,
+        reported_on DATE NOT NULL DEFAULT CURRENT_DATE
+      );
+      CREATE TABLE IF NOT EXISTS forecast_snapshots (
+        member_id TEXT NOT NULL,
+        made_on DATE NOT NULL,
+        for_date DATE NOT NULL,
+        horizon INT NOT NULL,
+        predicted NUMERIC(12, 2) NOT NULL,
+        actual NUMERIC(12, 2),
+        PRIMARY KEY (member_id, made_on, for_date)
+      );
+    `,
+  },
 ];

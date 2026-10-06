@@ -1,6 +1,8 @@
 "use client";
 // Actions per row: Keep · Remind me before next charge · How to cancel. Choices persist per persona (mock:
 // localStorage). Nothing here is urgent and nothing is pre-ticked.
+import { RuleChoiceSheet, SUBSCRIPTION_OPTIONS } from "@/components/domain/RuleChoice";
+import { correctionCopy } from "@/content/corrections";
 import { BellRing, Check, Repeat } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,7 +24,8 @@ type Subs = ReturnType<typeof subscriptions>;
 interface Prefs { kept: Record<string, boolean>; reminders: Record<string, string> }
 const KEY = "tippla-subscriptions";
 
-export function SubscriptionsView({ persona, subs, account, asOf, confirm, chargedAgain, cancelHelper = true }: { persona: PersonaId; subs: Subs; account: AccountState; asOf: string; confirm: Record<string, string>; chargedAgain: ChargedAgain[]; cancelHelper?: boolean }) {
+export function SubscriptionsView({ persona, subs, account, asOf, confirm, chargedAgain, cancelHelper = true, corrections = false }: { persona: PersonaId; subs: Subs; account: AccountState; asOf: string; confirm: Record<string, string>; chargedAgain: ChargedAgain[]; cancelHelper?: boolean; corrections?: boolean }) {
+  const [fixing, setFixing] = useState<string | null>(null);
   const router = useRouter();
   const { account: acct, update } = useAccount(persona, account);
   const cancelled = new Set((acct.actions ?? []).filter((a) => a.type === "cancelled_subscription").map((a) => a.key));
@@ -91,12 +94,14 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
                     }}>{t.remind}</Button>
                   )}
                   <Button variant="tertiary" onClick={() => { track("cancel_guide_opened", { merchant: s.merchant }); setHowTo(s.merchant); }}>{t.howToCancel}</Button>
+                  {corrections && <Button variant="tertiary" onClick={() => setFixing(s.merchant)} aria-label={correctionCopy.notRightFor(s.merchant)}>{correctionCopy.notRight}</Button>}
                 </div>
               </article>
             </li>
           );
         })}
       </ul>
+      <RuleChoiceSheet persona={persona} merchant={fixing ?? ""} title={fixing ? correctionCopy.subscription.title(fixing) : ""} options={SUBSCRIPTION_OPTIONS} open={!!fixing} onClose={() => setFixing(null)} />
       <Sheet open={!!row} onClose={() => setHowTo(null)} title={row ? t.cancelTitle(row.merchant) : ""}
         footer={row && cancelHelper ? (cancelled.has(row.merchant)
           ? <p role="status" className="text-small text-text-muted">{(() => {

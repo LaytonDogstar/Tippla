@@ -14,6 +14,9 @@ import { firstInsight } from "@/lib/selectors/firstValue";
 import { feed } from "@/lib/feed";
 import type { FeedItem, FeedType } from "@/lib/feed/types";
 import { daysBetween } from "@/lib/format/dates";
+import { recordForecasts } from "@/lib/forecast/snapshots";
+import { consentEndsOn, consentReminders } from "@/lib/selectors/connection";
+import { healthCopy } from "@/content/corrections";
 import { formatShortDay, formatWhole } from "@/lib/format";
 import { compose, sendEmail } from "./email";
 import { decide, type Candidate, type Decision, type NotifyPrefs, type SentRecord } from "./policy";
@@ -121,6 +124,9 @@ export async function dispatch(member: string, d: PersonaData, a: AccountState, 
     await sendWeeklyDigest(member, d, a, ctx);
   }
   if (isOn("email_lifecycle_v1", member)) await sendWinBack(member, d, a, ctx, opts.lastSeen ?? null);
+  const consent = await sendConsentReminder(member, d, a, ctx);
+  if (consent) out.push(consent);
+  if (isOn("forecast_accuracy_v1", member)) await recordForecasts(member, d).catch(() => 0); // spec 05 snapshots
   const nudge = await sendFirstWeekNudge(member, d, a, ctx, opts.lastSeen ?? null);
   if (nudge) out.push(nudge);
   return out;
@@ -180,6 +186,18 @@ export async function sendFirstWeekNudge(member: string, d: PersonaData, a: Acco
   const item = feed({ d, edits: {}, account: a }, a.feed).open.find((i) => !i.sensitive && !skip.includes(i.type));
   if (!item) return null; // nothing genuinely new: say nothing
   return notify(member, { key: "nudge:first_week", category: CATEGORY[item.section], priority: "normal", title: item.title, body: item.body, href: item.action.href, at: ctx.now }, ctx);
+}
+
+/**
+ * Spec 05: push reminders 14 and 3 days before the bank consent ends (they count toward the cap) and on the
+ * day (urgent, outside the normal cap). Each goes once (dedupe key), through the normal policy.
+ */
+export async function sendConsentReminder(member: string, d: PersonaData, a: AccountState, ctx: NotifyContext): Promise<NotifyResult | null> {
+  if (!isOn("connection_health_v1", member)) return null;
+  const ends = consentEndsOn(d, a);
+  const r = ends ? consentReminders(ends).find((x) => x.date === d.asOf) : undefined;
+  if (!ends || !r) return null;
+  return notify(member, { key: `consent:${ends}:${r.daysLeft}`, category: "bank", priority: r.priority, title: healthCopy.push.title(r.daysLeft), body: healthCopy.push.body, href: "/account/bank/reconnect?return=/", at: ctx.now, dueAt: `${ends}T23:59:00+10:00` }, ctx);
 }
 
 /** Bank consent ending soon (spec 05 schedules this at −14, −3 and 0 days). */

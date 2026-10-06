@@ -34,10 +34,13 @@ import { InstallPrompt } from "@/components/notify/InstallPrompt";
 import { mockNow } from "@/lib/account/state";
 import { GoalRow } from "@/components/domain/GoalRow";
 import type { GoalOption } from "@/components/domain/GoalPicker";
+import { ForecastMissCard } from "@/components/domain/ForecastMiss";
+import { SafeToSpendPaused } from "@/components/domain/Connection";
+import type { ForecastPoint } from "@/lib/selectors/forecastAccuracy";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null;
 
-export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText, statusStale = false, checked = "", movement = null, adjustBills = [], oneOffDates = [], focus = null, payPending = false, focusGoal = null, firstPayday = false, recapLead = null, flags = { feed: true, status: true, safe: true, tally: true, buffer: true } }: {
+export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText, statusStale = false, checked = "", movement = null, adjustBills = [], oneOffDates = [], focus = null, payPending = false, focusGoal = null, firstPayday = false, recapLead = null, accuracyLine = null, miss = null, stsPaused = null, flags = { feed: true, status: true, safe: true, tally: true, buffer: true } }: {
   persona: PersonaId; account: AccountState; status: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; banner: { text: string; href: string } | null; score: ScoreState; change: { delta: number; since: string } | null;
   action: FirstAction | null; payCycle: PayCycleSummary; nextBill: UpcomingBill | null; bars: MonthBar[];
@@ -46,8 +49,12 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
   oneOffDates?: string[]; focus?: string | null; payPending?: boolean;
   /** Spec 04: the member's goal (null when goals_v1 is off), the enhanced first payday, and the recap's lead line. */
   focusGoal?: { current: GoalOption | null; options: GoalOption[] } | null; firstPayday?: boolean; recapLead?: "balance" | "advances" | "score" | null;
+  /** Spec 05: "within $20 on 9 of the last 10 days" (only when accurate enough), and yesterday's bad miss. */
+  accuracyLine?: string | null; miss?: ForecastPoint | null;
+  /** Spec 05: the data is over 72 h old (the day it's from): safe to spend pauses. */
+  stsPaused?: string | null;
   /** Feature flags (retention pack): each part of Today can be switched off. */
-  flags?: { feed: boolean; status: boolean; safe: boolean; tally: boolean; buffer: boolean };
+  flags?: { feed: boolean; status: boolean; safe: boolean; tally: boolean; buffer: boolean; corrections?: boolean };
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -111,8 +118,9 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
       <div className="flex flex-col gap-t3 desktop:gap-t6">
         {checkIn ? <CheckInCard checkIn={checkIn} onHow={() => setSheet("safe")} onAdjust={() => setSheet("adjust")} focus={focus} goal={focusGoal?.current?.label ?? null} firstPayday={firstPayday} />
           : payPending ? <PayPendingCard payday={asOf} />
-          : flags.safe ? <SafeToSpendCard safe={safe} onHow={() => setSheet("safe")} movement={movement} /> : null}
+          : flags.safe ? (stsPaused ? <SafeToSpendPaused dataFrom={stsPaused} /> : <SafeToSpendCard safe={safe} onHow={() => setSheet("safe")} movement={movement} />) : null}
         {flags.feed && <AttentionFeed persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} />}
+        {miss && <ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} />}
         {recap && <RecapCard recap={recap} feesAvoided={feesAvoided} next={focus} lead={recapLead} />}
         <PayCycleHero summary={payCycle}
           onForecast={() => setSheet("due")} onDue={() => setSheet("due")} onAdvance={() => setSheet("advance")}
@@ -129,11 +137,11 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
         <SixMonthChart bars={bars} asOf={asOf} />
       </div>
 
-      <SafeToSpendSheet safe={shownSafe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} onBuffer={flags.buffer ? setBuffer : undefined} />
+      <SafeToSpendSheet safe={shownSafe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} onBuffer={flags.buffer ? setBuffer : undefined} accuracy={accuracyLine} />
       <CheckInAdjustSheet open={sheet === "adjust"} onClose={() => setSheet(null)} bills={adjustBills} oneOffs={adjust.oneOffs} dates={oneOffDates}
         onPaid={setPaid} onAddOneOff={addOneOff} onRemoveOneOff={removeOneOff} />
       <TallySheet tally={tally} open={sheet === "tally"} onClose={() => setSheet(null)} present={present} />
-      <DueSheet open={sheet === "due"} onClose={() => setSheet(null)} payCycle={payCycle} />
+      <DueSheet open={sheet === "due"} onClose={() => setSheet(null)} payCycle={payCycle} persona={flags.corrections ? persona : undefined} asOf={asOf} />
 
       {advance && advance.repayAmount !== null && advance.repayDate && (
         <Sheet open={sheet === "advance"} onClose={() => setSheet(null)} title={t.advanceTitle}>

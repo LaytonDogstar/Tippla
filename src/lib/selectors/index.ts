@@ -29,3 +29,5 @@ export * from "./tally";
 export * from "./goal";
 export * from "./progress";
 export * from "./firstValue";
+export * from "./forecastAccuracy";
+export * from "./connection";

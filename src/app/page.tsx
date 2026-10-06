@@ -2,13 +2,14 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { goalLabel, goalOptions, isFirstPayday, recapLead, goalPlan, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
+import { connectionHealth, forecastAccuracy, goalLabel, goalOptions, isFirstPayday, recapLead, goalPlan, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, dashboardBanner, firstAction, nextBill, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
 import { addDays, daysBetween, formatShortDay, formatUpdated, formatDate, formatDayMonth, formatWhole, toAESTDate } from "@/lib/format";
 import { safeCopy } from "@/content/loop";
 import { flagsFor } from "@/config/featureFlags";
 import { billId } from "@/lib/account/state";
 import { progressCopy as p } from "@/content/progress";
 import { dashboard as t } from "@/content/dashboard";
+import { accuracyCopy } from "@/content/corrections";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
 import { HeaderActions } from "@/components/shell/HeaderActions";
@@ -24,9 +25,13 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
   const expired = states.includes("bank_expired") && data.score?.scoredAt ? toAESTDate(data.score.scoredAt) : null;
   const on = flagsFor(persona);
   const f = feed({ d: data, edits, account, states }, account.feed);
-  const staleSince = account.bank?.disconnected ? data.asOf : expired;
-  const status = refreshStatus(data, f.open.length, { staleSince });
-  const rawBanner = dashboardBanner(data, { bankExpiredSince: account.bank?.disconnected ? data.asOf : expired, hardshipSelfSelected: account.hardshipSelfSelected });
+  // Spec 05 connection health: stale data and an ending consent show in the status line, and data older
+  // than 72 h pauses safe to spend rather than guess.
+  const health = on.connection_health_v1 ? connectionHealth(data, account, states) : null;
+  const renewed = !!account.bank?.renewedOn && account.bank.renewedOn >= data.asOf;
+  const staleSince = account.bank?.disconnected ? data.asOf : expired && !renewed ? expired : health?.status === "stale" ? health.dataFrom : null;
+  const status = refreshStatus(data, f.open.length, { staleSince, expiringOn: health?.status === "expiring" ? health.consentEndsOn : null });
+  const rawBanner = dashboardBanner(data, { bankExpiredSince: account.bank?.disconnected ? data.asOf : renewed ? null : expired, hardshipSelfSelected: account.hardshipSelfSelected });
   // The hardship banner steps aside when a feed card already offers the same options (no repetition).
   const banner = rawBanner?.kind === "hardship" && f.top.some((i) => i.hardship) ? null : rawBanner;
   const plan = goalPlan(data, account.goal);
@@ -53,6 +58,10 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
     current: goal ? { type: goal.type, label: goalLabel(data, goal.type) } : null,
     options: goalOptions(data).map((type) => ({ type, label: goalLabel(data, type) })),
   } : null;
+  // Spec 05: forecast accuracy (from fresh data only: a stale forecast isn't judged).
+  const acc = on.forecast_accuracy_v1 && !staleSince ? forecastAccuracy(data) : null;
+  const accuracyLine = acc?.show ? accuracyCopy.line(formatWhole(acc.within), acc.hits, acc.of) : null;
+  const miss = acc?.miss && !account.forecastAnswers?.[acc.miss.forDate] ? acc.miss : null;
   const bannerView = banner && (
     banner.kind === "hardship" ? { text: t.banners.hardship, href: "/hardship" }
       : banner.kind === "score_drop" ? { text: t.banners.scoreDrop(banner.points), href: "/score" }
@@ -65,7 +74,7 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
       <HomeView
         persona={persona}
         account={account}
-        flags={{ feed: on.feed_v1, status: on.status_line_v1, safe: on.safe_to_spend_v1, tally: on.value_tally_v1, buffer: on.buffer_v1 }}
+        flags={{ feed: on.feed_v1, status: on.status_line_v1, safe: on.safe_to_spend_v1, tally: on.value_tally_v1, buffer: on.buffer_v1, corrections: on.corrections_v1 }}
         status={status.line}
         statusStale={status.stale}
         checked={status.checked}
@@ -88,6 +97,9 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
         focusGoal={focusGoal}
         firstPayday={!!checkIn && on.onboarding_v2 && isFirstPayday(data, account.onboardedAt)}
         recapLead={recapLead(goal?.type)}
+        accuracyLine={accuracyLine}
+        miss={miss}
+        stsPaused={health?.pauseSafeToSpend ? health.dataFrom : null}
         payPending={!checkIn && payday === data.asOf}
         progressText={plan ? (plan.latest ? p.homeGoal(formatWhole(plan.amount), formatDayMonth(plan.by), plan.percent) : p.homeGoalPending(formatWhole(plan.amount), formatDayMonth(plan.by))) : p.homeNoGoal}
         checkIn={checkIn}

@@ -17,7 +17,8 @@ import { PortalFrame } from "./Shells";
 import { loadCustomer } from "@/lib/customer";
 import { feed } from "@/lib/feed";
 import { isOn } from "@/config/featureFlags";
-import { paydayCheckIn } from "@/lib/selectors";
+import { connectionHealth, paydayCheckIn } from "@/lib/selectors";
+import { DataStamp } from "@/components/domain/Connection";
 import { PageAnalytics } from "@/components/analytics/PageAnalytics";
 
 const UNGATED = ["/hardship", "/help", "/account", "/notifications"];
@@ -38,8 +39,11 @@ export async function PortalShell(props: {
   const { data, edits, account } = await loadCustomer(props.persona);
   // Badges only with the feed and the five-section navigation on.
   const bySection = isOn("feed_v1", props.persona) && isOn("nav_v2", props.persona) ? feed({ d: data, edits, account, states }, account.feed).bySection : {};
+  // Spec 05: on stale or broken data, every page says which day its figures are from, with Reconnect.
+  const health = isOn("connection_health_v1", props.persona) && !props.path.startsWith("/account/bank") ? connectionHealth(data, account, states) : null;
+  const stamp = health && (health.status === "stale" || health.status === "broken") ? <DataStamp dataFrom={health.dataFrom} returnTo={props.path} /> : undefined;
   return (
-    <PortalFrame {...props} notice={notice} badges={bySection}>
+    <PortalFrame {...props} notice={notice ?? stamp} badges={bySection}>
       {body}
       <PageAnalytics route={props.path} payday={paydayCheckIn(data) !== null} />
     </PortalFrame>

@@ -26,6 +26,8 @@ Fixtures include a **pending** transaction for each persona (status `pending`, `
 - Anomalous data — a large one-off (dev toggle adds a $4,000 bond refund credit): exclude from "monthly income" with a note "We've left out a one-off $4,000 deposit on 12/09"
 - Multi-account — dev toggle adds a second account; account filter appears on Spending
 - Pending transactions — shown in feed, excluded from totals until posted
+- *(06/10, spec 05)* Stale bank data (`?state=stale`): no new data for 80 hours. Every page says "Based on data from Fri 25/09 · Reconnect", safe to spend pauses ("Reconnect to see today's figure"), and a "We haven't had new bank data for a while" card appears. Reconnecting clears it.
+- *(spec 05)* Consent ending (`?state=consent_expiring`): the bank-data consent ends in 10 days (Mon 05/10). A feed card, the status line notice, "Ending soon" on Bank connections with the reminder dates, and "Renew access".
 
 ## Mode states
 
