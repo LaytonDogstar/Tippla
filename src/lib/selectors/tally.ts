@@ -81,5 +81,8 @@ export function valueTally(d: PersonaData, a: AccountState = {}) {
     if (paid && !failed) items.push({ kind: "dishonour", key: `dis:${merchant}:${date}`, amount: fee, date, label: { merchant, date } });
   }
 
-  return { total: sumMoney(items.map((i) => i.amount)), items, pending, chargedAgain };
+  // Spec 06: bill switches the member reported. Self-reported, so listed separately and never in the total
+  // (the total only counts what bank data shows: G5).
+  const reported = (a.billSwitches ?? []).map((b) => ({ merchant: b.merchant, monthly: b.monthly, at: b.at }));
+  return { total: sumMoney(items.map((i) => i.amount)), items, pending, chargedAgain, reported };
 }

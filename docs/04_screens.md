@@ -122,10 +122,12 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 
 ### P6 Subscriptions (`/subscriptions`)
 - List from `derived.json → subscriptions`: merchant, amount, cadence, last charged, per-pay-cycle and per-year cost. Actions per row: Keep · Remind me before next charge · How to cancel (sheet with steps, and "I've cancelled it", which the value tally later confirms). No fake urgency.
+- *(06/10, spec 06, `cancel_helper_v1`)* Merchant-specific steps where the directory has them (Apple iCloud: changed on the Apple device), with "Steps can change…"; otherwise the generic steps. "Still using {merchant}?" Yes / No on subscriptions over $10 a month (No opens the guide). Charged again after "I've cancelled it": a "Needs a look" card, "{merchant} charged again: the cancellation may not have gone through". Acceptance: iCloud marked cancelled, no charge on 20/10 → $4.49 counted once the 3-day grace passes (23/10, Q21).
 
 ### P7 Your plan (`/savings`) *(renamed from "Ways to lift your score", 06/10, spec 01)*
 - RecommendationCards ordered by projected impact: what, why, projected impact (dollars per pay cycle and factor points), one action, "Not relevant to me" (hides for this pay cycle), "Snooze".
 - Projections come from `lib/selectors/recommendations.ts`; score-point impacts are **illustrative until Q3** — render a "Sample estimate" tag in dev mode.
+- **Compare your bills** *(06/10, spec 06, `bill_switch_v1`, gates G2 and G4)*: phone, internet and energy bills found in the transactions (jess: Telstra about $52 a month, Origin Energy about $82). General information only: energy links to Energy Made Easy (Victorian Energy Compare is mentioned for VIC); phone and internet open plain tips. No providers named as recommended, no prices, no referral links. "I've switched or changed plan" records the monthly saving as self-reported: it's listed in the value tally sheet under "You told us (not counted in the total)".
 
 ### P8 Loans & credit (`/loans`)
 - **Tabs:** Overview (active loans with estimated balance, repayment, provider, type; totals; debt-to-income) · Upcoming (next 30/60/90 days of repayments) · History (past repayments, dishonours shown as facts) · Other credit (BNPL, pay advances, credit cards).
@@ -143,9 +145,11 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 ### P11 Hardship support (`/hardship`)
 - **Job:** relief, not embarrassment.
 - Content: plain opener ("If money's tight right now, these are real options, and using them doesn't count against your SmartScore." — confirm Q8); options as cards: ask your lender for a hardship arrangement (what to say, template message), free financial counselling via the National Debt Helpline (show phone as selectable text), pause or downgrade Tippla (one tap), gambling support options (neutral, one of several).
+- *(06/10, spec 06, `hardship_autofill_v1`, gate G6)* **Write my letter**: pre-filled from the data (jess: Beforepay, $315, due Wed 30/09, Jess Taylor), each detail editable; optional questions (what's changed, how long, what you could pay a fortnight, how to contact you); the letter in plain English, editable; Copy · Open in email (a draft in the member's own email app) · Download PDF. "Tippla never sends this for you." Lender hardship contacts come from the lender directory once verified; until then, "Look for 'hardship' on {lender}'s website or app…". General note on credit law (counsel to review, spec 11). Next pay cycle a "Did you hear back from Beforepay?" card (Yes, they agreed · Yes, they said no → National Debt Helpline · Not yet → asked again next cycle).
 
 ### P12 Help / FAQ (`/help`)
 - Search first. Seed questions a stressed customer would ask: "Why was I declined?", "Will checking my score hurt my credit?", "Who sees my data?", "How do I stop lenders contacting me?", "How do I cancel?", "Why is my income wrong?", "I changed banks".
+- **Support you might be able to get** *(06/10, spec 06, `/help/entitlements`, `entitlements_v1`, gate G3)*: six optional questions (who lives with you, anyone relying on you, work, study, renting, concession card), then pointers to official sources only (Services Australia Payment and Service Finder, Rent Assistance, concession cards, state concessions for NSW/VIC/QLD, Good Shepherd No Interest Loans, Energy Made Easy). No-interest loans come second for members using pay advances. Tippla doesn't decide eligibility. Answers are kept only if "Remember my answers" is ticked (off by default). It appears once in "Needs a look" (urgency 2) for members in Building or Steadying or short before payday, until done.
 
 ### P13 Account
 - **Profile & settings:** name, email, mobile, notifications (spec 10, 06/10: "Notifications on this device" with a test send; pause all; quiet hours, default 9pm–8am; amounts on the lock screen off by default; weekly summary for SmartScore updates; push and email per type), usage data, theme.

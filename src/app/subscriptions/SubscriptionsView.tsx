@@ -1,6 +1,8 @@
 "use client";
 // Actions per row: Keep · Remind me before next charge · How to cancel. Choices persist per persona (mock:
 // localStorage). Nothing here is urgent and nothing is pre-ticked.
+import { cancelExtraCopy as cx_ } from "@/content/actions";
+import { cancelGuide } from "@/data/directories";
 import { RuleChoiceSheet, SUBSCRIPTION_OPTIONS } from "@/components/domain/RuleChoice";
 import { correctionCopy } from "@/content/corrections";
 import { BellRing, Check, Repeat } from "lucide-react";
@@ -23,6 +25,8 @@ import type { ChargedAgain } from "@/lib/selectors/tally";
 type Subs = ReturnType<typeof subscriptions>;
 interface Prefs { kept: Record<string, boolean>; reminders: Record<string, string> }
 const KEY = "tippla-subscriptions";
+/** Spec 06: "Still using this?" for subscriptions over this much a month. */
+const USAGE_CHECK_MIN = 10;
 
 export function SubscriptionsView({ persona, subs, account, asOf, confirm, chargedAgain, cancelHelper = true, corrections = false }: { persona: PersonaId; subs: Subs; account: AccountState; asOf: string; confirm: Record<string, string>; chargedAgain: ChargedAgain[]; cancelHelper?: boolean; corrections?: boolean }) {
   const [fixing, setFixing] = useState<string | null>(null);
@@ -42,6 +46,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
   useEffect(() => {
     try { const v = JSON.parse(localStorage.getItem(key) ?? "null") as Prefs | null; if (v?.kept && v?.reminders) setPrefs(v); } catch { /* fall back to defaults */ }
   }, [key]);
+  useEffect(() => { if (cancelHelper && chargedAgain.length) track("cancel_failed_detected", {}); }, [cancelHelper, chargedAgain.length]);
   const save = (next: Prefs) => { setPrefs(next); try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* in memory only */ } };
 
   if (!subs.rows.length) return <div className="mt-t4"><EmptyState variant="noSubscriptions" onAction={() => router.push("/spending")} /></div>;
@@ -60,16 +65,24 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
           const reminder = prefs.reminders[s.merchant];
           return (
             <li key={s.merchant}>
-              <article aria-labelledby={`sub-${s.merchant}`} className="rounded-md bg-surface p-t4">
+              <article aria-labelledby={`sub-${s.merchant.replace(/\W+/g, "-")}`} className="rounded-md bg-surface p-t4">
                 <div className="flex items-start gap-t3">
                   <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2" style={{ color: catVar("subscriptions") }}><Repeat size={24} /></span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-t3">
-                      <h2 id={`sub-${s.merchant}`} className="text-h3 text-text">{s.merchant}</h2>
+                      <h2 id={`sub-${s.merchant.replace(/\W+/g, "-")}`} className="text-h3 text-text">{s.merchant}</h2>
                       <span className="tnum text-body-strong text-text">{t.amount(formatCents(s.amount), t.cadence[s.cadence])}</span>
                     </div>
                     <p className="mt-t1 text-caption text-text-muted">{t.lastCharged(formatShortDay(s.last_charged))} · {t.nextCharge(formatShortDay(s.nextCharge))}</p>
                     <p className="tnum mt-t1 text-small text-text">{t.perCycle(formatCents(s.perPayCycle))} · {t.perYear(formatCents(s.perYear))}</p>
+                    {/* Spec 06: usage check for subscriptions over $10 a month (until answered or cancelled). */}
+                    {cancelHelper && s.amount > USAGE_CHECK_MIN && !kept && !cancelled.has(s.merchant) && (
+                      <div className="mt-t2 flex flex-wrap items-center gap-x-t2 rounded-sm bg-surface2 px-t3 py-t1">
+                        <span className="text-small text-text">{cx_.stillUsing(s.merchant)}</span>
+                        <Button variant="tertiary" onClick={() => save({ ...prefs, kept: { ...prefs.kept, [s.merchant]: true } })} aria-label={`${cx_.yes}: ${cx_.stillUsing(s.merchant)}`}>{cx_.yes}</Button>
+                        <Button variant="tertiary" onClick={() => { track("cancel_guide_opened", { merchant: s.merchant }); setHowTo(s.merchant); }} aria-label={`${cx_.no}: ${cx_.stillUsing(s.merchant)}`}>{cx_.no}</Button>
+                      </div>
+                    )}
                     {(kept || reminder) && (
                       <p className="mt-t2 flex flex-wrap gap-t3 text-caption text-text-muted">
                         {kept && <span className="inline-flex items-center gap-t1"><Check aria-hidden size={16} />{t.kept}</span>}
@@ -113,8 +126,10 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
         {row && (
           <div className="flex flex-col gap-t4">
             <ol className="flex list-decimal flex-col gap-t2 pl-t5 text-body text-text">
-              {t.cancelSteps(row.merchant, formatShortDay(row.nextCharge)).map((step) => <li key={step}>{step}</li>)}
+              {(cancelGuide(row.merchant)?.steps ?? t.cancelSteps(row.merchant, formatShortDay(row.nextCharge))).map((step) => <li key={step}>{step}</li>)}
             </ol>
+            {cancelGuide(row.merchant)?.notes && <p className="text-small text-text">{cancelGuide(row.merchant)!.notes}</p>}
+            {cancelGuide(row.merchant)?.steps && <p className="text-caption text-text-muted">{cx_.stepsChange(row.merchant)}</p>}
             <p className="text-small text-text-muted">{t.cancelStore}</p>
             <p className="text-small text-text-muted">{t.cancelAfter}</p>
           </div>

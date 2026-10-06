@@ -9,7 +9,8 @@ export type FeedSection = "today" | "money" | "score" | "borrowing" | "help";
 
 export type FeedType =
   | "shortfall" | "bill_over_balance" | "repayment_due" | "new_subscription" | "price_rise"
-  | "duplicate_charge" | "unusual_spend" | "score_change" | "tippla_billing_relief" | "bank_reconnect";
+  | "duplicate_charge" | "unusual_spend" | "score_change" | "tippla_billing_relief" | "bank_reconnect"
+  | "hardship_followup" | "cancel_failed" | "entitlements_check";
 
 /** 5 = act today … 1 = for your info. */
 export type Urgency = 1 | 2 | 3 | 4 | 5;

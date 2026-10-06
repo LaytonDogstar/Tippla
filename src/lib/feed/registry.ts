@@ -10,7 +10,9 @@ import { shortfall } from "./rules/shortfall";
 import { unusualSpend } from "./rules/unusualSpend";
 import { tipplaBillingRelief } from "./rules/tipplaBillingRelief";
 import { bankReconnect } from "./rules/bankReconnect";
+import { cancelFailed, entitlementsCheck, hardshipFollowup } from "./rules/actionTools";
 
 export const RULES: Record<string, Rule> = {
   shortfall, billOverBalance, repaymentDue, newSubscription, priceRise, duplicateCharge, unusualSpend, scoreChange, tipplaBillingRelief, bankReconnect,
+  hardshipFollowup, cancelFailed, entitlementsCheck,
 };

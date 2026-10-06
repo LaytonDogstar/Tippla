@@ -1,4 +1,6 @@
 "use client";
+import { HardshipLetter, type LetterPrefill } from "@/components/domain/HardshipLetter";
+import { letterCopy as lc } from "@/content/actions";
 import { ChevronRight, ExternalLink, Info, Layers, MessageCircle, Phone, Settings, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
@@ -17,7 +19,7 @@ import type { PersonaId } from "@/lib/api/types";
 import { Sheet } from "@/components/ui/Sheet";
 import { cx } from "@/components/ui/cx";
 
-type SheetId = "template" | "counselling" | "gambling" | null;
+type SheetId = "template" | "counselling" | "gambling" | "followup" | null;
 
 export function HardshipInfoButton() {
   const [open, setOpen] = useState(false);
@@ -33,7 +35,11 @@ export function HardshipInfoButton() {
   );
 }
 
-export function HardshipView({ persona, account: initial, present, lenders, asOf }: { persona: PersonaId; account: AccountState; present: boolean; lenders: string[]; asOf: string }) {
+export function HardshipView({ persona, account: initial, present, lenders, asOf, letter = null, followup = null }: {
+  persona: PersonaId; account: AccountState; present: boolean; lenders: string[]; asOf: string;
+  /** Spec 06: the pre-filled letter (null: the plain template), and a lender to ask "Did you hear back?" about. */
+  letter?: { prefill: LetterPrefill[]; name: string } | null; followup?: string | null;
+}) {
   const { account, save, update } = useAccount(persona, initial);
   // Opening Hardship support this pay cycle means Tippla offers its own pause openly (spec 03 §8).
   useEffect(() => {
@@ -42,7 +48,15 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
   }, [asOf]); // eslint-disable-line react-hooks/exhaustive-deps
   const router = useRouter();
   const toast = useToast();
-  const [sheet, setSheet] = useState<SheetId>(null);
+  const [sheet, setSheet] = useState<SheetId>(followup ? "followup" : null);
+  const [outcome, setOutcome] = useState<string | null>(null);
+  const letterDone = (lender: string, output: "copy" | "email" | "pdf") =>
+    update((l) => ({ ...l, hardshipLetters: [...(l.hardshipLetters ?? []).filter((x) => x.lender !== lender), { lender, at: asOf, output }] }));
+  const answer = (o: "agreed" | "declined" | "not_yet") => {
+    track("hardship_followup_answered", { outcome: o });
+    setOutcome(o);
+    update((l) => ({ ...l, hardshipLetters: (l.hardshipLetters ?? []).map((x) => (x.lender === followup ? { ...x, outcome: o, answeredAt: asOf } : x)) }));
+  };
   const [draft, setDraft] = useState<string>(t.template.body);
   const [copyFailed, setCopyFailed] = useState(false);
   const fieldId = useId();
@@ -59,7 +73,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
   };
 
   const cards: { id: string; icon: LucideIcon; title: string; body: string; action: string; onClick: () => void; soft?: boolean }[] = [
-    { id: "lender", icon: MessageCircle, ...t.lender, onClick: () => { track("hardship_letter_started", {}); setSheet("template"); }, soft: true },
+    { id: "lender", icon: MessageCircle, ...t.lender, ...(letter ? { action: lc.start } : {}), onClick: () => { if (!letter) track("hardship_letter_started", {}); setSheet("template"); }, soft: true },
     { id: "counselling", icon: Phone, ...t.counselling, onClick: () => setSheet("counselling") },
     { id: "tippla", icon: Settings, ...t.tippla, onClick: () => router.push("/account/subscription") },
     { id: "gambling", icon: Layers, ...t.gambling, onClick: () => setSheet("gambling") },
@@ -94,7 +108,27 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
         {account.hardshipSelfSelected && <p role="status" className="mt-t1 px-t1 text-small text-text-muted">{statesCopy.hardshipSelf.on}</p>}
       </section>
 
-      <Sheet open={sheet === "template"} onClose={() => setSheet(null)} title={t.template.title}
+      {letter && (
+        <Sheet open={sheet === "template"} onClose={() => setSheet(null)} title={lc.title}>
+          <HardshipLetter prefill={letter.prefill} name={letter.name} onDone={letterDone} />
+        </Sheet>
+      )}
+      {followup && (
+        <Sheet open={sheet === "followup"} onClose={() => setSheet(null)} title={lc.followup.title(followup)}>
+          {!outcome ? (
+            <div className="flex flex-col gap-t2">
+              <p className="text-body text-text-muted">{lc.followup.body}</p>
+              {(["agreed", "declined", "not_yet"] as const).map((o) => <Button key={o} full variant="secondary" onClick={() => answer(o)}>{lc.followup.answers[o]}</Button>)}
+            </div>
+          ) : (
+            <div role="status" className="flex flex-col gap-t3">
+              <p className="text-body text-text">{outcome === "agreed" ? lc.followup.agreed : outcome === "declined" ? lc.followup.declined : lc.followup.notYet}</p>
+              {outcome === "declined" && <a href={NDH.tel} className="flex min-h-[48px] items-center justify-center rounded-sm bg-accent text-body-strong text-on-accent">{t.ndh.call(NDH.phoneDisplay)}</a>}
+            </div>
+          )}
+        </Sheet>
+      )}
+      <Sheet open={!letter && sheet === "template"} onClose={() => setSheet(null)} title={t.template.title}
         footer={<>
           <Button full onClick={copyMessage}>{t.template.copy}</Button>
           <Button full variant="tertiary" onClick={() => { setDraft(t.template.body); setCopyFailed(false); setSheet(null); }}>{t.template.cancel}</Button>

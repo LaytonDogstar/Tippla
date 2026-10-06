@@ -22,7 +22,7 @@ describe("feed rules", async () => {
   it("Jess: every rule that applies to her fires, with real figures", () => {
     const items = allFeedItems(ctx(jess));
     // The Beforepay repayment (Wed 30/09) is 5 days out: spec 01 only flags bills due within 3 days.
-    expect(new Set(types(items))).toEqual(new Set(["shortfall", "unusual_spend", "duplicate_charge", "new_subscription", "price_rise", "score_change", "tippla_billing_relief"]));
+    expect(new Set(types(items))).toEqual(new Set(["shortfall", "unusual_spend", "duplicate_charge", "new_subscription", "price_rise", "score_change", "tippla_billing_relief", "entitlements_check"]));
     const by = Object.fromEntries(items.map((i) => [i.type, i]));
     expect(by.shortfall!.title).toBe("About $53 short before payday");
     expect(by.duplicate_charge!.title).toBe("Possible double charge: Amazon AU $10.73 twice on 24/09");

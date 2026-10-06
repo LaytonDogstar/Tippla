@@ -49,6 +49,12 @@ export interface AccountState {
   stsSeen?: { date: string; perDay: number; prev?: { date: string; perDay: number } };
   /** Check-in adjustments (spec 02): predicted bills already paid, and known one-off costs. */
   billAdjust?: BillAdjust;
+  /** Hardship letters the member made (spec 06), latest per lender, with the follow-up answer. */
+  hardshipLetters?: { lender: string; at: string; output: "copy" | "email" | "pdf"; outcome?: "agreed" | "declined" | "not_yet"; answeredAt?: string }[];
+  /** Entitlements check (spec 06): answers only if the member chose to keep them. */
+  entitlements?: { completedAt: string; answers?: Record<string, string> };
+  /** Self-reported bill switches (spec 06), counted in the tally as "you told us". */
+  billSwitches?: { merchant: string; monthly: number; at: string }[];
   /** Answers to "We got this one wrong" (spec 05), by forecast date. */
   forecastAnswers?: Record<string, string>;
   /** Member rules (spec 05): how Tippla should treat a merchant or payer, now and in future. */
@@ -150,6 +156,21 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   const isDate = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v);
   if (g && typeof g === "object" && typeof g.amount === "number" && g.amount >= GOAL_MIN && g.amount <= GOAL_MAX && isDate(g.by) && isDate(g.setAt)) {
     out.goal = { amount: Math.round(g.amount), by: g.by.slice(0, 10), setAt: g.setAt.slice(0, 10) };
+  }
+  if (Array.isArray(a.hardshipLetters)) {
+    const hl = a.hardshipLetters.filter((x) => x && typeof x.lender === "string" && x.lender.length <= 60 && day(x.at) && ["copy", "email", "pdf"].includes(x.output))
+      .map((x) => ({ lender: x.lender, at: x.at, output: x.output, ...(x.outcome && ["agreed", "declined", "not_yet"].includes(x.outcome) ? { outcome: x.outcome } : {}), ...(day(x.answeredAt) ? { answeredAt: x.answeredAt } : {}) }))
+      .slice(-10);
+    if (hl.length) out.hardshipLetters = hl;
+  }
+  const ent = a.entitlements;
+  if (ent && typeof ent === "object" && day(ent.completedAt)) {
+    const answers = ent.answers && typeof ent.answers === "object" ? Object.fromEntries(Object.entries(ent.answers).filter(([k, v]) => /^[a-z]{2,12}$/.test(k) && typeof v === "string" && /^[a-z_]{2,12}$/.test(v)).slice(0, 10)) : undefined;
+    out.entitlements = { completedAt: ent.completedAt, ...(answers && Object.keys(answers).length ? { answers } : {}) };
+  }
+  if (Array.isArray(a.billSwitches)) {
+    const bs = a.billSwitches.filter((x) => x && typeof x.merchant === "string" && x.merchant.length <= 60 && typeof x.monthly === "number" && x.monthly >= 1 && x.monthly <= 500 && day(x.at)).slice(-10);
+    if (bs.length) out.billSwitches = bs;
   }
   if (a.forecastAnswers && typeof a.forecastAnswers === "object") {
     const fa = Object.entries(a.forecastAnswers).filter(([k, v]) => day(k) && ["one_off", "bill_moved", "pay_different", "nothing"].includes(v as string)).slice(-30);

@@ -29,10 +29,10 @@ export const FLAGS = {
   forecast_accuracy_v1: { spec: "05", description: "Forecast accuracy tracking", built: true },
   connection_health_v1: { spec: "05", description: "Bank connection health and re-consent", built: true },
   // 06 Action tools
-  hardship_autofill_v1: { spec: "06", description: "Hardship letter pre-filled from data", built: false, gate: ["G6"] },
+  hardship_autofill_v1: { spec: "06", description: "Hardship letter pre-filled from data", built: true, gate: ["G6"] },
   cancel_helper_v1: { spec: "06", description: "Subscription cancellation helper", built: true },
-  bill_switch_v1: { spec: "06", description: "Bill switching pointers", built: false, gate: ["G2", "G4"] },
-  entitlements_v1: { spec: "06", description: "Entitlements check", built: false, gate: ["G3"] },
+  bill_switch_v1: { spec: "06", description: "Bill switching pointers", built: true, gate: ["G2", "G4"] },
+  entitlements_v1: { spec: "06", description: "Entitlements check", built: true, gate: ["G3"] },
   // 07 Progression
   plans_v1: { spec: "07", description: "Multi-cycle plans", built: false, gate: ["G2"] },
   streaks_v1: { spec: "07", description: "Positive streaks", built: true },

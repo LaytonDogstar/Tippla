@@ -99,11 +99,14 @@ test("offers: Not interested hides one offer, with Undo; matching stays on", asy
 test("hardship: template is editable and copies; counselling has a real phone link", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/hardship?persona=jess&present=1");
-  await page.getByRole("button", { name: "Use message template" }).click();
-  const box = page.getByLabel("Your message");
+  // Spec 06: the template became a pre-filled letter; the end result is still editable and copies.
+  await page.getByRole("button", { name: "Write my letter" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Next" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Next" }).click();
+  const box = page.getByLabel("Your letter (you can edit it)");
   await box.fill("Hi Nimble, I'd like to ask about a hardship arrangement.");
-  await page.getByRole("button", { name: "Copy message" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Message copied" })).toBeVisible();
+  await page.getByRole("button", { name: "Copy", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Letter copied" })).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("Hi Nimble, I'd like to ask about a hardship arrangement.");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "See ways to get in touch" }).click();

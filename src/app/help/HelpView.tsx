@@ -1,4 +1,5 @@
 "use client";
+import { entitlementsCopy } from "@/content/actions";
 import { ChevronDown, ChevronRight, ChevronUp, Search } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -8,7 +9,7 @@ import { Sheet } from "@/components/ui/Sheet";
 
 const norm = (s: string) => s.toLowerCase().replace(/[’']/g, "'");
 
-export function HelpView({ initialQ, initialOpen }: { initialQ: string; initialOpen: string | null }) {
+export function HelpView({ initialQ, initialOpen, entitlements = false }: { initialQ: string; initialOpen: string | null; entitlements?: boolean }) {
   const [q, setQ] = useState(initialQ);
   const [open, setOpen] = useState<Set<string>>(new Set(initialOpen ? [initialOpen] : []));
   const [contact, setContact] = useState(false);
@@ -60,6 +61,7 @@ export function HelpView({ initialQ, initialOpen }: { initialQ: string; initialO
       <div className="mt-t4 flex flex-col gap-t2">
         <Button variant="secondary" full onClick={() => setContact(true)}>{t.contact}</Button>
         <Link href="/hardship" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">{t.hardshipLink}<ChevronRight aria-hidden size={20} /></Link>
+        {entitlements && <Link href="/help/entitlements" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">{entitlementsCopy.title}<ChevronRight aria-hidden size={20} /></Link>}
       </div>
 
       <section aria-labelledby="acct-h" className="mt-t4 rounded-md bg-surface">

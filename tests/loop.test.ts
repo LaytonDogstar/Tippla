@@ -137,7 +137,7 @@ describe("value tally: only savings we can see after an in-app action", async ()
   const later = (d: PersonaData, asOf: string): PersonaData => ({ ...d, asOf });
 
   it("nothing done in the app → nothing counted", () => {
-    expect(valueTally(jessP, {})).toEqual({ total: 0, items: [], pending: [], chargedAgain: [] });
+    expect(valueTally(jessP, {})).toEqual({ total: 0, items: [], pending: [], chargedAgain: [], reported: [] });
   });
 
   it("cancelled subscription: pending until the expected charge passes, then counted", () => {
@@ -167,7 +167,7 @@ describe("value tally: only savings we can see after an in-app action", async ()
   });
 
   it("an advance taken after choosing to skip: nothing counted and nothing said", () => {
-    expect(valueTally(jess, { actions: [{ type: "skip_advance", at: at("2026-09-20") }] })).toEqual({ total: 0, items: [], pending: [], chargedAgain: [] });
+    expect(valueTally(jess, { actions: [{ type: "skip_advance", at: at("2026-09-20") }] })).toEqual({ total: 0, items: [], pending: [], chargedAgain: [], reported: [] });
   });
 
   it("bill bigger than balance, acted on before the date, went through with no fee → fee avoided", () => {

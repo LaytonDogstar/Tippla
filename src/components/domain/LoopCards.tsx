@@ -16,6 +16,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Checkbox, SelectInput, TextInput } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
 import { goalLines } from "@/content/firstValue";
+import { billSwitchCopy } from "@/content/actions";
 
 const LinkRow = ({ href, children }: { href: string; children: string }) => (
   <Link href={href} className="mt-t2 flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">
@@ -171,7 +172,7 @@ export function RecapCard({ recap, feesAvoided, next, lead = null }: { recap: Cy
   );
 }
 
-type Tally = { total: number; items: TallyItem[]; pending: PendingItem[]; chargedAgain?: ChargedAgain[] };
+type Tally = { total: number; items: TallyItem[]; pending: PendingItem[]; chargedAgain?: ChargedAgain[]; reported?: { merchant: string; monthly: number }[] };
 
 function itemText(i: TallyItem) {
   if (i.kind === "subscription") return v.items.subscription(i.label.merchant!, i.label.count ?? 1);
@@ -184,6 +185,14 @@ function pendingText(p: PendingItem) {
 }
 
 export function TallyCard({ tally, onOpen }: { tally: Tally; onOpen: () => void }) {
+  // Spec 06: record each confirmed cancellation once (cancel_confirmed), when the tally first shows it.
+  useEffect(() => {
+    for (const i of tally.items.filter((x) => x.kind === "subscription")) {
+      const k = `tippla-cancel-confirmed:${i.key}`;
+      try { if (localStorage.getItem(k)) continue; localStorage.setItem(k, "1"); } catch { /* no storage: may record twice */ }
+      track("cancel_confirmed", { merchant: i.label.merchant!, monthly_cents: Math.round((i.amount / (i.label.count ?? 1)) * 100) });
+    }
+  }, [tally.items]);
   return (
     <section aria-labelledby="tally" className="rounded-lg bg-surface p-t4">
       <div className="flex items-start gap-t3">
@@ -224,6 +233,12 @@ export function TallySheet({ tally, open, onClose, present }: { tally: Tally; op
         <>
           <h3 className="mt-t4 text-caption text-text-muted">{v.checkHeading}</h3>
           <ul className="mt-t1 flex flex-col gap-t2 text-body text-text">{tally.chargedAgain!.map((c) => <li key={c.merchant}>{v.chargedAgain(c.merchant, formatCents(c.amount), formatDayMonth(c.date))}</li>)}</ul>
+        </>
+      )}
+      {(tally.reported ?? []).length > 0 && (
+        <>
+          <h3 className="mt-t4 text-caption text-text-muted">{billSwitchCopy.reportedHeading}</h3>
+          <ul className="mt-t1 flex flex-col gap-t2 text-body text-text">{tally.reported!.map((r) => <li key={r.merchant}>{billSwitchCopy.reportedLine(r.merchant, formatDollars(r.monthly))}</li>)}</ul>
         </>
       )}
       {!tally.items.length && !tally.pending.length && <p className="text-body text-text-muted">{v.none}</p>}

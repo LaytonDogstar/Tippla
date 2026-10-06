@@ -1,4 +1,5 @@
 import { addDays, daysBetween, type ISODate } from "@/lib/format/dates";
+import { BILL_MERCHANTS } from "@/data/directories";
 import { applyOverrides, type CategoryOverrides } from "./transactions";
 import { cents, sumMoney } from "@/lib/format/money";
 import type { SpendData } from "./periods";
@@ -73,4 +74,14 @@ export function subscriptions(d: SpendData, edits: CategoryOverrides = {}) {
     };
   }).sort((a, b) => b.amount - a.amount || a.merchant.localeCompare(b.merchant));
   return { rows, totalPerPayCycle: sumMoney(rows.map((r) => r.perPayCycle)), totalPerYear: sumMoney(rows.map((r) => r.perYear)) };
+}
+
+/** Spec 06 §3: telco, internet and energy bills we can point to a neutral comparison for (monthly amount). */
+export function billSwitchCandidates(d: SpendData): { merchant: string; category: "telco" | "internet" | "energy"; monthly: number }[] {
+  const out = new Map<string, { merchant: string; category: "telco" | "internet" | "energy"; monthly: number }>();
+  for (const t of [...d.transactions].filter((x) => x.status === "posted" && x.amount < 0).sort((a, b) => b.date.localeCompare(a.date))) {
+    const cat = BILL_MERCHANTS[t.merchant];
+    if (cat && !out.has(t.merchant)) out.set(t.merchant, { merchant: t.merchant, category: cat, monthly: -t.amount });
+  }
+  return [...out.values()];
 }
