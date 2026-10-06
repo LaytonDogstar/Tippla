@@ -2,7 +2,7 @@
 // never urgent, never "pre-approved" (docs/08).
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { lenderMatchingOn, payCycleSummary, visibleOffers } from "@/lib/selectors";
+import { lenderMatchingOn, offerPause, payCycleSummary, visibleOffers } from "@/lib/selectors";
 import { STAGES } from "@/config/stages";
 import { formatUpdated } from "@/lib/format";
 import { offersPage as t } from "@/content/account";
@@ -25,7 +25,7 @@ export default async function Offers({ searchParams }: { searchParams: { persona
   return (
     <PortalShell path="/offers" persona={persona} present={presentationMode(searchParams.present)}
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} />}>
-      <OffersView persona={persona} account={account} matching={lenderMatchingOn(data)} offers={visibleOffers(data)} guard={guard} />
+      <OffersView persona={persona} account={account} matching={lenderMatchingOn(data)} offers={visibleOffers(data, account)} paused={offerPause(data, account)} guard={guard} />
     </PortalShell>
   );
 }

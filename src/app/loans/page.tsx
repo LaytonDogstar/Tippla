@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Loans({ searchParams }: { searchParams: { persona?: string; present?: string; tab?: string; provider?: string } }) {
   const persona = currentPersona(searchParams.persona);
-  const { data, edits } = await loadCustomer(persona);
+  const { data, edits, account } = await loadCustomer(persona);
   const pc = payCycleSummary(data, edits);
   return (
     <PortalShell path="/loans" persona={persona} present={presentationMode(searchParams.present)}
@@ -33,7 +33,7 @@ export default async function Loans({ searchParams }: { searchParams: { persona?
         upcoming={{ 30: upcomingRepayments(data, 30), 60: upcomingRepayments(data, 60), 90: upcomingRepayments(data, 90) }}
         history={repaymentHistory(data)}
         failed={failedPayments(data)}
-        offersCount={visibleOffers(data).length}
+        offersCount={visibleOffers(data, account).length}
       />
     </PortalShell>
   );

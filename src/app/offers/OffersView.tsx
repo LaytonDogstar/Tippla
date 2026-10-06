@@ -15,8 +15,10 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { EmptyState, useToast } from "@/components/ui/Feedback";
 import { Sheet } from "@/components/ui/Sheet";
 
-export function OffersView({ persona, account: initial, matching, offers, guard }: {
+export function OffersView({ persona, account: initial, matching, offers, guard, paused = null }: {
   persona: PersonaId; account: AccountState; matching: boolean; offers: Offer[]; guard: EventProps<"offer_viewed">;
+  /** Spec 11 rule 2: why offers are paused (short, hardship this pay cycle, Building), if they are. */
+  paused?: "short" | "hardship" | "building" | null;
 }) {
   const toast = useToast();
   const { account, save } = useAccount(persona, initial);
@@ -42,6 +44,13 @@ export function OffersView({ persona, account: initial, matching, offers, guard 
           <h2 id="off-h" className="text-h2 font-display text-text">{t.off.title}</h2>
           <p className="mt-t3 text-body text-text-muted">{t.off.body}</p>
           <ButtonLink variant="secondary" className="mt-t5" href="/account/consents">{t.off.action}</ButtonLink>
+        </section>
+      ) : paused ? (
+        <section aria-labelledby="paused-h" className="mt-t2 rounded-lg bg-surface p-t5">
+          <h2 id="paused-h" className="text-h2 font-display text-text">{t.paused.title}</h2>
+          <p className="mt-t3 text-body text-text">{t.paused.why[paused]}</p>
+          <p className="mt-t2 text-body text-text-muted">{t.paused.body}</p>
+          <ButtonLink variant="secondary" className="mt-t5" href="/hardship">{t.paused.action}</ButtonLink>
         </section>
       ) : shown.length === 0 ? (
         <div className="mt-t2"><EmptyState variant="noOffers" /></div>

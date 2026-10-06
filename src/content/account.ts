@@ -85,6 +85,16 @@ export const offersPage = {
     "Matching is not approval. The lender makes its own assessment.",
   ],
   sample: "(sample)",
+  paused: {
+    title: "Offers are paused for now",
+    why: {
+      short: "We don't show loan offers while you're forecast to be short before payday.",
+      hardship: "We don't show loan offers in a pay cycle where you've used hardship support.",
+      building: "We don't show loan offers until your SmartScore reaches the Steadying stage.",
+    } as Record<string, string>,
+    body: "A new loan can make a tight spot harder. Offers come back on their own when this changes, and nothing you've set up is lost.",
+    action: "Options if money's tight",
+  },
   off: {
     title: "Lender matching is off",
     body: "Offers only appear if you let partner lenders see your profile when you might qualify. Tippla works the same either way.",

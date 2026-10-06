@@ -140,6 +140,7 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 - Pick a loan → slider for extra per pay cycle → output: paid off {n} weeks sooner, about ${x} less in fees/interest. **TaleFin provides no interest rate or term** (Q7): ask the customer to confirm balance, rate/fees and remaining term (prefilled estimates, editable). Show "Based on the details you entered".
 
 ### P10 Loan offers (`/offers`)
+- *(06/10, spec 11 rule 2)* Offers pause, with a plain reason and "Options if money's tight", while the member is short before payday, has used hardship support this pay cycle, or is in Building (Q43). They come back on their own.
 - Only visible when lender-matching consent is on; otherwise an explainer with a toggle to Consents.
 - OfferCards: lender, amount, term, comparison rate/fees, repayment per pay cycle, total cost, why you matched (plain), "View details" / "Not interested". Objective, comparable, no countdowns, no "pre-approved".
 - `marcus` has one mock offer; `jess` has none (empty state); `priya` none.

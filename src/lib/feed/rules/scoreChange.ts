@@ -18,5 +18,7 @@ export const scoreChange: Rule = ({ d, account = {} }) => {
     body: a.summary ? a.summary.charAt(0).toUpperCase() + a.summary.slice(1) + "." : t.noDetail,
     action: { label: t.action, href: "/score" },
     urgency: 3, amountAtStake: 0, expiresAt: addDays(a.to.date, 14),
+    // Names gambling or alcohol spending: never pushed or put on a lock screen (spec 11 rule 4).
+    ...(a.parts.some((p) => p.factor === "ADVERSE_SPEND" && p.points !== 0) ? { sensitive: true } : {}),
   }];
 };
