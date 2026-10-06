@@ -6,7 +6,7 @@ import path from "node:path";
 import vm from "node:vm";
 
 type Handler = (e: any) => void;
-function loadWorker(opts: { online: boolean }) {
+function loadWorker(opts: { online: boolean; who?: string; windows?: any[] }) {
   const handlers: Record<string, Handler> = {};
   const store = new Map<string, Response>();
   const shown: { title: string; options: any }[] = [];
@@ -15,7 +15,9 @@ function loadWorker(opts: { online: boolean }) {
   const cache = {
     addAll: async (urls: string[]) => { for (const u of urls) store.set(u, new Response(`cached ${u}`)); },
     put: async (key: string, res: Response) => { store.set(key, res); },
-    keys: async () => [...store.keys()],
+    keys: async () => [...store.keys()].map((k) => ({ url: `https://tippla.example${k}` })),
+    match: async (key: string) => store.get(key)?.clone(),
+    delete: async (key: { url: string } | string) => store.delete(typeof key === "string" ? key : new URL(key.url).pathname),
   };
   const sandbox: any = {
     console, URL, Response, Promise,
@@ -23,7 +25,7 @@ function loadWorker(opts: { online: boolean }) {
     self: {
       addEventListener: (type: string, h: Handler) => { handlers[type] = h; },
       skipWaiting: async () => {},
-      clients: { claim: async () => {}, matchAll: async () => [], openWindow: async (u: string) => { opened.push(u); } },
+      clients: { claim: async () => {}, matchAll: async () => opts.windows ?? [], openWindow: async (u: string) => { opened.push(u); } },
       registration: { showNotification: async (title: string, options: any) => { shown.push({ title, options }); } },
     },
     caches: {
@@ -35,7 +37,7 @@ function loadWorker(opts: { online: boolean }) {
     fetch: async (req: any, init?: any) => {
       if (typeof req === "string" && init) { posted.push({ url: req, body: init.body }); return new Response("{}"); }
       if (!opts.online) throw new TypeError("Failed to fetch");
-      return new Response(`live ${new URL(req.url).pathname}`, { status: 200 });
+      return new Response(`live ${new URL(req.url).pathname}`, { status: 200, headers: opts.who ? { "x-tippla-who": opts.who } : {} });
     },
   };
   sandbox.self.location = sandbox.location;
@@ -56,23 +58,38 @@ describe("service worker", () => {
     expect([...w.store.keys()]).toEqual(["/offline.html", "/icons/icon-192.png", "/icons/badge-96.png"]);
   });
 
-  it("online: always the network (never stale numbers), keeping a copy of Today and main sections", async () => {
-    const w = loadWorker({ online: true });
+  it("online: always the network (never stale numbers), keeping this person's copy of Today and main sections", async () => {
+    const w = loadWorker({ online: true, who: "jess" });
     const res: Response = await w.run("fetch", nav("https://tippla.example/?persona=jess"));
     expect(await res.text()).toBe("live /");
     await new Promise((r) => setTimeout(r, 0));
-    expect(w.store.has("/")).toBe(true);
+    expect(w.store.has("/__page/jess/")).toBe(true);
     await w.run("fetch", nav("https://tippla.example/account/profile"));
     await new Promise((r) => setTimeout(r, 0));
-    expect(w.store.has("/account/profile")).toBe(false); // account pages aren't kept
+    expect(w.store.has("/__page/jess/account/profile")).toBe(false); // account pages aren't kept
   });
 
-  it("offline: the last copy of the page, else the offline page", async () => {
+  it("offline: this person's last copy of the page, else the offline page", async () => {
     const w = loadWorker({ online: false });
     await w.run("install", {});
-    w.store.set("/", new Response("cached Today, Updated Fri 25/09, 9:14am"));
+    w.store.set("/__who", new Response("jess"));
+    w.store.set("/__page/jess/", new Response("cached Today, Updated Fri 25/09, 9:14am"));
+    w.store.set("/__page/marcus/score", new Response("marcus's score"));
     expect(await ((await w.run("fetch", nav("https://tippla.example/"))) as Response).text()).toContain("Updated Fri 25/09");
     expect(await ((await w.run("fetch", nav("https://tippla.example/calendar?view=month"))) as Response).text()).toBe("cached /offline.html");
+    // Another person's cached page is never served.
+    expect(await ((await w.run("fetch", nav("https://tippla.example/score"))) as Response).text()).toBe("cached /offline.html");
+  });
+
+  it("a different person online drops the last person's pages; the app can clear them too", async () => {
+    const w = loadWorker({ online: true, who: "marcus" });
+    w.store.set("/__who", new Response("jess"));
+    w.store.set("/__page/jess/", new Response("jess's Today"));
+    await w.run("fetch", nav("https://tippla.example/"));
+    await new Promise((r) => setTimeout(r, 0));
+    expect([...w.store.keys()].sort()).toEqual(["/__page/marcus/", "/__who"]);
+    await w.run("message", { data: { type: "clear-pages" } });
+    expect([...w.store.keys()]).toEqual([]);
   });
 
   it("ignores everything that isn't a page visit (data and API requests go straight to the network)", async () => {
@@ -88,6 +105,13 @@ describe("service worker", () => {
       ["Tippla", "You have an update from Tippla", "shortfall-2026-09-17", "/hardship"],
       ["Tippla", "You have an update from Tippla", "tippla", "/"],
     ]);
+  });
+
+  it("a window the worker can't navigate gets a new window at the right page instead", async () => {
+    const stuck = { focus: async () => {}, navigate: async () => { throw new TypeError("not controlled"); } };
+    const w = loadWorker({ online: true, windows: [stuck] });
+    await w.run("notificationclick", { notification: { close: () => {}, data: { url: "/calendar", tag: "bill" } } });
+    expect(w.opened).toEqual(["https://tippla.example/calendar?src=push"]);
   });
 
   it("tapping a notification opens the right page and reports it", async () => {

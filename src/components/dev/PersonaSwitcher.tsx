@@ -25,6 +25,8 @@ export function PersonaSwitcher({ current, raised }: { current: PersonaId; raise
   };
   const pick = (p: PersonaId) => {
     document.cookie = `tippla-persona=${p}; path=/; samesite=lax`;
+    // A different person: drop the offline copies of the last one's pages (spec 10).
+    try { navigator.serviceWorker?.controller?.postMessage({ type: "clear-pages" }); } catch { /* no service worker */ }
     setOpen(false);
     router.refresh();
   };

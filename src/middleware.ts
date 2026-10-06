@@ -22,7 +22,9 @@ export async function middleware(req: NextRequest) {
   const persona = req.nextUrl.searchParams.get("persona");
   const present = req.nextUrl.searchParams.get("present");
   const state = req.nextUrl.searchParams.get("state");
-  if (!persona && present === null && state === null) return NextResponse.next();
+  // Who this page is for, so the service worker never serves one person's cached page to another (spec 10).
+  const who = persona && PERSONAS.includes(persona) ? persona : req.cookies.get("tippla-persona")?.value ?? "jess";
+  if (!persona && present === null && state === null) { const r = NextResponse.next(); r.headers.set("x-tippla-who", who); return r; }
   // Mirror the change onto this request too, so the page rendering now already sees it.
   if (state !== null) {
     if (state === "none" || state === "") req.cookies.delete("tippla-dev");
@@ -35,6 +37,7 @@ export async function middleware(req: NextRequest) {
     if (state === "none" || state === "") res.cookies.delete("tippla-dev");
     else res.cookies.set("tippla-dev", state, { path: "/", sameSite: "lax" });
   }
+  res.headers.set("x-tippla-who", who);
   // Pages read the query first, so this same request already sees the new value.
   return res;
 }

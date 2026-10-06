@@ -121,7 +121,7 @@ export function decide(candidates: Candidate[], prefs: NotifyPrefs, history: Sen
     let sendAt = c.at > now ? c.at : now;
     if (inQuietHours(sendAt, prefs)) {
       const end = quietEndAfter(sendAt, prefs);
-      if (!(c.priority === "high" && c.dueAt && c.dueAt < end)) sendAt = end;
+      if (!(c.priority === "high" && c.dueAt && Date.parse(c.dueAt) < Date.parse(end))) sendAt = end;
     }
 
     // Caps, counted in the member's local day and the 7 days up to the send time.

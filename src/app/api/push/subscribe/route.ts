@@ -17,8 +17,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const { member } = requestMember();
   const b = (await req.json().catch(() => ({}))) as Body;
   if (!okEndpoint(b.endpoint)) return NextResponse.json({ error: "Expected an endpoint" }, { status: 400 });
-  await removeSubscription(b.endpoint);
+  await removeSubscription(b.endpoint, member);
   return NextResponse.json({ removed: true });
 }

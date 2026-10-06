@@ -18,7 +18,8 @@ export function unsubscribeToken(member: string, kind: EmailKind): string {
 }
 export function verifyUnsubscribe(member: string, kind: string, token: string): boolean {
   const expected = unsubscribeToken(member, kind as EmailKind);
-  return token.length === expected.length && timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+  const a = Buffer.from(token), b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 export const unsubscribeUrl = (member: string, kind: EmailKind) =>
   `${baseUrl()}/api/email/unsubscribe?m=${encodeURIComponent(member)}&k=${kind}&t=${unsubscribeToken(member, kind)}`;

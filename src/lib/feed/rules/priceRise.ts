@@ -7,7 +7,11 @@ import type { Rule } from "../types";
 const t = feedCopy.rules.priceRise;
 export const PRICE_RISE_DAYS = 35;
 /** Spec 01: up at least 5% or at least $1 on the charge before. */
-export const isRise = (now: number, before: number) => now > before && (now - before >= 1 || (now - before) / before >= 0.05);
+/** At least $1 (compared in cents, so $31.01 → $32.01 counts) or at least 5%. */
+export const isRise = (now: number, before: number) => {
+  const diff = Math.round(now * 100) - Math.round(before * 100);
+  return diff > 0 && (diff >= 100 || diff / Math.round(before * 100) >= 0.05);
+};
 
 export const priceRise: Rule = ({ d, edits }) =>
   detectSubscriptions(d, edits)

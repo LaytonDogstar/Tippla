@@ -23,7 +23,9 @@ export function consentEndsOn(d: PersonaData, a: AccountState = {}): ISODate | n
   const granted = d.consents.find((c) => c.id === "talefin_bank_data");
   const from = a.bank?.renewedOn ?? (granted?.granted_at ? toAEST(granted.granted_at).date : null);
   if (!from) return null;
-  return `${Number(from.slice(0, 4)) + 1}${from.slice(4, 10)}`;
+  // 29/02 + 12 months is 28/02 in a non-leap year.
+  const md = from.slice(5, 10) === "02-29" ? "02-28" : from.slice(5, 10);
+  return `${Number(from.slice(0, 4)) + 1}-${md}`;
 }
 
 /**

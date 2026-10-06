@@ -48,8 +48,10 @@ export async function saveSubscription(member: string, sub: StoredSubscription, 
   [member, sub.endpoint, sub.p256dh, sub.auth, platform]);
 }
 
-export async function removeSubscription(endpoint: string) {
-  await (await db()).query("DELETE FROM push_subscriptions WHERE endpoint = $1", [endpoint]);
+/** Remove a device; with `member`, only if it's theirs (the API route), without it for gone endpoints. */
+export async function removeSubscription(endpoint: string, member?: string) {
+  if (member) await (await db()).query("DELETE FROM push_subscriptions WHERE endpoint = $1 AND member_id = $2", [endpoint, member]);
+  else await (await db()).query("DELETE FROM push_subscriptions WHERE endpoint = $1", [endpoint]);
 }
 
 export async function subscriptionsFor(member: string): Promise<StoredSubscription[]> {

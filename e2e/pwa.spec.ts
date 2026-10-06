@@ -16,8 +16,8 @@ test("the service worker registers and keeps Today for offline use", async ({ pa
   await page.goto("/help");
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
   // Visits once the worker is in charge go through it and are kept (Playwright's reload() skips the worker).
-  const kept = () => page.evaluate(async () => (await (await caches.open("tippla-v1")).keys()).map((r) => new URL(r.url).pathname));
-  await expect.poll(async () => { await page.goto("/"); return kept(); }, { timeout: 15_000 }).toEqual(expect.arrayContaining(["/offline.html", "/"]));
+  const kept = () => page.evaluate(async () => (await (await caches.open("tippla-v2")).keys()).map((r) => new URL(r.url).pathname));
+  await expect.poll(async () => { await page.goto("/"); return kept(); }, { timeout: 15_000 }).toEqual(expect.arrayContaining(["/offline.html", "/__who", "/__page/jess/"])); // kept per person
   await expect(page.getByText(/Checked \d+ new transactions/)).toBeVisible();
   // Serving those copies offline is covered in tests/serviceWorker.test.ts: Playwright's offline switch and
   // request blocking don't reach service-worker requests.

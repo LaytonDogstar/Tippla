@@ -98,7 +98,17 @@ async function sendDue(member: string, ctx: NotifyContext): Promise<NotifyResult
   const out: NotifyResult[] = [];
   for (const row of due) {
     const candidate: Candidate = { key: row.key, category: row.type, priority: row.priority, title: row.title, body: row.body, href: row.href, at: ctx.now };
-    const d: Decision = { candidate, outcome: "send", channel: row.channel, sendAt: ctx.now, lockScreen: ctx.prefs.detailed ? { title: row.title, body: row.body } : { title: "Tippla", body: "You have an update from Tippla" } };
+    // Re-check the policy now: the member may have paused or turned this off overnight, and the day's cap
+    // counts what's already gone out today (this held row itself excluded).
+    const [now] = decide([candidate], ctx.prefs, (await history(member, ctx.now)).filter((h) => h.key !== row.key), ctx.now);
+    if (now!.outcome !== "send") {
+      await (await db()).query("UPDATE notifications SET status = $1, reason = $2 WHERE member_id = $3 AND key = $4 AND channel = $5",
+        [now!.outcome === "blocked" ? "blocked" : "suppressed", now!.reason ?? now!.outcome, member, row.key, row.channel]);
+      out.push({ key: row.key, status: now!.outcome === "blocked" ? "blocked" : "suppressed", channel: row.channel, reason: now!.reason ?? now!.outcome });
+      continue;
+    }
+    if (now!.sendAt > ctx.now) continue; // still quiet hours (they changed): stays scheduled
+    const d: Decision = { candidate, outcome: "send", channel: row.channel, sendAt: ctx.now, lockScreen: now!.lockScreen };
     const r = await deliver(member, d, ctx);
     await (await db()).query("UPDATE notifications SET status = $1, reason = $2, sent_at = $3 WHERE member_id = $4 AND key = $5 AND channel = $6",
       [r.ok ? "sent" : "suppressed", r.reason ?? null, r.ok ? ctx.now : null, member, row.key, row.channel]);
