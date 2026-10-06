@@ -25,7 +25,7 @@ function Steps() {
     return () => clearTimeout(h);
   }, [done, finished, fast, router]);
   return (
-    <OnboardingShell title={t.title} footer={finished ? <Button size="standard" full onClick={() => router.push("/onboarding/score-reveal")}>{t.continue}</Button> : undefined}>
+    <OnboardingShell step="analysing" title={t.title} footer={finished ? <Button size="standard" full onClick={() => router.push("/onboarding/score-reveal")}>{t.continue}</Button> : undefined}>
       <p className="text-body text-text-muted">{t.intro}</p>
       <ol className="mt-t5 flex flex-col gap-t2" aria-busy={!finished}>
         {t.steps.map((s, i) => {

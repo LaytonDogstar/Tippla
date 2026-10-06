@@ -1,6 +1,7 @@
 // Page chrome. Onboarding: Back + Support header, no tabs (they'd be consent-bypassing routes before setup),
 // optional fixed footer with the primary action and a visible Hardship support link.
 // Portal: header, content padded clear of the dock, mobile dock + desktop rail, dev persona pill.
+import { OnboardingStep, type OnboardingStepId } from "@/components/analytics/OnboardingStep";
 import { ChevronLeft, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -29,9 +30,10 @@ function Header({ backHref, title, titleLarge }: { backHref?: string; title?: st
   );
 }
 
-export function OnboardingShell({ backHref, title, footer, children }: { backHref?: string; title?: string; footer?: ReactNode; children: ReactNode }) {
+export function OnboardingShell({ backHref, title, footer, children, step, connected }: { backHref?: string; title?: string; footer?: ReactNode; children: ReactNode; step?: OnboardingStepId; connected?: boolean }) {
   return (
     <div className="min-h-[100dvh] bg-bg text-text">
+      {step && <OnboardingStep step={step} connected={connected} />}
       <div className="mx-auto max-w-[480px]">
         <Header backHref={backHref} title={title} titleLarge />
         <main id="main" className="px-gutter pb-[calc(160px+env(safe-area-inset-bottom))]">{children}</main>

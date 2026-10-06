@@ -13,7 +13,7 @@ export function ConnectedAccounts({ accounts }: { accounts: { id: number; bank: 
   const router = useRouter();
   const [sheet, setSheet] = useState(false);
   return (
-    <OnboardingShell backHref="/onboarding/connect-bank" title={t.otherTitle}
+    <OnboardingShell step="connect_bank" connected backHref="/onboarding/connect-bank" title={t.otherTitle}
       footer={<>
         <Button size="standard" full onClick={() => router.push("/onboarding/analysing")}>{t.thatsAll}</Button>
         <Button variant="secondary" size="standard" full onClick={() => setSheet(true)}>{t.addAnother}</Button>

@@ -3,7 +3,8 @@
 // Choices persist in the account cookie (router.refresh updates the nav badges too), each with Undo.
 import { ChevronRight, CircleCheck } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { track } from "@/lib/analytics/client";
 import type { PersonaId } from "@/lib/api/types";
 import { feedCopy as t } from "@/content/feed";
 import { addDays, formatShortDay } from "@/lib/format";
@@ -26,8 +27,15 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday }
   const state = account.feed ?? {};
   const open = items.filter((i) => isOpen(i, state, asOf));
   const shown = all ? open : open.slice(0, FEED_MAX);
+  const position = (item: FeedItem) => open.indexOf(item) + 1;
+  // One view per distinct set of cards shown (not on every re-render).
+  const shownKey = shown.map((i) => i.type).join(",");
+  useEffect(() => { track("feed_viewed", { item_count: shown.length, rule_ids: shownKey }); }, [shownKey, shown.length]);
 
   const set = (item: FeedItem, s: FeedItemState, message: string) => {
+    if (s.status === "done") track("feed_item_done", { rule_id: item.type, position: position(item) });
+    else if (s.status === "dismissed") track("feed_item_dismissed", { rule_id: item.type, reason: "dismissed" });
+    else track("feed_item_snoozed", { rule_id: item.type, duration: s.until === payday ? "payday" : "tomorrow" });
     const prev = state[item.id];
     const put = (v: FeedItemState | undefined) => update((l) => {
       const feed = { ...l.feed };
@@ -43,7 +51,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday }
       <div className="flex flex-wrap items-baseline justify-between gap-x-t3 px-t1 pb-t2">
         <h2 id="needs-a-look" className="text-h2 font-display text-text">{t.heading}</h2>
         {open.length > FEED_MAX && (
-          <button type="button" onClick={() => setAll((v) => !v)} className="min-h-tap rounded-sm px-t1 text-small text-accent hover:bg-surface2">
+          <button type="button" onClick={() => { if (!all) track("feed_see_all_opened", { item_count: open.length }); setAll((v) => !v); }} className="min-h-tap rounded-sm px-t1 text-small text-accent hover:bg-surface2">
             {all ? t.showFewer : `${t.more(open.length - FEED_MAX)} · ${t.showAll}`}
           </button>
         )}
@@ -61,7 +69,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday }
                 <h3 id={`fi-${item.id}`} className="mt-t1 text-h3 text-text">{item.title}</h3>
                 <p className="mt-t1 text-small text-text-muted">{item.body}</p>
                 <div className="mt-t3 flex flex-col gap-t2">
-                  <ButtonLink href={item.action.href} variant="secondary" full>{item.action.label}</ButtonLink>
+                  <ButtonLink href={item.action.href} variant="secondary" full onClick={() => track("feed_item_actioned", { rule_id: item.type, position: position(item) })}>{item.action.label}</ButtonLink>
                   {item.hardship && (
                     <Link href={item.hardship.href} className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">
                       {item.hardship.label}<ChevronRight aria-hidden size={20} />

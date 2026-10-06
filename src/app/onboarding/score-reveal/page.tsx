@@ -4,6 +4,7 @@ import { currentPersona, presentationMode } from "@/lib/persona";
 import { currentCycle, factors, firstAction, loanTotals, payPattern, scoreState, topThreeFactors } from "@/lib/selectors";
 import { PortalShell } from "@/components/shell/Portal";
 import { RevealView } from "./RevealView";
+import { OnboardingStep } from "@/components/analytics/OnboardingStep";
 import { ButtonLink } from "@/components/ui/Button";
 import { onboarding } from "@/content/onboarding";
 
@@ -16,6 +17,7 @@ export default async function ScoreReveal({ searchParams }: { searchParams: { pe
   return (
     <PortalShell path="/score" persona={persona} present={presentationMode(searchParams.present)} title={data.profile.first_name}
       backHref="/onboarding/connect-bank/done" cta={<ButtonLink href="/" size="standard" full>{onboarding.reveal.dashboard}</ButtonLink>}>
+      <OnboardingStep step="score_reveal" />
       <RevealView
         state={scoreState(data)}
         topFactor={topThreeFactors(data)[0] ?? null}

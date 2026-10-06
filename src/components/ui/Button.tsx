@@ -58,8 +58,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   );
 });
 
-export function ButtonLink({ href, variant = "primary", size = "compact", full, className, children }: {
-  href: string; variant?: ButtonVariant; size?: ButtonSize; full?: boolean; className?: string; children: ReactNode;
+export function ButtonLink({ href, variant = "primary", size = "compact", full, className, children, onClick }: {
+  href: string; variant?: ButtonVariant; size?: ButtonSize; full?: boolean; className?: string; children: ReactNode; onClick?: () => void;
 }) {
-  return <Link href={href} className={cx(base, sizes[size], variants[variant], full && "w-full", className)}>{children}</Link>;
+  return <Link href={href} onClick={onClick} className={cx(base, sizes[size], variants[variant], full && "w-full", className)}>{children}</Link>;
 }

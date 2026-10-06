@@ -65,7 +65,7 @@ export default function Consents() {
     router.push("/onboarding/connect-bank");
   };
   return (
-    <OnboardingShell backHref="/onboarding/password" title={t.title}
+    <OnboardingShell step="consents" backHref="/onboarding/password" title={t.title}
       footer={<>
         {!values.ff_data_sharing || !values.talefin_bank_data ? <p id="consent-hint" className="text-center text-caption text-text-muted">{t.tickBoth}</p> : null}
         <Button size="standard" full disabled={!ready} loading={submitting} loadingLabel={t.saving} aria-describedby="consent-hint" onClick={submit}>{t.continue}</Button>

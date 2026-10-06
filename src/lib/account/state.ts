@@ -22,6 +22,8 @@ export interface AccountState {
   bank?: { disconnected?: boolean; refreshedAt?: string };
   /** Things the customer did in the app that the value tally can later confirm in the bank data. */
   actions?: CustomerAction[];
+  /** Usage analytics consent (spec 09). Undefined means the default: on, and the member can turn it off. */
+  analytics?: boolean;
   /** The customer's buffer goal (Phase 3, progress and goals). */
   goal?: Goal;
   /** Notification preferences the server applies (frequency cap, weekly digest). */
@@ -60,6 +62,7 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   const s = a.subscription;
   if (s && ["active", "paused", "cancelled"].includes(s.status) && ["standard", "pro"].includes(s.plan) && typeof s.effective === "string") out.subscription = s;
   if (a.hardshipSelfSelected === true) out.hardshipSelfSelected = true;
+  if (typeof a.analytics === "boolean") out.analytics = a.analytics;
   if (Array.isArray(a.actions)) {
     out.actions = a.actions.filter((x): x is CustomerAction => !!x && ["cancelled_subscription", "skip_advance"].includes(x.type) && typeof x.at === "string" && (x.key === undefined || typeof x.key === "string"));
   }

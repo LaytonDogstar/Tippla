@@ -26,7 +26,7 @@ export default function CreateAccount() {
     router.push("/onboarding/password");
   };
   return (
-    <OnboardingShell title={t.title} footer={<Button size="standard" full onClick={submit}>{t.continue}</Button>}>
+    <OnboardingShell step="create_account" title={t.title} footer={<Button size="standard" full onClick={submit}>{t.continue}</Button>}>
       <p className="mt-t2 text-body text-text-muted">{t.intro}</p>
       <form className="mt-t6 flex flex-col gap-t5" noValidate onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <TextInput label={t.email} type="email" autoComplete="email" inputMode="email" value={email} helper={t.emailHelp}

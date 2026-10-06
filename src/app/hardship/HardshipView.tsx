@@ -2,6 +2,7 @@
 import { ChevronRight, ExternalLink, Info, Layers, MessageCircle, Phone, Settings, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
+import { track } from "@/lib/analytics/client";
 import { hardshipPage as t } from "@/content/account";
 import { NDH } from "@/config/services";
 import { SupportOptions } from "@/components/domain/SupportOptions";
@@ -45,6 +46,7 @@ export function HardshipView({ persona, account: initial, present, lenders }: { 
     try {
       await navigator.clipboard.writeText(draft);
       setCopyFailed(false);
+      track("hardship_letter_completed", { output: "copy" });
       toast({ kind: "confirm", message: t.template.copied });
     } catch {
       setCopyFailed(true);
@@ -52,7 +54,7 @@ export function HardshipView({ persona, account: initial, present, lenders }: { 
   };
 
   const cards: { id: string; icon: LucideIcon; title: string; body: string; action: string; onClick: () => void; soft?: boolean }[] = [
-    { id: "lender", icon: MessageCircle, ...t.lender, onClick: () => setSheet("template"), soft: true },
+    { id: "lender", icon: MessageCircle, ...t.lender, onClick: () => { track("hardship_letter_started", {}); setSheet("template"); }, soft: true },
     { id: "counselling", icon: Phone, ...t.counselling, onClick: () => setSheet("counselling") },
     { id: "tippla", icon: Settings, ...t.tippla, onClick: () => router.push("/account/subscription") },
     { id: "gambling", icon: Layers, ...t.gambling, onClick: () => setSheet("gambling") },

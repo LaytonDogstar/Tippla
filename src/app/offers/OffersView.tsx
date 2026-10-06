@@ -1,6 +1,8 @@
 "use client";
 import { Info } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { track } from "@/lib/analytics/client";
+import type { EventProps } from "@/lib/analytics/registry";
 import type { Offer, PersonaId } from "@/lib/api/types";
 import { offersPage as t } from "@/content/account";
 import { offer as oc } from "@/content/components";
@@ -13,8 +15,8 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { EmptyState, useToast } from "@/components/ui/Feedback";
 import { Sheet } from "@/components/ui/Sheet";
 
-export function OffersView({ persona, account: initial, matching, offers }: {
-  persona: PersonaId; account: AccountState; matching: boolean; offers: Offer[];
+export function OffersView({ persona, account: initial, matching, offers, guard }: {
+  persona: PersonaId; account: AccountState; matching: boolean; offers: Offer[]; guard: EventProps<"offer_viewed">;
 }) {
   const toast = useToast();
   const { account, save } = useAccount(persona, initial);
@@ -22,6 +24,8 @@ export function OffersView({ persona, account: initial, matching, offers }: {
   const [info, setInfo] = useState(false);
   const dismissed = new Set(account.dismissedOffers ?? []);
   const shown = offers.filter((o) => !dismissed.has(o.id));
+  const offersShown = matching && shown.length > 0;
+  useEffect(() => { if (offersShown) track("offer_viewed", guard); }, [offersShown, guard.had_shortfall, guard.in_hardship, guard.band]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const infoButton = (
     <button type="button" aria-label={t.info} onClick={() => setInfo(true)}

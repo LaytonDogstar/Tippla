@@ -5,3 +5,6 @@ out/
 .env*.local
 test-results/
 playwright-report/
+
+# Local embedded database (PGlite) when DATABASE_URL is not set
+.data/

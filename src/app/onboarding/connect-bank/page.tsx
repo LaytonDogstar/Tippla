@@ -8,7 +8,7 @@ const t = onboarding.connect;
 
 export default function ConnectBank() {
   return (
-    <OnboardingShell backHref="/onboarding/consents" title={t.title}
+    <OnboardingShell step="connect_bank" backHref="/onboarding/consents" title={t.title}
       footer={<ButtonLink href="/onboarding/connect-bank/talefin" size="standard" full>{t.button}</ButtonLink>}>
       <p className="text-body text-text-muted">{t.intro}</p>
       <ul className="mt-t5 flex flex-col gap-t3">

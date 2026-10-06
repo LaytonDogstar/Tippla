@@ -6,6 +6,7 @@ import { notificationsCopy as t } from "@/content/account";
 import { summaryCopy } from "@/content/progress";
 import { formatShortDay } from "@/lib/format";
 import { useAccount } from "@/lib/account/client";
+import { track } from "@/lib/analytics/client";
 import type { AccountState } from "@/lib/account/state";
 import { groupNotifications, type Notification, type NotificationType } from "@/lib/selectors/notifications";
 import { Button } from "@/components/ui/Button";
@@ -37,7 +38,7 @@ export function NotificationsView({ persona, account: initial, asOf, items }: { 
               const Icon = ICONS[n.type] ?? Bell;
               return (
                 <li key={n.id} className="border-b border-line last:border-b-0">
-                  <Link href={n.href} onClick={() => { if (!n.read) markRead([n.id]); }}
+                  <Link href={n.href} onClick={() => { track("notification_opened", { type: n.type }); if (!n.read) markRead([n.id]); }}
                     className={cx("flex min-h-[72px] items-start gap-t3 p-t4 hover:bg-surface2", !n.read && "bg-accent-soft")}>
                     <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><Icon size={24} /></span>
                     <span className="min-w-0 flex-1">

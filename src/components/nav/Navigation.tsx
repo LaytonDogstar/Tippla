@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { nav } from "@/content/components";
 import { cx } from "@/components/ui/cx";
 import type { FeedSection } from "@/lib/feed/types";
+import { track } from "@/lib/analytics/client";
 
 export type Badges = Partial<Record<FeedSection, number>>;
 
@@ -56,6 +57,7 @@ export function MobileDock({ path: forced, preview, badges = {} }: { path?: stri
             return (
               <li key={t.href}>
                 <Link href={t.href} aria-current={active ? "page" : undefined}
+                  onClick={preview ? undefined : () => track("nav_section_opened", { section: t.section, had_badge: (badges[t.section] ?? 0) > 0 })}
                   className={cx("group relative flex h-full flex-col items-center justify-center gap-t1 text-caption text-[length:min(0.75rem,14px)] leading-tight", active ? "text-accent" : "text-text-muted")}>
                   <span className={cx("relative inline-flex h-[32px] w-[52px] items-center justify-center rounded-sm transition-colors duration-fast ease-tippla",
                     active ? "bg-accent-soft" : "group-hover:bg-surface2")}>
@@ -84,10 +86,11 @@ const SUPPORT = { label: nav.groups.support, items: [{ href: "/hardship", label:
 /** Account lives with the profile, not in the sections. */
 const PROFILE = [{ href: "/account", label: nav.items.account }, { href: "/notifications", label: nav.items.notifications }];
 
-function RailLink({ href, label, path, badge = 0 }: { href: string; label: string; path: string; badge?: number }) {
+function RailLink({ href, label, path, badge = 0, section }: { href: string; label: string; path: string; badge?: number; section?: FeedSection }) {
   const active = href === "/" ? path === "/" : path === href || path.startsWith(href + "/");
   return (
     <Link href={href} aria-current={active ? "page" : undefined}
+      onClick={section ? () => track("nav_section_opened", { section, had_badge: badge > 0 }) : undefined}
       className={cx("relative flex min-h-[48px] items-center rounded-sm px-t3 text-body",
         active ? "bg-accent-soft text-body-strong text-accent before:absolute before:inset-y-t2 before:left-0 before:w-[3px] before:rounded-pill before:bg-accent" : "text-text hover:bg-surface2")}>
       <span className="flex-1">{label}</span>
@@ -106,7 +109,7 @@ export function DesktopSidebar({ path: forced, brand = "Tippla", preview, badges
         {GROUPS.map((g, i) => (
           <div key={i} className={cx(i > 0 && "mt-t4")}>
             {g.label && <p className="px-t3 pb-t1 text-caption text-text-muted">{g.label}</p>}
-            {g.items.map((it, j) => <RailLink key={it.href} {...it} path={path} badge={j === 0 ? badges[g.section] ?? 0 : 0} />)}
+            {g.items.map((it, j) => <RailLink key={it.href} {...it} path={path} badge={j === 0 ? badges[g.section] ?? 0 : 0} section={preview || j > 0 ? undefined : g.section} />)}
           </div>
         ))}
       </div>

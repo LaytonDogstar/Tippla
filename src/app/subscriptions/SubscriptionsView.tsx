@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState, useToast } from "@/components/ui/Feedback";
 import { Sheet } from "@/components/ui/Sheet";
 import { tallyCopy } from "@/content/loop";
+import { track } from "@/lib/analytics/client";
 import { useAccount } from "@/lib/account/client";
 import { mockNow, type AccountState } from "@/lib/account/state";
 import type { ChargedAgain } from "@/lib/selectors/tally";
@@ -27,6 +28,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
   const cancelled = new Set((acct.actions ?? []).filter((a) => a.type === "cancelled_subscription").map((a) => a.key));
   // Recorded so the value tally can confirm it once the next charge doesn't come out.
   const markCancelled = (merchant: string) => {
+    track("cancel_marked", { merchant });
     update((l) => ({ ...l, actions: [...(l.actions ?? []).filter((a) => !(a.type === "cancelled_subscription" && a.key === merchant)), { type: "cancelled_subscription", key: merchant, at: mockNow({ asOf }) }] }));
     toast({ kind: "confirm", message: tallyCopy.cancelledToast(merchant) });
   };
@@ -88,7 +90,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
                       toast({ kind: "confirm", message: t.reminderToast(s.merchant, formatShortDay(s.remindOn)), onUndo: () => save(before) });
                     }}>{t.remind}</Button>
                   )}
-                  <Button variant="tertiary" onClick={() => setHowTo(s.merchant)}>{t.howToCancel}</Button>
+                  <Button variant="tertiary" onClick={() => { track("cancel_guide_opened", { merchant: s.merchant }); setHowTo(s.merchant); }}>{t.howToCancel}</Button>
                 </div>
               </article>
             </li>

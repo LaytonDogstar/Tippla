@@ -18,9 +18,11 @@
     "lighthouse": "node scripts/lighthouse.mjs"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "framer-motion": "^13.4.6",
     "lucide-react": "^1.49.0",
     "next": "14.2.35",
+    "pg": "^8.23.1",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
@@ -28,6 +30,7 @@
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.56.1",
     "@types/node": "^20.14.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",

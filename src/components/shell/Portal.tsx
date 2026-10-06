@@ -16,6 +16,8 @@ import { AnalysingState, LapsedSheet } from "./States";
 import { PortalFrame } from "./Shells";
 import { loadCustomer } from "@/lib/customer";
 import { feed } from "@/lib/feed";
+import { paydayCheckIn } from "@/lib/selectors";
+import { PageAnalytics } from "@/components/analytics/PageAnalytics";
 
 const UNGATED = ["/hardship", "/help", "/account", "/notifications"];
 
@@ -34,5 +36,10 @@ export async function PortalShell(props: {
   // Nav badges: open "Needs a look" items per section (same rules and choices as Home).
   const { data, edits, account } = await loadCustomer(props.persona);
   const { bySection } = feed({ d: data, edits }, account.feed);
-  return <PortalFrame {...props} notice={notice} badges={bySection}>{body}</PortalFrame>;
+  return (
+    <PortalFrame {...props} notice={notice} badges={bySection}>
+      {body}
+      <PageAnalytics route={props.path} payday={paydayCheckIn(data) !== null} />
+    </PortalFrame>
+  );
 }

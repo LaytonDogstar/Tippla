@@ -3,6 +3,7 @@
 // the SmartScore next to what the customer did, and the value tally. Neutral colours throughout.
 import { CircleCheck, Flag, PiggyBank } from "lucide-react";
 import { useState } from "react";
+import { track } from "@/lib/analytics/client";
 import type { PersonaId } from "@/lib/api/types";
 import { progressCopy as t } from "@/content/progress";
 import { GOAL_PRESETS } from "@/config/flags";
@@ -162,6 +163,7 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
 
       <GoalSheet open={editing} onClose={() => setEditing(false)} options={options} defaultOption={defaultOption} initial={initial.goal}
         onSave={(amount, by) => {
+          track("goal_created", { target_cents: amount * 100, cycles: options.find((o) => o.by === by)?.cycles ?? 0 });
           update((l) => ({ ...l, goal: { amount, by, setAt: asOf } }));
           toast({ kind: "confirm", message: t.goal.saved });
           setEditing(false);

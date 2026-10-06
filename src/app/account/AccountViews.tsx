@@ -17,6 +17,7 @@ import { useToast } from "@/components/ui/Feedback";
 import { RadioGroup, TextInput, Toggle } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
 import { NOTIFY_CAP_DEFAULT } from "@/config/flags";
+import { track } from "@/lib/analytics/client";
 import { Sheet } from "@/components/ui/Sheet";
 
 const load = <T,>(key: string, fallback: T): T => { try { const v = localStorage.getItem(key); return v ? (JSON.parse(v) as T) : fallback; } catch { return fallback; } };
@@ -97,12 +98,12 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
         <h2 id="ch-h" className="text-h3 text-text">{t.profile.channelsHeading}</h2>
         <p className="mt-t1 text-small text-text-muted">{t.profile.eventsOnly}</p>
         <div className="mt-t4 border-t border-line pt-t3">
-          <RadioGroup legend={t.profile.howOften} value={String(notify.cap) as "1" | "2" | "3"} onChange={(v) => setNotify({ ...notify, cap: Number(v) })}
+          <RadioGroup legend={t.profile.howOften} value={String(notify.cap) as "1" | "2" | "3"} onChange={(v) => { track("notification_prefs_changed", { setting: "cap" }); setNotify({ ...notify, cap: Number(v) }); }}
             options={(["1", "2", "3"] as const).map((v) => ({ value: v, label: t.profile.cap(Number(v)) }))} />
           <p className="mt-t1 text-caption text-text-muted">{t.profile.capNote} <SampleTag q="Q21 default" present={present} /></p>
         </div>
         <div className="mt-t3 border-t border-line pt-t2">
-          <Toggle label={t.profile.digest} checked={notify.digest} onChange={(v) => setNotify({ ...notify, digest: v })} />
+          <Toggle label={t.profile.digest} checked={notify.digest} onChange={(v) => { track("notification_prefs_changed", { setting: "digest" }); setNotify({ ...notify, digest: v }); }} />
           <p className="text-caption text-text-muted">{t.profile.digestNote}</p>
         </div>
         <p className="mt-t4 border-t border-line pt-t3 text-small text-text-muted">{t.profile.channelsIntro}</p>
@@ -115,6 +116,17 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
             ))}
           </fieldset>
         ))}
+      </section>
+
+      <section aria-labelledby="usage-h" className="rounded-md bg-surface p-t4">
+        <h2 id="usage-h" className="text-h3 text-text">{t.profile.usageHeading}</h2>
+        <Toggle label={t.profile.usageLabel} checked={account.analytics !== false} onChange={(v) => {
+          // Record the change only while it's on: turning it off is the last thing we'd record, so we don't.
+          if (v) track("analytics_consent_changed", { granted: true });
+          update((l) => ({ ...l, analytics: v }));
+          toast({ kind: "confirm", message: t.profile.usageSaved(v) });
+        }} />
+        <p className="text-caption text-text-muted">{t.profile.usageNote}</p>
       </section>
 
       <section aria-labelledby="th-h" className="rounded-md bg-surface p-t4">

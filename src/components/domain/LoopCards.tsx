@@ -4,6 +4,8 @@
 import { ChevronRight, Flag, PiggyBank, Sun } from "lucide-react";
 import { progressCopy } from "@/content/progress";
 import Link from "next/link";
+import { useEffect } from "react";
+import { track } from "@/lib/analytics/client";
 import { checkInCopy as c, recapCopy as r, safeCopy as s, tallyCopy as v } from "@/content/loop";
 import { formatCents, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
 import type { CycleRecap, PaydayCheckIn } from "@/lib/selectors/payCycleLoop";
@@ -20,6 +22,7 @@ const LinkRow = ({ href, children }: { href: string; children: string }) => (
 );
 
 export function SafeToSpendCard({ safe, onHow }: { safe: SafeToSpend; onHow: () => void }) {
+  useEffect(() => { track("sts_viewed", { value_cents: safe.perDay * 100, days_left: safe.days, nothing_spare: safe.nothingSpare }); }, [safe.perDay, safe.days, safe.nothingSpare]);
   return (
     <section aria-labelledby="sts" className="rounded-lg bg-surface p-t4">
       <h2 id="sts" className="text-caption text-text-muted">{s.label}</h2>
@@ -36,7 +39,7 @@ export function SafeToSpendCard({ safe, onHow }: { safe: SafeToSpend; onHow: () 
         </>
       )}
       <div className="mt-t2 flex flex-col">
-        <Button variant="tertiary" onClick={onHow} className="self-start">{s.how}</Button>
+        <Button variant="tertiary" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }} className="self-start">{s.how}</Button>
         {safe.nothingSpare && <LinkRow href="/hardship">{s.hardship}</LinkRow>}
       </div>
     </section>
@@ -78,6 +81,10 @@ export function SafeToSpendSheet({ safe, open, onClose, present }: { safe: SafeT
 }
 
 export function CheckInCard({ checkIn, onHow }: { checkIn: PaydayCheckIn; onHow: () => void }) {
+  useEffect(() => {
+    track("checkin_opened", { source: "home" });
+    track("sts_viewed", { value_cents: checkIn.safe.perDay * 100, days_left: checkIn.safe.days, nothing_spare: checkIn.safe.nothingSpare });
+  }, [checkIn.cycle.start, checkIn.safe.perDay, checkIn.safe.days, checkIn.safe.nothingSpare]);
   const main = checkIn.income[0]!;
   return (
     <section aria-labelledby="checkin" className="rounded-lg bg-accent-soft p-t4">
@@ -94,13 +101,14 @@ export function CheckInCard({ checkIn, onHow }: { checkIn: PaydayCheckIn; onHow:
         <li className="text-body-strong">{checkIn.safe.nothingSpare ? s.none : c.safe(formatWhole(checkIn.safe.perDay))}</li>
         {checkIn.safe.goal > 0 && <li className="text-caption text-text-muted">{s.goalIncluded(formatWhole(checkIn.safe.goal))}</li>}
       </ul>
-      <Button variant="tertiary" onClick={onHow} className="mt-t1 self-start">{s.how}</Button>
+      <Button variant="tertiary" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }} className="mt-t1 self-start">{s.how}</Button>
       <LinkRow href="/calendar">{c.seeBills}</LinkRow>
     </section>
   );
 }
 
 export function RecapCard({ recap, feesAvoided }: { recap: CycleRecap; feesAvoided: number }) {
+  useEffect(() => { track("recap_opened", { source: "home" }); }, [recap.cycle.start]);
   const lines = [
     r.spent(formatWhole(recap.spent), formatWhole(recap.paidIn)),
     recap.advances.count === 0 ? [r.noAdvance, r.streak(recap.noAdvanceStreak)].filter(Boolean).join(" ") : r.advances(recap.advances.count, formatWhole(recap.advances.total)),
