@@ -1,6 +1,7 @@
 "use client";
 // P3 Spending, after reference/spending_interaction_prototype.html: the chart is a control, rows expand to
 // merchants, any transaction can be recategorised and every figure (donut, rows, budgets, hero, Home) moves.
+import { AskAboutThis } from "@/components/domain/AskTippla";
 import { useCorrections } from "@/lib/account/useCorrections";
 import { correctionCopy } from "@/content/corrections";
 import { ChevronRight, Search } from "lucide-react";
@@ -70,7 +71,9 @@ function vsLabel(p: Period): string {
   return t.vsLabel.rolling;
 }
 
-export function SpendingView({ persona, data, initialEdits, payCycle, gambling, accounts, params, asOf, corrections = null }: {
+export function SpendingView({ persona, data, initialEdits, payCycle, gambling, accounts, params, asOf, corrections = null, ask = null }: {
+  /** Spec 08: "Ask about this" question (null when the assistant is off). */
+  ask?: string | null;
   /** Spec 05: corrections on (with the payers the member has marked one-off or regular). */
   asOf?: string; corrections?: { oneOff: string[]; regular: string[] } | null;
   persona: PersonaId; present: boolean; data: SpendData; initialEdits: CategoryOverrides; payCycle: PayCycleSummary;
@@ -212,6 +215,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
 
   return (
     <div className="pb-t6">
+      {ask && <div className="mb-t2"><AskAboutThis question={ask} /></div>}
       <SegmentedControl label={t.tabsLabel} value={tab} onChange={setTab}
         options={TABS.map((v) => ({ value: v, label: t.tabs[v] }))} />
 

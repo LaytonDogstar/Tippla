@@ -18,6 +18,7 @@
     "lighthouse": "node scripts/lighthouse.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@electric-sql/pglite": "^0.5.8",
     "framer-motion": "^13.4.6",
     "lucide-react": "^1.49.0",

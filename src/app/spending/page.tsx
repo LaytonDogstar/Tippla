@@ -13,6 +13,7 @@ import { SpendingSearchButton, SpendingView, type SpendingParams } from "./Spend
 export const dynamic = "force-dynamic";
 
 import { isOn } from "@/config/featureFlags";
+import { assistantCopy } from "@/content/assistant";
 
 type Search = { persona?: string; present?: string; tab?: string; period?: string; month?: string; category?: string; direction?: string; q?: string };
 
@@ -46,6 +47,7 @@ export default async function Spending({ searchParams }: { searchParams: Search 
         accounts={accounts.length > 1 ? accounts : []}
         params={params}
         asOf={data.asOf}
+        ask={isOn("assistant_v1", persona) ? assistantCopy.suggestions.takeaway : null}
         corrections={isOn("corrections_v1", persona) ? { oneOff: data.memberRules?.oneOffIncome ?? [], regular: data.memberRules?.regularIncome ?? [] } : null}
       />
     </PortalShell>

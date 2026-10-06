@@ -11,11 +11,10 @@ export interface ScoreProjection { recommendationId: string; liftKey: string; fr
 
 const liftKeyFor = (id: string) => (id.startsWith("pay-off-") ? "payoff" : id);
 
-export function projectScore(d: PersonaData, enabled = SHOW_SCORE_PROJECTIONS_DEFAULT, goal?: FocusGoal): ScoreProjection | null {
-  if (!enabled || !d.score || d.score.override || d.score.score === null) return null;
-  const top = recommendations(d, goal)[0];
-  if (!top) return null;
-  const key = liftKeyFor(top.id);
+/** The sample projection for one action (spec 08 simulate_score uses this too). */
+export function projectFor(d: PersonaData, recommendationId: string): ScoreProjection | null {
+  if (!d.score || d.score.override || d.score.score === null) return null;
+  const key = liftKeyFor(recommendationId);
   const lift = PROJECTION_LIFTS[key];
   if (!lift) return null;
   const current = d.score.breakdown[lift.factor];
@@ -25,7 +24,13 @@ export function projectScore(d: PersonaData, enabled = SHOW_SCORE_PROJECTIONS_DE
   const last = d.scoreHistory.at(-1)?.scored_date ?? d.asOf;
   return {
     // Spec 02: rounded to the nearest 5, never false precision.
-    recommendationId: top.id, liftKey: key, from: d.score.score, to: Math.min(1000, Math.round((d.score.score + points) / 5) * 5),
+    recommendationId, liftKey: key, from: d.score.score, to: Math.min(1000, Math.round((d.score.score + points) / 5) * 5),
     by: addDays(last, 14 * PROJECTION_REFRESHES), factor: lift.factor, estimated: true,
   };
+}
+
+export function projectScore(d: PersonaData, enabled = SHOW_SCORE_PROJECTIONS_DEFAULT, goal?: FocusGoal): ScoreProjection | null {
+  if (!enabled || !d.score || d.score.override || d.score.score === null) return null;
+  const top = recommendations(d, goal)[0];
+  return top ? projectFor(d, top.id) : null;
 }

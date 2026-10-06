@@ -37,6 +37,7 @@ import type { GoalOption } from "@/components/domain/GoalPicker";
 import { ForecastMissCard } from "@/components/domain/ForecastMiss";
 import { SafeToSpendPaused } from "@/components/domain/Connection";
 import { PlanCompact } from "@/components/domain/PlanCard";
+import { AskTipplaLink } from "@/components/domain/AskTippla";
 import { StageMomentCard } from "@/components/domain/StageMoment";
 import type { StageMoment } from "@/lib/selectors/progression";
 import type { Streak } from "@/lib/selectors/progress";
@@ -64,7 +65,7 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
   /** Spec 07: buffer growth choices, streak milestones and the payday surplus prompt, and the stage moment. */
   bufferSteps?: { extra: number[]; next: number | null } | null; milestones?: Streak[]; surplus?: number | null; moment?: StageMoment | null; savingsLines?: string[];
   /** Feature flags (retention pack): each part of Today can be switched off. */
-  flags?: { feed: boolean; status: boolean; safe: boolean; tally: boolean; buffer: boolean; corrections?: boolean };
+  flags?: { feed: boolean; status: boolean; safe: boolean; tally: boolean; buffer: boolean; corrections?: boolean; assistant?: boolean };
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -141,6 +142,7 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
       <div className="flex flex-col gap-t3 desktop:gap-t6">
         <SmartScoreCard state={score} change={change} attribution={attribution} />
         {showTally && <TallyCard tally={tally} onOpen={() => setSheet("tally")} />}
+        {flags.assistant && <AskTipplaLink />}
         {plan && <PlanCompact plan={plan.progress} title={plan.title} />}
         <ProgressLink text={progressText} />
         <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />

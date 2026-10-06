@@ -60,7 +60,7 @@ describe("envelope, consent and storage", () => {
     expect(e!.member_id).not.toContain("jess");
     expect(e!.member_id).toBe(memberIdFor("jess"));
     expect(e!.flags).toContain("feed_v1");
-    expect(e!.flags).not.toContain("assistant_v1"); // not built yet
+    expect(e!.flags).toContain("assistant_v1"); // built in spec 08; demo personas get gated flags
   });
 
   it("stores nothing without consent, and stores validated events with it", async () => {
@@ -93,7 +93,8 @@ describe("feature flags and experiments", () => {
     expect(flagOn("value_tally_v1", "jess")).toBe(true);
     expect(flagOn("value_tally_v1", "member-123")).toBe(false); // gated (G5), no sign-off yet
     expect(flagOn("feed_v1", "member-123")).toBe(true);
-    expect(flagOn("assistant_v1", "jess")).toBe(false); // not built
+    expect(flagOn("assistant_v1", "jess")).toBe(true); // demo persona
+    expect(flagOn("assistant_v1", "member-123")).toBe(false); // gated (G1, G2, G3, G6) until sign-off
     expect(flagOn("feed_v1", "jess", { off: ["feed_v1"] })).toBe(false);
   });
 

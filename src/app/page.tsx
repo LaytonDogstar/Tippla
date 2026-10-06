@@ -76,7 +76,7 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
       <HomeView
         persona={persona}
         account={account}
-        flags={{ feed: on.feed_v1, status: on.status_line_v1, safe: on.safe_to_spend_v1, tally: on.value_tally_v1, buffer: on.buffer_v1, corrections: on.corrections_v1 }}
+        flags={{ feed: on.feed_v1, status: on.status_line_v1, safe: on.safe_to_spend_v1, tally: on.value_tally_v1, buffer: on.buffer_v1, corrections: on.corrections_v1, assistant: on.assistant_v1 }}
         status={status.line}
         statusStale={status.stale}
         checked={status.checked}

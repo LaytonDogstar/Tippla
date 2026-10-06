@@ -111,4 +111,23 @@ export const MIGRATIONS: { id: string; sql: string }[] = [
       );
     `,
   },
+  {
+    // Spec 08: assistant quality log. PII minimisation: no question or answer text, a pseudonymous member id,
+    // the intent, which tools ran and whether the guards passed. Retention per spec 11 (Q41).
+    id: "005_assistant_logs",
+    sql: `
+      CREATE TABLE IF NOT EXISTS assistant_logs (
+        id BIGSERIAL PRIMARY KEY,
+        member_id TEXT NOT NULL,
+        intent TEXT NOT NULL,
+        mode TEXT NOT NULL,
+        tools TEXT NOT NULL,
+        escalation TEXT,
+        fell_back TEXT,
+        unsupported_numbers INT NOT NULL DEFAULT 0,
+        helpful BOOLEAN,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `,
+  },
 ];

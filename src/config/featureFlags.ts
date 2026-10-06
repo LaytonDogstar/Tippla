@@ -41,7 +41,7 @@ export const FLAGS = {
   credit_file_v1: { spec: "07", description: "Credit file tracking (prototype)", built: true, gate: ["G1", "G3", "G4"] },
   refinance_step_v1: { spec: "07", description: "Cheaper-credit check (prototype)", built: true, gate: ["G1", "G4"] },
   // 08 Assistant
-  assistant_v1: { spec: "08", description: "Ask Tippla assistant", built: false, gate: ["G1", "G2", "G3", "G6"] },
+  assistant_v1: { spec: "08", description: "Ask Tippla assistant", built: true, gate: ["G1", "G2", "G3", "G6"] },
   // 10 Platform
   pwa_v1: { spec: "10", description: "Installable app", built: true },
   push_v1: { spec: "10", description: "Push notifications", built: true, gate: ["G5"] },

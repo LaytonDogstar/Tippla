@@ -179,5 +179,12 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 
 ---
 
+### P16 Ask Tippla (`/assistant`) *(06/10/2026, retention spec 08, flag `assistant_v1`, gates G1, G2, G3, G6: demo and internal only)*
+- **Entry points:** "Ask Tippla" on Today; "Ask about this" on the score page ("Why did my score change?") and Spending ("How much do I spend on takeaway?"), which ask straight away. Suggested questions come from the feed first (jess: "Can I afford $50 on Saturday?").
+- **Answers** come from deterministic tools over the member's own figures (`lib/assistant/tools.ts`: safe to spend, forecast, simulate a spend, bills, subscriptions, spending by category, score, what moved it, simulate a score step, plan, hardship options). There's no offers or lender-matching tool. They lead with the conclusion, then the evidence, label estimates, and link to the screen. Acceptance (jess): "Can I afford $80 on Saturday?" → "Probably not without running short. You're forecast to be about $53 short before payday on 01/10, and $80 would make that about $133. Here are some options." with Options if money's tight and See what's due.
+- **Modes:** with an API key, Claude writes the answer using the tools; without one, templates do. Either way code checks it: every number must appear in a tool result, no credit-product or lender recommendation, nothing judgemental; a failing model answer is replaced with the template answer and logged.
+- **Guardrails:** borrowing questions get "I can't recommend loans, lenders or whether to borrow", the member's own figures (e.g. Beforepay advance fees), hardship options, no-interest loans and a link to Borrowing. Distress cues ("I can't cope", "going under") always get the scripted support answer first (National Debt Helpline call link, Hardship support; Lifeline for crisis cues), never the model. Gambling: supportive, links to support options.
+- "Was this helpful?" Yes / No. The quality log keeps no question or answer text: intent, mode, tools used, escalation, whether it fell back and why, and the rating (`assistant_logs`).
+
 ## Pro vs Standard (Q9)
 Both tiers get the complete core product. Pro adds (placeholder): more frequent refresh, extra history range, early repayment calculator scenarios. Never show Standard as crippled; no greyed-out teaser panels on core screens.
