@@ -13,11 +13,15 @@ export function lastRefresh(d: PersonaData): { at: string; since: string | null 
   return { at: scoredAt ?? bankAt, since: h.length >= 2 ? h[h.length - 2]!.scored_date : null };
 }
 
-export function refreshStatus(d: PersonaData, openItems: number) {
+/** Spec 01 variants: stale bank data (reconnect), all caught up, or what Tippla checked + what needs a look. */
+export function refreshStatus(d: PersonaData, openItems: number, opts: { staleSince?: string | null } = {}) {
   const { at: refreshedAt, since: prev } = lastRefresh(d);
   const { date, minutes } = toAEST(refreshedAt);
   const fresh = posted(d.transactions).filter((x) => (prev ? x.date > prev : true) && x.date <= d.asOf).length;
   const when = date !== d.asOf ? t.when.day(formatShortDay(date)) : minutes < 12 * 60 ? t.when.morning : minutes < 17 * 60 ? t.when.afternoon : t.when.evening;
   const checked = prev ? t.checked(fresh, when) : t.firstCheck(fresh);
-  return { checked, things: t.things(openItems), newTransactions: fresh, line: `${checked} · ${t.things(openItems)}` };
+  const line = opts.staleSince ? t.stale(formatShortDay(opts.staleSince))
+    : openItems === 0 ? t.allCaughtUp(formatShortDay(d.derived.pay_cycle.next_payday))
+    : `${checked} · ${t.things(openItems)}`;
+  return { checked, things: t.things(openItems), newTransactions: fresh, line, stale: !!opts.staleSince };
 }

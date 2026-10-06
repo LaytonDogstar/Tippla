@@ -23,6 +23,14 @@ export const safeCopy = {
   bufferNote: (amt: string) => `We keep ${amt} aside so an unexpected cost doesn't tip you under.`,
   hardship: "Options if money's tight",
   goalOnHold: "Your goal waits this pay cycle: bills and everyday spending come first.",
+  up: (amt: string, when: string) => `Up ${amt} since ${when}`,
+  yesterday: "yesterday",
+  sevenDays: "For the next 7 days. We couldn't find a regular payday, so this looks a week ahead.",
+  estimated: "Your income varies, so your payday is an estimate.",
+  estimate: "Estimate",
+  bufferHeading: "Keep a buffer",
+  bufferNoteZero: "No buffer: everything after bills counts. You can keep some aside if you'd like.",
+  bufferSaved: (amt: string) => `Buffer set to ${amt}`,
   goalIncluded: (amt: string) => `Includes ${amt} towards your goal`,
 } as const;
 
@@ -37,6 +45,23 @@ export const checkInCopy = {
   noAdvance: "No pay advance to repay this pay cycle.",
   safe: (amt: string) => `Safe to spend: about ${amt} a day`,
   seeBills: "See this pay cycle's bills",
+  focus: (title: string) => `Focus this pay cycle: ${title}`,
+  adjust: "Adjust this pay cycle",
+  adjustTitle: "Adjust this pay cycle",
+  adjustIntro: "Tell us what we can't see, and your forecast and safe to spend update straight away.",
+  billsHeading: "Bills before next payday",
+  alreadyPaid: (m: string, amt: string, date: string) => `${m} ${amt} (${date}): already paid`,
+  oneOffHeading: "A cost you know is coming",
+  oneOffLabel: "What it's for",
+  oneOffAmount: "Amount ($)",
+  oneOffDate: "When",
+  oneOffAdd: "Add it",
+  oneOffAdded: (label: string) => `Added ${label} to your forecast`,
+  oneOffRemove: (label: string) => `Remove ${label}`,
+  oneOffInvalid: "Enter what it's for and an amount between $1 and $10,000",
+  updated: "Got it. Your forecast is updated",
+  pendingTitle: "Has your pay landed?",
+  pendingBody: (date: string) => `We expected it today (${date}). It usually shows up in your bank by midday. Your check-in will be here when it does.`,
 } as const;
 
 export const recapCopy = {
@@ -54,6 +79,9 @@ export const recapCopy = {
   changes: "Biggest changes from the cycle before",
   change: (cat: string, amt: string, up: boolean) => `${cat} ${up ? "up" : "down"} ${amt}`,
   seeSpending: "See last pay cycle's spending",
+  best: (n: number) => `Your best is ${n} pay cycles in a row without a new pay advance.`,
+  next: (title: string) => `For the next pay cycle: ${title}`,
+  past: "Past pay cycles",
 } as const;
 
 export const projectionCopy = {
@@ -76,7 +104,7 @@ export const tallyCopy = {
   label: "Tippla has helped you save",
   amount: (amt: string) => amt,
   since: "From things you've done in the app",
-  none: "Nothing counted yet. Savings show here once we can see them in your bank data.",
+  none: "As you use Tippla, we'll track what it saves you.",
   pendingHeading: "Waiting to confirm",
   confirmedHeading: "Confirmed",
   sheetTitle: "What we've counted",

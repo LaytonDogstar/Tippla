@@ -109,7 +109,7 @@ describe("weekly summary and goals in notifications", async () => {
 
   it("the payday notification's safe-to-spend figure allows for the goal, like Today does", () => {
     const goal = { amount: 200, by: "2026-12-09", setAt: "2026-10-01" };
-    expect(notifications(jessP, { goal }).find((n) => n.id.startsWith("payday-"))!.body).toContain("about $22 a day");
-    expect(notifications(jessP).find((n) => n.id.startsWith("payday-"))!.body).toContain("about $24 a day");
+    expect(notifications(jessP, { goal }).find((n) => n.id.startsWith("payday-"))!.body).toContain("about $25 a day");
+    expect(notifications(jessP).find((n) => n.id.startsWith("payday-"))!.body).toContain("about $28 a day");
   });
 });

@@ -1,5 +1,5 @@
 // A category well above its usual: this pay cycle so far (including pending charges, as an early
-// warning) vs the average of the last 3 full cycles. Gambling, alcohol, fixed costs (rent, loans, pay
+// warning) vs the median of the last 3 full cycles (spec 01). Gambling, alcohol, fixed costs (rent, loans, pay
 // advances, fees) and monthly bills (which land unevenly across fortnights) are never flagged here.
 import { categoryNames } from "@/content/en-AU";
 import { feedCopy } from "@/content/feed";
@@ -24,7 +24,9 @@ export const unusualSpend: Rule = ({ d, edits }) => {
   for (const x of pending(inPeriod(applyOverrides(d.transactions, edits), cycle))) {
     if (x.amount < 0) pendingBy.set(x.category, sumMoney([pendingBy.get(x.category) ?? 0, -x.amount]));
   }
+  const median = (xs: number[]) => { const s = [...xs].sort((a, b) => a - b); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2; };
   return h.rows
+    .map((r) => ({ ...r, average: median(r.cycles.map((c) => c.total)) }))
     .map((r) => ({ ...r, pending: pendingBy.get(r.category) ?? 0, now: sumMoney([r.thisCycle, pendingBy.get(r.category) ?? 0]) }))
     .filter((r) => !NEVER.includes(r.category) && r.average >= UNUSUAL.minUsual && r.now >= r.average * UNUSUAL.ratio && r.now - r.average >= UNUSUAL.minExtra)
     .map((r) => ({

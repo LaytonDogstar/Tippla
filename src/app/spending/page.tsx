@@ -17,14 +17,15 @@ type Search = { persona?: string; present?: string; tab?: string; period?: strin
 export default async function Spending({ searchParams }: { searchParams: Search }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
-  const { data } = await loadCustomer(persona);
+  const { data, account } = await loadCustomer(persona);
   const lite: SpendData = {
     transactions: data.transactions,
     asOf: data.asOf,
     derived: data.derived,
     profile: { data_from: data.profile.data_from },
   };
-  const g = gamblingInsight(data);
+  // Hidden by the member (spec 01): no gambling insight on Spending.
+  const g = account.hideGambling ? null : gamblingInsight(data);
   const accounts = (data.bankStatement.profiles[0]?.accounts ?? []).map((a) => ({ id: a.id, label: `${a.nickname} ··${a.last4}` }));
   const params: SpendingParams = {
     tab: searchParams.tab, period: searchParams.period, month: searchParams.month,

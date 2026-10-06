@@ -18,6 +18,10 @@ export interface ChargedAgain { merchant: string; date: ISODate; amount: number 
 
 /** Grace after an expected charge date before we count it as not taken. */
 export const CHARGE_GRACE_DAYS = 3;
+/** Spec 02: a cancelled subscription counts for at most 12 months. */
+export const SUBSCRIPTION_CAP_MONTHS = 12;
+/** Spec 02: an avoided failed-payment fee counts at 50% of the usual fee (conservative). */
+export const DISHONOUR_SHARE = 0.5;
 
 export function valueTally(d: PersonaData, a: AccountState = {}) {
   const items: TallyItem[] = [];
@@ -38,7 +42,7 @@ export function valueTally(d: PersonaData, a: AccountState = {}) {
     // No charge since the cancellation (checked above): count each expected charge whose grace has passed.
     let missed = 0;
     let firstConfirm: ISODate | null = null;
-    for (let due = expected; addDays(due, CHARGE_GRACE_DAYS) < d.asOf; due = addMonth(due)) {
+    for (let due = expected; addDays(due, CHARGE_GRACE_DAYS) < d.asOf && missed < SUBSCRIPTION_CAP_MONTHS; due = addMonth(due)) {
       missed++;
       firstConfirm ??= due;
     }
@@ -66,7 +70,7 @@ export function valueTally(d: PersonaData, a: AccountState = {}) {
   // 3. A "bill bigger than your balance" card the customer acted on (Done) before the bill date, and the
   //    bill went through with no failed-payment fee within 3 days.
   const pastFees = tx.filter((t) => t.subcategory === "dishonour").map((t) => -t.amount);
-  const fee = pastFees.length ? pastFees[pastFees.length - 1]! : DEFAULT_DISHONOUR_FEE;
+  const fee = sumMoney([(pastFees.length ? pastFees[pastFees.length - 1]! : DEFAULT_DISHONOUR_FEE) * DISHONOUR_SHARE]);
   for (const [id, st] of Object.entries(a.feed ?? {})) {
     const m = /^bill_over_balance:(.+):(\d{4}-\d{2}-\d{2})$/.exec(id);
     if (!m || st.status !== "done" || st.at > m[2]!) continue;

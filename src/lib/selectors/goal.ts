@@ -3,7 +3,8 @@
 // most recent payday. Never a fail state: a missed step simply carries on the next pay cycle.
 import type { PersonaData } from "@/lib/api/types";
 import type { Goal } from "@/lib/account/state";
-import { GOAL_MIN_CYCLES } from "@/config/flags";
+import { GOAL_MIN_CYCLES, SAFE_TO_SPEND_BUFFER } from "@/config/flags";
+import { safeToSpend } from "./safeToSpend";
 import { addDays, daysBetween, type ISODate } from "@/lib/format/dates";
 import { cycleFacts } from "./payCycleLoop";
 import { cycleBefore } from "./periods";
@@ -62,3 +63,9 @@ export function goalDateOptions(d: PersonaData): { by: ISODate; payday: ISODate;
   });
 }
 export const DEFAULT_GOAL_OPTION = 3;
+
+/** Safe to spend with the member's own buffer (spec 02) and this pay cycle's goal step. Use this everywhere. */
+export function safeToSpendFor(d: PersonaData, a: { buffer?: number; goal?: Goal }) {
+  return safeToSpend(d, stsOptions(d, a));
+}
+export const stsOptions = (d: PersonaData, a: { buffer?: number; goal?: Goal }) => ({ buffer: a.buffer ?? SAFE_TO_SPEND_BUFFER, goal: goalPlan(d, a.goal)?.thisCycle ?? 0 });

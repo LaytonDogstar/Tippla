@@ -9,7 +9,7 @@ import type { AccountState } from "@/lib/account/state";
 import { trackServer } from "@/lib/analytics/server";
 import { db } from "@/lib/db";
 import { notificationEvents, toCandidate, weeklySummary } from "@/lib/selectors/notifications";
-import { safeToSpend } from "@/lib/selectors/safeToSpend";
+import { safeToSpendFor } from "@/lib/selectors/goal";
 import { formatShortDay, formatWhole } from "@/lib/format";
 import { compose, sendEmail } from "./email";
 import { decide, type Candidate, type Decision, type NotifyPrefs, type SentRecord } from "./policy";
@@ -126,7 +126,7 @@ export async function sendWeeklyDigest(member: string, d: PersonaData, a: Accoun
   const key = `digest:${week.to}`;
   const exists = (await (await db()).query("SELECT 1 FROM notifications WHERE member_id = $1 AND key = $2", [member, key])).rows.length > 0;
   if (exists) return false;
-  const s = safeToSpend(d);
+  const s = safeToSpendFor(d, a);
   const lines = [
     emailCopy.digest.intro(formatShortDay(week.from), formatShortDay(week.to)),
     ...(week.items.length ? week.items.map((n) => `${n.title}. ${n.body}`) : [emailCopy.digest.none]),

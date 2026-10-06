@@ -26,12 +26,22 @@ export interface SafeToSpend {
   goal: number;
   /** The goal would leave nothing to spend, so it waits this pay cycle (bills and everyday spending first). */
   goalOnHold: boolean;
+  /** No regular payday found: the figure covers the next 7 days instead (spec 02). */
+  sevenDayMode: boolean;
+  /** Income is irregular, so the payday is an estimate (labelled as such). */
+  paydayEstimated: boolean;
 }
+
+/** Below this income-stability factor (/10), the payday is shown as estimated. SAMPLE LOGIC. */
+export const STABLE_INCOME_MIN = 5;
 
 /** `goal` is this pay cycle's goal target (selectors/goal.ts → goalPlan().thisCycle). */
 export function safeToSpend(d: PersonaData, opts: { buffer?: number; goal?: number } = {}): SafeToSpend {
   const buffer = opts.buffer ?? SAFE_TO_SPEND_BUFFER;
-  const payday = d.derived.pay_cycle.next_payday;
+  // No payday detected: work over the next 7 days instead.
+  const sevenDayMode = !d.derived.pay_cycle?.next_payday;
+  const payday = sevenDayMode ? addDays(d.asOf, 7) : d.derived.pay_cycle.next_payday;
+  const stability = d.score?.breakdown?.INCOME ?? null;
   const forecastDate = addDays(payday, -1);
   const days = Math.max(1, daysBetween(d.asOf, payday));
   const balance = currentBalance(d);
@@ -47,6 +57,7 @@ export function safeToSpend(d: PersonaData, opts: { buffer?: number; goal?: numb
   return {
     perDay: spare - goal > 0 ? Math.floor((spare - goal) / days) : 0,
     balance, bills, billsTotal, incomeTotal, forecast, forecastDate, buffer, days, payday,
-    nothingSpare: spare <= 0, goal, goalOnHold,
+    nothingSpare: spare <= 0, goal, goalOnHold, sevenDayMode,
+    paydayEstimated: !sevenDayMode && stability !== null && stability < STABLE_INCOME_MIN,
   };
 }

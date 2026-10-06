@@ -9,7 +9,7 @@ export type FeedSection = "today" | "money" | "score" | "borrowing" | "help";
 
 export type FeedType =
   | "shortfall" | "bill_over_balance" | "repayment_due" | "new_subscription" | "price_rise"
-  | "duplicate_charge" | "unusual_spend" | "score_change" | "tippla_billing_relief";
+  | "duplicate_charge" | "unusual_spend" | "score_change" | "tippla_billing_relief" | "bank_reconnect";
 
 /** 5 = act today … 1 = for your info. */
 export type Urgency = 1 | 2 | 3 | 4 | 5;
@@ -31,6 +31,8 @@ export interface FeedItem {
   amountAtStake: number;
   /** After this date the item no longer applies (a bill that has come out). */
   expiresAt: ISODate | null;
+  /** Never pushed and never on a lock screen (spec 01). Gambling-related items would set this. */
+  sensitive?: boolean;
   /** Transactions behind the item, for "see the charges" and tests. */
   transactionIds?: string[];
 }
@@ -40,9 +42,12 @@ export interface FeedContext {
   edits: CategoryOverrides;
   /** The member's account choices (billing, hardship), for rules that depend on them. */
   account?: AccountState;
+  /** Dev states (e.g. bank_expired) for rules about the connection. */
+  states?: string[];
 }
 
 export type Rule = (ctx: FeedContext) => FeedItem[];
 
-export interface FeedItemState { status: "done" | "dismissed" | "snoozed"; until?: ISODate; at: ISODate }
+/** `amount` is the amount at stake when the customer dealt with it, so a material change brings it back. */
+export interface FeedItemState { status: "done" | "dismissed" | "snoozed"; until?: ISODate; at: ISODate; amount?: number }
 export type FeedState = Record<string, FeedItemState>;

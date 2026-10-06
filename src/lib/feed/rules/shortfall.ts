@@ -15,6 +15,6 @@ export const shortfall: Rule = ({ d, edits }) => {
     body: t.body(formatWhole(s.balance), formatWhole(s.dueTotal), formatShortDay(s.nextPayday)),
     action: { label: t.action, href: "/calendar" },
     hardship: { label: feedCopy.hardship, href: "/hardship" },
-    urgency: s.daysToPayday <= 7 ? 5 : 4, amountAtStake: -s.leftAfterBills, expiresAt: s.nextPayday,
+    urgency: 4, amountAtStake: -s.leftAfterBills, expiresAt: s.nextPayday,
   }];
 };

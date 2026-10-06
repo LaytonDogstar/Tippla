@@ -4,7 +4,7 @@ import type { PersonaData, Transaction } from "@/lib/api/types";
 import { allFeedItems, feed, isOpen, rank, rankScore, RULES, type FeedItem } from "@/lib/feed";
 import { addDays } from "@/lib/format/dates";
 import { scoreAttribution, scoreChange } from "@/lib/selectors";
-import { load } from "./helpers";
+import { load, loadBillDue } from "./helpers";
 
 const ctx = (d: PersonaData) => ({ d, edits: {} });
 const types = (items: FeedItem[]) => items.map((i) => i.type);
@@ -21,11 +21,10 @@ describe("feed rules", async () => {
 
   it("Jess: every rule that applies to her fires, with real figures", () => {
     const items = allFeedItems(ctx(jess));
-    expect(new Set(types(items))).toEqual(new Set(["shortfall", "bill_over_balance", "unusual_spend", "duplicate_charge", "new_subscription", "price_rise", "score_change", "tippla_billing_relief"]));
+    // The Beforepay repayment (Wed 30/09) is 5 days out: spec 01 only flags bills due within 3 days.
+    expect(new Set(types(items))).toEqual(new Set(["shortfall", "unusual_spend", "duplicate_charge", "new_subscription", "price_rise", "score_change", "tippla_billing_relief"]));
     const by = Object.fromEntries(items.map((i) => [i.type, i]));
     expect(by.shortfall!.title).toBe("About $53 short before payday");
-    expect(by.bill_over_balance!.title).toBe("Beforepay $315 on Wed 30/09 is more than your forecast balance");
-    expect(by.bill_over_balance!.body).toContain("$262");
     expect(by.duplicate_charge!.title).toBe("Possible double charge: Amazon AU $10.73 twice on 24/09");
     expect(by.duplicate_charge!.transactionIds).toHaveLength(2);
     expect(by.new_subscription!.title).toBe("New subscription: Binge $18.00 a month");
@@ -35,9 +34,15 @@ describe("feed rules", async () => {
     expect(by.score_change!.title).toBe("Your SmartScore went down 17 points");
   });
 
-  it("Jess's top three: the shortfall, the bill that won't fit, then the biggest dollar item", () => {
+  it("Jess 29/09: the Beforepay repayment tomorrow is bigger than her balance, and ranks first (urgency 5)", async () => {
+    const jessB = await loadBillDue("jess");
+    const [top] = allFeedItems(ctx(jessB));
+    expect(top).toMatchObject({ type: "bill_over_balance", urgency: 5, title: "Beforepay $315 on Wed 30/09 is more than your forecast balance" });
+  });
+
+  it("Jess's top three (spec 01 ranking: urgency × 10 + log10(amount) × 5)", () => {
     const f = feed(ctx(jess));
-    expect(types(f.top)).toEqual(["shortfall", "bill_over_balance", "unusual_spend"]);
+    expect(types(f.top)).toEqual(["shortfall", "duplicate_charge", "tippla_billing_relief"]);
     expect(f.top).toHaveLength(3);
     expect(Object.values(f.bySection).reduce((a, b) => a + b, 0)).toBe(f.open.length);
   });
@@ -103,7 +108,7 @@ describe("ranking and the customer's choices", async () => {
   const jess = await load("jess");
   const items = allFeedItems(ctx(jess));
 
-  it("ranks by urgency × amount at stake", () => {
+  it("ranks by urgency × 10 + log10(amount) × 5, soonest expiry first on a tie", () => {
     const scores = rank(items).map(rankScore);
     expect([...scores].sort((a, b) => b - a)).toEqual(scores);
     const a = { ...items[0]!, id: "a", urgency: 5 as const, amountAtStake: 20 };

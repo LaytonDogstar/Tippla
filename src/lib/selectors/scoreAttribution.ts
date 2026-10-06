@@ -88,7 +88,11 @@ function reasonFor(d: PersonaData, f: FactorKey, from: ISODate, to: ISODate, dow
   }
 }
 
-export function scoreAttribution(d: PersonaData): ScoreAttribution | null {
+/**
+ * `hideGambling`: the member has hidden gambling insights (spec 01), so gambling and spending-mix changes
+ * are folded into one "spending mix and other factors" line with no factor values or transactions.
+ */
+export function scoreAttribution(d: PersonaData, opts: { hideGambling?: boolean } = {}): ScoreAttribution | null {
   const h = d.scoreHistory;
   if (h.length < 2) return null;
   const prev = h[h.length - 2]!, last = h[h.length - 1]!;
@@ -110,9 +114,18 @@ export function scoreAttribution(d: PersonaData): ScoreAttribution | null {
     const r = reasonFor(d, x.f, prev.scored_date, last.scored_date, x.to < x.from);
     return { factor: x.f, name: factorCopy[x.f].name, from: x.from, to: x.to, points: pts[i]!, reason: r.reason, short: r.short, transactionIds: r.ids };
   });
+  if (opts.hideGambling) {
+    const mix = parts.filter((p) => p.factor === "ADVERSE_SPEND" || p.factor === "PRODUCTIVE_SPEND");
+    if (mix.some((p) => p.factor === "ADVERSE_SPEND")) {
+      const pts = mix.reduce((a, p) => a + p.points, 0);
+      for (const p of mix) parts.splice(parts.indexOf(p), 1);
+      if (pts !== 0) parts.push({ factor: "GOVERNMENT_RELIANCE", name: t.spendingMix, from: 0, to: 0, points: pts, reason: null, short: t.spendingMix.toLowerCase(), transactionIds: [] });
+    }
+  }
   // Score-only factors (Income sources) fold into "other" rather than getting their own line.
-  const shown = parts.filter((p) => SHOWN.includes(p.factor) && p.points !== 0);
-  const hidden = parts.filter((p) => !SHOWN.includes(p.factor) || p.points === 0);
+  const keep = (p: AttributionPart) => (SHOWN.includes(p.factor) || p.name === t.spendingMix) && p.points !== 0;
+  const shown = parts.filter(keep);
+  const hidden = parts.filter((p) => !keep(p));
   const otherPts = hidden.reduce((a, p) => a + p.points, 0);
   const visible = [...shown].sort((a, b) => Math.abs(b.points) - Math.abs(a.points) || a.name.localeCompare(b.name));
   if (otherPts !== 0) visible.push({ factor: "GOVERNMENT_RELIANCE", name: t.other, from: 0, to: 0, points: otherPts, reason: null, short: t.other.toLowerCase(), transactionIds: [] });

@@ -49,7 +49,7 @@ export const recs = {
   snooze: "Remind me next pay cycle",
   snoozed: "We'll show this again next pay cycle.",
   hidden: "Hidden for this pay cycle.",
-  pageTitle: "Ways to lift your score",
+  pageTitle: "Your plan",
   pageIntro: "Specific steps, with what each would change. They're options, not rules.",
   hiddenCount: (n: number) => `${n} hidden for this pay cycle`,
   showHidden: "Show hidden steps",

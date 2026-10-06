@@ -1,6 +1,7 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { dashboard as t } from "@/content/dashboard";
 import { payCycleHero } from "@/content/components";
 import { formatShortDay, formatWhole } from "@/lib/format";
@@ -24,20 +25,25 @@ import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 import type { CycleRecap, PaydayCheckIn } from "@/lib/selectors/payCycleLoop";
 import type { SafeToSpend } from "@/lib/selectors/safeToSpend";
 import type { valueTally } from "@/lib/selectors/tally";
-import { CheckInCard, ProgressLink, RecapCard, SafeToSpendCard, SafeToSpendSheet, TallyCard, TallySheet } from "@/components/domain/LoopCards";
-import { tallyCopy } from "@/content/loop";
+import { CheckInAdjustSheet, CheckInCard, PayPendingCard, ProgressLink, RecapCard, SafeToSpendCard, SafeToSpendSheet, TallyCard, TallySheet } from "@/components/domain/LoopCards";
+import { checkInCopy, safeCopy, tallyCopy } from "@/content/loop";
+import { track } from "@/lib/analytics/client";
 import { useAccount } from "@/lib/account/client";
 import { useToast } from "@/components/ui/Feedback";
 import { InstallPrompt } from "@/components/notify/InstallPrompt";
 import { mockNow } from "@/lib/account/state";
 
-type SheetId = "due" | "advance" | "action" | "safe" | "tally" | null;
+type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null;
 
-export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText }: {
+export function HomeView({ persona, account, status, feedItems, attribution, asOf, banner, score, change, action, payCycle, nextBill, bars, lapsed, safe, checkIn, recap, feesAvoided, tally, present, progressText, statusStale = false, checked = "", movement = null, adjustBills = [], oneOffDates = [], focus = null, payPending = false, flags = { feed: true, status: true, safe: true, tally: true, buffer: true } }: {
   persona: PersonaId; account: AccountState; status: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; banner: { text: string; href: string } | null; score: ScoreState; change: { delta: number; since: string } | null;
   action: FirstAction | null; payCycle: PayCycleSummary; nextBill: UpcomingBill | null; bars: MonthBar[];
-  safe: SafeToSpend; checkIn: PaydayCheckIn | null; recap: CycleRecap | null; feesAvoided: number; tally: ReturnType<typeof valueTally>; present: boolean; progressText: string;
+  safe: SafeToSpend; checkIn: PaydayCheckIn | null; recap: CycleRecap | null; feesAvoided: number; tally: ReturnType<typeof valueTally>; present: boolean; progressText: string; statusStale?: boolean; checked?: string;
+  movement?: { up: number; since: string } | null; adjustBills?: { id: string; merchant: string; amount: number; date: string; paid: boolean }[];
+  oneOffDates?: string[]; focus?: string | null; payPending?: boolean;
+  /** Feature flags (retention pack): each part of Today can be switched off. */
+  flags?: { feed: boolean; status: boolean; safe: boolean; tally: boolean; buffer: boolean };
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -48,7 +54,33 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
     update((l) => ({ ...l, actions: [...(l.actions ?? []).filter((a) => a.type !== "skip_advance"), { type: "skip_advance", at: mockNow({ asOf }) }] }));
     toast({ kind: "confirm", message: tallyCopy.tryThisToast });
   };
-  const showTally = tally.items.length > 0 || tally.pending.length > 0;
+  const showTally = flags.tally && (tally.items.length > 0 || tally.pending.length > 0);
+  const shownSafe = checkIn?.safe ?? safe;
+  // Remember today's safe-to-spend figure (and the last day's), for "Up $4 since yesterday".
+  useEffect(() => {
+    const s = acct.stsSeen;
+    if (s?.date === asOf && s.perDay === shownSafe.perDay) return;
+    update((l) => ({ ...l, stsSeen: { date: asOf, perDay: shownSafe.perDay, ...(l.stsSeen && l.stsSeen.date !== asOf ? { prev: { date: l.stsSeen.date, perDay: l.stsSeen.perDay } } : l.stsSeen?.prev ? { prev: l.stsSeen.prev } : {}) } }));
+  }, [asOf, shownSafe.perDay]); // eslint-disable-line react-hooks/exhaustive-deps
+  const adjusted = (msg: string = checkInCopy.updated) => toast({ kind: "confirm", message: msg });
+  const setBuffer = (amount: number) => {
+    track("buffer_set", { target_cents: amount * 100 });
+    if (checkIn) track("checkin_adjusted", { type: "buffer" });
+    update((l) => ({ ...l, buffer: amount }));
+    adjusted(safeCopy.bufferSaved(formatWhole(amount)));
+  };
+  const adjust = acct.billAdjust ?? { paid: [], oneOffs: [] };
+  const setPaid = (id: string, v: boolean) => {
+    track("checkin_adjusted", { type: "bill_paid" });
+    update((l) => { const a = l.billAdjust ?? { paid: [], oneOffs: [] }; return { ...l, billAdjust: { ...a, paid: v ? [...new Set([...a.paid, id])] : a.paid.filter((x) => x !== id) } }; });
+    adjusted();
+  };
+  const addOneOff = (o: { label: string; amount: number; date: string }) => {
+    track("checkin_adjusted", { type: "one_off" });
+    update((l) => { const a = l.billAdjust ?? { paid: [], oneOffs: [] }; return { ...l, billAdjust: { ...a, oneOffs: [...a.oneOffs, { ...o, id: `o${Date.now().toString(36)}` }] } }; });
+    adjusted(checkInCopy.oneOffAdded(o.label));
+  };
+  const removeOneOff = (id: string) => update((l) => { const a = l.billAdjust ?? { paid: [], oneOffs: [] }; return { ...l, billAdjust: { ...a, oneOffs: a.oneOffs.filter((x) => x.id !== id) } }; });
   const [sheet, setSheet] = useState<SheetId>(null);
   const advance = payCycle.payAdvances[0];
 
@@ -67,12 +99,16 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
   // Order: what Tippla did → what needs a look → where things stand → the details.
   return (
     <div className="flex flex-col gap-t3 desktop:grid desktop:grid-cols-[minmax(0,656fr)_minmax(0,436fr)] desktop:gap-t6">
-      <p className="text-small text-text-muted desktop:col-span-2">{status}</p>
+      {!flags.status ? null : statusStale
+        ? <Link href="/account/bank" className="text-small text-accent underline-offset-2 hover:underline desktop:col-span-2">{status}</Link>
+        : <p className="text-small text-text-muted desktop:col-span-2">{status}</p>}
       {banner && <div className="desktop:col-span-2"><HomeBanner {...banner} /></div>}
       <div className="flex flex-col gap-t3 desktop:gap-t6">
-        {checkIn ? <CheckInCard checkIn={checkIn} onHow={() => setSheet("safe")} /> : <SafeToSpendCard safe={safe} onHow={() => setSheet("safe")} />}
-        <AttentionFeed persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} />
-        {recap && <RecapCard recap={recap} feesAvoided={feesAvoided} />}
+        {checkIn ? <CheckInCard checkIn={checkIn} onHow={() => setSheet("safe")} onAdjust={() => setSheet("adjust")} focus={focus} />
+          : payPending ? <PayPendingCard payday={asOf} />
+          : flags.safe ? <SafeToSpendCard safe={safe} onHow={() => setSheet("safe")} movement={movement} /> : null}
+        {flags.feed && <AttentionFeed persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} />}
+        {recap && <RecapCard recap={recap} feesAvoided={feesAvoided} next={focus} />}
         <PayCycleHero summary={payCycle}
           onForecast={() => setSheet("due")} onDue={() => setSheet("due")} onAdvance={() => setSheet("advance")}
           onSpent={() => router.push("/spending?direction=out")} onPaidIn={() => router.push("/spending?direction=in")}
@@ -88,7 +124,9 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
         <SixMonthChart bars={bars} asOf={asOf} />
       </div>
 
-      <SafeToSpendSheet safe={checkIn?.safe ?? safe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} />
+      <SafeToSpendSheet safe={shownSafe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} onBuffer={flags.buffer ? setBuffer : undefined} />
+      <CheckInAdjustSheet open={sheet === "adjust"} onClose={() => setSheet(null)} bills={adjustBills} oneOffs={adjust.oneOffs} dates={oneOffDates}
+        onPaid={setPaid} onAddOneOff={addOneOff} onRemoveOneOff={removeOneOff} />
       <TallySheet tally={tally} open={sheet === "tally"} onClose={() => setSheet(null)} present={present} />
       <DueSheet open={sheet === "due"} onClose={() => setSheet(null)} payCycle={payCycle} />
 

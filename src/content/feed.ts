@@ -3,16 +3,15 @@
 
 export const feedCopy = {
   heading: "Needs a look",
-  allClear: "Nothing needs a look right now. We'll let you know if something comes up.",
-  more: (n: number) => (n === 1 ? "1 more thing" : `${n} more things`),
-  showAll: "Show all",
+  allClear: (checked: string) => `Nothing needs a look right now. ${checked}.`,
+  seeAll: (n: number) => `See all (${n})`,
   showFewer: "Show fewer",
   done: "Done",
   snooze: "Snooze",
-  dismiss: "Dismiss",
+  dismiss: "Not relevant",
   snoozeOptions: { tomorrow: "Until tomorrow", payday: "Until payday" },
   snoozeTitle: (title: string) => `Snooze: ${title}`,
-  toast: { done: "Marked as done", snoozed: (until: string) => `Snoozed until ${until}`, dismissed: "Dismissed. We won't show this again" },
+  toast: { done: "Marked as done", snoozed: (until: string) => `Snoozed until ${until}`, dismissed: "Got it. We won't show this again unless it changes" },
   urgency: { 5: "Today", 4: "Soon", 3: "This week", 2: "When you can", 1: "For your info" } as Record<number, string>,
   hardship: "Options if money's tight",
 
@@ -54,6 +53,11 @@ export const feedCopy = {
       pending: (amt: string) => `That includes ${amt} still pending.`,
       action: "See spending",
     },
+    bankReconnect: {
+      title: "Reconnect your bank to keep forecasts accurate",
+      body: (date: string) => `Your numbers stopped updating on ${date}. Reconnecting takes about a minute.`,
+      action: "Reconnect",
+    },
     billingRelief: {
       title: (price: string) => `You can pause your ${price} Tippla payment`,
       body: (date: string, pro: boolean) => `It's due ${date}. If money's tight, you can skip a month${pro ? " or switch to Standard" : ""}. It takes a minute and you can undo it.`,
@@ -79,6 +83,7 @@ export const attributionCopy = {
   factorMove: (name: string, from: string, to: string) => `${name} ${from} → ${to}`,
   noChange: "Your factors didn't change enough to move your score.",
   other: "Other small changes",
+  spendingMix: "Spending mix and other factors",
   reasons: {
     newAdvance: (provider: string, date: string) => `New ${provider} pay advance (${date})`,
     newAdvanceShort: "new pay advance",
@@ -104,4 +109,6 @@ export const statusCopy = {
   when: { morning: "this morning", afternoon: "this afternoon", evening: "this evening", day: (d: string) => `on ${d}` },
   things: (n: number) => (n === 0 ? "nothing to look at" : n === 1 ? "1 thing to look at" : `${n} things to look at`),
   firstCheck: (n: number) => `Read ${n} transactions from your bank`,
+  allCaughtUp: (payday: string) => `All caught up · next payday ${payday}`,
+  stale: (date: string) => `Your bank data is from ${date}. Reconnect to update it.`,
 } as const;

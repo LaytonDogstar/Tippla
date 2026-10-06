@@ -195,7 +195,7 @@ export const nav = {
   },
   items: {
     smartscore: "SmartScore",
-    lift: "Ways to lift your score",
+    lift: "Your plan",
     spending: "Spending",
     calendar: "Calendar",
     subscriptions: "Subscriptions",

@@ -5,16 +5,18 @@ import { scoreAttribution } from "@/lib/selectors/scoreAttribution";
 import type { Rule } from "../types";
 
 const t = feedCopy.rules.scoreChange;
+/** Spec 01: only a move of 5 points or more is worth a card. */
+export const SCORE_CHANGE_MIN = 5;
 
-export const scoreChange: Rule = ({ d }) => {
-  const a = scoreAttribution(d);
-  if (!a || a.delta === 0) return [];
+export const scoreChange: Rule = ({ d, account = {} }) => {
+  const a = scoreAttribution(d, { hideGambling: account.hideGambling });
+  if (!a || Math.abs(a.delta) < SCORE_CHANGE_MIN) return [];
   return [{
     id: `score_change:${a.to.date}`, type: "score_change", section: "score",
     title: a.delta < 0 ? t.titleDown(-a.delta) : t.titleUp(a.delta),
     // No factor moved enough to name: say so rather than show an empty explanation.
     body: a.summary ? a.summary.charAt(0).toUpperCase() + a.summary.slice(1) + "." : t.noDetail,
     action: { label: t.action, href: "/score" },
-    urgency: a.delta < 0 ? 2 : 1, amountAtStake: 0, expiresAt: addDays(a.to.date, 14),
+    urgency: 3, amountAtStake: 0, expiresAt: addDays(a.to.date, 14),
   }];
 };

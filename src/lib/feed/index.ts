@@ -5,7 +5,7 @@ import { FEED_MAX, isOpen, rank } from "./rank";
 import type { FeedContext, FeedItem, FeedSection, FeedState } from "./types";
 
 export * from "./types";
-export { rank, rankScore, isOpen, URGENCY_WEIGHT, FEED_MAX } from "./rank";
+export { rank, rankScore, isOpen, RANK_WEIGHTS, FEED_MAX, changedMaterially } from "./rank";
 export { RULES } from "./registry";
 
 /** Every item the rules produce, ranked (before the customer's done / snooze / dismiss). */

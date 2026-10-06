@@ -29,8 +29,10 @@ describe("safe to spend", async () => {
     const s = safeToSpend(jessP);
     expect(s.days).toBe(14);
     expect(s.forecast).toBeCloseTo(399.56, 2);
-    expect(s.perDay).toBe(Math.floor((399.56 - 50) / 14));
-    expect(s.perDay).toBe(24);
+    // Spec 02: the buffer starts at $0 and the member can set one.
+    expect(s.perDay).toBe(Math.floor(399.56 / 14));
+    expect(s.perDay).toBe(28);
+    expect(safeToSpend(jessP, { buffer: 50 }).perDay).toBe(Math.floor((399.56 - 50) / 14));
   });
 
   it("the daily figure never spends the buffer, for every persona and snapshot", () => {
@@ -66,7 +68,7 @@ describe("payday check-in", async () => {
     expect(c.billsTotal).toBeCloseTo(1225.99, 2);
     expect(c.repaymentsTotal).toBe(375);
     expect(c.advance).toBeNull(); // the Beforepay advance was repaid on 30/09
-    expect(c.safe.perDay).toBe(24);
+    expect(c.safe.perDay).toBe(28);
     expect(c.bills.every((b) => b.date > jessP.asOf && b.date < jessP.derived.pay_cycle.next_payday)).toBe(true);
   });
 });
@@ -114,8 +116,8 @@ describe("score projection (Q3 sample logic)", async () => {
   it("Jess: skip the next advance → about 490 by 23/10, always an estimate", () => {
     expect(projectScore(jess)).toMatchObject({ liftKey: "pay-advance", from: 472, to: 490, by: "2026-10-23", estimated: true });
   });
-  it("Marcus 612 → 616; Priya (no score yet) gets none; switched off gives none", () => {
-    expect(projectScore(marcus)).toMatchObject({ from: 612, to: 616 });
+  it("Marcus 612 → about 615 (rounded to 5); Priya (no score yet) gets none; switched off gives none", () => {
+    expect(projectScore(marcus)).toMatchObject({ from: 612, to: 615 });
     expect(projectScore(priya)).toBeNull();
     expect(projectScore(jess, false)).toBeNull();
   });
@@ -170,7 +172,8 @@ describe("value tally: only savings we can see after an in-app action", async ()
 
   it("bill bigger than balance, acted on before the date, went through with no fee → fee avoided", () => {
     const id = "bill_over_balance:Beforepay:2026-09-30";
-    expect(valueTally(jessP, { feed: { [id]: { status: "done", at: "2026-09-25" } } }).total).toBe(15);
+    // Spec 02: counted conservatively, at 50% of her usual $15 fee.
+    expect(valueTally(jessP, { feed: { [id]: { status: "done", at: "2026-09-25" } } }).total).toBe(7.5);
     expect(valueTally(jessP, { feed: { [id]: { status: "dismissed", at: "2026-09-25" } } }).total).toBe(0);
     expect(valueTally(jessP, { feed: { [id]: { status: "done", at: "2026-10-01" } } }).total).toBe(0);
     // Before the bill date nothing can be confirmed yet.

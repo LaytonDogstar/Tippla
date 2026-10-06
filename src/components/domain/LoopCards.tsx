@@ -4,15 +4,16 @@
 import { ChevronRight, Flag, PiggyBank, Sun } from "lucide-react";
 import { progressCopy } from "@/content/progress";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { track } from "@/lib/analytics/client";
 import { checkInCopy as c, recapCopy as r, safeCopy as s, tallyCopy as v } from "@/content/loop";
-import { formatCents, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
+import { formatCents, formatDayMonth, formatDollars, formatShortDay, formatWhole } from "@/lib/format";
 import type { CycleRecap, PaydayCheckIn } from "@/lib/selectors/payCycleLoop";
 import type { SafeToSpend } from "@/lib/selectors/safeToSpend";
 import type { ChargedAgain, PendingItem, TallyItem } from "@/lib/selectors/tally";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { Checkbox, SelectInput, TextInput } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
 
 const LinkRow = ({ href, children }: { href: string; children: string }) => (
@@ -21,7 +22,7 @@ const LinkRow = ({ href, children }: { href: string; children: string }) => (
   </Link>
 );
 
-export function SafeToSpendCard({ safe, onHow }: { safe: SafeToSpend; onHow: () => void }) {
+export function SafeToSpendCard({ safe, onHow, movement }: { safe: SafeToSpend; onHow: () => void; movement?: { up: number; since: string } | null }) {
   useEffect(() => { track("sts_viewed", { value_cents: safe.perDay * 100, days_left: safe.days, nothing_spare: safe.nothingSpare }); }, [safe.perDay, safe.days, safe.nothingSpare]);
   return (
     <section aria-labelledby="sts" className="rounded-lg bg-surface p-t4">
@@ -34,10 +35,12 @@ export function SafeToSpendCard({ safe, onHow }: { safe: SafeToSpend; onHow: () 
       ) : (
         <>
           <p className="tnum mt-t1 text-figure-l font-numeric text-text">{s.perDay(formatWhole(safe.perDay))}</p>
-          <p className="mt-t1 text-small text-text-muted">{s.untilPayday(safe.days, formatShortDay(safe.payday))}</p>
+          {movement && <p className="tnum mt-t1 text-small text-text">{s.up(formatWhole(movement.up), movement.since)}</p>}
+          <p className="mt-t1 text-small text-text-muted">{safe.sevenDayMode ? s.sevenDays : s.untilPayday(safe.days, formatShortDay(safe.payday))}</p>
           {safe.goal > 0 && <p className="mt-t1 text-caption text-text-muted">{s.goalIncluded(formatWhole(safe.goal))}</p>}
         </>
       )}
+      {safe.paydayEstimated && <p className="mt-t1 text-caption text-text-muted">{s.estimated}</p>}
       <div className="mt-t2 flex flex-col">
         <Button variant="tertiary" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }} className="self-start">{s.how}</Button>
         {safe.nothingSpare && <LinkRow href="/hardship">{s.hardship}</LinkRow>}
@@ -46,7 +49,9 @@ export function SafeToSpendCard({ safe, onHow }: { safe: SafeToSpend; onHow: () 
   );
 }
 
-export function SafeToSpendSheet({ safe, open, onClose, present }: { safe: SafeToSpend; open: boolean; onClose: () => void; present: boolean }) {
+const BUFFERS = [0, 25, 50, 100] as const;
+
+export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer }: { safe: SafeToSpend; open: boolean; onClose: () => void; present: boolean; onBuffer?: (amount: number) => void }) {
   const rows: [string, string][] = [
     [s.steps.balance, formatCents(safe.balance)],
     [s.steps.bills(safe.bills.length), `−${formatCents(safe.billsTotal)}`],
@@ -58,7 +63,7 @@ export function SafeToSpendSheet({ safe, open, onClose, present }: { safe: SafeT
     [s.steps.result, safe.nothingSpare ? formatWhole(0) : formatWhole(safe.perDay)],
   ];
   return (
-    <Sheet open={open} onClose={onClose} title={s.sheetTitle}
+    <Sheet open={open} onClose={onClose} title={s.sheetTitle} subtitle={s.estimate}
       footer={safe.nothingSpare ? <Link href="/hardship" className="flex min-h-tap items-center justify-center rounded-md text-body text-accent hover:bg-surface2">{s.hardship}</Link> : undefined}>
       <dl className="flex flex-col">
         {rows.map(([k, val], i) => (
@@ -75,12 +80,25 @@ export function SafeToSpendSheet({ safe, open, onClose, present }: { safe: SafeT
       )}
       {safe.goalOnHold && <p className="mt-t3 text-small text-text">{s.goalOnHold}</p>}
       <p className="mt-t4 text-small text-text-muted">{s.note}</p>
-      <p className="mt-t2 text-small text-text-muted">{s.bufferNote(formatWhole(safe.buffer))} <SampleTag q="Q21" present={present} /></p>
+      {onBuffer && (
+        <fieldset className="mt-t4">
+          <legend className="text-body-strong text-text">{s.bufferHeading}</legend>
+          <div className="mt-t2 flex flex-wrap gap-t2">
+            {BUFFERS.map((b) => (
+              <button key={b} type="button" aria-pressed={safe.buffer === b} onClick={() => onBuffer(b)}
+                className={`min-h-tap min-w-tap rounded-pill px-t4 text-small ${safe.buffer === b ? "bg-accent text-on-accent" : "bg-surface2 text-text hover:bg-neutral-soft"}`}>
+                {formatWhole(b)}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+      <p className="mt-t2 text-small text-text-muted">{safe.buffer > 0 ? s.bufferNote(formatWhole(safe.buffer)) : s.bufferNoteZero} <SampleTag q="Q21" present={present} /></p>
     </Sheet>
   );
 }
 
-export function CheckInCard({ checkIn, onHow }: { checkIn: PaydayCheckIn; onHow: () => void }) {
+export function CheckInCard({ checkIn, onHow, onAdjust, focus }: { checkIn: PaydayCheckIn; onHow: () => void; onAdjust?: () => void; focus?: string | null }) {
   useEffect(() => {
     track("checkin_opened", { source: "home" });
     track("sts_viewed", { value_cents: checkIn.safe.perDay * 100, days_left: checkIn.safe.days, nothing_spare: checkIn.safe.nothingSpare });
@@ -101,20 +119,26 @@ export function CheckInCard({ checkIn, onHow }: { checkIn: PaydayCheckIn; onHow:
         <li className="text-body-strong">{checkIn.safe.nothingSpare ? s.none : c.safe(formatWhole(checkIn.safe.perDay))}</li>
         {checkIn.safe.goal > 0 && <li className="text-caption text-text-muted">{s.goalIncluded(formatWhole(checkIn.safe.goal))}</li>}
       </ul>
-      <Button variant="tertiary" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }} className="mt-t1 self-start">{s.how}</Button>
+      {focus && <p className="mt-t3 text-small text-text">{c.focus(focus)}</p>}
+      <div className="mt-t1 flex flex-wrap gap-x-t2">
+        <Button variant="tertiary" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }}>{s.how}</Button>
+        {onAdjust && <Button variant="tertiary" onClick={onAdjust}>{c.adjust}</Button>}
+      </div>
       <LinkRow href="/calendar">{c.seeBills}</LinkRow>
     </section>
   );
 }
 
-export function RecapCard({ recap, feesAvoided }: { recap: CycleRecap; feesAvoided: number }) {
+export function RecapCard({ recap, feesAvoided, next }: { recap: CycleRecap; feesAvoided: number; next?: string | null }) {
   useEffect(() => { track("recap_opened", { source: "home" }); }, [recap.cycle.start]);
   const lines = [
     r.spent(formatWhole(recap.spent), formatWhole(recap.paidIn)),
     recap.advances.count === 0 ? [r.noAdvance, r.streak(recap.noAdvanceStreak)].filter(Boolean).join(" ") : r.advances(recap.advances.count, formatWhole(recap.advances.total)),
+    // Lead with the best-ever run when the current one is 0 (spec 07: positive only, never the reset).
+    ...(recap.noAdvanceStreak === 0 && recap.bestNoAdvance >= 2 ? [r.best(recap.bestNoAdvance)] : []),
     recap.score ? r.score(recap.score.from, recap.score.to) : r.noScore,
     recap.fees.count ? r.fees(recap.fees.count, formatWhole(recap.fees.total)) : r.noFees,
-    ...(feesAvoided > 0 ? [r.feesAvoided(formatWhole(feesAvoided))] : []),
+    ...(feesAvoided > 0 ? [r.feesAvoided(formatDollars(feesAvoided))] : []),
   ];
   return (
     <section aria-labelledby="recap" className="rounded-lg bg-surface p-t4">
@@ -129,7 +153,9 @@ export function RecapCard({ recap, feesAvoided }: { recap: CycleRecap; feesAvoid
           </ul>
         </>
       )}
+      {next && <p className="mt-t3 text-small text-text">{r.next(next)}</p>}
       <LinkRow href="/spending?period=last_cycle">{r.seeSpending}</LinkRow>
+      <LinkRow href="/progress">{r.past}</LinkRow>
     </section>
   );
 }
@@ -153,7 +179,7 @@ export function TallyCard({ tally, onOpen }: { tally: Tally; onOpen: () => void 
         <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-accent-soft text-accent"><PiggyBank size={24} /></span>
         <div className="min-w-0 flex-1">
           <h2 id="tally" className="text-caption text-text-muted">{v.label}</h2>
-          <p className="tnum text-h2 font-display text-text">{formatWhole(tally.total)}</p>
+          <p className="tnum text-h2 font-display text-text">{formatDollars(tally.total)}</p>
           <p className="text-small text-text-muted">{tally.items.length ? v.since : tally.pending.length ? pendingText(tally.pending[0]!) : v.none}</p>
         </div>
       </div>
@@ -171,7 +197,7 @@ export function TallySheet({ tally, open, onClose, present }: { tally: Tally; op
           <ul className="mt-t1 flex flex-col">
             {tally.items.map((i) => (
               <li key={i.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-t3 border-t border-line py-t3 text-body text-text">
-                <span>{itemText(i)}</span><span className="tnum">{formatWhole(i.amount)}</span>
+                <span>{itemText(i)}</span><span className="tnum">{formatDollars(i.amount)}</span>
               </li>
             ))}
           </ul>
@@ -206,5 +232,68 @@ export function ProgressLink({ text }: { text: string }) {
       </span>
       <ChevronRight aria-hidden size={20} className="text-accent" />
     </Link>
+  );
+}
+
+/** "Has your pay landed?": on the expected payday, before the pay shows up (spec 02). */
+export function PayPendingCard({ payday }: { payday: string }) {
+  return (
+    <section aria-labelledby="paypending" className="rounded-lg bg-accent-soft p-t4">
+      <div className="flex items-center gap-t2">
+        <Sun aria-hidden size={20} className="text-accent" />
+        <h2 id="paypending" className="text-h3 text-text">{c.pendingTitle}</h2>
+      </div>
+      <p className="mt-t2 text-small text-text">{c.pendingBody(formatShortDay(payday))}</p>
+    </section>
+  );
+}
+
+type AdjustBill = { id: string; merchant: string; amount: number; date: string; paid: boolean };
+type OneOff = { id: string; label: string; amount: number; date: string };
+
+/** Check-in adjustments (spec 02): bills already paid, a known one-off cost, and the buffer. */
+export function CheckInAdjustSheet({ open, onClose, bills, oneOffs, dates, onPaid, onAddOneOff, onRemoveOneOff }: {
+  open: boolean; onClose: () => void; bills: AdjustBill[]; oneOffs: OneOff[]; dates: string[];
+  onPaid: (id: string, paid: boolean) => void; onAddOneOff: (o: Omit<OneOff, "id">) => void; onRemoveOneOff: (id: string) => void;
+}) {
+  const [label, setLabel] = useState("");
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState(dates[0] ?? "");
+  const [error, setError] = useState<string | undefined>();
+  const add = () => {
+    const amt = Number(amount.replace(/[$,\s]/g, ""));
+    if (!label.trim() || label.length > 40 || !Number.isFinite(amt) || amt < 1 || amt > 10000) { setError(c.oneOffInvalid); return; }
+    onAddOneOff({ label: label.trim(), amount: Math.round(amt * 100) / 100, date });
+    setLabel(""); setAmount(""); setError(undefined);
+  };
+  return (
+    <Sheet open={open} onClose={onClose} title={c.adjustTitle}>
+      <p className="text-small text-text-muted">{c.adjustIntro}</p>
+      <fieldset className="mt-t4">
+        <legend className="text-body-strong text-text">{c.billsHeading}</legend>
+        <div className="mt-t1 flex flex-col">
+          {bills.map((b) => (
+            <Checkbox key={b.id} label={c.alreadyPaid(b.merchant, formatCents(b.amount), formatShortDay(b.date))} checked={b.paid} onChange={(v) => onPaid(b.id, v)} />
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="mt-t4">
+        <legend className="text-body-strong text-text">{c.oneOffHeading}</legend>
+        {oneOffs.length > 0 && (
+          <ul className="mt-t1 flex flex-col">{oneOffs.map((o) => (
+            <li key={o.id} className="flex items-center justify-between gap-t3 border-t border-line py-t1 text-small text-text">
+              <span>{formatShortDay(o.date)} · {o.label} · <span className="tnum">{formatCents(o.amount)}</span></span>
+              <Button variant="tertiary" aria-label={c.oneOffRemove(o.label)} onClick={() => onRemoveOneOff(o.id)}>×</Button>
+            </li>
+          ))}</ul>
+        )}
+        <div className="mt-t2 flex flex-col gap-t3">
+          <TextInput label={c.oneOffLabel} value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} />
+          <TextInput label={c.oneOffAmount} inputMode="decimal" value={amount} error={error} onChange={(e) => { setAmount(e.target.value); setError(undefined); }} />
+          <SelectInput label={c.oneOffDate} value={date} options={dates.map((x) => ({ value: x, label: formatShortDay(x) }))} onChange={setDate} />
+          <Button variant="secondary" onClick={add}>{c.oneOffAdd}</Button>
+        </div>
+      </fieldset>
+    </Sheet>
   );
 }

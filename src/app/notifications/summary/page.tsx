@@ -4,10 +4,10 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { goalPlan, safeToSpend, valueTally, weeklySummary } from "@/lib/selectors";
+import { goalPlan, safeToSpendFor, valueTally, weeklySummary } from "@/lib/selectors";
 import { summaryCopy as t, progressCopy } from "@/content/progress";
 import { safeCopy } from "@/content/loop";
-import { formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
+import { formatDayMonth, formatDollars, formatShortDay, formatWhole } from "@/lib/format";
 import { PortalShell } from "@/components/shell/Portal";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export default async function Summary({ searchParams }: { searchParams: { person
   const { data, account } = await loadCustomer(persona);
   const week = weeklySummary(data, account);
   const plan = goalPlan(data, account.goal);
-  const safe = safeToSpend(data, { goal: plan?.thisCycle ?? 0 });
+  const safe = safeToSpendFor(data, account);
   const tally = valueTally(data, account);
   const row = "flex min-h-tap items-center justify-between gap-t3 border-t border-line px-t4 py-t3 hover:bg-surface2";
   return (
@@ -39,7 +39,7 @@ export default async function Summary({ searchParams }: { searchParams: { person
           )}
           <Link href="/progress" className={row}>
             <span className="text-small text-text">{t.saved}</span>
-            <span className="tnum text-body-strong text-text">{formatWhole(tally.total)}</span>
+            <span className="tnum text-body-strong text-text">{formatDollars(tally.total)}</span>
           </Link>
         </section>
         <section aria-labelledby="sum-week">

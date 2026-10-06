@@ -7,6 +7,7 @@ import { subscriptionsPage as t } from "@/content/spending";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
 import { SubscriptionsView } from "./SubscriptionsView";
+import { isOn } from "@/config/featureFlags";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function Subscriptions({ searchParams }: { searchParams: { 
   return (
     <PortalShell path="/subscriptions" persona={persona} present={presentationMode(searchParams.present)}
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} />}>
-      <SubscriptionsView persona={persona} subs={subscriptions(data, edits)} account={account} asOf={data.asOf} confirm={confirm} chargedAgain={tally.chargedAgain} />
+      <SubscriptionsView persona={persona} subs={subscriptions(data, edits)} account={account} asOf={data.asOf} confirm={confirm} chargedAgain={tally.chargedAgain} cancelHelper={isOn("cancel_helper_v1", persona)} />
     </PortalShell>
   );
 }

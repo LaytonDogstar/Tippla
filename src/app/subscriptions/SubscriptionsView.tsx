@@ -22,7 +22,7 @@ type Subs = ReturnType<typeof subscriptions>;
 interface Prefs { kept: Record<string, boolean>; reminders: Record<string, string> }
 const KEY = "tippla-subscriptions";
 
-export function SubscriptionsView({ persona, subs, account, asOf, confirm, chargedAgain }: { persona: PersonaId; subs: Subs; account: AccountState; asOf: string; confirm: Record<string, string>; chargedAgain: ChargedAgain[] }) {
+export function SubscriptionsView({ persona, subs, account, asOf, confirm, chargedAgain, cancelHelper = true }: { persona: PersonaId; subs: Subs; account: AccountState; asOf: string; confirm: Record<string, string>; chargedAgain: ChargedAgain[]; cancelHelper?: boolean }) {
   const router = useRouter();
   const { account: acct, update } = useAccount(persona, account);
   const cancelled = new Set((acct.actions ?? []).filter((a) => a.type === "cancelled_subscription").map((a) => a.key));
@@ -98,7 +98,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
         })}
       </ul>
       <Sheet open={!!row} onClose={() => setHowTo(null)} title={row ? t.cancelTitle(row.merchant) : ""}
-        footer={row ? (cancelled.has(row.merchant)
+        footer={row && cancelHelper ? (cancelled.has(row.merchant)
           ? <p role="status" className="text-small text-text-muted">{(() => {
               const again = chargedAgain.find((c) => c.merchant === row.merchant);
               return again ? tallyCopy.chargedAgain(row.merchant, formatCents(again.amount), formatDayMonth(again.date))

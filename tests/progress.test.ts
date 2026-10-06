@@ -78,12 +78,12 @@ describe("goal", async () => {
     const g = goalPlan(jessP, goal("2026-10-01"))!;
     const s = safeToSpend(jessP, { goal: g.thisCycle });
     expect(s.goal).toBe(33);
-    expect(s.perDay).toBe(Math.floor((399.56 - 50 - 33) / 14));
-    expect(s.perDay).toBe(22);
+    expect(s.perDay).toBe(Math.floor((399.56 - 33) / 14));
+    expect(s.perDay).toBe(26);
     // Jess on 25/09: nothing spare, so the goal waits (and the figure is still $0, not negative).
     expect(safeToSpend(jess, { goal: 33 })).toMatchObject({ goal: 0, goalOnHold: true, perDay: 0 });
     // A goal bigger than what's spare also waits instead of taking the daily figure to $0.
-    expect(safeToSpend(jessP, { goal: 10_000 })).toMatchObject({ goal: 0, goalOnHold: true, perDay: 24 });
+    expect(safeToSpend(jessP, { goal: 10_000 })).toMatchObject({ goal: 0, goalOnHold: true, perDay: 28 });
   });
 
   it("goal survives the cookie round trip; bad goals are dropped", () => {

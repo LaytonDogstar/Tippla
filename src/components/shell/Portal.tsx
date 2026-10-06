@@ -16,6 +16,7 @@ import { AnalysingState, LapsedSheet } from "./States";
 import { PortalFrame } from "./Shells";
 import { loadCustomer } from "@/lib/customer";
 import { feed } from "@/lib/feed";
+import { isOn } from "@/config/featureFlags";
 import { paydayCheckIn } from "@/lib/selectors";
 import { PageAnalytics } from "@/components/analytics/PageAnalytics";
 
@@ -35,7 +36,8 @@ export async function PortalShell(props: {
   else if (states.includes("lapsed") && !ungated && props.path !== "/") body = <>{props.children}<LapsedSheet /></>;
   // Nav badges: open "Needs a look" items per section (same rules and choices as Home).
   const { data, edits, account } = await loadCustomer(props.persona);
-  const { bySection } = feed({ d: data, edits, account }, account.feed);
+  // Badges only with the feed and the five-section navigation on.
+  const bySection = isOn("feed_v1", props.persona) && isOn("nav_v2", props.persona) ? feed({ d: data, edits, account, states }, account.feed).bySection : {};
   return (
     <PortalFrame {...props} notice={notice} badges={bySection}>
       {body}

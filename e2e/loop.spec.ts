@@ -31,13 +31,15 @@ test("payday: check-in and recap replace the snapshot; no offers, nothing about 
   await expect(page.getByText(/Checked \d+ new transactions this morning/)).toBeVisible();
   const checkIn = region(page, "Payday check-in");
   await expect(checkIn).toContainText("$2,305.49 from Harbourside Hospitality Pty landed this morning");
-  await expect(checkIn).toContainText("Safe to spend: about $24 a day");
+  await expect(checkIn).toContainText("Safe to spend: about $28 a day");
   await expect(checkIn).toContainText("No pay advance to repay this pay cycle.");
   const recap = region(page, "Your last pay cycle");
   await expect(recap).toContainText("17/09 – 30/09");
   await expect(recap).toContainText("You took 1 pay advance ($300).");
   await expect(recap).toContainText("SmartScore 489 → 472.");
-  await expect(recap).not.toContainText(/in a row|streak/);
+  // Spec 07: no current streak, so the recap leads with her best-ever one; never "broke" or "ended".
+  await expect(recap).toContainText("Your best is 10 pay cycles in a row without a new pay advance.");
+  await expect(recap).not.toContainText(/broke|ended|lost|reset/i);
   for (const r of [checkIn, recap]) await expect(r).not.toContainText(/offer|lender|gambl|alcohol/i);
   await expect(page.getByRole("main")).not.toContainText(/offer|lender/i);
   await checkIn.getByRole("button", { name: "How we worked this out" }).click();
@@ -81,15 +83,17 @@ test("value tally: actions in the app are pending, then confirmed from bank data
   await page.getByRole("dialog").getByRole("button", { name: "I've cancelled it" }).click();
   await expect(page.getByRole("dialog").getByText("Marked as cancelled. We'll confirm after 11/10.")).toBeVisible();
 
-  // 3. Done on the "Beforepay bigger than your balance" card, before the bill date.
-  await page.goto("/?persona=jess&present=1");
+  // 3. On Tue 29/09 (spec 01: flagged within 3 days), Done on the "Beforepay bigger than your balance" card.
+  await page.goto("/?persona=jess&present=1&state=bill_due");
   await page.getByRole("button", { name: /^Done: Beforepay \$315/ }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Marked as done" })).toBeVisible();
 
   // Payday: the Beforepay repayment went through without a failed-payment fee.
   await page.goto("/?persona=jess&present=1&state=payday");
   const tally = region(page, "Tippla has helped you save");
-  await expect(tally).toContainText("$15");
-  await expect(region(page, "Your last pay cycle")).toContainText("$15 in fees avoided.");
+  // Spec 02: counted conservatively, at 50% of her usual $15 fee.
+  await expect(tally).toContainText("$7.50");
+  await expect(region(page, "Your last pay cycle")).toContainText("$7.50 in fees avoided.");
   await tally.getByRole("button", { name: "What we've counted" }).click();
   const sheet = page.getByRole("dialog");
   await expect(sheet).toContainText("Beforepay went through on 30/09 with no failed-payment fee");

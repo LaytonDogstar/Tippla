@@ -35,7 +35,7 @@ export const FLAGS = {
   // 07 Progression
   plans_v1: { spec: "07", description: "Multi-cycle plans", built: false, gate: ["G2"] },
   streaks_v1: { spec: "07", description: "Positive streaks", built: true },
-  buffer_v1: { spec: "07", description: "Member-set buffer", built: false },
+  buffer_v1: { spec: "07", description: "Member-set buffer (spec 02 safe to spend; spec 07 grows it)", built: true },
   savings_goals_v1: { spec: "07", description: "Named savings goals", built: false },
   credit_file_v1: { spec: "07", description: "Credit file tracking (prototype)", built: false, gate: ["G1", "G3", "G4"] },
   refinance_step_v1: { spec: "07", description: "Cheaper-credit check (prototype)", built: false, gate: ["G1", "G4"] },
@@ -67,6 +67,9 @@ export function flagOn(flag: FlagName, member: string, env: { off?: string[] } =
 /** flagOn with the deployment's FLAGS_OFF applied (server; on the client FLAGS_OFF isn't visible). */
 export const isOn = (flag: FlagName, member: string): boolean =>
   flagOn(flag, member, { off: (typeof process !== "undefined" ? process.env.FLAGS_OFF ?? "" : "").split(",").filter(Boolean) });
+
+/** Every flag's state for a member, for pages to pass to their views. */
+export const flagsFor = (member: string) => Object.fromEntries(FLAG_NAMES.map((f) => [f, isOn(f, member)])) as Record<FlagName, boolean>;
 
 export const activeFlags = (member: string, env: { off?: string[] } = {}): FlagName[] =>
   FLAG_NAMES.filter((f) => flagOn(f, member, env));

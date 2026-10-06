@@ -17,8 +17,8 @@ import { useToast } from "@/components/ui/Feedback";
 import { Sheet } from "@/components/ui/Sheet";
 import { cx } from "@/components/ui/cx";
 
-export function AttentionFeed({ persona, account: initial, items, asOf, payday }: {
-  persona: PersonaId; account: AccountState; items: FeedItem[]; asOf: string; payday: string;
+export function AttentionFeed({ persona, account: initial, items, asOf, payday, checked = "" }: {
+  persona: PersonaId; account: AccountState; items: FeedItem[]; asOf: string; payday: string; checked?: string;
 }) {
   const toast = useToast();
   const { account, update } = useAccount(persona, initial);
@@ -34,7 +34,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday }
 
   const set = (item: FeedItem, s: FeedItemState, message: string) => {
     if (s.status === "done") track("feed_item_done", { rule_id: item.type, position: position(item) });
-    else if (s.status === "dismissed") track("feed_item_dismissed", { rule_id: item.type, reason: "dismissed" });
+    else if (s.status === "dismissed") track("feed_item_dismissed", { rule_id: item.type, reason: "not_relevant" });
     else track("feed_item_snoozed", { rule_id: item.type, duration: s.until === payday ? "payday" : "tomorrow" });
     const prev = state[item.id];
     const put = (v: FeedItemState | undefined) => update((l) => {
@@ -52,13 +52,13 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday }
         <h2 id="needs-a-look" className="text-h2 font-display text-text">{t.heading}</h2>
         {open.length > FEED_MAX && (
           <button type="button" onClick={() => { if (!all) track("feed_see_all_opened", { item_count: open.length }); setAll((v) => !v); }} className="min-h-tap rounded-sm px-t1 text-small text-accent hover:bg-surface2">
-            {all ? t.showFewer : `${t.more(open.length - FEED_MAX)} · ${t.showAll}`}
+            {all ? t.showFewer : t.seeAll(open.length)}
           </button>
         )}
       </div>
       {open.length === 0 ? (
         <p className="flex items-center gap-t3 rounded-md bg-surface p-t4 text-small text-text">
-          <CircleCheck aria-hidden size={24} className="shrink-0 text-neutral" />{t.allClear}
+          <CircleCheck aria-hidden size={24} className="shrink-0 text-neutral" />{t.allClear(checked)}
         </p>
       ) : (
         <ol className="flex flex-col gap-t3">
@@ -77,9 +77,9 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday }
                   )}
                 </div>
                 <div className="mt-t1 flex flex-wrap gap-x-t2 border-t border-line pt-t1">
-                  <Button variant="tertiary" aria-label={`${t.done}: ${item.title}`} onClick={() => set(item, { status: "done", at: asOf }, t.toast.done)}>{t.done}</Button>
+                  <Button variant="tertiary" aria-label={`${t.done}: ${item.title}`} onClick={() => set(item, { status: "done", at: asOf, amount: item.amountAtStake }, t.toast.done)}>{t.done}</Button>
                   <Button variant="tertiary" aria-label={`${t.snooze}: ${item.title}`} onClick={() => setSnoozing(item)}>{t.snooze}</Button>
-                  <Button variant="tertiary" aria-label={`${t.dismiss}: ${item.title}`} onClick={() => set(item, { status: "dismissed", at: asOf }, t.toast.dismissed)}>{t.dismiss}</Button>
+                  <Button variant="tertiary" aria-label={`${t.dismiss}: ${item.title}`} onClick={() => set(item, { status: "dismissed", at: asOf, amount: item.amountAtStake }, t.toast.dismissed)}>{t.dismiss}</Button>
                 </div>
               </article>
             </li>

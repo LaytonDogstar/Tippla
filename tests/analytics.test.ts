@@ -112,3 +112,15 @@ describe("feature flags and experiments", () => {
     expect(hash32("abc")).toBe(hash32("abc"));
   });
 });
+
+describe("FLAGS_OFF switches built features off for everyone", () => {
+  it("isOn and flagsFor respect the deployment's FLAGS_OFF", async () => {
+    const { isOn, flagsFor } = await import("@/config/featureFlags");
+    process.env.FLAGS_OFF = "feed_v1,safe_to_spend_v1";
+    try {
+      expect(isOn("feed_v1", "jess")).toBe(false);
+      expect(flagsFor("jess")).toMatchObject({ feed_v1: false, safe_to_spend_v1: false, cycle_recap_v1: true });
+    } finally { delete process.env.FLAGS_OFF; }
+    expect(isOn("feed_v1", "jess")).toBe(true);
+  });
+});

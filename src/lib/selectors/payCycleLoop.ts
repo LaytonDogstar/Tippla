@@ -23,7 +23,7 @@ export interface PaydayCheckIn {
 const REPAYMENT: CategoryId[] = ["loan_repayment", "bnpl", "wage_advance"];
 
 /** Shown when regular income (wages or Centrelink) landed today, on the first day of a new pay cycle. */
-export function paydayCheckIn(d: PersonaData, goal = 0): PaydayCheckIn | null {
+export function paydayCheckIn(d: PersonaData, opts: { buffer?: number; goal?: number } = {}): PaydayCheckIn | null {
   const cycle = currentCycle(d);
   const today = posted(d.transactions).filter((t) => t.date === d.asOf && isIncome(t) && (t.subcategory === "wages" || t.subcategory === "centrelink"));
   if (!today.length || cycle.start > d.asOf || addDays(cycle.start, 1) < d.asOf) return null;
@@ -39,7 +39,7 @@ export function paydayCheckIn(d: PersonaData, goal = 0): PaydayCheckIn | null {
     billsTotal: sumMoney(bills.map((b) => b.amount)),
     repaymentsTotal: sumMoney(bills.filter((b) => REPAYMENT.includes(b.category)).map((b) => b.amount)),
     advance: adv ? { provider: adv.merchant, amount: adv.amount, date: adv.date } : null,
-    safe: safeToSpend(d, { goal }),
+    safe: safeToSpend(d, opts),
   };
 }
 
@@ -53,6 +53,8 @@ export interface CycleRecap {
   score: { from: number; to: number } | null;
   fees: { count: number; total: number };
   endBalance: number | null;
+  /** Longest run without a new pay advance in the history (shown when the current streak is 0). */
+  bestNoAdvance: number;
   /** Biggest category changes vs the cycle before (never gambling or alcohol: those stay opt-in). */
   changes: { category: CategoryId; name: string; change: number }[];
 }
@@ -88,6 +90,18 @@ export function cycleFacts(d: PersonaData, cycle: Period, edits?: CategoryOverri
   };
 }
 
+/** The longest run of completed pay cycles for which `ok` held, anywhere in the history (spec 07: "your best"). */
+export function bestStreak(d: PersonaData, ok: (f: CycleFacts) => boolean, edits?: CategoryOverrides): number {
+  let best = 0, run = 0;
+  for (let i = 26; i >= 1; i--) {
+    const c = cycleBefore(d, i);
+    if (c.limitedByHistory) continue;
+    run = ok(cycleFacts(d, c, edits)) ? run + 1 : 0;
+    best = Math.max(best, run);
+  }
+  return best;
+}
+
 /** Completed pay cycles in a row, most recent first, for which `ok` holds. Only ever counts up. */
 export function streak(d: PersonaData, ok: (f: CycleFacts) => boolean, edits?: CategoryOverrides): number {
   let n = 0;
@@ -114,6 +128,7 @@ export function cycleRecap(d: PersonaData, edits?: CategoryOverrides): CycleReca
   return {
     ...facts,
     noAdvanceStreak: streak(d, (f) => f.advances.count === 0, edits),
+    bestNoAdvance: bestStreak(d, (f) => f.advances.count === 0, edits),
     score: scored && before ? { from: before.score, to: scored.score } : null,
     changes,
   };

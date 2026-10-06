@@ -42,3 +42,6 @@ export function formatCompact(n: number): string {
   const k = Math.round(abs / 100) / 10;
   return `${n < 0 ? "−" : ""}$${k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)}k`;
 }
+
+/** Whole dollars when the amount is whole, cents otherwise ($15, $7.50): for savings, never rounded up. */
+export const formatDollars = (n: number) => (Number.isInteger(n) ? formatWhole(n) : formatCents(n));

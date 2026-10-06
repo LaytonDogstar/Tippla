@@ -37,6 +37,14 @@ export interface AccountState {
   billingPref?: BillingPref;
   /** Last date the member opened Hardship support (offers "Pause or downgrade Tippla" for that pay cycle). */
   hardshipVisitedAt?: string;
+  /** Safe-to-spend buffer the member chose (spec 02; default $0). */
+  buffer?: number;
+  /** Last two safe-to-spend figures seen on different days, for "Up $4 since yesterday" (spec 02). */
+  stsSeen?: { date: string; perDay: number; prev?: { date: string; perDay: number } };
+  /** Check-in adjustments (spec 02): predicted bills already paid, and known one-off costs. */
+  billAdjust?: { paid: string[]; oneOffs: { id: string; label: string; amount: number; date: string }[] };
+  /** The member hid gambling insights (spec 01): no gambling in explanations or Spending insights. */
+  hideGambling?: boolean;
   /** Usage analytics consent (spec 09). Undefined means the default: on, and the member can turn it off. */
   analytics?: boolean;
   /** The customer's buffer goal (Phase 3, progress and goals). */
@@ -79,6 +87,21 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   if (s && ["active", "paused", "cancelled"].includes(s.status) && ["standard", "pro"].includes(s.plan) && typeof s.effective === "string") out.subscription = s;
   if (a.hardshipSelfSelected === true) out.hardshipSelfSelected = true;
   if (typeof a.analytics === "boolean") out.analytics = a.analytics;
+  if (a.hideGambling === true) out.hideGambling = true;
+  if (typeof a.buffer === "number" && a.buffer >= 0 && a.buffer <= 2000) out.buffer = Math.round(a.buffer);
+  const day = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  const seen = a.stsSeen;
+  if (seen && day(seen.date) && typeof seen.perDay === "number") {
+    out.stsSeen = { date: seen.date, perDay: seen.perDay, ...(seen.prev && day(seen.prev.date) && typeof seen.prev.perDay === "number" ? { prev: { date: seen.prev.date, perDay: seen.prev.perDay } } : {}) };
+  }
+  const adj = a.billAdjust;
+  if (adj && typeof adj === "object") {
+    out.billAdjust = {
+      paid: strings(adj.paid).slice(0, 50),
+      oneOffs: (Array.isArray(adj.oneOffs) ? adj.oneOffs : []).filter((o): o is { id: string; label: string; amount: number; date: string } =>
+        !!o && typeof o.id === "string" && typeof o.label === "string" && o.label.length <= 40 && typeof o.amount === "number" && o.amount > 0 && o.amount <= 10000 && day(o.date)).slice(0, 20),
+    };
+  }
   const bp = a.billingPref;
   if (bp && typeof bp === "object" && ["after_payday", "fixed_date"].includes(bp.mode) && ["monthly", "per_cycle"].includes(bp.cadence) && typeof bp.changedAt === "string") {
     const day = Number(bp.fixedDay);
@@ -113,7 +136,7 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   if (a.feed && typeof a.feed === "object") {
     out.feed = {};
     for (const [id, v] of Object.entries(a.feed)) {
-      if (v && ["done", "dismissed", "snoozed"].includes(v.status) && typeof v.at === "string") out.feed[id] = { status: v.status, at: v.at, ...(typeof v.until === "string" ? { until: v.until } : {}) };
+      if (v && ["done", "dismissed", "snoozed"].includes(v.status) && typeof v.at === "string") out.feed[id] = { status: v.status, at: v.at, ...(typeof v.until === "string" ? { until: v.until } : {}), ...(typeof v.amount === "number" && Number.isFinite(v.amount) ? { amount: v.amount } : {}) };
     }
   }
   if (a.bank && typeof a.bank === "object") out.bank = { disconnected: a.bank.disconnected === true, refreshedAt: typeof a.bank.refreshedAt === "string" ? a.bank.refreshedAt : undefined };
@@ -134,12 +157,22 @@ export function applyAccount(d: PersonaData, a: AccountState): PersonaData {
   });
   const dismissed = new Set(a.dismissedOffers ?? []);
   const matching = consents.find((c) => c.id === "lender_matching")?.granted ?? false;
+  // Check-in adjustments: bills the member has already paid drop out of the forecast; one-offs go in.
+  const paid = new Set(a.billAdjust?.paid ?? []);
+  const oneOffs = (a.billAdjust?.oneOffs ?? []).filter((o) => o.date > d.asOf).map((o) => ({
+    date: o.date, merchant: o.label, expected_amount: o.amount, category: "bills" as const, confidence: "confirmed" as const, cadence_days: 0,
+  }));
+  const upcoming = [...d.derived.upcoming_bills.filter((b) => !paid.has(billId(b))), ...oneOffs].sort((x, y) => x.date.localeCompare(y.date));
   return {
     ...d,
+    derived: { ...d.derived, upcoming_bills: upcoming },
     consents,
     offers: { lender_matching_consent: matching, offers: d.offers.offers.filter((o) => !dismissed.has(o.id)) },
   };
 }
+
+/** Stable id for a predicted bill, for "already paid". */
+export const billId = (b: { merchant: string; date: string }) => `${b.merchant}:${b.date}`;
 
 /** "Now" in the mock world: the data date, mid-morning AEST. */
 export const mockNow = (d: Pick<PersonaData, "asOf">) => `${d.asOf}T09:30:00+10:00`;

@@ -7,6 +7,7 @@ import { formatUpdated } from "@/lib/format";
 import { scorePage as t } from "@/content/factors";
 import { onboarding } from "@/content/onboarding";
 import { projectScore } from "@/lib/scoring/estimate";
+import { isOn } from "@/config/featureFlags";
 import { STAGES_ARE_SAMPLE } from "@/config/stages";
 import { factorFromSlug } from "@/lib/ui/factorSlugs";
 import type { FactorKey } from "@/lib/api/types";
@@ -20,7 +21,7 @@ type Key = Exclude<FactorKey, "GOVERNMENT_RELIANCE">;
 export async function ScorePage({ searchParams, slug }: { searchParams: { persona?: string; present?: string }; slug?: string }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
-  const { data } = await loadCustomer(persona);
+  const { data, account } = await loadCustomer(persona);
   const all = factors(data);
   const top = topThreeFactors(data);
   const recs = recommendations(data);
@@ -36,7 +37,7 @@ export async function ScorePage({ searchParams, slug }: { searchParams: { person
     <PortalShell path="/score" persona={persona} present={present}
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined}
         action={<Link href="/help#score" aria-label={t.howItWorks} className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-pill bg-surface2 text-text hover:bg-neutral-soft"><Info aria-hidden size={24} /></Link>} />}>
-      <ScoreView state={scoreState(data)} attribution={scoreAttribution(data)} projection={projectScore(data)} trend={scoreTrend(data)} top={top} others={others} strongest={strongestFactor(data)}
+      <ScoreView state={scoreState(data)} attribution={isOn("score_attribution_v1", persona) ? scoreAttribution(data, { hideGambling: account.hideGambling }) : null} projection={projectScore(data, isOn("score_projection_v1", persona))} trend={scoreTrend(data)} top={top} others={others} strongest={strongestFactor(data)}
         panels={panels} scoredAt={data.score?.scoredAt ?? null} initial={slug ? factorFromSlug(slug) : null} present={present} stagesSample={STAGES_ARE_SAMPLE} />
     </PortalShell>
   );

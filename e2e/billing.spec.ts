@@ -49,7 +49,7 @@ test("pause for a month straight from the page; billing resumes after a payday",
 test("the feed offers the pause under Help when Jess is short; it never appears as an offer", async ({ page }) => {
   await page.goto("/?persona=jess&present=1&state=none");
   await expect(page.getByRole("navigation", { name: "Main" }).first().getByRole("link", { name: "Help 1 thing to look at" })).toBeVisible();
-  await page.getByRole("button", { name: /more things · Show all/ }).click();
+  await page.getByRole("button", { name: /^See all \(\d+\)$/ }).click();
   const card = page.getByRole("region", { name: "Needs a look" }).getByRole("article").filter({ hasText: "You can pause your $9.99 Tippla payment" });
   await expect(card).toContainText("It's due Fri 02/10.");
   await card.getByRole("link", { name: "See pause and plan options" }).click();

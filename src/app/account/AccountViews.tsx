@@ -125,6 +125,15 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
         ))}
       </section>
 
+      <section aria-labelledby="insights-h" className="rounded-md bg-surface p-t4">
+        <h2 id="insights-h" className="text-h3 text-text">{t.profile.insightsHeading}</h2>
+        <Toggle label={t.profile.gamblingLabel} checked={!account.hideGambling} onChange={(v) => {
+          update((l) => { const n = { ...l }; if (v) delete n.hideGambling; else n.hideGambling = true; return n; });
+          toast({ kind: "confirm", message: t.profile.gamblingSaved(v) });
+        }} />
+        <p className="text-caption text-text-muted">{t.profile.gamblingNote}</p>
+      </section>
+
       <section aria-labelledby="usage-h" className="rounded-md bg-surface p-t4">
         <h2 id="usage-h" className="text-h3 text-text">{t.profile.usageHeading}</h2>
         <Toggle label={t.profile.usageLabel} checked={account.analytics !== false} onChange={(v) => {

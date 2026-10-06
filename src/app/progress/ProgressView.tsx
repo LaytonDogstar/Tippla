@@ -7,7 +7,7 @@ import { track } from "@/lib/analytics/client";
 import type { PersonaId } from "@/lib/api/types";
 import { progressCopy as t } from "@/content/progress";
 import { GOAL_PRESETS } from "@/config/flags";
-import { addDays, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
+import { addDays, formatDayMonth, formatDollars, formatShortDay, formatWhole } from "@/lib/format";
 import { useAccount } from "@/lib/account/client";
 import { GOAL_MAX, GOAL_MIN, type AccountState } from "@/lib/account/state";
 import type { GoalPlan } from "@/lib/selectors/goal";
@@ -108,7 +108,7 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
           <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-accent-soft text-accent"><PiggyBank size={24} /></span>
           <div className="min-w-0 flex-1">
             <h2 id="ptally-h" className="text-caption text-text-muted">{t.tally.heading}</h2>
-            <p className="tnum text-h2 font-display text-text">{formatWhole(p.tally.total)}</p>
+            <p className="tnum text-h2 font-display text-text">{formatDollars(p.tally.total)}</p>
             <Button variant="tertiary" onClick={() => setTally(true)}>{t.tally.see}</Button>
           </div>
         </section>}

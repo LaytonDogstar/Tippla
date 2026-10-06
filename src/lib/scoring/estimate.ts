@@ -23,7 +23,8 @@ export function projectScore(d: PersonaData, enabled = SHOW_SCORE_PROJECTIONS_DE
   const points = Math.round(SAMPLE_FACTOR_WEIGHTS[lift.factor] * gain);
   const last = d.scoreHistory.at(-1)?.scored_date ?? d.asOf;
   return {
-    recommendationId: top.id, liftKey: key, from: d.score.score, to: Math.min(1000, d.score.score + points),
+    // Spec 02: rounded to the nearest 5, never false precision.
+    recommendationId: top.id, liftKey: key, from: d.score.score, to: Math.min(1000, Math.round((d.score.score + points) / 5) * 5),
     by: addDays(last, 14 * PROJECTION_REFRESHES), factor: lift.factor, estimated: true,
   };
 }

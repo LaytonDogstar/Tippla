@@ -32,7 +32,7 @@ export const SCORE_DROP_BANNER_POINTS = 20;
 export const THIN_FILE_DAYS_NEEDED = 90;
 
 /** SAMPLE LOGIC: kept aside before working out "safe to spend today", so a surprise cost doesn't tip under. */
-export const SAFE_TO_SPEND_BUFFER = 50;
+export const SAFE_TO_SPEND_BUFFER = 0;
 
 /**
  * Q3 SAMPLE LOGIC: how much one factor is assumed to lift (of 10) if the customer acts on a recommendation

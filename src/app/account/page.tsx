@@ -3,7 +3,9 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { billing, lenderMatchingOn } from "@/lib/selectors";
+import { billing, lenderMatchingOn, valueTally } from "@/lib/selectors";
+import { tallyCopy } from "@/content/loop";
+import { formatDollars } from "@/lib/format";
 import { formatShortDay, formatUpdated } from "@/lib/format";
 import { accountPage as t, notificationsCopy } from "@/content/account";
 import { PageHeader } from "@/components/shell/Shells";
@@ -22,6 +24,8 @@ export default async function Account({ searchParams }: { searchParams: { person
     { href: "/account/consents", label: t.sections.consents, sub: lenderMatchingOn(data) ? t.consents.matchingOn.split(".")[0]! : t.consents.matchingPaused.split(".")[0]! },
     { href: "/account/bank", label: t.sections.bank, sub: account.bank?.disconnected ? t.bank.disconnectedNote.split(".")[0]! : `${accounts.map((a) => t.bank.account(a.nickname, a.last4)).join(", ")}${data.score?.scoredAt ? ` · ${formatUpdated(data.score.scoredAt).replace(/^Updated /, "")}` : ""}` },
     { href: "/notifications", label: notificationsCopy.title, sub: "" },
+    // Spec 02: the value tally on Account, with the ledger on Your progress.
+    (() => { const v = valueTally(data, account); return { href: "/progress", label: tallyCopy.label, sub: v.items.length ? `${formatDollars(v.total)} · ${tallyCopy.since}` : tallyCopy.none }; })(),
   ];
   return (
     <PortalShell path="/account" persona={persona} present={presentationMode(searchParams.present)} header={<PageHeader title={t.title} sub={data.profile.email} />}>

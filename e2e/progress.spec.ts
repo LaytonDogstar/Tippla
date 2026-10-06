@@ -45,7 +45,7 @@ test("Jess on payday: set a goal; safe to spend allows for it; change and remove
 
   await page.goto("/?persona=jess&present=1");
   const checkIn = region(page, "Payday check-in");
-  await expect(checkIn).toContainText("Safe to spend: about $22 a day");
+  await expect(checkIn).toContainText("Safe to spend: about $25 a day");
   await expect(checkIn).toContainText("Includes $40 towards your goal");
   await expect(page.getByRole("link", { name: /^Your progress/ })).toContainText("Goal: $200 left by 09/12");
   await checkIn.getByRole("button", { name: "How we worked this out" }).click();
