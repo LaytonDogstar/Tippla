@@ -20,4 +20,19 @@ export const MIGRATIONS: { id: string; sql: string }[] = [
       CREATE INDEX IF NOT EXISTS analytics_events_member_ts ON analytics_events (member_id, ts);
     `,
   },
+  {
+    id: "002_billing_events",
+    sql: `
+      CREATE TABLE IF NOT EXISTS billing_events (
+        id BIGSERIAL PRIMARY KEY,
+        member_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        from_date DATE,
+        to_date DATE,
+        reason TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS billing_events_once ON billing_events (member_id, type, from_date, to_date);
+    `,
+  },
 ];

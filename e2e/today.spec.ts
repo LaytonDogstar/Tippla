@@ -16,7 +16,7 @@ const dock = (page: Page) => page.getByRole("navigation", { name: "Main" }).firs
 
 test("Jess: status line, three ranked cards, section badges", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByText("Checked 32 new transactions this morning · 7 things to look at")).toBeVisible();
+  await expect(page.getByText("Checked 32 new transactions this morning · 8 things to look at")).toBeVisible();
   await expect(feedCards(page)).toHaveCount(3);
   await expect(feedCards(page).nth(0)).toContainText("About $53 short before payday");
   await expect(feedCards(page).nth(1)).toContainText("Beforepay $315 on Wed 30/09 is more than your forecast balance");
@@ -24,7 +24,8 @@ test("Jess: status line, three ranked cards, section badges", async ({ page }) =
   await expect(feedCards(page).nth(0).getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
   await expect(dock(page).getByRole("link", { name: "Money 4 things to look at" })).toBeVisible();
   await expect(dock(page).getByRole("link", { name: "Borrowing 1 thing to look at" })).toBeVisible();
-  await expect(dock(page).getByRole("link", { name: "Help", exact: true })).toBeVisible();
+  // Spec 03: short before payday, so "pause your Tippla payment" sits under Help.
+  await expect(dock(page).getByRole("link", { name: "Help 1 thing to look at" })).toBeVisible();
   await expectNoAxe(page);
 });
 
@@ -36,12 +37,12 @@ test("Done, with Undo; Dismiss sticks after a reload; badges follow", async ({ p
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(feedCards(page).nth(0)).toContainText("About $53 short before payday");
 
-  await page.getByRole("button", { name: "4 more things · Show all" }).click();
-  await expect(feedCards(page)).toHaveCount(7);
+  await page.getByRole("button", { name: "5 more things · Show all" }).click();
+  await expect(feedCards(page)).toHaveCount(8);
   await page.getByRole("button", { name: /^Dismiss: Possible double charge/ }).click();
-  await expect(feedCards(page)).toHaveCount(6);
+  await expect(feedCards(page)).toHaveCount(7);
   await page.reload();
-  await expect(page.getByText("6 things to look at")).toBeVisible();
+  await expect(page.getByText("7 things to look at")).toBeVisible();
   await expect(dock(page).getByRole("link", { name: "Money 3 things to look at" })).toBeVisible();
 });
 

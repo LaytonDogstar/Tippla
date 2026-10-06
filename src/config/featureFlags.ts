@@ -19,7 +19,7 @@ export const FLAGS = {
   score_projection_v1: { spec: "02", description: "Score projection (estimate)", built: true },
   value_tally_v1: { spec: "02", description: "Tippla has helped you save", built: true, gate: ["G5"] },
   // 03 Billing
-  payday_billing_v1: { spec: "03", description: "Tippla billing aligned to payday", built: false, gate: ["G7"] },
+  payday_billing_v1: { spec: "03", description: "Tippla billing aligned to payday", built: true, gate: ["G7"] },
   // 04 Onboarding
   onboarding_v2: { spec: "04", description: "First insight and goal selection", built: false },
   goals_v1: { spec: "04", description: "Member goal drives plan, check-in and recap", built: false },
@@ -63,6 +63,10 @@ export function flagOn(flag: FlagName, member: string, env: { off?: string[] } =
   if ((DEMO_MEMBERS as readonly string[]).includes(member)) return true;
   return !f.gate?.length || !!f.signOff;
 }
+
+/** flagOn with the deployment's FLAGS_OFF applied (server; on the client FLAGS_OFF isn't visible). */
+export const isOn = (flag: FlagName, member: string): boolean =>
+  flagOn(flag, member, { off: (typeof process !== "undefined" ? process.env.FLAGS_OFF ?? "" : "").split(",").filter(Boolean) });
 
 export const activeFlags = (member: string, env: { off?: string[] } = {}): FlagName[] =>
   FLAG_NAMES.filter((f) => flagOn(f, member, env));

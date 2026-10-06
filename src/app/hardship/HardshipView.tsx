@@ -1,7 +1,7 @@
 "use client";
 import { ChevronRight, ExternalLink, Info, Layers, MessageCircle, Phone, Settings, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { track } from "@/lib/analytics/client";
 import { hardshipPage as t } from "@/content/account";
 import { NDH } from "@/config/services";
@@ -33,8 +33,13 @@ export function HardshipInfoButton() {
   );
 }
 
-export function HardshipView({ persona, account: initial, present, lenders }: { persona: PersonaId; account: AccountState; present: boolean; lenders: string[] }) {
-  const { account, save } = useAccount(persona, initial);
+export function HardshipView({ persona, account: initial, present, lenders, asOf }: { persona: PersonaId; account: AccountState; present: boolean; lenders: string[]; asOf: string }) {
+  const { account, save, update } = useAccount(persona, initial);
+  // Opening Hardship support this pay cycle means Tippla offers its own pause openly (spec 03 §8).
+  useEffect(() => {
+    track("pause_offered", { source: "hardship" });
+    if (initial.hardshipVisitedAt !== asOf) update((l) => ({ ...l, hardshipVisitedAt: asOf }));
+  }, [asOf]); // eslint-disable-line react-hooks/exhaustive-deps
   const router = useRouter();
   const toast = useToast();
   const [sheet, setSheet] = useState<SheetId>(null);
@@ -85,7 +90,7 @@ export function HardshipView({ persona, account: initial, present, lenders }: { 
 
       <section className="mt-t4 rounded-md bg-surface p-t4">
         <Toggle label={statesCopy.hardshipSelf.label} checked={!!account.hardshipSelfSelected}
-          onChange={(v) => save({ ...account, hardshipSelfSelected: v || undefined })} />
+          onChange={(v) => update((l) => ({ ...l, hardshipSelfSelected: v || undefined }))} />
         {account.hardshipSelfSelected && <p role="status" className="mt-t1 px-t1 text-small text-text-muted">{statesCopy.hardshipSelf.on}</p>}
       </section>
 

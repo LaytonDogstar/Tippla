@@ -6,15 +6,15 @@ import { useEffect, useState } from "react";
 import type { Consent, PersonaId } from "@/lib/api/types";
 import { accountPage as t } from "@/content/account";
 import { PLANS, type PlanId } from "@/config/plans";
-import { formatCents, formatDate, formatShortDay, formatUpdated, toAESTDate } from "@/lib/format";
+import { formatCents, formatDate, formatDayMonth, formatShortDay, formatUpdated, toAESTDate } from "@/lib/format";
 import { formatMobile, isValidEmail, isValidMobile } from "@/lib/onboarding/validate";
 import { useAccount } from "@/lib/account/client";
-import { mockNow, type AccountState } from "@/lib/account/state";
+import { mockNow, type AccountState, type BillingPref } from "@/lib/account/state";
 import type { BillingView } from "@/lib/selectors/account";
 import type { NotificationType } from "@/lib/selectors/notifications";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Feedback";
-import { RadioGroup, TextInput, Toggle } from "@/components/ui/Form";
+import { RadioGroup, SelectInput, TextInput, Toggle } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
 import { NOTIFY_CAP_DEFAULT } from "@/config/flags";
 import { track } from "@/lib/analytics/client";
@@ -145,13 +145,25 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
 }
 
 // ---- Subscription ------------------------------------------------------------------------------------
-export function SubscriptionView({ persona, present, account: initial, billing: b, asOf }: { persona: PersonaId; present: boolean; account: AccountState; billing: BillingView; asOf: string }) {
+export function SubscriptionView({ persona, present, account: initial, billing: b, asOf, tight = false }: { persona: PersonaId; present: boolean; account: AccountState; billing: BillingView; asOf: string; tight?: boolean }) {
   const toast = useToast();
-  const { account, save } = useAccount(persona, initial);
+  const { account, save, update } = useAccount(persona, initial);
+  const al = b.alignment;
+  const pref = account.billingPref ?? (al ? al.pref : null);
+  const setPref = (next: Omit<BillingPref, "changedAt">) => {
+    const full: BillingPref = { ...next, changedAt: mockNow({ asOf }) };
+    track("billing_preference_changed", { mode: full.mode });
+    update((l) => ({ ...l, billingPref: full }));
+    void fetch("/api/billing/preference", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(full) }).catch(() => {});
+    toast({ kind: "confirm", message: t.subscription.prefSaved });
+  };
+  useEffect(() => { if (tight && b.status === "active") track("pause_offered", { source: "account" }); }, [tight, b.status]);
   const [sheet, setSheet] = useState<"cancel" | "pause" | "change" | null>(null);
   const now = mockNow({ asOf });
   const other: PlanId = b.plan === "pro" ? "standard" : "pro";
   const set = (status: "active" | "paused" | "cancelled", plan: PlanId, msg: string, effective: string) => {
+    if (status === "paused") track("pause_taken", {});
+    if (status === "active" && plan === "standard" && b.plan === "pro") track("downgrade_taken", {});
     const before = account;
     save({ ...account, subscription: { status, plan, effective, changedAt: now } });
     setSheet(null);
@@ -172,18 +184,61 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
         <p role="status" className="mt-t3 text-small text-text">
           {b.status === "cancelled" && b.until ? t.subscription.cancelledUntil(formatShortDay(b.until))
             : b.status === "paused" && b.until ? t.subscription.pausedUntil(formatShortDay(b.until))
+            : b.nextCharge && al ? t.subscription.nextChargeAmount(formatCents(al.amount + (al.proration?.amount ?? 0)), formatShortDay(b.nextCharge), al.pref.mode === "after_payday" || !!al.deferred)
             : b.nextCharge ? t.subscription.nextCharge(formatShortDay(b.nextCharge)) : ""}
         </p>
+        {al && (
+          <div className="mt-t3 flex flex-col gap-t2 rounded-md bg-surface2 p-t3 text-small text-text">
+            {al.failed && <p>{al.failed.retries.length ? t.subscription.failed(formatCents(al.failed.amount), formatShortDay(al.failed.on), formatShortDay(al.failed.retries[0]!)) : t.subscription.failedLast(formatCents(al.failed.amount), formatShortDay(al.failed.on))}</p>}
+            {al.deferred ? <p>{t.subscription.deferred(formatShortDay(al.deferred.from), formatShortDay(al.deferred.to))}</p>
+              : al.moved && al.payday && al.pref.mode === "after_payday" ? <p>{t.subscription.moved(formatShortDay(al.payday))}</p> : null}
+            {al.proration && al.proration.amount > 0 && <p className="text-text-muted">{t.subscription.proration(formatCents(al.proration.amount), formatDayMonth(al.proration.from), formatDayMonth(al.proration.to), al.proration.days, formatCents(b.price), al.proration.periodDays)}</p>}
+            {al.proration && al.proration.amount < 0 && <p className="text-text-muted">{t.subscription.credit(formatCents(-al.proration.amount), -al.proration.days)}</p>}
+            <SampleTag q="Q25" present={present} className="self-start" />
+          </div>
+        )}
         {b.pendingPlan && b.nextCharge && <p className="mt-t1 text-small text-text-muted">{t.subscription.pendingPlan(PLANS[b.pendingPlan].name, formatShortDay(b.nextCharge))}</p>}
         <p className="mt-t4 text-small text-text-muted">{t.subscription.includes}</p>
         <ul className="mt-t2 flex flex-col gap-t1">{PLANS.pro.extras.map((e) => <li key={e} className="flex items-start gap-t2 text-small text-text"><Check aria-hidden size={16} className="mt-[2px] shrink-0 text-neutral" />{e}</li>)}</ul>
         <div className="mt-t5 flex flex-col gap-t2">
           {b.status === "active" && !b.pendingPlan && <Button full variant="secondary" onClick={() => setSheet("change")}>{t.subscription.changePlan(PLANS[other].name)}</Button>}
+          {b.status === "active" && al && (
+            <>
+              {tight && <p className="text-small text-text">{t.subscription.tight}</p>}
+              <Button full variant="secondary" onClick={() => setSheet("pause")}>{t.subscription.pauseNow}</Button>
+            </>
+          )}
           {b.status === "active" && <Button full variant="tertiary" onClick={() => setSheet("cancel")}>{t.subscription.cancel}</Button>}
           {b.status === "cancelled" && <Button full variant="secondary" onClick={() => set("active", b.plan, t.subscription.reactivated, asOf)}>{t.subscription.reactivate}</Button>}
           {b.status === "paused" && <Button full variant="secondary" onClick={() => set("active", b.plan, t.subscription.resumed, asOf)}>{t.subscription.resume}</Button>}
         </div>
       </section>
+
+      {b.status === "active" && al && pref && (
+        <section aria-labelledby="when-h" className="rounded-md bg-surface p-t4">
+          <h2 id="when-h" className="text-h3 text-text">{t.subscription.whenHeading}</h2>
+          <div className="mt-t3 flex flex-col gap-t4">
+            <RadioGroup legend={t.subscription.whenHeading} value={pref.mode}
+              onChange={(mode) => setPref({ mode, cadence: mode === "fixed_date" ? "monthly" : pref.cadence, ...(mode === "fixed_date" ? { fixedDay: pref.fixedDay ?? Number(al.nominal.slice(8)) } : {}) })}
+              options={[{ value: "after_payday", label: t.subscription.afterPayday }, { value: "fixed_date", label: t.subscription.fixedDate }]} />
+            {pref.mode === "fixed_date" ? (
+              <div>
+                <SelectInput label={t.subscription.dayLabel} value={String(pref.fixedDay ?? 1)}
+                  options={Array.from({ length: 28 }, (_, i) => ({ value: String(i + 1), label: t.subscription.day(i + 1) }))}
+                  onChange={(v) => setPref({ mode: "fixed_date", cadence: "monthly", fixedDay: Number(v) })} />
+                <p className="mt-t1 text-caption text-text-muted">{t.subscription.fixedNote}</p>
+              </div>
+            ) : (
+              <div>
+                <RadioGroup legend={t.subscription.howOften} value={pref.cadence}
+                  onChange={(cadence) => setPref({ mode: "after_payday", cadence })}
+                  options={[{ value: "monthly", label: t.subscription.monthly(formatCents(b.price)) }, { value: "per_cycle", label: t.subscription.perCycle(formatCents(Math.round((b.price * 12 / 26) * 100) / 100)) }]} />
+                <p className="mt-t1 text-caption text-text-muted">{t.subscription.perCycleNote}</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       <section aria-labelledby="hist-h" className="rounded-md bg-surface">
         <h2 id="hist-h" className="p-t4 pb-t2 text-h3 text-text">{t.subscription.history}</h2>

@@ -24,6 +24,7 @@ export const statesCopy = {
     two_accounts: "Second account",
     payday: "Payday (morning pay lands)",
     bill_due: "Bill tomorrow (Jess, 29/09)",
+    billing_failed: "Tippla payment failed",
   },
   clearStates: "Clear states",
   hardshipSelf: {

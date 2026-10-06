@@ -16,7 +16,7 @@ export default async function Hardship({ searchParams }: { searchParams: { perso
   const lenders = [...activeLoans(data).map((l) => l.provider), ...otherCredit(data).map((o) => o.provider)];
   return (
     <PortalShell path="/hardship" persona={persona} present={present} header={<PageHeader title={t.title} sub={t.sub} action={<HardshipInfoButton />} />}>
-      <HardshipView persona={persona} account={account} present={present} lenders={[...new Set(lenders)]} />
+      <HardshipView persona={persona} account={account} present={present} lenders={[...new Set(lenders)]} asOf={data.asOf} />
     </PortalShell>
   );
 }

@@ -19,7 +19,7 @@ export default async function Home({ searchParams }: { searchParams: { persona?:
   const { data, account, edits, states } = await loadCustomer(persona);
   // Disconnected by the customer, or (dev state) the connection expired: numbers stopped at the last refresh.
   const expired = states.includes("bank_expired") && data.score?.scoredAt ? toAESTDate(data.score.scoredAt) : null;
-  const f = feed({ d: data, edits }, account.feed);
+  const f = feed({ d: data, edits, account }, account.feed);
   const status = refreshStatus(data, f.open.length);
   const rawBanner = dashboardBanner(data, { bankExpiredSince: account.bank?.disconnected ? data.asOf : expired, hardshipSelfSelected: account.hardshipSelfSelected });
   // The hardship banner steps aside when a feed card already offers the same options (no repetition).

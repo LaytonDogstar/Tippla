@@ -73,14 +73,17 @@ describe("account state", async () => {
     expect(parseAccount(raw, "marcus")).toEqual({});
   });
 
-  it("billing: monthly from sign-up; cancel keeps access to the period end; pause skips one charge", () => {
+  it("billing: monthly from sign-up (moved to after payday, spec 03); cancel keeps access to the period end; pause skips one charge", () => {
     const b = billing(jess);
     expect(b.history[0]!.date).toBe("2026-09-28" > jess.asOf ? "2026-08-28" : "2026-09-28");
-    expect(b.nextCharge).toBe("2026-09-28");
+    expect(b.nextCharge).toBe("2026-10-02");
+    expect(b.alignment!.nominal).toBe("2026-09-28");
     const c = billing(jess, { subscription: { status: "cancelled", plan: "standard", effective: "2026-09-28", changedAt: "" } });
     expect([c.nextCharge, c.until]).toEqual([null, "2026-09-28"]);
-    const p = billing(jess, { subscription: { status: "paused", plan: "standard", effective: "2026-09-28", changedAt: "" } });
-    expect([p.nextCharge, p.until]).toEqual(["2026-10-28", "2026-10-28"]);
+    // Pausing skips the 02/10 charge; billing resumes the day after a payday about a month later, as the sheet said.
+    expect([b.effects.pauseSkips, b.effects.pauseResumes]).toEqual(["2026-10-02", "2026-10-30"]);
+    const p = billing(jess, { subscription: { status: "paused", plan: "standard", effective: "2026-10-02", changedAt: "" } });
+    expect([p.nextCharge, p.until]).toEqual(["2026-10-30", "2026-10-30"]);
     expect(billing(marcus).planName).toBe("Pro");
   });
 });

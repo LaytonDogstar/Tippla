@@ -11,6 +11,8 @@ export const GOAL_MAX = 5000;
 
 export type ConsentId = Consent["id"];
 export interface CustomerAction { type: "cancelled_subscription" | "skip_advance"; key?: string; at: string }
+/** How the member wants Tippla to charge them (spec 03). Defaults: the day after payday, monthly. */
+export interface BillingPref { mode: "after_payday" | "fixed_date"; fixedDay?: number; cadence: "monthly" | "per_cycle"; changedAt: string }
 /** One goal at a time: have `amount` left the day before payday, by the pay cycle containing `by`. */
 export interface Goal { amount: number; by: string; setAt: string }
 export interface SubscriptionState { status: "active" | "paused" | "cancelled"; plan: PlanId; effective: string; changedAt: string }
@@ -22,6 +24,10 @@ export interface AccountState {
   bank?: { disconnected?: boolean; refreshedAt?: string };
   /** Things the customer did in the app that the value tally can later confirm in the bank data. */
   actions?: CustomerAction[];
+  /** Tippla billing preference (spec 03). */
+  billingPref?: BillingPref;
+  /** Last date the member opened Hardship support (offers "Pause or downgrade Tippla" for that pay cycle). */
+  hardshipVisitedAt?: string;
   /** Usage analytics consent (spec 09). Undefined means the default: on, and the member can turn it off. */
   analytics?: boolean;
   /** The customer's buffer goal (Phase 3, progress and goals). */
@@ -63,6 +69,12 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   if (s && ["active", "paused", "cancelled"].includes(s.status) && ["standard", "pro"].includes(s.plan) && typeof s.effective === "string") out.subscription = s;
   if (a.hardshipSelfSelected === true) out.hardshipSelfSelected = true;
   if (typeof a.analytics === "boolean") out.analytics = a.analytics;
+  const bp = a.billingPref;
+  if (bp && typeof bp === "object" && ["after_payday", "fixed_date"].includes(bp.mode) && ["monthly", "per_cycle"].includes(bp.cadence) && typeof bp.changedAt === "string") {
+    const day = Number(bp.fixedDay);
+    out.billingPref = { mode: bp.mode, cadence: bp.cadence, changedAt: bp.changedAt, ...(bp.mode === "fixed_date" ? { fixedDay: Number.isInteger(day) && day >= 1 && day <= 28 ? day : 1 } : {}) };
+  }
+  if (typeof a.hardshipVisitedAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(a.hardshipVisitedAt)) out.hardshipVisitedAt = a.hardshipVisitedAt;
   if (Array.isArray(a.actions)) {
     out.actions = a.actions.filter((x): x is CustomerAction => !!x && ["cancelled_subscription", "skip_advance"].includes(x.type) && typeof x.at === "string" && (x.key === undefined || typeof x.key === "string"));
   }

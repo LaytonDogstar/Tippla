@@ -8,7 +8,8 @@ import { repaymentDue } from "./rules/repaymentDue";
 import { scoreChange } from "./rules/scoreChange";
 import { shortfall } from "./rules/shortfall";
 import { unusualSpend } from "./rules/unusualSpend";
+import { tipplaBillingRelief } from "./rules/tipplaBillingRelief";
 
 export const RULES: Record<string, Rule> = {
-  shortfall, billOverBalance, repaymentDue, newSubscription, priceRise, duplicateCharge, unusualSpend, scoreChange,
+  shortfall, billOverBalance, repaymentDue, newSubscription, priceRise, duplicateCharge, unusualSpend, scoreChange, tipplaBillingRelief,
 };

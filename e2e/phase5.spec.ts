@@ -48,16 +48,16 @@ test("cancel the subscription in one tap plus one confirmation, no retention scr
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByText("Cancelled. You can use Tippla until Mon 28/09, and you won't be charged again.")).toBeVisible();
   await page.getByRole("button", { name: "Keep my subscription" }).click();
-  await expect(page.getByText("Next charge Mon 28/09")).toBeVisible();
+  await expect(page.getByText("Next charge $11.32 on Fri 02/10 (the day after your payday)")).toBeVisible(); // spec 03: after payday
 });
 
 test("Pause instead is the single optional alternative, with its effect shown before confirming", async ({ page }) => {
   await page.goto("/account/subscription?persona=jess&present=1");
   await page.getByRole("button", { name: "Cancel subscription" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Pause instead" }).click();
-  await expect(page.getByRole("dialog").getByText(/skipped and billing resumes on Wed 28\/10/)).toBeVisible();
+  await expect(page.getByRole("dialog").getByText(/skipped and billing resumes on Fri 30\/10/)).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: "Pause", exact: true }).click();
-  await expect(page.getByText("Paused. Billing resumes on Wed 28/10.")).toBeVisible();
+  await expect(page.getByText("Paused. Billing resumes on Fri 30/10.")).toBeVisible();
 });
 
 const ROUTES = ["/", "/score", "/savings", "/spending", "/calendar", "/subscriptions", "/loans", "/loans/repayment", "/offers", "/help", "/hardship", "/notifications", "/account", "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/spending/compare"];

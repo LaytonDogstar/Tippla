@@ -35,7 +35,7 @@ export async function PortalShell(props: {
   else if (states.includes("lapsed") && !ungated && props.path !== "/") body = <>{props.children}<LapsedSheet /></>;
   // Nav badges: open "Needs a look" items per section (same rules and choices as Home).
   const { data, edits, account } = await loadCustomer(props.persona);
-  const { bySection } = feed({ d: data, edits }, account.feed);
+  const { bySection } = feed({ d: data, edits, account }, account.feed);
   return (
     <PortalFrame {...props} notice={notice} badges={bySection}>
       {body}

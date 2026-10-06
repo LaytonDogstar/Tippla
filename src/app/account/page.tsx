@@ -18,7 +18,7 @@ export default async function Account({ searchParams }: { searchParams: { person
   const accounts = data.bankStatement.profiles[0]?.accounts ?? [];
   const rows = [
     { href: "/account/profile", label: t.sections.profile, sub: data.profile.full_name },
-    { href: "/account/subscription", label: t.sections.subscription, sub: `${t.subscription.plan(b.planName)}${b.nextCharge ? ` · ${t.subscription.nextCharge(formatShortDay(b.nextCharge))}` : ""}` },
+    { href: "/account/subscription", label: t.sections.subscription, sub: `${t.subscription.plan(b.planName)}${b.nextCharge ? ` · ${b.alignment?.pref.mode === "after_payday" ? t.subscription.nextChargeAfterPayday(formatShortDay(b.nextCharge)) : t.subscription.nextCharge(formatShortDay(b.nextCharge))}` : ""}` },
     { href: "/account/consents", label: t.sections.consents, sub: lenderMatchingOn(data) ? t.consents.matchingOn.split(".")[0]! : t.consents.matchingPaused.split(".")[0]! },
     { href: "/account/bank", label: t.sections.bank, sub: account.bank?.disconnected ? t.bank.disconnectedNote.split(".")[0]! : `${accounts.map((a) => t.bank.account(a.nickname, a.last4)).join(", ")}${data.score?.scoredAt ? ` · ${formatUpdated(data.score.scoredAt).replace(/^Updated /, "")}` : ""}` },
     { href: "/notifications", label: notificationsCopy.title, sub: "" },

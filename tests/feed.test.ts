@@ -21,7 +21,7 @@ describe("feed rules", async () => {
 
   it("Jess: every rule that applies to her fires, with real figures", () => {
     const items = allFeedItems(ctx(jess));
-    expect(new Set(types(items))).toEqual(new Set(["shortfall", "bill_over_balance", "unusual_spend", "duplicate_charge", "new_subscription", "price_rise", "score_change"]));
+    expect(new Set(types(items))).toEqual(new Set(["shortfall", "bill_over_balance", "unusual_spend", "duplicate_charge", "new_subscription", "price_rise", "score_change", "tippla_billing_relief"]));
     const by = Object.fromEntries(items.map((i) => [i.type, i]));
     expect(by.shortfall!.title).toBe("About $53 short before payday");
     expect(by.bill_over_balance!.title).toBe("Beforepay $315 on Wed 30/09 is more than your forecast balance");
