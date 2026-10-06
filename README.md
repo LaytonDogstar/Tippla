@@ -53,6 +53,8 @@ npm run lighthouse           # Lighthouse mobile accessibility on every screen Ã
 
 **Database (retention pack, spec 09 onwards):** set `DATABASE_URL` to a Postgres database (on Railway: add the Postgres service, then reference its `DATABASE_URL` in this service's Variables). Tables are created automatically on first use. Without it, the app uses PGlite, an in-process Postgres stored in `.data/` (fine locally; on Railway it resets on each deploy). Optional: `ANALYTICS_SALT` (any long random string) for the pseudonymous member ids, and `FLAGS_OFF` (comma-separated flag names) to switch features off.
 
+**Notifications and the installable app (spec 10):** see `docs/15_notifications_and_app.md`. Set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` for push and `CRON_SECRET` to let a scheduled job call `POST /api/notify/dispatch`. `/dev/outbox` shows the notification log and the email outbox (no email provider yet).
+
 **Analytics dashboards:** `/dev/analytics` shows the north star, retention by signup week, feed performance and the guardrails, on generated demo data plus any real usage. See `docs/14_analytics.md`.
 
 **Password for a hosted preview:** set the environment variable `SITE_PASSWORD` (on Railway: service â€º Variables). Every page then asks for that password first, and a correct entry is remembered for 30 days on that device. Leave it unset locally and the app opens straight away. To sign out on a device, visit `/api/gate?signout=1`. To change the password, change the variable and redeploy; everyone is asked again.

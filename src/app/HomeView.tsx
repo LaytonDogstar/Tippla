@@ -28,6 +28,7 @@ import { CheckInCard, ProgressLink, RecapCard, SafeToSpendCard, SafeToSpendSheet
 import { tallyCopy } from "@/content/loop";
 import { useAccount } from "@/lib/account/client";
 import { useToast } from "@/components/ui/Feedback";
+import { InstallPrompt } from "@/components/notify/InstallPrompt";
 import { mockNow } from "@/lib/account/state";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | null;
@@ -81,6 +82,7 @@ export function HomeView({ persona, account, status, feedItems, attribution, asO
         <SmartScoreCard state={score} change={change} attribution={attribution} />
         {showTally && <TallyCard tally={tally} onOpen={() => setSheet("tally")} />}
         <ProgressLink text={progressText} />
+        <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
         {action && <NextStepCard title={action.title} rationale={action.wouldChange ?? action.summary} onSeeHow={() => setSheet("action")} />}
         {nextBill && <NextBillCard bill={nextBill} />}
         <SixMonthChart bars={bars} asOf={asOf} />

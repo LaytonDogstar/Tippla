@@ -42,9 +42,9 @@ export const FLAGS = {
   // 08 Assistant
   assistant_v1: { spec: "08", description: "Ask Tippla assistant", built: false, gate: ["G1", "G2", "G3", "G6"] },
   // 10 Platform
-  pwa_v1: { spec: "10", description: "Installable app", built: false },
-  push_v1: { spec: "10", description: "Push notifications", built: false, gate: ["G5"] },
-  email_lifecycle_v1: { spec: "10", description: "Lifecycle email", built: false, gate: ["G5"] },
+  pwa_v1: { spec: "10", description: "Installable app", built: true },
+  push_v1: { spec: "10", description: "Push notifications", built: true, gate: ["G5"] },
+  email_lifecycle_v1: { spec: "10", description: "Lifecycle email", built: true, gate: ["G5"] },
 } satisfies Record<string, FlagDef>;
 
 export type FlagName = keyof typeof FLAGS;

@@ -1,11 +1,13 @@
 // P14 Notifications: event-driven only. Something happened (or is about to) with the customer's own money:
 // a shortfall within 5 days, a bill tomorrow bigger than the balance, pay landed, the pay-cycle recap, a
 // SmartScore update, or a change to their account. No routine "refreshed" or "payment went through"
-// messages. Never offers or lenders, never gambling or alcohol. A daily cap decides which go to the phone;
-// the weekly digest gathers the non-urgent ones (score, recap).
+// messages. Never offers or lenders, never gambling or alcohol. Which ones go to the phone (or email) is
+// decided by the central policy engine (src/lib/notify/policy.ts, spec 10); every one is in the inbox.
 import type { PersonaData } from "@/lib/api/types";
 import { notificationsCopy as t } from "@/content/account";
-import { NOTIFY_CAP_DEFAULT, SHORTFALL_NOTIFY_DAYS } from "@/config/flags";
+import { SHORTFALL_NOTIFY_DAYS } from "@/config/flags";
+import { decide, type Candidate, type Priority, type SuppressReason } from "@/lib/notify/policy";
+import { prefsFor } from "@/lib/notify/prefs";
 import type { AccountState } from "@/lib/account/state";
 import { addDays, daysBetween, formatShortDay, type ISODate } from "@/lib/format/dates";
 import { formatAUD, formatCents, formatWhole } from "@/lib/format/money";
@@ -18,16 +20,21 @@ import { balanceBefore } from "@/lib/feed/rules/_helpers";
 
 /** No "offer" type: lender offers are never a notification (05/10 guardrail). */
 export type NotificationType = "money" | "payday" | "score" | "subscription" | "bank";
-export type Delivery = "push" | "inbox" | "digest";
-export interface Notification { id: string; type: NotificationType; date: ISODate; title: string; body: string; href: string; read: boolean; delivery: Delivery }
+/** How the policy delivered it: to the phone, by email, kept in the inbox (with why), or in the weekly digest. */
+export type Delivery = "push" | "email" | "inbox" | "digest" | "paused" | "off";
+export interface Notification { id: string; type: NotificationType; date: ISODate; title: string; body: string; href: string; read: boolean; delivery: Delivery; priority: Priority; dueAt?: string }
 
-/** Order for the daily cap: what needs acting on first. */
-const PRIORITY: Record<NotificationType, number> = { money: 0, payday: 1, bank: 2, subscription: 3, score: 4 };
-const DIGESTIBLE = (n: Omit<Notification, "read" | "delivery">) => n.type === "score" || n.id.startsWith("recap-");
+/** Spec 02/10 priorities: money alerts are high; payday, recap and account changes normal; score low. */
+export const PRIORITY_OF: Record<NotificationType, Priority> = { money: "high", payday: "normal", bank: "normal", subscription: "normal", score: "low" };
+const RANK: Record<Priority, number> = { high: 0, normal: 1, low: 2 };
+/** Events are detected at the morning refresh. */
+export const eventTime = (date: ISODate) => `${date}T09:15:00+10:00`;
 const money = (n: number) => (Number.isInteger(n) ? formatAUD(n) : formatCents(n));
 
-export function notificationEvents(d: PersonaData, a: AccountState = {}): Omit<Notification, "read" | "delivery">[] {
-  const out: Omit<Notification, "read" | "delivery">[] = [];
+type NotificationEvent = Omit<Notification, "read" | "delivery" | "priority">;
+
+export function notificationEvents(d: PersonaData, a: AccountState = {}): NotificationEvent[] {
+  const out: NotificationEvent[] = [];
 
   // Shortfall: the balance is forecast to go under before payday, within 5 days.
   const pc = payCycleSummary(d, {});
@@ -41,7 +48,7 @@ export function notificationEvents(d: PersonaData, a: AccountState = {}): Omit<N
   // A bill tomorrow that is bigger than the balance going into it.
   for (const b of billsBeforePayday(d).filter((x) => x.date === addDays(d.asOf, 1))) {
     const bal = balanceBefore(d, b.date);
-    if (b.expected_amount > bal) out.push({ id: `bill-${b.merchant}-${b.date}`, type: "money", date: d.asOf, title: t.billTomorrow.title(b.merchant, money(b.expected_amount)), body: bal <= 0 ? t.billTomorrow.overdrawn : t.billTomorrow.body(formatWhole(bal)), href: `/calendar?day=${b.date}` });
+    if (b.expected_amount > bal) out.push({ id: `bill-${b.merchant}-${b.date}`, type: "money", date: d.asOf, dueAt: `${b.date}T00:00:00+10:00`, title: t.billTomorrow.title(b.merchant, money(b.expected_amount)), body: bal <= 0 ? t.billTomorrow.overdrawn : t.billTomorrow.body(formatWhole(bal)), href: `/calendar?day=${b.date}` });
   }
   // Pay landed: the check-in, and the recap of the cycle that just ended.
   const checkIn = paydayCheckIn(d, goalPlan(d, a.goal)?.thisCycle ?? 0);
@@ -68,24 +75,30 @@ export function notificationEvents(d: PersonaData, a: AccountState = {}): Omit<N
   return out;
 }
 
+/** The candidate the policy engine sees for an event. */
+export const toCandidate = (n: NotificationEvent): Candidate => ({
+  key: n.id, category: n.type, priority: PRIORITY_OF[n.type], title: n.title, body: n.body, href: n.href, at: eventTime(n.date), ...(n.dueAt ? { dueAt: n.dueAt } : {}),
+});
+
+const DELIVERY: Partial<Record<SuppressReason, Delivery>> = { cap: "inbox", dedupe: "inbox", digest: "digest", paused: "paused", channel_off: "off", quiet_hours: "push" };
+
 export function notifications(d: PersonaData, a: AccountState = {}): Notification[] {
-  const cap = a.notify?.cap ?? NOTIFY_CAP_DEFAULT;
-  const digest = a.notify?.digest ?? false;
-  const events = notificationEvents(d, a);
-  // Per day, in priority order: the first `cap` go to the phone, the rest wait in the inbox.
-  const sentPerDay: Record<string, number> = {};
+  const prefs = prefsFor(a);
+  // In date order, most urgent first within a day, so the policy counts what came before.
+  const events = notificationEvents(d, a).sort((x, y) => x.date.localeCompare(y.date) || RANK[PRIORITY_OF[x.type]] - RANK[PRIORITY_OF[y.type]]);
   const delivery = new Map<string, Delivery>();
-  for (const n of [...events].sort((x, y) => PRIORITY[x.type] - PRIORITY[y.type])) {
-    if (digest && DIGESTIBLE(n)) { delivery.set(n.id, "digest"); continue; }
-    const sent = sentPerDay[n.date] ?? 0;
-    delivery.set(n.id, sent < cap ? "push" : "inbox");
-    sentPerDay[n.date] = sent + 1;
+  const history: Parameters<typeof decide>[2] = [];
+  for (const e of events) {
+    const [dec] = decide([toCandidate(e)], prefs, history, eventTime(e.date));
+    if (!dec || dec.outcome === "blocked") continue; // never shown anywhere
+    if (dec.outcome === "send") history.push({ key: e.id, priority: dec.candidate.priority, channel: dec.channel, sentAt: dec.sendAt });
+    delivery.set(e.id, dec.outcome === "send" ? (dec.channel === "email" ? "email" : "push") : DELIVERY[dec.reason!] ?? "inbox");
   }
   const read = new Set(a.readNotifications ?? []);
   // Anything older than a week starts as read: the inbox shouldn't open with a backlog.
-  return events
-    .map((n) => ({ ...n, delivery: delivery.get(n.id)!, read: read.has(n.id) || daysBetween(n.date, d.asOf) >= 7 }))
-    .sort((x, y) => y.date.localeCompare(x.date) || PRIORITY[x.type] - PRIORITY[y.type]);
+  return events.filter((n) => delivery.has(n.id))
+    .map((n) => ({ ...n, priority: PRIORITY_OF[n.type], delivery: delivery.get(n.id)!, read: read.has(n.id) || daysBetween(n.date, d.asOf) >= 7 }))
+    .sort((x, y) => y.date.localeCompare(x.date) || RANK[x.priority] - RANK[y.priority]);
 }
 
 /** Today / this week / earlier, relative to the data date. */

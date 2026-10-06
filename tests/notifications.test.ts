@@ -59,34 +59,42 @@ describe("notifications: events only", async () => {
   });
 });
 
-describe("notifications: frequency cap and weekly digest", async () => {
+describe("notifications: the spec 10 policy decides delivery", async () => {
   const [jessB, jessP] = await Promise.all([loadBillDue("jess"), loadPayday("jess")]);
+  const today = (d: typeof jessB, a = {}) => notifications(d, a).filter((n) => n.date === d.asOf).map((n) => [n.id.split("-")[0], n.delivery]);
 
-  it("default cap is 2 a day; extras wait in the inbox, money first", () => {
-    const list = notifications(jessB, { bank: { disconnected: true } }).filter((n) => n.date === jessB.asOf);
-    expect(list.map((n) => [n.id.split("-")[0], n.delivery])).toEqual([["shortfall", "push"], ["bill", "push"], ["bank", "inbox"]]);
+  it("one urgent money alert a day, plus one other; the rest wait in the inbox", () => {
+    expect(today(jessB, { bank: { disconnected: true } })).toEqual([["shortfall", "push"], ["bill", "inbox"], ["bank", "push"]]);
   });
 
-  it("the customer can lower the cap", () => {
-    const list = notifications(jessB, { notify: { cap: 1, digest: false } }).filter((n) => n.date === jessB.asOf);
-    expect(list.map((n) => n.delivery)).toEqual(["push", "inbox"]);
+  it("payday: the check-in goes out; the recap waits in the inbox (one normal a day)", () => {
+    expect(today(jessP)).toEqual([["payday", "push"], ["recap", "inbox"]]);
   });
 
-  it("weekly digest takes score updates and recaps, never shortfalls or bills", () => {
-    const list = notifications(jessP, { notify: { cap: 2, digest: true } });
-    for (const n of list) expect(n.delivery).toBe(n.type === "score" || n.id.startsWith("recap-") ? "digest" : "push");
-    const money = notifications(jessB, { notify: { cap: 2, digest: true } }).filter((n) => n.type === "money");
-    expect(money.every((n) => n.delivery === "push")).toBe(true);
+  it("weekly digest takes low-priority score updates; money alerts and payday still come straight away", () => {
+    const list = notifications(jessP, { notify: { digest: true } });
+    for (const n of list.filter((x) => x.type === "score" && x.date >= "2026-09-25")) expect(n.delivery).toBe("digest");
+    expect(list.find((n) => n.id.startsWith("payday-"))!.delivery).toBe("push");
+    expect(notifications(jessB, { notify: { digest: true } }).find((n) => n.type === "money")!.delivery).toBe("push");
   });
 
-  it("notify settings survive the cookie round trip, and bad values are clamped or dropped", () => {
-    const raw = serialiseAccount(undefined, "jess", { notify: { cap: 3, digest: true } });
-    expect(parseAccount(raw, "jess").notify).toEqual({ cap: 3, digest: true });
-    const bad = encodeURIComponent(JSON.stringify({ jess: { notify: { cap: 99, digest: true } }, marcus: { notify: { cap: "x" } } }));
-    expect(parseAccount(bad, "jess").notify).toEqual({ cap: 10, digest: true });
+  it("paused: nothing goes out; categories turned off stay in the inbox; email when push is off", () => {
+    expect(today(jessB, { notify: { digest: false, paused: true } }).map((x) => x[1])).toEqual(["paused", "paused"]);
+    const off = { notify: { digest: false, channels: { money: { push: false, email: false } } } };
+    expect(today(jessB, off).map((x) => x[1])).toEqual(["off", "off"]);
+    const email = { notify: { digest: false, channels: { payday: { push: false, email: true } } } };
+    expect(today(jessP, email)).toEqual([["payday", "email"], ["recap", "inbox"]]);
+  });
+
+  it("notification settings survive the cookie round trip; bad values are dropped", () => {
+    const n = { digest: true, paused: false, detailed: true, quiet: { start: "22:00", end: "07:00" }, channels: { money: { push: true, email: true } } };
+    expect(parseAccount(serialiseAccount(undefined, "jess", { notify: n }), "jess").notify).toEqual(n);
+    const bad = encodeURIComponent(JSON.stringify({ jess: { notify: { digest: true, quiet: { start: "9pm", end: "8am" }, channels: { money: { push: "yes" } } } }, marcus: { notify: { cap: 2 } } }));
+    expect(parseAccount(bad, "jess").notify).toEqual({ digest: true, channels: {} });
     expect(parseAccount(bad, "marcus").notify).toBeUndefined();
   });
 });
+
 
 describe("weekly summary and goals in notifications", async () => {
   const { weeklySummary } = await import("@/lib/selectors");

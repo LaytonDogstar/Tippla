@@ -98,27 +98,34 @@ test("value tally: actions in the app are pending, then confirmed from bank data
   await expectNoAxe(page);
 });
 
-test("notifications: events only; bill tomorrow on 29/09; cap and weekly digest from settings", async ({ page }) => {
+test("notifications: events only; one urgent alert a day; pause, quiet hours and weekly digest from settings (spec 10)", async ({ page }) => {
   await page.goto("/notifications?persona=jess&present=1&state=bill_due");
   const main = page.getByRole("main");
   await expect(main.getByText("Beforepay $315 is due tomorrow")).toBeVisible();
   await expect(main).not.toContainText(/refreshed|went through|offer|lender|gambl/i);
-  await expect(main.getByText("Sent to your phone").first()).toBeVisible();
+  // 29/09: the shortfall goes to the phone; the bill alert is the second urgent one that day, so it waits here.
+  await expect(main.getByRole("link", { name: /Heads up/ })).toContainText("Sent to your phone");
+  await expect(main.getByRole("link", { name: /Beforepay \$315 is due tomorrow/ })).toContainText("Kept here (you'd reached your daily limit)");
 
-  // Cap 1 a day: on 25/09 the shortfall goes to the phone, the score update waits in the inbox.
-  await page.goto("/account/profile?persona=jess&present=1");
-  await page.getByText("Up to 1 a day").click();
+  // Pause everything: nothing goes out, all still listed here.
+  await page.goto("/account/profile?persona=jess&present=1&state=none");
+  await expect(page.getByText("At most one notification a day, plus one urgent money alert, and three a week.", { exact: false })).toBeVisible();
+  await page.getByText("Pause all notifications").click();
   await expect(page.getByRole("status").filter({ hasText: "Notification settings saved" })).toBeVisible();
-  await page.goto("/notifications?persona=jess&present=1&state=none");
-  await expect(page.getByRole("main").getByText("Kept here (you'd reached your daily limit)")).toBeVisible();
+  await page.goto("/notifications?persona=jess&present=1");
+  await expect(page.getByRole("main").getByText("Kept here (notifications are paused)").first()).toBeVisible();
 
-  // Weekly digest: score updates move to the summary instead.
+  // Unpause; weekly digest: score updates move to the summary instead.
   await page.goto("/account/profile?persona=jess&present=1");
-  await page.getByText("Weekly summary for SmartScore updates and recaps").click();
+  await page.getByText("Pause all notifications").click();
+  await page.getByText("Weekly summary for SmartScore updates").click();
+  await page.getByLabel("From").selectOption("22:00");
   await expectNoAxe(page);
   await page.goto("/notifications?persona=jess&present=1");
   await expect(page.getByRole("main").getByText("In your weekly summary").first()).toBeVisible();
-  await expect(page.getByRole("main").getByText("Kept here (you'd reached your daily limit)")).toHaveCount(0);
+  await expect(page.getByRole("main").getByText("Kept here (notifications are paused)")).toHaveCount(0);
   await page.goto("/account/profile?persona=jess&present=1");
-  await expect(page.getByLabel("Up to 1 a day")).toBeChecked();
+  await expect(page.getByLabel("From")).toHaveValue("22:00");
+  await expect(page.getByLabel("Show amounts and names on my lock screen")).not.toBeChecked();
 });
+

@@ -9,14 +9,16 @@ import { PLANS, type PlanId } from "@/config/plans";
 import { formatCents, formatDate, formatDayMonth, formatShortDay, formatUpdated, toAESTDate } from "@/lib/format";
 import { formatMobile, isValidEmail, isValidMobile } from "@/lib/onboarding/validate";
 import { useAccount } from "@/lib/account/client";
-import { mockNow, type AccountState, type BillingPref } from "@/lib/account/state";
+import { mockNow, type AccountState, type BillingPref, type NotifySettings } from "@/lib/account/state";
+import { prefsFor } from "@/lib/notify/prefs";
+import type { EventProps } from "@/lib/analytics/registry";
+import { PushSetup } from "@/components/notify/PushSetup";
 import type { BillingView } from "@/lib/selectors/account";
 import type { NotificationType } from "@/lib/selectors/notifications";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Feedback";
 import { RadioGroup, SelectInput, TextInput, Toggle } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
-import { NOTIFY_CAP_DEFAULT } from "@/config/flags";
 import { track } from "@/lib/analytics/client";
 import { Sheet } from "@/components/ui/Sheet";
 
@@ -24,34 +26,28 @@ const load = <T,>(key: string, fallback: T): T => { try { const v = localStorage
 const store = (key: string, v: unknown) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* in memory only */ } };
 
 // ---- Profile ---------------------------------------------------------------------------------------
-type Channel = "email" | "sms" | "push";
-type Prefs = Record<NotificationType, Record<Channel, boolean>>;
 const TYPES: NotificationType[] = ["money", "payday", "score", "subscription", "bank"];
-const DEFAULT_PREFS: Prefs = {
-  money: { email: false, sms: true, push: true }, payday: { email: false, sms: false, push: true },
-  score: { email: true, sms: false, push: true }, subscription: { email: true, sms: false, push: false }, bank: { email: true, sms: false, push: true },
-};
+const HOURS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
 type Theme = "system" | "light" | "dark";
 
 export function ProfileView({ persona, profile, account: initial, present }: { persona: PersonaId; profile: { name: string; email: string; mobile: string }; account: AccountState; present: boolean }) {
   const toast = useToast();
-  // Cap and digest change what the inbox shows, so they live in the account state (server-applied).
+  // Notification settings are applied by the server's policy engine (spec 10), so they live in the account state.
   const { account, update } = useAccount(persona, initial);
-  const notify = account.notify ?? { cap: NOTIFY_CAP_DEFAULT, digest: false };
-  const setNotify = (next: { cap: number; digest: boolean }) => {
-    update((l) => ({ ...l, notify: next }));
+  const prefs = prefsFor(account);
+  const setNotify = (setting: EventProps<"notification_prefs_changed">["setting"], next: Partial<NotifySettings>) => {
+    track("notification_prefs_changed", { setting });
+    update((l) => ({ ...l, notify: { digest: false, ...l.notify, ...next } }));
     toast({ kind: "confirm", message: t.profile.notifySaved });
   };
   const key = `tippla-profile:${persona}`;
   const [details, setDetails] = useState(profile);
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [theme, setTheme] = useState<Theme>("system");
   const [editing, setEditing] = useState<"email" | "mobile" | null>(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | undefined>();
   useEffect(() => {
     setDetails({ ...profile, ...load<Partial<typeof profile>>(key, {}) });
-    setPrefs({ ...DEFAULT_PREFS, ...load<Partial<Prefs>>(`tippla-notify:${persona}`, {}) });
     setTheme(load<Theme>("tippla-theme-choice", "system"));
   }, [key, persona, profile]);
 
@@ -70,11 +66,6 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
     store(key, { email: next.email, mobile: next.mobile });
     toast({ kind: "confirm", message: t.profile.saved(t.profile[editing]) });
     setEditing(null);
-  };
-  const setPref = (type: NotificationType, ch: Channel, v: boolean) => {
-    const next = { ...prefs, [type]: { ...prefs[type], [ch]: v } };
-    setPrefs(next);
-    store(`tippla-notify:${persona}`, next);
   };
 
   return (
@@ -97,13 +88,28 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
       <section id="notifications" aria-labelledby="ch-h" className="scroll-mt-t6 rounded-md bg-surface p-t4">
         <h2 id="ch-h" className="text-h3 text-text">{t.profile.channelsHeading}</h2>
         <p className="mt-t1 text-small text-text-muted">{t.profile.eventsOnly}</p>
-        <div className="mt-t4 border-t border-line pt-t3">
-          <RadioGroup legend={t.profile.howOften} value={String(notify.cap) as "1" | "2" | "3"} onChange={(v) => { track("notification_prefs_changed", { setting: "cap" }); setNotify({ ...notify, cap: Number(v) }); }}
-            options={(["1", "2", "3"] as const).map((v) => ({ value: v, label: t.profile.cap(Number(v)) }))} />
-          <p className="mt-t1 text-caption text-text-muted">{t.profile.capNote} <SampleTag q="Q21 default" present={present} /></p>
+        <p className="mt-t2 text-small text-text-muted">{t.profile.policy} <SampleTag q="Q21" present={present} /></p>
+        <PushSetup persona={persona} />
+        <div className="mt-t3 border-t border-line pt-t2">
+          <Toggle label={t.profile.pauseAll} checked={prefs.paused} onChange={(v) => setNotify("channel", { paused: v })} />
+          <p className="text-caption text-text-muted">{t.profile.pauseNote}</p>
+        </div>
+        <fieldset className="mt-t3 border-t border-line pt-t3">
+          <legend className="text-body-strong text-text">{t.profile.quietHeading}</legend>
+          <div className="mt-t2 grid grid-cols-2 gap-t3">
+            <SelectInput label={t.profile.quietFrom} value={prefs.quiet.start} options={HOURS.map((h) => ({ value: h, label: t.profile.time(h) }))}
+              onChange={(v) => setNotify("quiet_hours", { quiet: { ...prefs.quiet, start: v } })} />
+            <SelectInput label={t.profile.quietTo} value={prefs.quiet.end} options={HOURS.map((h) => ({ value: h, label: t.profile.time(h) }))}
+              onChange={(v) => setNotify("quiet_hours", { quiet: { ...prefs.quiet, end: v } })} />
+          </div>
+          <p className="mt-t1 text-caption text-text-muted">{t.profile.quietNote}</p>
+        </fieldset>
+        <div className="mt-t3 border-t border-line pt-t2">
+          <Toggle label={t.profile.detailed} checked={prefs.detailed} onChange={(v) => setNotify("privacy", { detailed: v })} />
+          <p className="text-caption text-text-muted">{t.profile.detailedNote}</p>
         </div>
         <div className="mt-t3 border-t border-line pt-t2">
-          <Toggle label={t.profile.digest} checked={notify.digest} onChange={(v) => { track("notification_prefs_changed", { setting: "digest" }); setNotify({ ...notify, digest: v }); }} />
+          <Toggle label={t.profile.digest} checked={prefs.digest} onChange={(v) => setNotify("digest", { digest: v })} />
           <p className="text-caption text-text-muted">{t.profile.digestNote}</p>
         </div>
         <p className="mt-t4 border-t border-line pt-t3 text-small text-text-muted">{t.profile.channelsIntro}</p>
@@ -111,8 +117,9 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
           <fieldset key={type} className="mt-t4 border-t border-line pt-t3">
             <legend className="sr-only">{t.profile.types[type]}</legend>
             <p aria-hidden className="text-body-strong text-text">{t.profile.types[type]}</p>
-            {(["email", "sms", "push"] as Channel[]).map((ch) => (
-              <Toggle key={ch} label={`${t.profile.channels[ch]}`} checked={prefs[type][ch]} onChange={(v) => setPref(type, ch, v)} />
+            {(["push", "email"] as const).map((ch) => (
+              <Toggle key={ch} label={`${t.profile.channels[ch]}`} checked={prefs.channels[type][ch]}
+                onChange={(v) => setNotify("channel", { channels: { ...account.notify?.channels, [type]: { ...prefs.channels[type], [ch]: v } } })} />
             ))}
           </fieldset>
         ))}

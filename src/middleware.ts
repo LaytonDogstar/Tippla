@@ -39,4 +39,5 @@ export async function middleware(req: NextRequest) {
   return res;
 }
 
-export const config = { matcher: ["/((?!_next|favicon.ico).*)"] };
+// Static app files (service worker, manifest, icons, offline page) skip the gate so installing works.
+export const config = { matcher: ["/((?!_next|favicon.ico|sw.js|manifest.webmanifest|icons/|offline.html).*)"] };

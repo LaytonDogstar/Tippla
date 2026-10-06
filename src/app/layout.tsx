@@ -2,12 +2,18 @@ import type { Metadata, Viewport } from "next";
 import fonts from "@/styles/fonts.json";
 import "@/styles/globals.css";
 import { Providers } from "@/components/Providers";
+import { ServiceWorkerRegistration } from "@/components/notify/ServiceWorker";
 
 export const metadata: Metadata = {
   title: "Tippla",
   description: "See what's shaping your SmartScore and what would change a lender's answer.",
+  appleWebApp: { capable: true, title: "Tippla", statusBarStyle: "default" },
+  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
 };
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = {
+  width: "device-width", initialScale: 1,
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#FBFCFF" }, { media: "(prefers-color-scheme: dark)", color: "#14161A" }],
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -25,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Sheets portal outside #app-root and make it inert while open. */}
         <div id="app-root">
           <Providers>{children}</Providers>
+          <ServiceWorkerRegistration />
         </div>
       </body>
     </html>

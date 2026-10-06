@@ -13,6 +13,15 @@ export type ConsentId = Consent["id"];
 export interface CustomerAction { type: "cancelled_subscription" | "skip_advance"; key?: string; at: string }
 /** How the member wants Tippla to charge them (spec 03). Defaults: the day after payday, monthly. */
 export interface BillingPref { mode: "after_payday" | "fixed_date"; fixedDay?: number; cadence: "monthly" | "per_cycle"; changedAt: string }
+export type NotifyCategory = "money" | "payday" | "score" | "subscription" | "bank";
+export interface NotifySettings {
+  digest: boolean;
+  cap?: number;
+  paused?: boolean;
+  quiet?: { start: string; end: string };
+  detailed?: boolean;
+  channels?: Partial<Record<NotifyCategory, { push: boolean; email: boolean }>>;
+}
 /** One goal at a time: have `amount` left the day before payday, by the pay cycle containing `by`. */
 export interface Goal { amount: number; by: string; setAt: string }
 export interface SubscriptionState { status: "active" | "paused" | "cancelled"; plan: PlanId; effective: string; changedAt: string }
@@ -32,8 +41,9 @@ export interface AccountState {
   analytics?: boolean;
   /** The customer's buffer goal (Phase 3, progress and goals). */
   goal?: Goal;
-  /** Notification preferences the server applies (frequency cap, weekly digest). */
-  notify?: { cap: number; digest: boolean };
+  /** Notification preferences the server applies (spec 10 policy: pause, quiet hours, lock-screen detail,
+   *  weekly digest, push/email per category). `cap` is from the loop phase and no longer used. */
+  notify?: NotifySettings;
   /** "Needs a look" choices: done, snoozed (until a date) or dismissed, by feed item id. */
   feed?: FeedState;
   /** The customer said things are hard right now (docs/09 "in hardship", self-selected). */
@@ -78,8 +88,22 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   if (Array.isArray(a.actions)) {
     out.actions = a.actions.filter((x): x is CustomerAction => !!x && ["cancelled_subscription", "skip_advance"].includes(x.type) && typeof x.at === "string" && (x.key === undefined || typeof x.key === "string"));
   }
-  if (a.notify && typeof a.notify === "object" && typeof a.notify.cap === "number" && typeof a.notify.digest === "boolean") {
-    out.notify = { cap: Math.max(0, Math.min(10, Math.round(a.notify.cap))), digest: a.notify.digest };
+  if (a.notify && typeof a.notify === "object" && typeof a.notify.digest === "boolean") {
+    const n = a.notify;
+    const hhmm = (v: unknown) => typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+    const s: NotifySettings = { digest: n.digest };
+    if (typeof n.cap === "number") s.cap = Math.max(0, Math.min(10, Math.round(n.cap)));
+    if (typeof n.paused === "boolean") s.paused = n.paused;
+    if (typeof n.detailed === "boolean") s.detailed = n.detailed;
+    if (n.quiet && hhmm(n.quiet.start) && hhmm(n.quiet.end)) s.quiet = { start: n.quiet.start, end: n.quiet.end };
+    if (n.channels && typeof n.channels === "object") {
+      s.channels = {};
+      for (const k of ["money", "payday", "score", "subscription", "bank"] as const) {
+        const c = n.channels[k];
+        if (c && typeof c.push === "boolean" && typeof c.email === "boolean") s.channels[k] = { push: c.push, email: c.email };
+      }
+    }
+    out.notify = s;
   }
   const g = a.goal;
   const isDate = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v);

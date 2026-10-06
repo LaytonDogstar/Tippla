@@ -113,7 +113,7 @@ export const EVENTS = {
   notification_sent: { type: "id", channel: ["push", "email", "inbox"] },
   notification_opened: { type: "id" },
   notification_actioned: { type: "id" },
-  notification_suppressed: { reason: ["cap", "quiet_hours", "dedupe", "blocked", "paused", "privacy"] },
+  notification_suppressed: { reason: ["cap", "quiet_hours", "dedupe", "blocked", "paused", "privacy", "digest", "channel_off", "no_device", "unsubscribed"] },
   notification_prefs_changed: { setting: ["cap", "digest", "quiet_hours", "privacy", "channel"] },
 } as const satisfies Record<string, Spec>;
 
