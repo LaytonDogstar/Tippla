@@ -7,18 +7,14 @@ import { addDays, daysBetween, type ISODate } from "@/lib/format/dates";
 import { sumMoney } from "@/lib/format/money";
 import { payAdvanceRun } from "./loans";
 import { cycleBefore, currentCycle } from "./periods";
-import { detectSubscriptions } from "./subscriptions";
+import { addMonth, detectSubscriptions } from "./subscriptions";
 import { inPeriod, posted } from "./transactions";
 
 export interface TallyItem { kind: "subscription" | "advance" | "dishonour"; key: string; amount: number; date: ISODate; label: { merchant?: string; date: ISODate; count?: number } }
 export interface PendingItem { kind: "subscription" | "advance"; key: string; confirmAfter: ISODate }
+/** Marked cancelled in the app, but charged again afterwards: worth a gentle check, never counted. */
+export interface ChargedAgain { merchant: string; date: ISODate; amount: number }
 
-function addMonth(date: ISODate): ISODate {
-  const [y, m, day] = date.split("-").map(Number) as [number, number, number];
-  const ny = m === 12 ? y + 1 : y, nm = m === 12 ? 1 : m + 1;
-  const last = new Date(Date.UTC(ny, nm, 0)).getUTCDate();
-  return `${ny}-${String(nm).padStart(2, "0")}-${String(Math.min(day, last)).padStart(2, "0")}`;
-}
 
 /** Grace after an expected charge date before we count it as not taken. */
 export const CHARGE_GRACE_DAYS = 3;
@@ -26,20 +22,23 @@ export const CHARGE_GRACE_DAYS = 3;
 export function valueTally(d: PersonaData, a: AccountState = {}) {
   const items: TallyItem[] = [];
   const pending: PendingItem[] = [];
+  const chargedAgain: ChargedAgain[] = [];
   const tx = posted(d.transactions);
+  const subs = detectSubscriptions(d);
 
   // 1. Subscription cancelled in the app, and its expected charges since then haven't been taken.
   for (const act of (a.actions ?? []).filter((x) => x.type === "cancelled_subscription" && x.key)) {
-    const sub = detectSubscriptions(d).find((s) => s.merchant === act.key);
+    const sub = subs.find((s) => s.merchant === act.key);
     if (!sub) continue;
     const at = act.at.slice(0, 10);
+    const again = tx.find((t) => t.merchant === sub.merchant && t.amount < 0 && t.date > at);
+    if (again) { chargedAgain.push({ merchant: sub.merchant, date: again.date, amount: -again.amount }); continue; }
     let expected = addMonth(sub.last_charged);
     while (expected <= at) expected = addMonth(expected);
+    // No charge since the cancellation (checked above): count each expected charge whose grace has passed.
     let missed = 0;
     let firstConfirm: ISODate | null = null;
     for (let due = expected; addDays(due, CHARGE_GRACE_DAYS) < d.asOf; due = addMonth(due)) {
-      const charged = tx.some((t) => t.merchant === sub.merchant && t.amount < 0 && t.date > at && t.date <= addDays(due, CHARGE_GRACE_DAYS));
-      if (charged) { missed = 0; break; }
       missed++;
       firstConfirm ??= due;
     }
@@ -78,5 +77,5 @@ export function valueTally(d: PersonaData, a: AccountState = {}) {
     if (paid && !failed) items.push({ kind: "dishonour", key: `dis:${merchant}:${date}`, amount: fee, date, label: { merchant, date } });
   }
 
-  return { total: sumMoney(items.map((i) => i.amount)), items, pending };
+  return { total: sumMoney(items.map((i) => i.amount)), items, pending, chargedAgain };
 }

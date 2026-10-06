@@ -6,7 +6,7 @@ export const safeCopy = {
   perDay: (amt: string) => `${amt} a day`,
   untilPayday: (n: number, payday: string) => (n === 1 ? `Until payday tomorrow (${payday})` : `For the ${n} days until payday (${payday})`),
   none: "Nothing spare before payday",
-  noneBody: "Your bills before payday take everything in the account. Spending on essentials only would help.",
+  noneBody: "Bills due before payday take everything in your account, so there's nothing spare for everyday spending this pay cycle.",
   how: "How we worked this out",
   sheetTitle: "Safe to spend today",
   steps: {
@@ -91,6 +91,8 @@ export const tallyCopy = {
   cancelled: "I've cancelled it",
   cancelledToast: (m: string) => `Thanks. We'll check ${m} doesn't charge again`,
   cancelledNote: (date: string) => `Marked as cancelled. We'll confirm after ${date}.`,
+  chargedAgain: (m: string, amt: string, date: string) => `${m} charged ${amt} on ${date}, after you marked it cancelled. It may still be active, so it's worth checking with ${m}.`,
+  checkHeading: "Worth a check",
   tryThis: "I'll try this",
   tryThisToast: "Noted. We'll show you how it goes at payday",
   tryingNote: "You're trying this. We'll show you how it went at payday.",

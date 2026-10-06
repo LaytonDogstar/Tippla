@@ -58,6 +58,7 @@ export const feedCopy = {
       titleDown: (n: number) => `Your SmartScore went down ${n} points`,
       titleUp: (n: number) => `Your SmartScore went up ${n} points`,
       action: "See what changed",
+      noDetail: "Small changes across a few factors added up. Your SmartScore page has the details.",
     },
   },
 } as const;

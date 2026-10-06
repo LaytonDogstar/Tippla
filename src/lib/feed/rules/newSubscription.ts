@@ -7,8 +7,8 @@ import type { Rule } from "../types";
 const t = feedCopy.rules.newSubscription;
 export const NEW_SUBSCRIPTION_DAYS = 35;
 
-export const newSubscription: Rule = ({ d }) =>
-  detectSubscriptions(d)
+export const newSubscription: Rule = ({ d, edits }) =>
+  detectSubscriptions(d, edits)
     // New only if we had a month of history before it (otherwise we just can't see the earlier charges).
     .filter((s) => s.charges.length === 1 && s.charges[0]!.date >= addDays(d.asOf, -NEW_SUBSCRIPTION_DAYS) && s.charges[0]!.date >= addDays(d.profile.data_from, 31))
     .map((s) => ({

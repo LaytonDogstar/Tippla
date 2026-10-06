@@ -8,7 +8,7 @@ import { checkInCopy as c, recapCopy as r, safeCopy as s, tallyCopy as v } from 
 import { formatCents, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
 import type { CycleRecap, PaydayCheckIn } from "@/lib/selectors/payCycleLoop";
 import type { SafeToSpend } from "@/lib/selectors/safeToSpend";
-import type { PendingItem, TallyItem } from "@/lib/selectors/tally";
+import type { ChargedAgain, PendingItem, TallyItem } from "@/lib/selectors/tally";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { SampleTag } from "@/components/ui/SampleTag";
@@ -126,7 +126,7 @@ export function RecapCard({ recap, feesAvoided }: { recap: CycleRecap; feesAvoid
   );
 }
 
-type Tally = { total: number; items: TallyItem[]; pending: PendingItem[] };
+type Tally = { total: number; items: TallyItem[]; pending: PendingItem[]; chargedAgain?: ChargedAgain[] };
 
 function itemText(i: TallyItem) {
   if (i.kind === "subscription") return v.items.subscription(i.label.merchant!, i.label.count ?? 1);
@@ -173,6 +173,12 @@ export function TallySheet({ tally, open, onClose, present }: { tally: Tally; op
         <>
           <h3 className="mt-t4 text-caption text-text-muted">{v.pendingHeading}</h3>
           <ul className="mt-t1 flex flex-col gap-t2 text-body text-text">{tally.pending.map((p) => <li key={p.key}>{pendingText(p)}</li>)}</ul>
+        </>
+      )}
+      {(tally.chargedAgain ?? []).length > 0 && (
+        <>
+          <h3 className="mt-t4 text-caption text-text-muted">{v.checkHeading}</h3>
+          <ul className="mt-t1 flex flex-col gap-t2 text-body text-text">{tally.chargedAgain!.map((c) => <li key={c.merchant}>{v.chargedAgain(c.merchant, formatCents(c.amount), formatDayMonth(c.date))}</li>)}</ul>
         </>
       )}
       {!tally.items.length && !tally.pending.length && <p className="text-body text-text-muted">{v.none}</p>}

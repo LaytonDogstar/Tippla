@@ -15,12 +15,13 @@ import { Sheet } from "@/components/ui/Sheet";
 import { tallyCopy } from "@/content/loop";
 import { useAccount } from "@/lib/account/client";
 import { mockNow, type AccountState } from "@/lib/account/state";
+import type { ChargedAgain } from "@/lib/selectors/tally";
 
 type Subs = ReturnType<typeof subscriptions>;
 interface Prefs { kept: Record<string, boolean>; reminders: Record<string, string> }
 const KEY = "tippla-subscriptions";
 
-export function SubscriptionsView({ persona, subs, account, asOf, confirm }: { persona: PersonaId; subs: Subs; account: AccountState; asOf: string; confirm: Record<string, string> }) {
+export function SubscriptionsView({ persona, subs, account, asOf, confirm, chargedAgain }: { persona: PersonaId; subs: Subs; account: AccountState; asOf: string; confirm: Record<string, string>; chargedAgain: ChargedAgain[] }) {
   const router = useRouter();
   const { account: acct, update } = useAccount(persona, account);
   const cancelled = new Set((acct.actions ?? []).filter((a) => a.type === "cancelled_subscription").map((a) => a.key));
@@ -96,7 +97,11 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm }: { p
       </ul>
       <Sheet open={!!row} onClose={() => setHowTo(null)} title={row ? t.cancelTitle(row.merchant) : ""}
         footer={row ? (cancelled.has(row.merchant)
-          ? <p role="status" className="text-small text-text-muted">{tallyCopy.cancelledNote(formatDayMonth(confirm[row.merchant] ?? addDays(row.nextCharge, 3)))}</p>
+          ? <p role="status" className="text-small text-text-muted">{(() => {
+              const again = chargedAgain.find((c) => c.merchant === row.merchant);
+              return again ? tallyCopy.chargedAgain(row.merchant, formatCents(again.amount), formatDayMonth(again.date))
+                : tallyCopy.cancelledNote(formatDayMonth(confirm[row.merchant] ?? addDays(row.nextCharge, 3)));
+            })()}</p>
           : <Button full variant="secondary" onClick={() => markCancelled(row.merchant)}>{tallyCopy.cancelled}</Button>) : undefined}>
         {row && (
           <div className="flex flex-col gap-t4">

@@ -52,7 +52,7 @@ export function spendingInsights(d: SpendData, p: Period, overrides: CategoryOve
     });
   }
 
-  const subs = subscriptions(d);
+  const subs = subscriptions(d, overrides);
   if (subs.rows.length >= 2 && rows.some((r) => r.category === "subscriptions")) {
     const c = s.insights.subscriptions(subs.rows.length, formatWhole(subs.totalPerPayCycle), formatWhole(subs.totalPerYear));
     out.push({ id: "subscriptions", category: "subscriptions", context: s.insightsContext, title: c.title, summary: c.summary, happening: c.happening, wouldChange: c.wouldChange, chip: c.title });

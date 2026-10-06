@@ -13,7 +13,8 @@ const ROUTES = ["/", "/score", "/score/current-borrowing", "/savings", "/spendin
   "/spending/compare", "/spending/compare?tab=cohort", "/calendar", "/calendar?view=month", "/subscriptions", "/loans", "/loans?tab=upcoming",
   "/loans?tab=history", "/loans?tab=other", "/loans/repayment", "/offers", "/hardship", "/help", "/notifications", "/account",
   "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/onboarding", "/onboarding/create-account",
-  "/onboarding/consents", "/onboarding/connect-bank", "/onboarding/analysing", "/onboarding/score-reveal"];
+  "/onboarding/consents", "/onboarding/connect-bank", "/onboarding/analysing", "/onboarding/score-reveal",
+  "/progress", "/notifications/summary", "/?state=payday", "/progress?state=payday", "/notifications?state=bill_due"];
 
 function chromePath() {
   if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
@@ -27,7 +28,8 @@ const chrome = await chromeLauncher.launch({ chromePath: chromePath(), chromeFla
 let worst = 100, failed = 0;
 for (const persona of ["jess", "marcus", "priya"]) {
   for (const r of ROUTES) {
-    const url = `${base}${r}${r.includes("?") ? "&" : "?"}persona=${persona}&present=1`;
+    // Dev states stick in a cookie, so every other route clears them.
+    const url = `${base}${r}${r.includes("?") ? "&" : "?"}persona=${persona}&present=1${r.includes("state=") ? "" : "&state=none"}`;
     const { lhr } = await lighthouse(url, { port: chrome.port, onlyCategories: ["accessibility"], formFactor: "mobile", screenEmulation: { mobile: true, width: 390, height: 844, deviceScaleFactor: 3 }, logLevel: "error" });
     const score = Math.round(lhr.categories.accessibility.score * 100);
     worst = Math.min(worst, score);
