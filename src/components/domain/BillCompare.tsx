@@ -5,7 +5,7 @@
 import { ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { billSwitchCopy as t } from "@/content/actions";
-import { PROGRAMS } from "@/data/directories";
+import { ENERGY_COMPARE_VIC, PROGRAMS } from "@/data/directories";
 import type { PersonaId } from "@/lib/api/types";
 import type { AccountState } from "@/lib/account/state";
 import { useAccount } from "@/lib/account/client";
@@ -48,7 +48,7 @@ export function BillCompare({ persona, account, asOf, bills, state }: { persona:
             <p className="mt-t1 text-small text-text-muted">{b.category === "energy" ? (state === "VIC" ? t.energyVic : t.energy) : t.telco}</p>
             <div className="mt-t3 flex flex-col gap-t2">
               {b.category === "energy"
-                ? <a href={PROGRAMS.energy_compare.url} target="_blank" rel="noopener noreferrer" onClick={() => track("bill_switch_link_opened", {})}
+                ? <a href={state === "VIC" ? ENERGY_COMPARE_VIC : PROGRAMS.energy_compare.url} target="_blank" rel="noopener noreferrer" onClick={() => track("bill_switch_link_opened", {})}
                     className="inline-flex min-h-tap items-center gap-t2 text-body-strong text-accent underline-offset-2 hover:underline">{t.compare}<ExternalLink aria-hidden size={16} /></a>
                 : <Button variant="secondary" onClick={() => { track("bill_switch_link_opened", {}); setTips(b); }}>{t.tipsTitle(b.merchant)}</Button>}
               {reported
