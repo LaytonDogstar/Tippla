@@ -102,9 +102,5 @@ ${theme("dark")}
 `;
 fs.writeFileSync(path.join(root, "src/styles/tokens.css"), css);
 
-// Google Fonts stylesheet for whichever families the tokens name (so a new direction needs no code change).
-const families = [...new Set([f.display, f.body, f.numeric].filter((x) => x.source === "Google Fonts" || !x.source).map((x) => x.family))];
-const weights = [...new Set(Object.values(t.type).filter((v) => typeof v === "object").map((v) => v.weight))].sort((a, b) => a - b);
-const href = `https://fonts.googleapis.com/css2?${families.map((fam) => `family=${fam.replace(/ /g, "+")}:wght@${weights.join(";")}`).join("&")}&display=swap`;
-fs.writeFileSync(path.join(root, "src/styles/fonts.json"), JSON.stringify({ _generated: "scripts/tokens-to-css.mjs", href }, null, 2) + "\n");
+// Fonts are self-hosted (public/fonts, @font-face in src/styles/globals.css); the token names the family.
 console.log(`tokens.css written from ${path.relative(root, src)}`);
