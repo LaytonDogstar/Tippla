@@ -19,13 +19,13 @@ export default async function Summary({ searchParams }: { searchParams: { person
   const plan = goalPlan(data, account.goal);
   const safe = safeToSpendFor(data, account);
   const tally = valueTally(data, account);
-  const row = "flex min-h-tap items-center justify-between gap-t3 border-t border-line px-t4 py-t3 hover:bg-surface2";
+  const row = "flex min-h-tap items-center justify-between gap-t3 border-t border-divider px-t4 py-t3 hover:bg-surface2";
   return (
     <PortalShell path="/notifications/summary" title={t.title} backHref="/notifications" persona={persona} present={presentationMode(searchParams.present)}>
       <h1 className="sr-only">{t.title}</h1>
       <div className="flex flex-col gap-t4 pb-t6">
         <p className="mt-t2 text-small text-text-muted">{t.range(formatShortDay(week.from), formatShortDay(week.to))} · {t.intro}</p>
-        <section aria-labelledby="sum-now" className="overflow-hidden rounded-md bg-surface">
+        <section aria-labelledby="sum-now" className="overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
           <h2 id="sum-now" className="sr-only">{t.updates}</h2>
           <Link href="/" className={row}>
             <span className="text-small text-text">{t.safe}</span>
@@ -45,9 +45,9 @@ export default async function Summary({ searchParams }: { searchParams: { person
         <section aria-labelledby="sum-week">
           <h2 id="sum-week" className="px-t1 pb-t2 text-h3 text-text">{t.updates}</h2>
           {week.items.length ? (
-            <ul className="overflow-hidden rounded-md bg-surface">
+            <ul className="overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
               {week.items.map((n) => (
-                <li key={n.id} className="border-b border-line last:border-b-0">
+                <li key={n.id} className="border-b border-divider last:border-b-0">
                   <Link href={n.href} className="flex items-start gap-t3 p-t4 hover:bg-surface2">
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-baseline justify-between gap-x-t3">
@@ -61,7 +61,7 @@ export default async function Summary({ searchParams }: { searchParams: { person
                 </li>
               ))}
             </ul>
-          ) : <p className="rounded-md bg-surface p-t4 text-small text-text">{t.nothing}</p>}
+          ) : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4 text-small text-text">{t.nothing}</p>}
         </section>
       </div>
     </PortalShell>

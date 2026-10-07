@@ -145,7 +145,7 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, onBack
                 type="button"
                 onClick={onClose}
                 aria-label={ui.close(title)}
-                className="-mr-t3 inline-flex h-tap w-tap shrink-0 items-center justify-center rounded-sm text-text-muted hover:bg-surface2"
+                className="-mr-t3 inline-flex h-tap w-tap shrink-0 items-center justify-center rounded-pill text-text-muted hover:bg-surface2"
               >
                 <X aria-hidden size={24} />
               </button>

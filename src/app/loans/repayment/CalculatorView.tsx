@@ -12,7 +12,7 @@ const err = { format: t.invalid, precision: t.invalid, negative: t.invalid };
 
 export function CalculatorView({ loans, asOf, pro, present, initialLoan }: { loans: CalcLoan[]; asOf: string; pro: boolean; present: boolean; initialLoan: string | null }) {
   const [provider, setProvider] = useState(loans.find((l) => l.provider === initialLoan)?.provider ?? loans[0]?.provider ?? "");
-  if (!loans.length) return <p className="mt-t4 rounded-md bg-surface p-t5 text-small text-text">{t.noLoans}</p>;
+  if (!loans.length) return <p className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.noLoans}</p>;
   const loan = loans.find((l) => l.provider === provider)!;
   return (
     <div className="pb-t6">
@@ -42,7 +42,7 @@ function Inputs({ loan, asOf, pro, present }: { loan: CalcLoan; asOf: string; pr
 
   return (
     <>
-      <div className="mt-t4 flex flex-col gap-t4 rounded-md bg-surface p-t4">
+      <div className="mt-t4 flex flex-col gap-t4 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
         <CurrencyInput label={t.balanceLabel} valueCents={balance} onChangeCents={setBalance} errorText={err}
           helper={loan.sharedBalance !== null ? t.balanceHintShared(formatWhole(loan.sharedBalance)) : t.balanceHint} />
         <CurrencyInput label={`${t.repaymentLabel} (${loansPage.cadence(loan.cadenceDays)})`} valueCents={repayment} onChangeCents={setRepayment} errorText={err} />
@@ -62,8 +62,8 @@ function Inputs({ loan, asOf, pro, present }: { loan: CalcLoan; asOf: string; pr
         )}
       </div>
 
-      <section aria-labelledby="calc-h" aria-live="polite" className="mt-t3 rounded-lg bg-accent-soft p-t5">
-        <h2 id="calc-h" className="text-h3 text-text">{t.resultHeading}</h2>
+      <section aria-labelledby="calc-h" aria-live="polite" className="mt-t3 rounded-card-s bg-accent-soft sm:rounded-card p-t5">
+        <h2 id="calc-h" className="text-card text-text sm:text-card-l">{t.resultHeading}</h2>
         {!result ? <p className="mt-t2 text-small text-text">{t.balanceHint}</p> : result.base.weeks === null ? (
           <>
             <p className="mt-t2 text-body text-text">{t.never}</p>

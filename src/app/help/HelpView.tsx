@@ -37,7 +37,7 @@ export function HelpView({ initialQ, initialOpen, entitlements = false }: { init
           {results.map((f) => {
             const isOpen = open.has(f.id);
             return (
-              <li key={f.id} className="rounded-md bg-surface">
+              <li key={f.id} className="rounded-card-s bg-surface shadow-card sm:rounded-card">
                 <h2>
                   <button type="button" aria-expanded={isOpen} aria-controls={`faq-${f.id}`} onClick={() => toggle(f.id)}
                     className="flex min-h-[56px] w-full items-center justify-between gap-t3 rounded-md p-t4 text-left text-h3 text-text hover:bg-surface2">
@@ -55,7 +55,7 @@ export function HelpView({ initialQ, initialOpen, entitlements = false }: { init
           })}
         </ul>
       ) : (
-        <p className="mt-t2 rounded-md bg-surface p-t5 text-small text-text">{t.empty(q.trim())}</p>
+        <p className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.empty(q.trim())}</p>
       )}
 
       <div className="mt-t4 flex flex-col gap-t2">
@@ -64,10 +64,10 @@ export function HelpView({ initialQ, initialOpen, entitlements = false }: { init
         {entitlements && <Link href="/help/entitlements" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">{entitlementsCopy.title}<ChevronRight aria-hidden size={20} /></Link>}
       </div>
 
-      <section aria-labelledby="acct-h" className="mt-t4 rounded-md bg-surface">
+      <section aria-labelledby="acct-h" className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card">
         <h2 id="acct-h" className="p-t4 pb-t2 text-h3 text-text">{t.accountHeading}</h2>
         {(Object.keys(t.accountLinks) as (keyof typeof t.accountLinks)[]).map((k) => (
-          <Link key={k} href={`/account/${k}`} className="flex min-h-[52px] items-center justify-between border-t border-line px-t4 text-small text-accent hover:bg-surface2">{t.accountLinks[k]}<ChevronRight aria-hidden size={20} /></Link>
+          <Link key={k} href={`/account/${k}`} className="flex min-h-[52px] items-center justify-between border-t border-divider px-t4 text-small text-accent hover:bg-surface2">{t.accountLinks[k]}<ChevronRight aria-hidden size={20} /></Link>
         ))}
       </section>
 

@@ -23,7 +23,7 @@ export function RecommendationCard({ item, snoozed, dismissed, onSeeHow, onSnooz
   }
   const Icon = item.icon ?? BanknoteArrowDown;
   return (
-    <article className="rounded-md bg-surface p-t5">
+    <article className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
       <div className="flex items-center gap-t3">
         <span aria-hidden className="inline-flex h-[40px] w-[40px] items-center justify-center rounded-sm bg-accent-soft text-accent"><Icon size={24} /></span>
         <div>

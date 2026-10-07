@@ -26,8 +26,8 @@ export function HomeBanner({ text, href }: { text: string; href: string }) {
 export function SmartScoreCard({ state, change, attribution = null }: { state: ScoreState; change: { delta: number; since: string } | null; attribution?: ScoreAttribution | null }) {
   if (state.kind !== "scored") {
     return (
-      <section className="rounded-lg bg-surface p-t4" aria-labelledby="ssc">
-        <h2 id="ssc" className="text-h3 text-text">{t.thinHeader}</h2>
+      <section className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4" aria-labelledby="ssc">
+        <h2 id="ssc" className="text-card text-text sm:text-card-l">{t.thinHeader}</h2>
         <div className="mt-t3 flex items-start gap-t3">
           <span aria-hidden className="inline-flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-pill bg-neutral-soft text-neutral"><Info size={24} /></span>
           <div>
@@ -42,9 +42,9 @@ export function SmartScoreCard({ state, change, attribution = null }: { state: S
   const { score, stage } = state;
   const g = ringGeometry(48, 4, stage.progress);
   return (
-    <section className="rounded-lg bg-surface p-t4" aria-labelledby="ssc">
+    <section className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4" aria-labelledby="ssc">
       <div className="flex items-baseline justify-between gap-t3">
-        <h2 id="ssc" className="text-h3 text-text">{t.scoreHeader(score, stage.name)}</h2>
+        <h2 id="ssc" className="text-card text-text sm:text-card-l">{t.scoreHeader(score, stage.name)}</h2>
         <span className="tnum text-caption text-text-muted">{t.scoreRange(stage.stage.min, stage.stage.max)}</span>
       </div>
       <div className="mt-t3 flex items-start gap-t4">
@@ -69,7 +69,7 @@ export function SmartScoreCard({ state, change, attribution = null }: { state: S
 
 export function NextStepCard({ title, rationale, onSeeHow }: { title: string; rationale: string; onSeeHow: () => void }) {
   return (
-    <section className="rounded-md bg-surface p-t4" aria-labelledby="nst">
+    <section className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4" aria-labelledby="nst">
       <p className="text-caption text-text-muted">{t.nextThing}</p>
       <div className="mt-t2 flex flex-wrap items-start justify-between gap-t3">
         <h2 id="nst" className="min-w-0 max-w-[218px] flex-1 text-h3 text-text">{title}</h2>
@@ -82,7 +82,7 @@ export function NextStepCard({ title, rationale, onSeeHow }: { title: string; ra
 
 export function NextBillCard({ bill }: { bill: UpcomingBill }) {
   return (
-    <Link href={`/calendar?day=${bill.date}`} className="flex items-center gap-t3 rounded-lg bg-surface p-t4 hover:bg-surface2">
+    <Link href={`/calendar?day=${bill.date}`} className="flex items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4 hover:bg-surface2">
       <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><CalendarDays size={24} /></span>
       <span className="min-w-0 flex-1">
         <span className="block text-caption text-text-muted">{t.nextBill(formatShortDay(bill.date))}</span>
@@ -105,9 +105,9 @@ export function SixMonthChart({ bars, asOf, domainMax = 7000 }: { bars: MonthBar
   const first = bars[0], last = bars.at(-1);
   const partial = last?.partial ? t.partial(formatMonthShort(last.month), formatDayMonth(asOf)) : null;
   return (
-    <section className="rounded-lg bg-surface p-t4" aria-labelledby="six">
+    <section className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4" aria-labelledby="six">
       <div className="flex items-center justify-between gap-t3">
-        <h2 id="six" className="text-h2 font-display text-text">{t.spending}</h2>
+        <h2 id="six" className="text-card text-text sm:text-card-l">{t.spending}</h2>
         <Link href="/spending?period=6_months" className="inline-flex min-h-tap items-center rounded-sm px-t2 text-small text-accent hover:bg-surface2">{t.sixMonths}</Link>
       </div>
       {first && last && <p className="text-caption text-text-muted">{t.range(formatMonthShort(first.month), formatMonthShort(last.month), partial)}</p>}
@@ -127,7 +127,7 @@ export function SixMonthChart({ bars, asOf, domainMax = 7000 }: { bars: MonthBar
           );
         })}
       </ul>
-      <ul aria-hidden className="mt-t2 grid grid-cols-6 border-t border-line pt-t2 text-center text-caption text-text-muted">
+      <ul aria-hidden className="mt-t2 grid grid-cols-6 border-t border-divider pt-t2 text-center text-caption text-text-muted">
         {bars.map((b) => <li key={b.month}>{formatMonthShort(b.month)}</li>)}
       </ul>
       <p className="mt-t2 text-caption text-text-muted">{t.tapMonth}</p>

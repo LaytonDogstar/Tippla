@@ -465,7 +465,7 @@ function MerchantSheet({ sheet, setSheet, data, p, edits, original, onRecategori
       subtitle={merchant ? t.merchant.lead(list.length, formatCents(totalAmt), p.label) : undefined}>
       <ul className="flex flex-col">
         {list.map((x) => (
-          <li key={x.id} className="grid grid-cols-[1fr_auto] items-center gap-x-t3 gap-y-t2 border-t border-line py-t3">
+          <li key={x.id} className="grid grid-cols-[1fr_auto] items-center gap-x-t3 gap-y-t2 border-t border-divider py-t3">
             <button type="button" onClick={() => setSheet({ kind: "tx", id: x.id, fromMerchant: merchant! })} className="min-h-tap rounded-xs text-left text-small text-text hover:bg-surface2">
               {formatShortDay(x.date)}{x.status === "pending" ? ` · ${txCopy.pending}` : ""}
             </button>
@@ -584,7 +584,7 @@ function BudgetsTab({ data, cycle, budgets, edits, onEdit, onMerchant }: {
             {v.other.map((r) => {
               const Icon = categoryIcons[r.category];
               return (
-                <li key={r.category} className="flex min-h-[64px] items-center gap-t3 border-t border-line px-t4 py-t2">
+                <li key={r.category} className="flex min-h-[64px] items-center gap-t3 border-t border-divider px-t4 py-t2">
                   <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2" style={{ color: catVar(r.category) }}><Icon size={24} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-body-strong text-text">{r.name}</span>

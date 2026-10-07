@@ -25,8 +25,8 @@ export function HardshipInfoButton() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" aria-label={t.info} onClick={() => setOpen(true)} className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-pill bg-surface2 text-text hover:bg-neutral-soft">
-        <Info aria-hidden size={24} />
+      <button type="button" aria-label={t.info} onClick={() => setOpen(true)} className="inline-flex h-tap w-tap shrink-0 items-center justify-center rounded-pill bg-surface text-text-secondary shadow-card hover:text-text desktop:h-[48px] desktop:w-[48px]">
+        <Info aria-hidden size={20} strokeWidth={1.8} />
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={t.info}>
         <div className="flex flex-col gap-t3">{t.infoBody.map((p) => <p key={p} className="text-body text-text-muted">{p}</p>)}</div>
@@ -90,7 +90,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
               <div className="flex items-start gap-t3">
                 <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><c.icon size={24} /></span>
                 <div className="min-w-0 flex-1">
-                  <h2 id={`h-${c.id}`} className="text-h3 text-text">{c.title}</h2>
+                  <h2 id={`h-${c.id}`} className="text-card text-text sm:text-card-l">{c.title}</h2>
                   <p className="mt-t1 text-small text-text-muted">{c.body}</p>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
         ))}
       </ul>
 
-      <section className="mt-t4 rounded-md bg-surface p-t4">
+      <section className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
         <Toggle label={statesCopy.hardshipSelf.label} checked={!!account.hardshipSelfSelected}
           onChange={(v) => update((l) => ({ ...l, hardshipSelfSelected: v || undefined }))} />
         {account.hardshipSelfSelected && <p role="status" className="mt-t1 px-t1 text-small text-text-muted">{statesCopy.hardshipSelf.on}</p>}

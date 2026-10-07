@@ -52,7 +52,7 @@ export function PlanCard({ persona, account, asOf, plan, options, suggested }: {
   return (
     <section aria-labelledby="plan-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
       <p className="text-caption text-text-muted">{plan.explicit ? t.heading : t.suggested} · {t.linked(plan.factor)}</p>
-      <h2 id="plan-h" className="text-h2 font-display text-text">{plan.title}</h2>
+      <h2 id="plan-h" className="text-card text-text sm:text-card-l">{plan.title}</h2>
       {plan.type === "gambling_less" && <p className="text-caption text-text-muted">{t.optIn}</p>}
       <ol className="mt-t4 flex flex-col gap-t3">
         {plan.steps.map((s, i) => {
@@ -94,7 +94,7 @@ export function PlanCard({ persona, account, asOf, plan, options, suggested }: {
           {options.map((type) => (
             <li key={type}>
               <button type="button" onClick={() => start(type)} aria-current={type === plan.type || undefined}
-                className={cx("flex min-h-tap w-full items-center justify-between gap-t3 rounded-md border p-t4 text-left", type === plan.type ? "border-accent bg-accent-soft" : "border-line bg-surface")}>
+                className={cx("flex min-h-tap w-full items-center justify-between gap-t3 rounded-md border p-t4 text-left", type === plan.type ? "border-accent bg-accent-soft" : "border-divider bg-surface")}>
                 <span>
                   <span className="block text-body text-text">{t.titles[type]}</span>
                   <span className="block text-caption text-text-muted">{t.linked(t.factor[type])}{type === suggested ? ` · ${t.suggested}` : ""}{type === "gambling_less" ? ` · ${t.optIn}` : ""}</span>

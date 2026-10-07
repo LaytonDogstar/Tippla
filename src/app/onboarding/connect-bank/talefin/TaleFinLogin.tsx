@@ -28,7 +28,7 @@ export function TaleFinLogin({ bank, onDone, cancelHref = "/onboarding/connect-b
   // Third-party look: plain neutral page, no Tippla brand, no app chrome.
   return (
     <main className="min-h-[100dvh] bg-surface2 text-text">
-      <header className="flex items-center gap-t2 border-b border-line bg-surface px-gutter py-t4">
+      <header className="flex items-center gap-t2 border-b border-divider bg-surface px-gutter py-t4">
         <Lock aria-hidden size={16} className="text-neutral" />
         <p className="text-body-strong">{t.badge}</p>
       </header>

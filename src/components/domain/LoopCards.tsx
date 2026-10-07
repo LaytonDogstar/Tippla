@@ -28,7 +28,7 @@ const LinkRow = ({ href, children }: { href: string; children: string }) => (
 export function SafeToSpendCard({ safe, onHow, movement }: { safe: SafeToSpend; onHow: () => void; movement?: { up: number; since: string } | null }) {
   useEffect(() => { track("sts_viewed", { value_cents: safe.perDay * 100, days_left: safe.days, nothing_spare: safe.nothingSpare }); }, [safe.perDay, safe.days, safe.nothingSpare]);
   return (
-    <section aria-labelledby="sts" className="rounded-lg bg-surface p-t4">
+    <section aria-labelledby="sts" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
       <h2 id="sts" className="text-caption text-text-muted">{s.label}</h2>
       {safe.nothingSpare ? (
         <>
@@ -73,7 +73,7 @@ export function SafeToSpendSheet({ safe, open, onClose, present, onBuffer, accur
       footer={safe.nothingSpare ? <Link href="/hardship" className="flex min-h-tap items-center justify-center rounded-md text-body text-accent hover:bg-surface2">{s.hardship}</Link> : undefined}>
       <dl className="flex flex-col">
         {rows.map(([k, val], i) => (
-          <div key={k} className={`grid grid-cols-[minmax(0,1fr)_auto] gap-x-t3 border-t border-line py-t3 ${i === rows.length - 1 ? "text-body-strong" : "text-body"}`}>
+          <div key={k} className={`grid grid-cols-[minmax(0,1fr)_auto] gap-x-t3 border-t border-divider py-t3 ${i === rows.length - 1 ? "text-body-strong" : "text-body"}`}>
             <dt className="text-text">{k}</dt>
             <dd className="tnum text-text">{val}</dd>
           </div>
@@ -113,10 +113,10 @@ export function CheckInCard({ checkIn, onHow, onAdjust, focus, goal = null, firs
   }, [checkIn.cycle.start, checkIn.safe.perDay, checkIn.safe.days, checkIn.safe.nothingSpare]);
   const main = checkIn.income[0]!;
   return (
-    <section aria-labelledby="checkin" className="rounded-lg bg-accent-soft p-t4">
+    <section aria-labelledby="checkin" className="rounded-card-s bg-accent-soft sm:rounded-card p-t4">
       <div className="flex items-center gap-t2">
         <Sun aria-hidden size={20} className="text-accent" />
-        <h2 id="checkin" className="text-h3 text-text">{c.title}</h2>
+        <h2 id="checkin" className="text-card text-text sm:text-card-l">{c.title}</h2>
       </div>
       {firstPayday && <p className="mt-t2 text-small text-text">{goalLines.firstPayday}</p>}
       <p className="mt-t2 text-body text-text">{c.landed(formatCents(checkIn.incomeTotal), main.payer)}</p>
@@ -163,8 +163,8 @@ export function RecapCard({ recap, feesAvoided, next, lead = null, plan = null, 
   ];
   const lines = [...(balance ? [balance] : []), ...(lead === "advances" ? advances : []), ...(lead === "score" ? [score] : []), ...rest];
   return (
-    <section aria-labelledby="recap" className="rounded-lg bg-surface p-t4">
-      <h2 id="recap" className="text-h3 text-text">{r.title}</h2>
+    <section aria-labelledby="recap" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+      <h2 id="recap" className="text-card text-text sm:text-card-l">{r.title}</h2>
       <p className="text-caption text-text-muted">{r.range(formatDayMonth(recap.cycle.start), formatDayMonth(recap.cycle.end))}</p>
       <ul className="mt-t2 flex flex-col gap-t1 text-small text-text">{lines.map((l) => <li key={l}>{l}</li>)}</ul>
       {recap.changes.length > 0 && (
@@ -176,7 +176,7 @@ export function RecapCard({ recap, feesAvoided, next, lead = null, plan = null, 
         </>
       )}
       {milestones.length > 0 && (
-        <div className="mt-t3 rounded-md bg-accent-soft p-t3">
+        <div className="mt-t3 rounded-card-s bg-accent-soft sm:rounded-card p-t3">
           <h3 className="text-caption text-text-muted">{milestoneCopy.title}</h3>
           <ul className="flex flex-col gap-t1 text-small text-text">{milestones.map((m) => <li key={m.kind}>{milestoneCopy[m.kind](m.cycles)}</li>)}</ul>
         </div>
@@ -224,7 +224,7 @@ export function TallyCard({ tally, onOpen }: { tally: Tally; onOpen: () => void 
     }
   }, [tally.items]);
   return (
-    <section aria-labelledby="tally" className="rounded-lg bg-surface p-t4">
+    <section aria-labelledby="tally" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
       <div className="flex items-start gap-t3">
         <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-accent-soft text-accent"><PiggyBank size={24} /></span>
         <div className="min-w-0 flex-1">
@@ -246,7 +246,7 @@ export function TallySheet({ tally, open, onClose, present }: { tally: Tally; op
           <h3 className="text-caption text-text-muted">{v.confirmedHeading}</h3>
           <ul className="mt-t1 flex flex-col">
             {tally.items.map((i) => (
-              <li key={i.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-t3 border-t border-line py-t3 text-body text-text">
+              <li key={i.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-t3 border-t border-divider py-t3 text-body text-text">
                 <span>{itemText(i)}</span><span className="tnum">{formatDollars(i.amount)}</span>
               </li>
             ))}
@@ -280,7 +280,7 @@ export function TallySheet({ tally, open, onClose, present }: { tally: Tally; op
 /** Home: one quiet row to the progress page, with the goal if there is one. */
 export function ProgressLink({ text }: { text: string }) {
   return (
-    <Link href="/progress" className="flex min-h-tap items-center gap-t3 rounded-lg bg-surface p-t4 hover:bg-surface2">
+    <Link href="/progress" className="flex min-h-tap items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4 hover:bg-surface2">
       <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><Flag size={24} /></span>
       <span className="min-w-0 flex-1">
         <span className="block text-body-strong text-text">{progressCopy.homeLink}</span>
@@ -294,10 +294,10 @@ export function ProgressLink({ text }: { text: string }) {
 /** "Has your pay landed?": on the expected payday, before the pay shows up (spec 02). */
 export function PayPendingCard({ payday }: { payday: string }) {
   return (
-    <section aria-labelledby="paypending" className="rounded-lg bg-accent-soft p-t4">
+    <section aria-labelledby="paypending" className="rounded-card-s bg-accent-soft sm:rounded-card p-t4">
       <div className="flex items-center gap-t2">
         <Sun aria-hidden size={20} className="text-accent" />
-        <h2 id="paypending" className="text-h3 text-text">{c.pendingTitle}</h2>
+        <h2 id="paypending" className="text-card text-text sm:text-card-l">{c.pendingTitle}</h2>
       </div>
       <p className="mt-t2 text-small text-text">{c.pendingBody(formatShortDay(payday))}</p>
     </section>
@@ -337,7 +337,7 @@ export function CheckInAdjustSheet({ open, onClose, bills, oneOffs, dates, onPai
         <legend className="text-body-strong text-text">{c.oneOffHeading}</legend>
         {oneOffs.length > 0 && (
           <ul className="mt-t1 flex flex-col">{oneOffs.map((o) => (
-            <li key={o.id} className="flex items-center justify-between gap-t3 border-t border-line py-t1 text-small text-text">
+            <li key={o.id} className="flex items-center justify-between gap-t3 border-t border-divider py-t1 text-small text-text">
               <span>{formatShortDay(o.date)} · {o.label} · <span className="tnum">{formatCents(o.amount)}</span></span>
               <Button variant="tertiary" aria-label={c.oneOffRemove(o.label)} onClick={() => onRemoveOneOff(o.id)}>×</Button>
             </li>

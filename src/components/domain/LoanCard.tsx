@@ -23,7 +23,7 @@ export function LoanCard({ loan, combinedBalance, onViewRepayments, defaultExpan
   const [open, setOpen] = useState(!!defaultExpanded);
   const id = useId();
   return (
-    <article className="rounded-md bg-surface p-t5">
+    <article className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
       <button type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)} className="-m-t2 flex min-h-[64px] w-[calc(100%+16px)] items-center gap-t3 rounded-sm p-t2 text-left hover:bg-surface2">
         <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><Landmark size={24} /></span>
         <span className="flex-1">
@@ -52,7 +52,7 @@ export function LoanCard({ loan, combinedBalance, onViewRepayments, defaultExpan
       </div>
 
       <div id={id} hidden={!open}>
-        <hr aria-hidden className="mt-t5 border-line" />
+        <hr aria-hidden className="mt-t5 border-divider" />
         <dl className="mt-t5 flex flex-col gap-t3">
           {loan.cadenceDays && (
             <div className="min-h-[52px]"><dt className="text-caption text-text-muted">{t.frequency}</dt><dd className="text-small text-text">{t.everyDays(loan.cadenceDays)}</dd></div>

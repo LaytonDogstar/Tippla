@@ -56,7 +56,7 @@ export function PushSetup({ persona }: { persona: PersonaId }) {
 
   if (state === "checking") return null;
   return (
-    <div className="mt-t3 border-t border-line pt-t3">
+    <div className="mt-t3 border-t border-divider pt-t3">
       <h3 className="text-body-strong text-text">{t.heading}</h3>
       {state === "unsupported" && <p className="mt-t1 text-small text-text-muted">{t.unsupported}</p>}
       {state === "ios" && <p className="mt-t1 text-small text-text-muted">{t.ios}</p>}

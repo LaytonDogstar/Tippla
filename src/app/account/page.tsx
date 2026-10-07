@@ -33,9 +33,9 @@ export default async function Account({ searchParams }: { searchParams: { person
   ];
   return (
     <PortalShell path="/account" persona={persona} present={presentationMode(searchParams.present)} header={<PageHeader title={t.title} sub={data.profile.email} />}>
-      <ul className="mt-t2 overflow-hidden rounded-md bg-surface">
+      <ul className="mt-t2 overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
         {rows.map((r) => (
-          <li key={r.href} className="border-b border-line last:border-b-0">
+          <li key={r.href} className="border-b border-divider last:border-b-0">
             <Link href={r.href} className="flex min-h-[64px] items-center gap-t3 px-t4 py-t2 hover:bg-surface2">
               <span className="min-w-0 flex-1"><span className="block text-body-strong text-text">{r.label}</span>{r.sub && <span className="block text-caption text-text-muted">{r.sub}</span>}</span>
               <ChevronRight aria-hidden size={20} className="text-text-muted" />

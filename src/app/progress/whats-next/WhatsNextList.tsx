@@ -24,7 +24,7 @@ export function WhatsNextList({ items }: { items: { id: string; title: string; b
         {items.map((i) => (
           <li key={i.id}>
             {i.href
-              ? <Link href={i.href} className="flex min-h-[64px] items-center gap-t3 rounded-md bg-surface p-t4 hover:bg-surface2">{row(i)}</Link>
+              ? <Link href={i.href} className="flex min-h-[64px] items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4 hover:bg-surface2">{row(i)}</Link>
               : <button type="button" onClick={() => setSoon(i.title)} className="flex min-h-[64px] w-full items-center gap-t3 rounded-md bg-surface p-t4 text-left hover:bg-surface2">{row(i)}</button>}
           </li>
         ))}

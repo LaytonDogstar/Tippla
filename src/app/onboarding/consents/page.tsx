@@ -23,7 +23,7 @@ function ConsentCard({ id, required, checked, onChange }: { id: Id; required: bo
   const base = useId();
   const item = t.items[id];
   return (
-    <section className="rounded-md bg-surface p-t4">
+    <section className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
       <label htmlFor={`${base}-cb`} className="flex min-h-tap cursor-pointer items-start gap-t4 rounded-sm has-[:focus-visible]:outline has-[:focus-visible]:outline-[length:var(--focus-width)] has-[:focus-visible]:outline-offset-[var(--focus-offset)] has-[:focus-visible]:outline-focus">
         <input id={`${base}-cb`} type="checkbox" className="sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)}
           aria-describedby={`${base}-st ${base}-ex`} data-consent={id} />

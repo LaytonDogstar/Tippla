@@ -52,7 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   {ui.undo}
                 </button>
               )}
-              <button type="button" aria-label={ui.closeShort} className="inline-flex h-tap w-tap items-center justify-center rounded-sm text-text-muted hover:bg-surface2" onClick={() => setToast(null)}>
+              <button type="button" aria-label={ui.closeShort} className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-text-muted hover:bg-surface2" onClick={() => setToast(null)}>
                 <X aria-hidden size={20} />
               </button>
             </motion.div>
@@ -93,7 +93,7 @@ export function EmptyState({ variant, query = "", onAction, illustrated }: { var
   const Icon = emptyIcons[variant];
   const body = typeof c.body === "function" ? c.body(query) : c.body;
   return (
-    <section className="rounded-md bg-surface p-t5">
+    <section className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
       {illustrated ? (
         <EmptyIllustration variant={variant} />
       ) : (

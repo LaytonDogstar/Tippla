@@ -48,7 +48,7 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
       {tab === "overview" && (
         <div className="mt-t4 flex flex-col gap-t3">
           {totals.debtToIncomePct90 !== null && (
-            <section className="rounded-md bg-accent-soft p-t5">
+            <section className="rounded-card-s bg-accent-soft sm:rounded-card p-t5">
               <p className="text-h3 text-text">{t.dti(formatPercent(totals.debtToIncomePct90, 0))}</p>
               <p className="mt-t1 text-caption text-text-muted">{t.dtiNote}</p>
             </section>
@@ -62,11 +62,11 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
               ))}
               {totals.totalOutstanding > 0 && <p className="tnum px-t1 text-small text-text-muted">{t.totalLeft(formatWhole(totals.totalOutstanding))}</p>}
             </>
-          ) : <p className="rounded-md bg-surface p-t5 text-small text-text">{t.noLoans}</p>}
+          ) : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.noLoans}</p>}
           <CreditGroups bnpl={bnpl} advances={advances} advance={advance} onView={viewRepayments} />
-          <nav aria-label={t.title} className="mt-t3 flex flex-col overflow-hidden rounded-md bg-surface">
+          <nav aria-label={t.title} className="mt-t3 flex flex-col overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
             {[{ href: "/loans/repayment", label: t.calculatorLink }, { href: "/offers", label: offersCount ? `${t.offersLink} (${offersCount})` : t.offersLink }].map((l) => (
-              <Link key={l.href} href={l.href} className="flex min-h-[52px] items-center justify-between border-b border-line px-t4 text-small text-accent last:border-b-0 hover:bg-surface2">
+              <Link key={l.href} href={l.href} className="flex min-h-[52px] items-center justify-between border-b border-divider px-t4 text-small text-accent last:border-b-0 hover:bg-surface2">
                 {l.label}<ChevronRight aria-hidden size={20} />
               </Link>
             ))}
@@ -90,7 +90,7 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
                 </li>
               ))}
             </ul>
-          ) : <p className="mt-t3 rounded-md bg-surface p-t5 text-small text-text">{t.upcoming.empty}</p>}
+          ) : <p className="mt-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.upcoming.empty}</p>}
         </div>
       )}
 
@@ -102,11 +102,11 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
             if (!items.length) return null;
             const label = `${formatMonthLong(m.month)} ${m.month.slice(0, 4)}`;
             return (
-              <section key={m.month} aria-label={label} className="rounded-md bg-surface">
+              <section key={m.month} aria-label={label} className="rounded-card-s bg-surface shadow-card sm:rounded-card">
                 <h2 className="tnum flex justify-between p-t4 pb-t2 text-h3 text-text"><span>{label}</span><span>{formatWhole(sumMoney(items.map((i) => i.amount)))}</span></h2>
                 <ul>
                   {items.map((i) => (
-                    <li key={i.id} className="flex min-h-[52px] items-center justify-between gap-t3 border-t border-line px-t4">
+                    <li key={i.id} className="flex min-h-[52px] items-center justify-between gap-t3 border-t border-divider px-t4">
                       <span><span className="block text-small text-text">{i.provider}</span><span className="block text-caption text-text-muted">{formatShortDay(i.date)}</span></span>
                       <span className="tnum text-small text-text">{formatCents(i.amount)}</span>
                     </li>
@@ -114,9 +114,9 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
                 </ul>
               </section>
             );
-          }) : <p className="rounded-md bg-surface p-t5 text-small text-text">{t.history.empty}</p>}
-          <section aria-labelledby="failed-h" className="rounded-md bg-surface p-t4">
-            <h2 id="failed-h" className="text-h3 text-text">{t.history.failedHeading}</h2>
+          }) : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.history.empty}</p>}
+          <section aria-labelledby="failed-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+            <h2 id="failed-h" className="text-card text-text sm:text-card-l">{t.history.failedHeading}</h2>
             {failed.length ? (
               <ul className="mt-t2 flex flex-col gap-t2">{failed.map((f) => <li key={f.id} className="text-small text-text">{t.history.failed(f.lender, formatShortDay(f.date), formatCents(f.fee))}</li>)}</ul>
             ) : <p className="mt-t2 text-small text-text-muted">{t.history.noFailed}</p>}
@@ -127,9 +127,9 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
       {tab === "other" && (
         <div className="mt-t4 flex flex-col gap-t3">
           <p className="text-small text-text-muted">{t.other.intro}</p>
-          {bnpl.length || advances.length ? <CreditGroups bnpl={bnpl} advances={advances} advance={advance} onView={viewRepayments} /> : <p className="rounded-md bg-surface p-t5 text-small text-text">{t.other.none}</p>}
-          <section aria-labelledby="cards-h" className="rounded-md bg-surface p-t4">
-            <h2 id="cards-h" className="text-h3 text-text">{t.other.cards}</h2>
+          {bnpl.length || advances.length ? <CreditGroups bnpl={bnpl} advances={advances} advance={advance} onView={viewRepayments} /> : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.other.none}</p>}
+          <section aria-labelledby="cards-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+            <h2 id="cards-h" className="text-card text-text sm:text-card-l">{t.other.cards}</h2>
             <p className="mt-t2 text-small text-text-muted">{t.other.noCards}</p>
           </section>
         </div>
@@ -171,7 +171,7 @@ function CreditGroups({ bnpl, advances, advance, onView }: { bnpl: OtherCredit[]
 function CreditCard({ icon, title, subtitle, lines, detail, note, onView }: { icon: "bnpl" | "advance"; title: string; subtitle?: string; lines: string[]; detail?: string; note: string; onView: () => void }) {
   const Icon = icon === "bnpl" ? CalendarClock : HandCoins;
   return (
-    <article aria-label={title} className="rounded-md bg-surface p-t4">
+    <article aria-label={title} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
       <div className="flex items-start gap-t3">
         <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><Icon size={24} /></span>
         <div className="min-w-0 flex-1">

@@ -22,7 +22,7 @@ export function NotificationsView({ persona, account: initial, asOf, items }: { 
   const unread = list.filter((n) => !n.read);
   const markRead = (ids: string[]) => update((l) => ({ ...l, readNotifications: [...new Set([...(l.readNotifications ?? []), ...ids])] }));
 
-  if (!list.length) return <p className="mt-t4 rounded-md bg-surface p-t5 text-small text-text">{t.empty}</p>;
+  if (!list.length) return <p className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.empty}</p>;
   return (
     <div className="pb-t6">
       <h1 className="sr-only">{t.title}</h1>
@@ -33,11 +33,11 @@ export function NotificationsView({ persona, account: initial, asOf, items }: { 
       {(["today", "week", "earlier"] as const).map((g) => groups[g].length > 0 && (
         <section key={g} aria-labelledby={`g-${g}`} className="mt-t4">
           <h2 id={`g-${g}`} className="px-t1 pb-t2 text-h3 text-text">{t.groups[g]}</h2>
-          <ul className="overflow-hidden rounded-md bg-surface">
+          <ul className="overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
             {groups[g].map((n) => {
               const Icon = ICONS[n.type] ?? Bell;
               return (
-                <li key={n.id} className="border-b border-line last:border-b-0">
+                <li key={n.id} className="border-b border-divider last:border-b-0">
                   <Link href={n.href} onClick={() => { track("notification_opened", { type: n.type }); if (!n.read) markRead([n.id]); }}
                     className={cx("flex min-h-[72px] items-start gap-t3 p-t4 hover:bg-surface2", !n.read && "bg-accent-soft")}>
                     <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><Icon size={24} /></span>

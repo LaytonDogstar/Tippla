@@ -13,7 +13,7 @@ export default function ConnectBank() {
       <p className="text-body text-text-muted">{t.intro}</p>
       <ul className="mt-t5 flex flex-col gap-t3">
         {t.points.map((p) => (
-          <li key={p} className="flex gap-t3 rounded-md bg-surface p-t4">
+          <li key={p} className="flex gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
             <Check aria-hidden size={20} className="mt-[2px] shrink-0 text-accent" />
             <span className="text-small text-text">{p}</span>
           </li>

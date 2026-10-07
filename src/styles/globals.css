@@ -35,8 +35,9 @@ body {
 .on-brand :focus-visible { outline-color: var(--brand-on); }
 
 .brand-surface {
-  background: linear-gradient(118deg, var(--brand-from), var(--brand-to));
-  color: var(--brand-on);
+  /* Today redesign: the same deep gradient as the Today hero, everywhere a brand surface appears. */
+  background: var(--hero-gradient);
+  color: var(--hero-on);
 }
 
 /* Today redesign: tappable cards and tiles shrink slightly when pressed (no shrink with reduced motion). */

@@ -20,7 +20,7 @@ export function ConnectedAccounts({ accounts }: { accounts: { id: number; bank: 
       </>}>
       <ul className="flex flex-col gap-t2">
         {accounts.map((a) => (
-          <li key={a.id} className="flex items-center gap-t3 rounded-md bg-surface p-t4">
+          <li key={a.id} className="flex items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
             <span aria-hidden className="inline-flex h-[40px] w-[40px] items-center justify-center rounded-sm bg-surface2 text-neutral"><Landmark size={24} /></span>
             <span className="text-body-strong text-text">{t.connected(a.bank, a.nickname, a.last4)}</span>
           </li>
