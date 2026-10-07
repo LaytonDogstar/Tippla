@@ -44,7 +44,7 @@ const config: Config = {
         chart: toVars(tokens.color.chart?.light ?? {}, "chart"),
         spend: toVars(tokens.color.spend?.light ?? {}, "spend"),
         band: toVars(tokens.color.band?.light ?? {}, "band"),
-        hero: { on: "var(--hero-on)", "on-muted": "var(--hero-on-muted)", "negative-mark": "var(--hero-negative-mark)" },
+        hero: { from: "var(--hero-from)", on: "var(--hero-on)", "on-muted": "var(--hero-on-muted)", "negative-mark": "var(--hero-negative-mark)", "caution-mark": "var(--hero-caution-mark)", "positive-mark": "var(--hero-positive-mark)", glass: "var(--hero-glass)", inset: "var(--hero-inset)", past: "var(--hero-past)", future: "var(--hero-future)", outline: "var(--hero-outline)" },
       },
       fontFamily: {
         display: "var(--font-display)",
@@ -53,7 +53,7 @@ const config: Config = {
       },
       fontSize,
       spacing: { ...Object.fromEntries((tokens.space as number[]).map((v, i) => [`t${i}`, `${v}px`])), sidebar: "var(--sidebar-width)", drawer: "var(--drawer-width)" },
-      borderRadius: Object.fromEntries(Object.entries(tokens.radius).map(([k, v]) => [k, `${v}px`])),
+      borderRadius: Object.fromEntries(Object.entries(tokens.radius).map(([k, v]) => [kebab(k), `${v}px`])),
       boxShadow: { e1: "var(--elev-1)", e2: "var(--elev-2)", e3: "var(--elev-3)", card: "var(--elev-card)", hero: "var(--elev-hero)", cta: "var(--elev-cta)" },
       backgroundImage: { hero: "var(--hero-gradient)", cta: "var(--cta-gradient)" },
       transitionDuration: { fast: "var(--motion-fast)", base: "var(--motion-base)", slow: "var(--motion-slow)" },

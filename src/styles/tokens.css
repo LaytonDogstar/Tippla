@@ -12,9 +12,17 @@
   --gutter: 16px;
   --hero-gradient: linear-gradient(135deg, #272F7E 0%, #3A41AE 55%, #4F54D6 100%);
   --cta-gradient: linear-gradient(90deg, #4A4FC9 0%, #5F63E2 100%);
+  --hero-from: #272F7E;
   --hero-on: #FFFFFF;
   --hero-on-muted: #E3E5FB;
   --hero-negative-mark: #F7A8B3;
+  --hero-caution-mark: #F4C29C;
+  --hero-positive-mark: #7FD0A8;
+  --hero-glass: #FFFFFF24;
+  --hero-inset: #FFFFFF1A;
+  --hero-past: #FFFFFF73;
+  --hero-future: #FFFFFF24;
+  --hero-outline: #FFFFFF66;
   --tab-bar-height: 64px;
   --sidebar-width: 248px;
   --drawer-width: 420px;

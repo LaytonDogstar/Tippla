@@ -61,7 +61,9 @@ const shared = [
   ...(c => c ? [
     `  --hero-gradient: linear-gradient(135deg, ${c.from} 0%, ${c.mid} 55%, ${c.to} 100%);`,
     `  --cta-gradient: linear-gradient(90deg, ${c.ctaFrom} 0%, ${c.ctaTo} 100%);`,
-    `  --hero-on: ${c.on};`, `  --hero-on-muted: ${c.onMuted};`, `  --hero-negative-mark: ${c.negativeMark};`,
+    `  --hero-from: ${c.from};`, `  --hero-on: ${c.on};`, `  --hero-on-muted: ${c.onMuted};`, `  --hero-negative-mark: ${c.negativeMark};`,
+    `  --hero-caution-mark: ${c.cautionMark};`, `  --hero-positive-mark: ${c.positiveMark};`,
+    `  --hero-glass: ${c.glass};`, `  --hero-inset: ${c.inset};`, `  --hero-past: ${c.past};`, `  --hero-future: ${c.future};`, `  --hero-outline: ${c.outline};`,
   ] : [])(t.color.hero),
   `  --tab-bar-height: ${t.layout.tabBarHeight}px;`,
   `  --sidebar-width: ${t.layout.desktopSidebar}px;`,
