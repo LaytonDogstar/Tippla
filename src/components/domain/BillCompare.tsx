@@ -36,7 +36,7 @@ export function BillCompare({ persona, account, asOf, bills, state }: { persona:
   };
   if (!bills.length) return null;
   return (
-    <section aria-labelledby="bills-h" className="mt-t6 flex flex-col gap-t3">
+    <section aria-labelledby="bills-h" className="flex flex-col gap-t3">
       <h2 id="bills-h" className="text-card text-text sm:text-card-l">{t.heading}</h2>
       <p className="text-small text-text-muted">{t.intro}</p>
       {bills.map((b) => {

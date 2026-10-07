@@ -119,7 +119,10 @@ test("hardship: template is editable and copies; counselling has a real phone li
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("Hi Nimble, I'd like to ask about a hardship arrangement.");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "See ways to get in touch" }).click();
-  await expect(page.getByRole("link", { name: "Call 1800 007 007" })).toHaveAttribute("href", "tel:1800007007");
+  await expect(page.getByRole("dialog").getByRole("link", { name: "Call 1800 007 007" })).toHaveAttribute("href", "tel:1800007007");
+  await page.keyboard.press("Escape");
+  // UX round 2, 4.1: the helpline is also in the page's rail.
+  await expect(page.getByRole("complementary").getByRole("link", { name: "Call 1800 007 007" })).toHaveAttribute("href", "tel:1800007007");
 });
 
 test("help: search first, plain empty state", async ({ page }) => {

@@ -21,7 +21,7 @@ export default async function Hardship({ searchParams }: { searchParams: { perso
   const prefill = hardshipPrefill(data);
   const followup = searchParams.followup && account.hardshipLetters?.some((l) => l.lender === searchParams.followup) ? searchParams.followup : null;
   return (
-    <PortalShell path="/hardship" persona={persona} present={present} header={<PageHeader title={t.title} sub={t.sub} action={<HardshipInfoButton />} />}>
+    <PortalShell path="/hardship" persona={persona} present={present} wide header={<PageHeader title={t.title} sub={t.sub} action={<HardshipInfoButton />} />}>
       <HardshipView persona={persona} account={account} present={present} lenders={[...new Set(lenders)]} asOf={data.asOf}
         letter={autofill ? { prefill, name: data.profile.full_name } : null} followup={followup} />
     </PortalShell>

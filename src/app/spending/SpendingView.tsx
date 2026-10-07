@@ -38,6 +38,7 @@ import { CurrencyInput, SelectInput } from "@/components/ui/Form";
 import { Sheet } from "@/components/ui/Sheet";
 import { cx } from "@/components/ui/cx";
 import { HEADER_ACTION } from "@/components/shell/Shells";
+import { PageColumns } from "@/components/shell/PageColumns";
 
 export interface SpendingParams { tab?: string; period?: string; month?: string; category?: string; direction?: string; q?: string }
 type Tab = "overview" | "categories" | "budgets";
@@ -216,6 +217,12 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
     </section>
   );
 
+  // Categories and Budgets tabs: the transactions, filtered to the selected category, in the rail (UX round 2, 4.1).
+  const feedRail = <div className="desktop:-mt-t4"><Feed ref={feedRef} searchRef={searchRef} feed={feed} shown={shown} onMore={() => setShown((n) => n + PAGE)} q={q} setQ={setQ}
+              direction={direction} setDirection={setDirection} selected={selected} onClearCategory={() => setSelected(null)}
+              edits={edits} doubles={doubles} onOpen={(id) => setSheet({ kind: "tx", id })}
+              onClear={() => { setQ(""); setDirection("all"); setSelected(null); }} /></div>;
+
   return (
     <div className="pb-t6">
       {ask && <div className="mb-t2"><AskAboutThis question={ask} /></div>}
@@ -263,7 +270,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
       )}
 
       {tab === "categories" && (
-        <div className="desktop:max-w-[760px]">
+        <PageColumns railLabel={t.feed.heading} rail={feedRail} main={<div>
           <div className="mt-t4 flex flex-col gap-t3">
             <SegmentedControl label={t.categories.filterLabel} value={filter} onChange={(v) => { setFilter(v); setSelected(null); }}
               options={(["all", "essentials", "lifestyle"] as SpendFilter[]).map((v) => ({ value: v, label: t.categories.filters[v] }))} />
@@ -277,13 +284,13 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
             </div>
           </div>
           {categoryList}
-        </div>
+        </div>} />
       )}
 
       {tab === "budgets" && (
-        <div className="desktop:max-w-[760px]"><BudgetsTab data={data} cycle={cycle} budgets={budgets} edits={edits}
+        <PageColumns railLabel={t.feed.heading} rail={feedRail} main={<BudgetsTab data={data} cycle={cycle} budgets={budgets} edits={edits}
           onEdit={(c) => setSheet({ kind: "budget", category: c })}
-          onMerchant={(m) => setSheet({ kind: "merchant", merchant: m })} /></div>
+          onMerchant={(m) => setSheet({ kind: "merchant", merchant: m })} />} />
       )}
 
       {/* ---- Sheets (one at a time; follow-ons replace content with Back) ---- */}

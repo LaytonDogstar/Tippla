@@ -23,7 +23,7 @@ export default async function Offers({ searchParams }: { searchParams: { persona
     band: score === null ? "none" as const : STAGES.find((s) => score >= s.min && score <= s.max)?.id ?? "none" as const,
   };
   return (
-    <PortalShell path="/offers" persona={persona} present={presentationMode(searchParams.present)}
+    <PortalShell path="/offers" persona={persona} present={presentationMode(searchParams.present)} wide
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} />}>
       <OffersView persona={persona} account={account} matching={lenderMatchingOn(data)} offers={visibleOffers(data, account, goal)} paused={offerPause(data, account, goal)} guard={guard} />
     </PortalShell>

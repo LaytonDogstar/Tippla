@@ -153,6 +153,11 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
           </div>
         )}
         <div className={cx(item, "order-8 sm:order-9 sm:col-span-2")}><SpendingSummary bars={bars} asOf={asOf} groups={groups} /></div>
+        {/* Under Spending in the left column, so the columns end level and the feedback card is easy to see (4.2). */}
+        {miss && <div className={cx(item, "order-9 sm:order-8")}><ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} /></div>}
+        <div className={cx(item, "order-11 sm:col-span-2 desktop:col-span-1 empty:hidden")}>
+          <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
+        </div>
       </div>
       {/* Right column on desktop. */}
       <div className="contents desktop:flex desktop:min-w-0 desktop:flex-[1_1_320px] desktop:flex-col desktop:gap-t6">
@@ -163,11 +168,7 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
             progress={progressText} onSeeHow={() => setSheet("action")} />
         </div>
         <div className={cx(item, "order-6 desktop:order-7")}><ComingUp items={coming} /></div>
-        {miss && <div className={cx(item, "order-9 sm:order-8")}><ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} /></div>}
         {showTally && <div className={cx(item, "order-10 sm:col-span-2 desktop:col-span-1")}><TallyCard tally={tally} onOpen={() => setSheet("tally")} /></div>}
-        <div className={cx(item, "order-11 sm:col-span-2 desktop:col-span-1 empty:hidden")}>
-          <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
-        </div>
       </div>
 
       <SafeToSpendSheet safe={shownSafe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} onBuffer={flags.buffer ? setBuffer : undefined} accuracy={accuracyLine} bufferSteps={bufferSteps} />

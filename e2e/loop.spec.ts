@@ -85,8 +85,9 @@ test("value tally: actions in the app are pending, then confirmed from bank data
 
   // 2. "I've cancelled it" for Binge.
   await page.goto("/subscriptions?persona=jess&present=1");
-  await page.getByRole("article", { name: /Binge/ }).getByRole("button", { name: "How to cancel" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "I've cancelled it" }).click();
+  await page.getByRole("button", { name: "More options for Binge" }).click();
+  await page.getByRole("dialog", { name: "Binge" }).getByRole("button", { name: "How to cancel" }).click();
+  await page.getByRole("dialog", { name: "How to cancel Binge" }).getByRole("button", { name: "I've cancelled it" }).click();
   await expect(page.getByRole("dialog").getByText("Marked as cancelled. We'll confirm after 11/10.")).toBeVisible();
 
   // 3. On Tue 29/09 (spec 01: flagged within 3 days), Done on the "Beforepay bigger than your balance" card.

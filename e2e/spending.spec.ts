@@ -125,13 +125,18 @@ test("calendar: Home's next bill opens its day; range totals; forecast below $0 
   await expect(page.getByRole("heading", { name: "September 2026" })).toBeVisible();
 });
 
-test("subscriptions: keep, remind, how to cancel", async ({ page }) => {
+test("subscriptions: still using? Yes keeps it with an optional reminder; how to cancel from the menu", async ({ page }) => {
   await page.goto("/subscriptions?persona=jess&present=1");
-  await expect(page.getByText("About $31 a pay cycle · $810 a year")).toBeVisible(); // includes Binge (new 08/09)
+  const rail = page.getByRole("complementary");
+  await expect(rail.getByText("$31")).toBeVisible(); // a pay cycle; includes Binge (new 08/09)
+  await expect(rail.getByText("$810 a year")).toBeVisible();
   const netflix = page.getByRole("article", { name: "Netflix" });
+  await netflix.getByRole("button", { name: "Yes: Still using Netflix?" }).click();
+  await expect(netflix.getByText("Kept", { exact: true })).toBeVisible();
   await netflix.getByRole("button", { name: "Remind me before next charge" }).click();
   await expect(page.getByRole("status").filter({ hasText: "We'll remind you about Netflix on Thu 01/10" })).toBeVisible();
-  await netflix.getByRole("button", { name: "How to cancel" }).click();
+  await page.getByRole("button", { name: "More options for Netflix" }).click();
+  await page.getByRole("dialog", { name: "Netflix" }).getByRole("button", { name: "How to cancel" }).click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: "How to cancel Netflix" })).toBeVisible();
 });
 

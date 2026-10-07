@@ -1,5 +1,6 @@
 "use client";
 import { Info } from "lucide-react";
+import { PageColumns } from "@/components/shell/PageColumns";
 import { useEffect, useState } from "react";
 import { track } from "@/lib/analytics/client";
 import type { EventProps } from "@/lib/analytics/registry";
@@ -36,9 +37,19 @@ export function OffersView({ persona, account: initial, matching, offers, guard,
     </button>
   );
 
+  // Rail (UX round 2, 4.1): how matching works, beside the offers (the ⓘ sheet stays for phones).
+  const rail = (
+    <section aria-labelledby="match-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+      <h2 id="match-h" className="text-card text-text sm:text-card-l">{t.info}</h2>
+      <div className="mt-t2 flex flex-col gap-t2">{t.infoBody.map((p) => <p key={p} className="text-body14 text-text-secondary">{p}</p>)}</div>
+      <ButtonLink variant="secondary" className="mt-t4" href="/account/consents">{t.off.action}</ButtonLink>
+    </section>
+  );
+
   return (
     <div className="pb-t6">
-      <div className="flex justify-end">{infoButton}</div>
+      <PageColumns railLabel={t.info} rail={rail} main={<>
+      <div className="flex justify-end desktop:hidden">{infoButton}</div>
       {!matching ? (
         <section aria-labelledby="off-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
           <h2 id="off-h" className="text-card text-text sm:text-card-l">{t.off.title}</h2>
@@ -68,6 +79,7 @@ export function OffersView({ persona, account: initial, matching, offers, guard,
           <li><p className="px-t1 text-caption text-text-muted">{t.notInterestedHint}</p></li>
         </ul>
       )}
+      </>} />
 
       <Sheet open={!!details} onClose={() => setDetails(null)} title={details ? t.detailsTitle(details.lender) : ""}
         footer={<Button full variant="tertiary" onClick={() => setDetails(null)}>{t.close}</Button>}>

@@ -141,6 +141,9 @@ export const compare = {
 } as const;
 
 export const calendarPage = {
+  upcomingBills: "Bills coming up",
+  noUpcomingBills: "No bills predicted in this view.",
+  railLabel: "Selected day and bills coming up",
   title: "Calendar",
   info: "About the calendar",
   infoBody: [
@@ -202,6 +205,16 @@ export const subscriptionsPage = {
   intro: "Regular charges we've found in your account.",
   total: (perCycle: string, perYear: string) => `About ${perCycle} a pay cycle · ${perYear} a year`,
   count: (n: number) => (n === 1 ? "1 subscription" : `${n} subscriptions`),
+  perCycleShort: "a pay cycle",
+  perYearLine: (amt: string) => `${amt} a year`,
+  perYearShort: (amt: string) => `${amt} a year`,
+  railLabel: "Subscription totals",
+  notUsingHeading: "You said you don't use",
+  notUsingNone: "Answer \"Still using it?\" on a subscription and any you don't use show here, with what cancelling would save.",
+  notUsingSaving: (amt: string) => `Cancelling these would save about ${amt} a year`,
+  moreFor: (m: string) => `More options for ${m}`,
+  changeAnswer: "Change my answer",
+  cancelledState: "You've cancelled this. We'll check it doesn't charge again.",
   amount: (amt: string, cadence: string) => `${amt} ${cadence}`,
   cadence: { monthly: "a month" },
   lastCharged: (date: string) => `Last charged ${date}`,

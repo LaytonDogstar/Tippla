@@ -9,6 +9,11 @@ export const loansPage = {
   dti: (pct: string) => `Debt repayments are about ${pct} of income.`,
   dtiNote: "Over the last 90 days. Includes loans, buy now pay later and pay advances.",
   loansHeading: "Loans",
+  nextRepayments: "Next repayments",
+  seeAllUpcoming: "See all upcoming",
+  planLink: "Your plan",
+  planLinkBody: "Steps to borrow less, one pay cycle at a time.",
+  railLabel: "Borrowing summary",
   totalLeft: (amt: string) => `About ${amt} left across your loans, estimated`,
   noLoans: "We didn't find any loans in the connected account.",
   bnplHeading: "Buy now, pay later",
@@ -126,6 +131,21 @@ export const hardshipPage = {
   sub: "Support, on your terms",
   opener: "If money's tight right now, these are real options.",
   scoreNote: "Using them doesn't count against your SmartScore.",
+  // TODO: compliance review. UX round 2, 4.1: the Hardship rail.
+  rail: {
+    label: "Help and what to expect",
+    ndhTitle: "Talk to a free financial counsellor",
+    ndhBody: "Free, independent and confidential. They can talk to your lenders for you.",
+    call: (n: string) => `Call ${n}`,
+    website: "Visit the website",
+    expectTitle: "What happens when I ask for hardship",
+    expect: [
+      "Tell your lender you're having trouble paying. You can ask by phone, email or in writing, and you don't need to have missed a payment first.",
+      "Your lender looks at your situation. They may ask for details like your income and expenses.",
+      "They might lower or pause repayments for a while, or give you more time. Any change should be confirmed in writing.",
+      "If they say no and you don't agree, a free financial counsellor can help you work out what to do next.",
+    ],
+  },
   // TODO: compliance review. UX round 2, 2.1: the one place this line lives, so compliance can edit it.
   creditReportNote: "Your lender may still record a hardship arrangement on your credit report. It's still usually better than missing payments.",
   info: "About this page",
@@ -160,6 +180,7 @@ export const hardshipPage = {
 } as const;
 
 export const helpPage = {
+  railLabel: "Contact and account",
   title: "Help",
   searchLabel: "Search help",
   searchPlaceholder: "Search, for example: declined",

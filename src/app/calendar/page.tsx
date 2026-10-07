@@ -38,7 +38,7 @@ export default async function Calendar({ searchParams }: { searchParams: Search 
   const txByDay = Object.fromEntries(days.map((d) => [d.date, dayTransactions(data, d.date, edits).map((x) => ({ id: x.id, merchant: x.merchant, amount: x.amount, category: x.category, status: x.status, subcategory: x.subcategory }))]));
   const selectedDay = day && days.some((d) => d.date === day) ? day : null;
   return (
-    <PortalShell path="/calendar" persona={persona} present={present}
+    <PortalShell path="/calendar" persona={persona} present={present} wide
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} action={<CalendarInfoButton />} />}>
       <CalendarView
         key={`${view}-${days[0]?.date}-${selectedDay ?? ""}`}

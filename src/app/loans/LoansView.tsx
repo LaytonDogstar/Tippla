@@ -1,5 +1,5 @@
 "use client";
-import { CalendarClock, ChevronRight, HandCoins } from "lucide-react";
+import { CalendarClock, ChevronRight, Flag, HandCoins } from "lucide-react";
 import type { PersonaId } from "@/lib/api/types";
 import { RuleChoiceSheet, LOAN_OPTIONS } from "@/components/domain/RuleChoice";
 import { correctionCopy } from "@/content/corrections";
@@ -11,6 +11,8 @@ import { formatCents, formatMonthLong, formatPercent, formatShortDay, formatWhol
 import { sumMoney } from "@/lib/format/money";
 import type { HistoryMonth, Loan, OtherCredit, PayAdvance, UpcomingRepayment, failedPayments, loanTotals } from "@/lib/selectors";
 import { LoanCard } from "@/components/domain/LoanCard";
+import { PageColumns } from "@/components/shell/PageColumns";
+import { CardLink } from "@/components/ui/CardLink";
 import { ProductCard } from "@/components/domain/ProductCard";
 import { loan as lc } from "@/content/components";
 import { Chip, ChipGroup, FilterChip, SegmentedControl } from "@/components/ui/Chips";
@@ -44,19 +46,42 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
   const advances = other.filter((o) => o.kind === "wage_advance");
   const viewRepayments = (p: string) => { setProvider(p); setTab("history"); window.scrollTo({ top: 0 }); };
 
+  const next3 = upcoming[30].slice(0, 3);
+  // Rail (UX round 2, 4.1): the debt-to-income summary, the next three repayments and the plan.
+  const rail = (
+    <>
+      {totals.debtToIncomePct90 !== null && (
+        <section className="rounded-card-s bg-accent-soft p-t5 sm:rounded-card">
+          <p className="text-row text-text">{t.dti(formatPercent(totals.debtToIncomePct90, 0))}</p>
+          <p className="mt-t1 text-meta text-text-secondary">{t.dtiNote}</p>
+        </section>
+      )}
+      <section aria-labelledby="next3-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+        <h2 id="next3-h" className="text-card text-text sm:text-card-l">{t.nextRepayments}</h2>
+        {next3.length ? (
+          <ul className="mt-t2 flex flex-col">
+            {next3.map((u) => (
+              <li key={`${u.provider}-${u.date}`} className="flex min-h-[52px] items-center justify-between gap-t3 border-t border-divider first:border-t-0">
+                <span><span className="block text-body14 font-semibold text-text">{u.provider}</span><span className="block text-meta text-text-muted">{formatShortDay(u.date)} · {t.upcoming.predicted}</span></span>
+                <span className="tnum text-row text-text">{money(u.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="mt-t2 text-body14 text-text-muted">{t.upcoming.empty}</p>}
+        <button type="button" onClick={() => setTab("upcoming")} className="mt-t2 inline-flex min-h-tap items-center gap-t1 text-body14 font-semibold text-accent">{t.seeAllUpcoming}<ChevronRight aria-hidden size={16} /></button>
+      </section>
+      <CardLink icon={Flag} title={t.planLink} body={t.planLinkBody} href="/savings" as="p" />
+    </>
+  );
+
   return (
     <div className="pb-t6">
+      <PageColumns railLabel={t.railLabel} rail={rail} main={<>
       <RuleChoiceSheet persona={persona} merchant={fixing ?? ""} title={fixing ? correctionCopy.loan.title(fixing) : ""} options={LOAN_OPTIONS} open={!!fixing} onClose={() => setFixing(null)} scoreNote />
       <SegmentedControl label={t.tabsLabel} value={tab} onChange={setTab} options={TABS.map((v) => ({ value: v, label: t.tabs[v] }))} />
 
       {tab === "overview" && (
         <div className="mt-t4 flex flex-col gap-t3">
-          {totals.debtToIncomePct90 !== null && (
-            <section className="rounded-card-s bg-accent-soft sm:rounded-card p-t5">
-              <p className="text-h3 text-text">{t.dti(formatPercent(totals.debtToIncomePct90, 0))}</p>
-              <p className="mt-t1 text-caption text-text-muted">{t.dtiNote}</p>
-            </section>
-          )}
           {loans.length ? (
             <>
               <h2 className="mt-t3 px-t1 text-card text-text sm:text-card-l">{t.loansHeading}</h2>
@@ -140,6 +165,7 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
           </section>
         </div>
       )}
+      </>} />
     </div>
   );
 }
