@@ -7,7 +7,7 @@ import { formatShortDay } from "@/lib/format";
 
 export function SafeToSpendPaused({ dataFrom }: { dataFrom: string }) {
   return (
-    <section aria-label={safeCopy.label} className="rounded-lg bg-surface p-t4">
+    <section aria-label={safeCopy.label} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
       <div className="flex items-start gap-t3">
         <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><Wallet size={24} /></span>
         <div className="min-w-0 flex-1">

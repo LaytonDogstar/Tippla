@@ -9,16 +9,16 @@ import { Sheet } from "@/components/ui/Sheet";
 export function AnalysingState({ home }: { home: boolean }) {
   return (
     <section aria-busy="true" aria-labelledby="an-h" className="mt-t2 flex flex-col gap-t3">
-      <div className="rounded-lg bg-surface p-t5">
-        <h2 id="an-h" className="text-h2 font-display text-text">{t.analysing.title}</h2>
+      <div className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
+        <h2 id="an-h" className="text-card text-text sm:text-card-l">{t.analysing.title}</h2>
         <p className="mt-t2 text-body text-text-muted">{t.analysing.body}</p>
         <ol className="mt-t4 flex list-decimal flex-col gap-t1 pl-t5 text-small text-text">{t.analysing.steps.map((s) => <li key={s}>{s}</li>)}</ol>
         <p role="status" className="mt-t3 text-caption text-text-muted">{t.analysing.loading}</p>
       </div>
       <div aria-hidden className="flex flex-col gap-t3">
-        <div className="rounded-lg bg-surface p-t5"><Skeleton className="h-t5 w-1/2" /><Skeleton className="mt-t4 h-[96px] w-full" /></div>
-        {home && <div className="rounded-lg bg-surface p-t5"><Skeleton className="h-t3 w-1/3" /><Skeleton className="mt-t4 h-t5 w-3/4" /><Skeleton className="mt-t3 h-t3 w-full" /></div>}
-        <div className="rounded-lg bg-surface p-t5"><Skeleton className="h-t3 w-1/4" /><Skeleton className="mt-t4 h-[120px] w-full" /></div>
+        <div className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5"><Skeleton className="h-t5 w-1/2" /><Skeleton className="mt-t4 h-[96px] w-full" /></div>
+        {home && <div className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5"><Skeleton className="h-t3 w-1/3" /><Skeleton className="mt-t4 h-t5 w-3/4" /><Skeleton className="mt-t3 h-t3 w-full" /></div>}
+        <div className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5"><Skeleton className="h-t3 w-1/4" /><Skeleton className="mt-t4 h-[120px] w-full" /></div>
       </div>
     </section>
   );

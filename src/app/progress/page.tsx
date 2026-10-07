@@ -29,7 +29,7 @@ export default async function Progress({ searchParams }: { searchParams: { perso
         <SavingsGoals persona={persona} account={account} asOf={data.asOf} goals={(account.savingsGoals ?? []).map((g) => savingsGoalStatus(data, g))} limit={savingsGoalLimit(data)}
           savingsAccounts={(data.bankStatement.profiles[0]?.accounts ?? []).filter((a) => a.type === "Savings").map((a) => ({ id: a.id, label: `${a.nickname} ··${a.last4}` }))} />
       )}
-      {isOn("streaks_v1", persona) && <Link href="/progress/whats-next" className="mt-t3 flex min-h-tap items-center justify-between rounded-lg bg-surface p-t4 text-body-strong text-accent hover:bg-surface2">{whatsNextCopy.title}<ChevronRight aria-hidden size={20} /></Link>}
+      {isOn("streaks_v1", persona) && <Link href="/progress/whats-next" className="mt-t3 flex min-h-tap items-center justify-between rounded-card-s bg-surface shadow-card sm:rounded-card p-t4 text-body-strong text-accent hover:bg-surface2">{whatsNextCopy.title}<ChevronRight aria-hidden size={20} /></Link>}
     </PortalShell>
   );
 }

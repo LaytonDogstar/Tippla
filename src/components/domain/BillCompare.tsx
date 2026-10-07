@@ -37,12 +37,12 @@ export function BillCompare({ persona, account, asOf, bills, state }: { persona:
   if (!bills.length) return null;
   return (
     <section aria-labelledby="bills-h" className="mt-t6 flex flex-col gap-t3">
-      <h2 id="bills-h" className="text-h2 font-display text-text">{t.heading}</h2>
+      <h2 id="bills-h" className="text-card text-text sm:text-card-l">{t.heading}</h2>
       <p className="text-small text-text-muted">{t.intro}</p>
       {bills.map((b) => {
         const reported = (acct.billSwitches ?? []).find((x) => x.merchant === b.merchant);
         return (
-          <article key={b.merchant} aria-labelledby={`bill-${b.merchant.replace(/\W+/g, "-")}`} className="rounded-md bg-surface p-t4">
+          <article key={b.merchant} aria-labelledby={`bill-${b.merchant.replace(/\W+/g, "-")}`} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
             <p className="text-caption text-text-muted">{t.categories[b.category]}</p>
             <h3 id={`bill-${b.merchant.replace(/\W+/g, "-")}`} className="text-h3 text-text">{t.line(b.merchant, formatDollars(Math.round(b.monthly)))}</h3>
             <p className="mt-t1 text-small text-text-muted">{b.category === "energy" ? (state === "VIC" ? t.energyVic : t.energy) : t.telco}</p>

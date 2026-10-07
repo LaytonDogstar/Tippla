@@ -36,7 +36,7 @@ export function EntitlementsCheck({ persona, account, asOf, context }: { persona
           <div className="mt-t2 flex flex-wrap gap-t2">
             {Object.entries(t.q[q].options).map(([k, v]) => (
               <button key={k} type="button" aria-pressed={answers[q] === k} onClick={() => setAnswers((a) => ({ ...a, [q]: a[q] === k ? undefined : k }))}
-                className={cx("min-h-tap rounded-pill border px-t4 text-small", answers[q] === k ? "border-accent bg-accent-soft text-accent" : "border-line bg-surface text-text")}>{v}</button>
+                className={cx("min-h-tap rounded-pill border px-t4 text-small", answers[q] === k ? "border-accent bg-accent-soft text-accent" : "border-divider bg-surface text-text")}>{v}</button>
             ))}
           </div>
         </fieldset>
@@ -48,10 +48,10 @@ export function EntitlementsCheck({ persona, account, asOf, context }: { persona
       <Button full onClick={see}>{t.see}</Button>
       {shown && (
         <section aria-labelledby="ent-results" className="flex flex-col gap-t3">
-          <h2 id="ent-results" className="text-h2 font-display text-text">{t.resultsTitle}</h2>
+          <h2 id="ent-results" className="text-card text-text sm:text-card-l">{t.resultsTitle}</h2>
           <ul className="flex flex-col gap-t3">
             {list.map((p) => (
-              <li key={p.id} className="rounded-md bg-surface p-t4">
+              <li key={p.id} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
                 <h3 className="text-h3 text-text">{t.programs[p.id]!.title}</h3>
                 <p className="mt-t1 text-small text-text-muted">{t.programs[p.id]!.body}</p>
                 <a href={p.url} target="_blank" rel="noopener noreferrer" onClick={() => track("entitlement_link_opened", { program: p.id })}

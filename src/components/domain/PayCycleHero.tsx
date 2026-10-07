@@ -25,7 +25,7 @@ export function PayCycleHero({ summary: s, onForecast, onSpent, onPaidIn, onAdva
   const headline = s.isShort ? copy.payCycle.short(formatWhole(-s.leftAfterBills)) : t.leftHeadline(formatWhole(s.leftAfterBills));
   const advance = s.payAdvances[0];
   return (
-    <section aria-label={t.label} className="overflow-hidden rounded-lg bg-surface">
+    <section aria-label={t.label} className="overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
       <div className="brand-surface on-brand p-t5">
         <p className="text-small">{t.label}</p>
         <p className="mt-t3 text-h1 font-display">{headline}</p>
@@ -75,7 +75,7 @@ export function PayCycleHero({ summary: s, onForecast, onSpent, onPaidIn, onAdva
         {/* More than one income source (wages + Centrelink): equal rows, same icon, type and colour. */}
         {s.incomeLines.length > 1 && (
           <>
-            <ul className="mt-t2 border-t border-line">
+            <ul className="mt-t2 border-t border-divider">
               {s.incomeLines.map((l) => (
                 <li key={`${l.payer}-${l.date}`} className="flex min-h-tap items-center gap-t3 text-small text-text">
                   <ArrowDownToLine aria-hidden size={20} className="shrink-0 text-neutral" />
@@ -101,7 +101,7 @@ export function PayCycleHero({ summary: s, onForecast, onSpent, onPaidIn, onAdva
 
         {advance && advance.repayAmount !== null && advance.repayDate && (
           <>
-            <hr aria-hidden className="my-t3 border-line" />
+            <hr aria-hidden className="my-t3 border-divider" />
             <button type="button" onClick={onAdvance} className="flex min-h-[64px] w-full items-center gap-t3 rounded-sm px-t1 text-left hover:bg-surface2">
               <span className="flex-1">
                 <span className="block text-small text-text">{copy.payCycle.advanceLine(formatWhole(advance.amount))}</span>

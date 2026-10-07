@@ -13,18 +13,18 @@ import type { PersonaId } from "@/lib/api/types";
 
 function Header({ backHref, title, titleLarge }: { backHref?: string; title?: string; titleLarge?: boolean }) {
   return (
-    <header className="flex min-h-[64px] items-center gap-t2 px-gutter pt-t3">
+    <header className="flex min-h-[64px] items-center gap-t3 px-gutter pt-t4 desktop:pt-t6">
       {backHref ? (
-        <Link href={backHref} aria-label={t.shell.back} className="-ml-t3 inline-flex h-tap w-tap items-center justify-center rounded-sm text-text hover:bg-surface2">
-          <ChevronLeft aria-hidden size={24} />
+        <Link href={backHref} aria-label={t.shell.back} className="inline-flex h-tap w-tap shrink-0 items-center justify-center rounded-pill bg-surface text-text-secondary shadow-card hover:text-text">
+          <ChevronLeft aria-hidden size={22} strokeWidth={1.8} />
         </Link>
       ) : <span className="w-t2" />}
       {title && (titleLarge
-        ? <h1 className="flex-1 text-h1 font-display text-text">{title}</h1>
-        : <p className="flex-1 text-center text-h3 text-text">{title}</p>)}
+        ? <h1 className="flex-1 text-greet text-text">{title}</h1>
+        : <p className="flex-1 text-center text-row text-text">{title}</p>)}
       {!title && <span className="flex-1" />}
-      <Link href="/help" aria-label={t.shell.support} className="-mr-t2 inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent hover:bg-surface2">
-        <MessageCircle aria-hidden size={24} />
+      <Link href="/help" aria-label={t.shell.support} className="inline-flex h-tap w-tap shrink-0 items-center justify-center rounded-pill bg-surface text-accent shadow-card hover:text-accent-strong">
+        <MessageCircle aria-hidden size={20} strokeWidth={1.8} />
       </Link>
     </header>
   );
@@ -38,7 +38,7 @@ export function OnboardingShell({ backHref, title, footer, children, step, conne
         <Header backHref={backHref} title={title} titleLarge />
         <main id="main" className="px-gutter pb-[calc(160px+env(safe-area-inset-bottom))]">{children}</main>
       </div>
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-bg">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-divider bg-bg">
         <div className="mx-auto flex max-w-[480px] flex-col gap-t2 px-gutter pt-t3">
           {footer}
           <Link href="/hardship" className="flex min-h-tap items-center justify-center gap-t2 rounded-sm text-small text-text-muted hover:bg-surface2">
@@ -94,7 +94,7 @@ export function PortalFrame({ path, title, backHref, persona, present, cta, head
         </main>
       </div>
       {cta && (
-        <div className="fixed inset-x-0 bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom))] z-20 border-t border-line bg-bg desktop:bottom-0 desktop:left-sidebar">
+        <div className="fixed inset-x-0 bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom))] z-20 border-t border-divider bg-bg desktop:bottom-0 desktop:left-sidebar">
           <div className="mx-auto max-w-[720px] px-gutter py-t4">{cta}</div>
         </div>
       )}

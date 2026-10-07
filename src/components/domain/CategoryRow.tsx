@@ -78,7 +78,7 @@ export function CategoryRow({ row, merchants = [], budget, showLifestyle, insigh
       <div id={id} hidden={!open} className="pb-t2 pl-[76px] sm:pl-[84px] pr-t4">
         <ul>
           {merchants.map((m) => (
-            <li key={m.merchant} className="border-t border-line">
+            <li key={m.merchant} className="border-t border-divider">
               <button type="button" onClick={() => onMerchant?.(m)} className="flex min-h-[52px] w-full items-center justify-between gap-t3 rounded-xs text-left text-small text-text hover:bg-surface2">
                 <span>{m.merchant}</span>
                 <span className="tnum font-numeric">{formatCents(m.total)}</span>

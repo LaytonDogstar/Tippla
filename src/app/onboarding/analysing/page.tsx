@@ -33,7 +33,7 @@ function Steps() {
         {t.steps.map((s, i) => {
           const state = i < done ? "done" : i === done ? "active" : "waiting";
           return (
-            <li key={s} className="flex items-center gap-t3 rounded-md bg-surface p-t4">
+            <li key={s} className="flex items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
               {state === "done"
                 ? <Check aria-hidden size={20} className="shrink-0 text-accent" />
                 : <Circle aria-hidden size={20} className={cx("shrink-0", state === "active" ? "text-accent" : "text-text-muted")} />}

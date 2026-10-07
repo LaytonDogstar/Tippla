@@ -26,7 +26,7 @@ export default async function CheaperCredit({ searchParams }: { searchParams: { 
       {!eligible ? <p className="mt-t4 text-body text-text">{t.notEligible}</p> : (
         <>
           <p className="mt-t4 text-body text-text">{t.intro}</p>
-          <ul className="mt-t3 flex flex-col gap-t2">{rows.map((x) => <li key={x.p} className="rounded-md bg-surface p-t4 text-body text-text">{t.row(x.p, formatWhole(x.r))}</li>)}</ul>
+          <ul className="mt-t3 flex flex-col gap-t2">{rows.map((x) => <li key={x.p} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4 text-body text-text">{t.row(x.p, formatWhole(x.r))}</li>)}</ul>
           <p className="mt-t3 text-small text-text-muted">{t.tip}</p>
           <Button full className="mt-t5" disabled>{t.notYet}</Button>
         </>

@@ -36,8 +36,8 @@ export function SavingsGoals({ persona, account, asOf, goals, limit, savingsAcco
     setOpen(false); setName(""); setTarget("");
   };
   return (
-    <section id="savings" aria-labelledby="savings-h" className="mt-t3 rounded-lg bg-surface p-t4">
-      <h2 id="savings-h" className="text-h3 text-text">{t.heading}</h2>
+    <section id="savings" aria-labelledby="savings-h" className="mt-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+      <h2 id="savings-h" className="text-card text-text sm:text-card-l">{t.heading}</h2>
       {limit === 0 ? <p className="mt-t1 text-small text-text-muted">{t.locked}</p> : (
         <>
           <p className="mt-t1 text-small text-text-muted">{t.intro}{limit > 1 ? ` ${t.max(limit)}` : ""}</p>

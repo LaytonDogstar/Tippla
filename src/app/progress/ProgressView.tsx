@@ -53,10 +53,10 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
     <div className="flex flex-col gap-t4 pb-t6 desktop:grid desktop:grid-cols-2 desktop:items-start desktop:gap-t6">
       <div className="flex flex-col gap-t4">
         {/* Goal */}
-        <section id="buffer" aria-labelledby="goal-h" className="rounded-lg bg-surface p-t4">
+        <section id="buffer" aria-labelledby="goal-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
           <div className="flex flex-wrap items-center gap-t2">
             <Flag aria-hidden size={20} className="text-accent" />
-            <h2 id="goal-h" className="text-h3 text-text">{t.goal.heading}</h2>
+            <h2 id="goal-h" className="text-card text-text sm:text-card-l">{t.goal.heading}</h2>
             <SampleTag q="Q22" present={present} />
           </div>
           {!plan ? (
@@ -90,8 +90,8 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
         </section>
 
         {/* Going well */}
-        <section aria-labelledby="streaks-h" className="rounded-lg bg-surface p-t4">
-          <h2 id="streaks-h" className="text-h3 text-text">{t.streaks.heading}</h2>
+        <section aria-labelledby="streaks-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+          <h2 id="streaks-h" className="text-card text-text sm:text-card-l">{t.streaks.heading}</h2>
           {p.streaks.length ? (
             <ul className="mt-t2 flex flex-col gap-t2">
               {p.streaks.map((s) => (
@@ -104,7 +104,7 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
         </section>
 
         {/* Tally: only once something has been counted or is waiting to be confirmed. */}
-        {(p.tally.items.length > 0 || p.tally.pending.length > 0) && <section aria-labelledby="ptally-h" className="flex items-start gap-t3 rounded-lg bg-surface p-t4">
+        {(p.tally.items.length > 0 || p.tally.pending.length > 0) && <section aria-labelledby="ptally-h" className="flex items-start gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
           <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-accent-soft text-accent"><PiggyBank size={24} /></span>
           <div className="min-w-0 flex-1">
             <h2 id="ptally-h" className="text-caption text-text-muted">{t.tally.heading}</h2>
@@ -116,8 +116,8 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
 
       <div className="flex flex-col gap-t4">
         {/* Money left before each payday */}
-        <section aria-labelledby="cycles-h" className="rounded-lg bg-surface p-t4">
-          <h2 id="cycles-h" className="text-h3 text-text">{t.cycles.heading}</h2>
+        <section aria-labelledby="cycles-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+          <h2 id="cycles-h" className="text-card text-text sm:text-card-l">{t.cycles.heading}</h2>
           <p className="mt-t1 text-small text-text-muted">{t.cycles.intro}</p>
           {p.cycles.length ? (
             <ul className="mt-t3 flex flex-col">
@@ -126,7 +126,7 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
                 const w = Math.round((Math.max(0, bal) / maxLeft) * 100);
                 const extras = [c.advances.count ? t.cycles.advance(c.advances.count) : null, c.fees.count ? t.cycles.fee(c.fees.count) : null].filter(Boolean);
                 return (
-                  <li key={c.cycle.start} className="border-t border-line py-t3">
+                  <li key={c.cycle.start} className="border-t border-divider py-t3">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-t3">
                       <span className="text-small text-text">{t.cycles.row(formatDayMonth(c.cycle.start), formatDayMonth(c.cycle.end))}</span>
                       <span className="tnum text-body-strong text-text">{bal >= 0 ? t.cycles.left(formatWhole(bal)) : `${t.cycles.below} (${formatWhole(bal)})`}</span>
@@ -145,12 +145,12 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
         </section>
 
         {/* Score and what you did */}
-        <section aria-labelledby="tl-h" className="rounded-lg bg-surface p-t4">
-          <h2 id="tl-h" className="text-h3 text-text">{t.timeline.heading}</h2>
+        <section aria-labelledby="tl-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+          <h2 id="tl-h" className="text-card text-text sm:text-card-l">{t.timeline.heading}</h2>
           {timeline.length ? (
             <ol className="mt-t3 flex flex-col">
               {timeline.map((e) => (
-                <li key={e.key} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-t3 border-t border-line py-t2">
+                <li key={e.key} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-t3 border-t border-divider py-t2">
                   <span className="tnum text-caption text-text-muted">{formatDayMonth(e.date)}</span>
                   <span className={e.score ? "text-small text-text" : "text-small text-accent"}>{e.text}</span>
                 </li>

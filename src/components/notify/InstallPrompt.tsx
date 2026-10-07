@@ -48,7 +48,7 @@ export function InstallPrompt({ hadValue }: { hadValue: boolean }) {
   };
 
   return (
-    <section aria-labelledby="install-h" className="rounded-lg bg-surface p-t4">
+    <section aria-labelledby="install-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
       <div className="flex items-start gap-t3">
         <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-accent-soft text-accent"><Smartphone size={24} /></span>
         <div className="min-w-0 flex-1">

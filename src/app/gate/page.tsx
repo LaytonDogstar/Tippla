@@ -10,7 +10,7 @@ export default function Gate({ searchParams }: { searchParams: { next?: string; 
   const error = searchParams.error === "1";
   return (
     <main id="main" className="flex min-h-[100dvh] items-center justify-center bg-bg px-gutter text-text">
-      <form method="post" action="/api/gate" className="w-full max-w-[400px] rounded-lg bg-surface p-t6">
+      <form method="post" action="/api/gate" className="w-full max-w-[400px] rounded-card-s bg-surface shadow-card sm:rounded-card p-t6">
         <h1 className="text-h1 font-display text-text">{t.title}</h1>
         <p className="mt-t2 text-body text-text-muted">{t.intro}</p>
         <input type="hidden" name="next" value={next} />

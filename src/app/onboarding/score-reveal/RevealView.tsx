@@ -35,7 +35,7 @@ export function RevealView({ state, topFactor, loansOpen, action, cycle, pattern
           </section>
         )}
         {action && (
-          <section className="mt-t3 rounded-md bg-surface p-t4" aria-labelledby="ft">
+          <section className="mt-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4" aria-labelledby="ft">
             <p className="text-caption text-text-muted">{t.firstThing}</p>
             <h2 id="ft" className="mt-t2 text-h2 font-display text-text">{action.title}</h2>
             <p className="mt-t3 text-small text-text-muted">{action.summary}</p>

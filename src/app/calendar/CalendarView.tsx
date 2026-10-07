@@ -27,8 +27,8 @@ export function CalendarInfoButton() {
   return (
     <>
       <button type="button" aria-label={t.info} onClick={() => setOpen(true)}
-        className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-pill bg-surface2 text-text hover:bg-neutral-soft">
-        <Info aria-hidden size={24} />
+        className="inline-flex h-tap w-tap shrink-0 items-center justify-center rounded-pill bg-surface text-text-secondary shadow-card hover:text-text desktop:h-[48px] desktop:w-[48px]">
+        <Info aria-hidden size={20} strokeWidth={1.8} />
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={t.info}>
         <div className="flex flex-col gap-t3">{t.infoBody.map((p) => <p key={p} className="text-body text-text-muted">{p}</p>)}</div>
@@ -71,11 +71,11 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
 
       <div className="mt-t4 flex items-center justify-between gap-t2">
         {nav.prev ? (
-          <Link href={nav.prev} aria-label={nav.prevLabel} className="inline-flex h-tap w-tap items-center justify-center rounded-sm text-accent hover:bg-surface2"><ChevronLeft aria-hidden size={24} /></Link>
+          <Link href={nav.prev} aria-label={nav.prevLabel} className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent hover:bg-surface2"><ChevronLeft aria-hidden size={20} strokeWidth={1.8} /></Link>
         ) : <span className="h-tap w-tap" />}
-        <h2 className="text-h3 text-text">{nav.label}</h2>
+        <h2 className="text-card text-text sm:text-card-l">{nav.label}</h2>
         {nav.next ? (
-          <Link href={nav.next} aria-label={nav.nextLabel} className="inline-flex h-tap w-tap items-center justify-center rounded-sm text-accent hover:bg-surface2"><ChevronRight aria-hidden size={24} /></Link>
+          <Link href={nav.next} aria-label={nav.nextLabel} className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent hover:bg-surface2"><ChevronRight aria-hidden size={20} strokeWidth={1.8} /></Link>
         ) : <span className="h-tap w-tap" />}
       </div>
 
@@ -83,9 +83,9 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
         <Button variant="tertiary" aria-pressed={list} onClick={() => setList((v) => !v)}>{list ? t.showGrid : t.showList}</Button>
       </div>
       {list ? (
-        <ul aria-label={`${t.listLabel}, ${nav.label}`} className="mt-t1 overflow-hidden rounded-md bg-surface">
+        <ul aria-label={`${t.listLabel}, ${nav.label}`} className="mt-t1 overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
           {days.filter((d) => !d.outside).map((d) => (
-            <li key={d.date} className="border-b border-line last:border-b-0">
+            <li key={d.date} className="border-b border-divider last:border-b-0">
               <button type="button" onClick={() => onDay(d)} aria-current={d.isToday ? "date" : undefined}
                 className={`flex min-h-[64px] w-full flex-col items-start gap-t1 p-t4 text-left hover:bg-surface2 ${from && to && d.date >= (from < to ? from : to) && d.date <= (from < to ? to : from) ? "bg-accent-soft" : ""}`}>
                 <span className="text-body-strong text-text">{withYear(d.date)}{d.isToday ? ` · ${cal.today}` : ""}{d.isPayday ? ` · ${cal.pay}` : ""}</span>
@@ -97,7 +97,7 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
           ))}
         </ul>
       ) : (
-        <div className="mt-t1 rounded-md bg-surface py-t3">
+        <div className="mt-t1 rounded-card-s bg-surface shadow-card sm:rounded-card py-t3">
           <CalendarGrid days={days} label={nav.label} selected={rangeMode || totals ? null : selected} rangeFrom={from} rangeTo={to ?? from}
             initialFocus={focus ?? openDay} nextPayday={null} onDay={onDay} />
         </div>
@@ -126,8 +126,8 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
       </div>
 
       {totals ? (
-        <section ref={rangeCard} tabIndex={-1} aria-labelledby="range-h" className="mt-t3 rounded-md bg-surface p-t5">
-          <h2 id="range-h" className="text-h3 text-text">{t.rangeTitle(formatShortDay(totals.from), formatShortDay(totals.to))}</h2>
+        <section ref={rangeCard} tabIndex={-1} aria-labelledby="range-h" className="mt-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
+          <h2 id="range-h" className="text-card text-text sm:text-card-l">{t.rangeTitle(formatShortDay(totals.from), formatShortDay(totals.to))}</h2>
           <p className="text-caption text-text-muted">{t.rangeDays(totals.days)}</p>
           <dl className="mt-t3 grid grid-cols-2 gap-t3">
             <Fig label={t.rangeSpent} value={formatWhole(totals.spent)} />
@@ -138,7 +138,7 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
           <Button variant="tertiary" className="mt-t3" onClick={clearRange}>{t.clearRange}</Button>
         </section>
       ) : sel && (
-        <section aria-label={t.selected(withYear(sel.date))} className="mt-t3 flex min-h-[88px] items-center gap-t3 rounded-md bg-surface p-t5">
+        <section aria-label={t.selected(withYear(sel.date))} className="mt-t3 flex min-h-[88px] items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
           <div className="min-w-0 flex-1">
             <p className="text-caption text-text-muted">{sel.isToday ? t.today(formatShortDay(sel.date)) : formatShortDay(sel.date)}</p>
             <p className="mt-t1 text-small text-text">
@@ -193,7 +193,7 @@ function DaySheet({ day, days, asOf, tx, isShort, onClose }: { day: CalendarDay 
               {spend.length ? (
                 <ul className="mt-t2">
                   {spend.map((x) => (
-                    <li key={x.id} className="flex min-h-[48px] items-center justify-between gap-t3 border-t border-line">
+                    <li key={x.id} className="flex min-h-[48px] items-center justify-between gap-t3 border-t border-divider">
                       <span className="min-w-0">
                         <span className="block text-small text-text">{x.merchant}</span>
                         <span className="block text-caption text-text-muted">{categoryNames[x.category]}{x.status === "pending" ? ` · ${txCopy.pending}` : ""}</span>

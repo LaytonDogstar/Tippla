@@ -10,7 +10,7 @@ export type ButtonVariant = "primary" | "secondary" | "tertiary" | "destructive"
 export type ButtonSize = "compact" | "standard" | "large";
 
 const base =
-  "inline-flex items-center justify-center gap-t2 rounded-sm text-body-strong min-w-tap select-none " +
+  "inline-flex items-center justify-center gap-t2 rounded-pill text-body-strong min-w-tap select-none " +
   "transition-[box-shadow,background-color] duration-fast ease-tippla text-center";
 const sizes: Record<ButtonSize, string> = {
   compact: "min-h-[44px] px-t3",

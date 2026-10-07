@@ -49,7 +49,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday, 
   return (
     <section aria-labelledby="needs-a-look">
       <div className="flex flex-wrap items-baseline justify-between gap-x-t3 px-t1 pb-t2">
-        <h2 id="needs-a-look" className="text-h2 font-display text-text">{t.heading}</h2>
+        <h2 id="needs-a-look" className="text-card text-text sm:text-card-l">{t.heading}</h2>
         {open.length > FEED_MAX && (
           <button type="button" onClick={() => { if (!all) track("feed_see_all_opened", { item_count: open.length }); setAll((v) => !v); }} className="min-h-tap rounded-sm px-t1 text-small text-accent hover:bg-surface2">
             {all ? t.showFewer : t.seeAll(open.length)}
@@ -57,7 +57,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday, 
         )}
       </div>
       {open.length === 0 ? (
-        <p className="flex items-center gap-t3 rounded-md bg-surface p-t4 text-small text-text">
+        <p className="flex items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4 text-small text-text">
           <CircleCheck aria-hidden size={24} className="shrink-0 text-neutral" />{t.allClear(checked)}
         </p>
       ) : (
@@ -76,7 +76,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday, 
                     </Link>
                   )}
                 </div>
-                <div className="mt-t1 flex flex-wrap gap-x-t2 border-t border-line pt-t1">
+                <div className="mt-t1 flex flex-wrap gap-x-t2 border-t border-divider pt-t1">
                   <Button variant="tertiary" aria-label={`${t.done}: ${item.title}`} onClick={() => set(item, { status: "done", at: asOf, amount: item.amountAtStake }, t.toast.done)}>{t.done}</Button>
                   <Button variant="tertiary" aria-label={`${t.snooze}: ${item.title}`} onClick={() => setSnoozing(item)}>{t.snooze}</Button>
                   <Button variant="tertiary" aria-label={`${t.dismiss}: ${item.title}`} onClick={() => set(item, { status: "dismissed", at: asOf, amount: item.amountAtStake }, t.toast.dismissed)}>{t.dismiss}</Button>

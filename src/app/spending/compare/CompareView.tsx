@@ -32,16 +32,16 @@ export function CompareView({ present, initialTab, history, cohort }: {
 }
 
 function History({ h }: { h: ReturnType<typeof compareWithHistory> }) {
-  if (!h.hasHistory) return <p className="mt-t4 rounded-md bg-surface p-t5 text-small text-text">{t.history.notEnough}</p>;
+  if (!h.hasHistory) return <p className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.history.notEnough}</p>;
   const max = Math.max(1, ...h.rows.flatMap((r) => [r.thisCycle, ...r.cycles.map((c) => c.total)]));
   return (
     <>
       <p className="mt-t4 text-small text-text-muted">{t.history.note(h.daysSoFar)}</p>
       <ul className="mt-t3 flex flex-col gap-t3">
         {h.rows.map((r) => (
-          <li key={r.category} className="rounded-md bg-surface p-t4">
+          <li key={r.category} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-t3">
-              <h2 className="text-h3 text-text">{r.name}</h2>
+              <h2 className="text-card text-text sm:text-card-l">{r.name}</h2>
               <span className="tnum text-small text-text-muted">{t.history.average}: <span className="text-body-strong text-text">{formatWhole(r.average)}</span></span>
             </div>
             <dl className="mt-t3 flex flex-col gap-t2">
@@ -79,9 +79,9 @@ function Cohort({ c, present }: { c: ReturnType<typeof sampleCohort>; present: b
           const pct = (v: number) => `${Math.min(100, (v / max) * 100)}%`;
           const label = t.cohort.row(r.name, r.you === null ? "—" : formatWhole(r.you), formatWhole(r.low), formatWhole(r.high), formatWhole(r.middle));
           return (
-            <li key={r.category} className="rounded-md bg-surface p-t4">
+            <li key={r.category} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
               <div className="flex flex-wrap items-baseline justify-between gap-x-t3">
-                <h2 className="text-h3 text-text">{r.name}</h2>
+                <h2 className="text-card text-text sm:text-card-l">{r.name}</h2>
                 <span className="tnum text-small text-text">{t.cohort.you} {r.you === null ? "—" : formatWhole(r.you)}</span>
               </div>
               <div role="img" aria-label={label} className="relative mt-t4 h-[24px]">

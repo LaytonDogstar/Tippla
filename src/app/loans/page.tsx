@@ -20,7 +20,7 @@ export default async function Loans({ searchParams }: { searchParams: { persona?
   return (
     <PortalShell path="/loans" persona={persona} present={presentationMode(searchParams.present)}
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined}
-        action={<Link href="/spending?category=loan_repayment&direction=out" aria-label={t.search} className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-pill bg-surface2 text-text hover:bg-neutral-soft"><Search aria-hidden size={24} /></Link>} />}>
+        action={<Link href="/spending?category=loan_repayment&direction=out" aria-label={t.search} className="inline-flex h-tap w-tap shrink-0 items-center justify-center rounded-pill bg-surface text-text-secondary shadow-card hover:text-text desktop:h-[48px] desktop:w-[48px]"><Search aria-hidden size={20} strokeWidth={1.8} /></Link>} />}>
       <LoansView
         persona={persona}
         corrections={isOn("corrections_v1", persona)}

@@ -24,7 +24,7 @@ function Choice({ label, options, value, onChange }: { label: string; options: R
       <div className="mt-t2 flex flex-wrap gap-t2">
         {Object.entries(options).map(([k, v]) => (
           <button key={k} type="button" aria-pressed={value === k} onClick={() => onChange(value === k ? "" : k)}
-            className={cx("min-h-tap rounded-pill border px-t4 text-small", value === k ? "border-accent bg-accent-soft text-accent" : "border-line bg-surface text-text")}>{v}</button>
+            className={cx("min-h-tap rounded-pill border px-t4 text-small", value === k ? "border-accent bg-accent-soft text-accent" : "border-divider bg-surface text-text")}>{v}</button>
         ))}
       </div>
     </fieldset>

@@ -26,11 +26,11 @@ function text(a: Aha): { title: string; body: string; show: string; sheetTitle: 
 
 function Detail({ a }: { a: Aha }) {
   const row = (k: string, left: string, right: string) => (
-    <li key={k} className="flex min-h-tap items-center justify-between gap-t3 border-b border-line py-t2 text-body text-text"><span>{left}</span><span className="tnum">{right}</span></li>
+    <li key={k} className="flex min-h-tap items-center justify-between gap-t3 border-b border-divider py-t2 text-body text-text"><span>{left}</span><span className="tnum">{right}</span></li>
   );
   if (a.type === "shortfall") return <><ul>{a.bills.map((b) => row(b.merchant + b.date, `${b.merchant} · ${formatDayMonth(b.date)}`, formatWhole(b.amount)))}</ul><p className="mt-t3 text-small text-text-muted">{t.shortfall.sheetNote}</p></>;
   if (a.type === "subscriptions") return <ul>{a.rows.map((r) => row(r.merchant, r.merchant, t.subscriptions.perYear(formatWhole(r.perYear))))}</ul>;
-  if (a.type === "advance_fees") return <ul>{a.fees.map((f) => <li key={f.date} className="border-b border-line py-t2 text-body text-text">{t.advance_fees.fee(formatDayMonth(f.date), formatWhole(f.amount))}</li>)}</ul>;
+  if (a.type === "advance_fees") return <ul>{a.fees.map((f) => <li key={f.date} className="border-b border-divider py-t2 text-body text-text">{t.advance_fees.fee(formatDayMonth(f.date), formatWhole(f.amount))}</li>)}</ul>;
   return <p className="text-body text-text-muted">{a.factor ? a.factor.explains + "." : t.positive.payBody}</p>;
 }
 
@@ -41,7 +41,7 @@ export function InsightView({ aha, present }: { aha: Aha; present: boolean }) {
   return (
     <OnboardingShell step="aha" title={t.eyebrow} footer={<ButtonLink href="/onboarding/score-reveal" size="standard" full>{t.next}</ButtonLink>}>
       <section aria-labelledby="aha" className={aha.type === "shortfall" ? "mt-t4 rounded-lg bg-caution-soft p-t5" : "mt-t4 rounded-lg bg-accent-soft p-t5"}>
-        <h2 id="aha" className="text-h2 font-display text-text">{c.title}</h2>
+        <h2 id="aha" className="text-card text-text sm:text-card-l">{c.title}</h2>
         <p className="mt-t3 text-body text-text">{c.body}</p>
         <Button variant="secondary" full className="mt-t5" onClick={() => { track("aha_actioned", { type: aha.type }); setOpen(true); }}>{c.show}</Button>
       </section>

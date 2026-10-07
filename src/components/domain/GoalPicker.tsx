@@ -14,7 +14,7 @@ export function GoalPicker({ options, value, onChange, legend }: { options: Goal
       <legend className="sr-only">{legend}</legend>
       <div className="flex flex-col gap-t2">
         {options.map((o) => (
-          <div key={o.type} className={cx("rounded-md border", value === o.type ? "border-accent bg-accent-soft" : "border-line bg-surface")}>
+          <div key={o.type} className={cx("rounded-md border", value === o.type ? "border-accent bg-accent-soft" : "border-divider bg-surface")}>
             <label className="flex min-h-tap cursor-pointer items-center gap-t3 p-t4">
               <input type="radio" name="focus-goal" value={o.type} checked={value === o.type} onChange={() => onChange(o.type)}
                 aria-describedby={o.type === "gambling_less" ? "goal-gambling-note" : undefined} className="h-[20px] w-[20px] shrink-0 accent-[var(--color-accent)]" />

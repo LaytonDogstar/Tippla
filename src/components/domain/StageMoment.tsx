@@ -18,8 +18,8 @@ export function StageMomentCard({ persona, account, moment }: { persona: Persona
   useEffect(() => { track("band_reached", { band: moment.stage }); }, [moment.stage]);
   const seen = () => update((l) => ({ ...l, bandsSeen: [...new Set([...(l.bandsSeen ?? []), moment.stage])] }));
   return (
-    <section aria-labelledby="moment-h" className="rounded-lg bg-accent-soft p-t5">
-      <h2 id="moment-h" className="text-h2 font-display text-text">{t.title(stageNames[moment.stage])}</h2>
+    <section aria-labelledby="moment-h" className="rounded-card-s bg-accent-soft sm:rounded-card p-t5">
+      <h2 id="moment-h" className="text-card text-text sm:text-card-l">{t.title(stageNames[moment.stage])}</h2>
       <p className="mt-t2 text-body text-text">{t.journey(moment.from, moment.to, moment.cycles)}</p>
       {moment.feesAvoided > 0 && <p className="mt-t1 text-body text-text">{t.fees(formatDollars(moment.feesAvoided))}</p>}
       <div className="mt-t4 flex flex-wrap gap-t2">

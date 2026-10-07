@@ -55,7 +55,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
 
   return (
     <div className="pb-t6">
-      <section className="mt-t2 rounded-lg bg-surface p-t5">
+      <section className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
         <p className="text-small text-text-muted">{t.count(subs.rows.length)}</p>
         <p className="tnum mt-t2 text-h2 font-display text-text">{t.total(formatWhole(subs.totalPerPayCycle), formatWhole(subs.totalPerYear))}</p>
         <p className="mt-t2 text-small text-text-muted">{t.intro}</p>
@@ -66,12 +66,12 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
           const reminder = prefs.reminders[s.merchant];
           return (
             <li key={s.merchant}>
-              <article aria-labelledby={`sub-${s.merchant.replace(/\W+/g, "-")}`} className="rounded-md bg-surface p-t4">
+              <article aria-labelledby={`sub-${s.merchant.replace(/\W+/g, "-")}`} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
                 <div className="flex items-start gap-t3">
                   <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2" style={{ color: catVar("subscriptions") }}><Repeat size={24} /></span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-t3">
-                      <h2 id={`sub-${s.merchant.replace(/\W+/g, "-")}`} className="text-h3 text-text">{s.merchant}</h2>
+                      <h2 id={`sub-${s.merchant.replace(/\W+/g, "-")}`} className="text-card text-text sm:text-card-l">{s.merchant}</h2>
                       <span className="tnum text-body-strong text-text">{t.amount(formatCents(s.amount), t.cadence[s.cadence])}</span>
                     </div>
                     <p className="mt-t1 text-caption text-text-muted">{t.lastCharged(formatShortDay(s.last_charged))} · {t.nextCharge(formatShortDay(s.nextCharge))}</p>
@@ -92,7 +92,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
                     )}
                   </div>
                 </div>
-                <div className="mt-t3 flex flex-wrap gap-t2 border-t border-line pt-t3">
+                <div className="mt-t3 flex flex-wrap gap-t2 border-t border-divider pt-t3">
                   <Button variant="tertiary" aria-pressed={kept} onClick={() => {
                     const before = prefs;
                     save({ ...prefs, kept: { ...prefs.kept, [s.merchant]: !kept } });

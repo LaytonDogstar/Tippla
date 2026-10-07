@@ -50,12 +50,12 @@ export function InsightCard({ items, loading, onOpen, onDismissUndo, dismissed }
         {items.length > 1 && (
           <div className="flex h-tap items-center rounded-sm bg-surface">
             <button type="button" aria-label={ui.previous} disabled={idx === 0} onClick={() => go(idx - 1)}
-              className="inline-flex h-tap w-tap items-center justify-center rounded-sm text-accent disabled:bg-surface2 disabled:text-text-muted">
+              className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent disabled:bg-surface2 disabled:text-text-muted">
               <ChevronLeft aria-hidden size={20} />
             </button>
             <span className="tnum w-tap text-center text-caption text-text">{ui.pageOf(idx + 1, items.length)}</span>
             <button type="button" aria-label={ui.next} disabled={idx === items.length - 1} onClick={() => go(idx + 1)}
-              className="inline-flex h-tap w-tap items-center justify-center rounded-sm text-accent disabled:bg-surface2 disabled:text-text-muted">
+              className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent disabled:bg-surface2 disabled:text-text-muted">
               <ChevronRight aria-hidden size={20} />
             </button>
           </div>

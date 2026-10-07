@@ -13,11 +13,11 @@ export function OfferCard({ offer: o, onDetails, onNotInterested }: { offer: Off
   const id = useId();
   const totalCost = sumMoney([o.total_repayable, -o.amount]);
   return (
-    <article className="rounded-md bg-surface p-t5">
+    <article className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
       <div className="flex items-center gap-t3">
         <span aria-hidden className="inline-flex h-[40px] w-[40px] items-center justify-center rounded-sm bg-surface2 text-neutral"><Landmark size={24} /></span>
         <div>
-          <h2 className="text-h3 text-text">{o.lender.replace(/\s*\(sample\)$/i, "")}</h2>
+          <h2 className="text-card text-text sm:text-card-l">{o.lender.replace(/\s*\(sample\)$/i, "")}</h2>
           {/\(sample\)$/i.test(o.lender) && <p className="text-caption text-text-muted">{t.sampleLabel}</p>}
         </div>
       </div>
@@ -34,7 +34,7 @@ export function OfferCard({ offer: o, onDetails, onNotInterested }: { offer: Off
         <div className="mt-t4"><dt className="text-caption text-text-muted">{t.totalCost}</dt><dd className="tnum text-body-strong text-text">{formatCents(totalCost)}</dd></div>
         <div className="mt-t4"><dt className="text-caption text-text-muted">{t.totalRepaid}</dt><dd className="tnum text-body-strong text-text">{formatCents(o.total_repayable)}</dd></div>
       </dl>
-      <hr aria-hidden className="mt-t5 border-line" />
+      <hr aria-hidden className="mt-t5 border-divider" />
       <button type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)} className="mt-t2 flex min-h-tap w-full items-center justify-between rounded-sm text-small text-accent hover:bg-surface2">
         {t.whyMatched}
         {open ? <ChevronUp aria-hidden size={20} /> : <ChevronDown aria-hidden size={20} />}

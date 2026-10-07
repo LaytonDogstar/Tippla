@@ -60,7 +60,7 @@ const config: Config = {
       transitionTimingFunction: { tippla: "var(--motion-easing)" },
       minHeight: { tap: `${tokens.layout.minTap}px` },
       height: { tap: `${tokens.layout.minTap}px`, tab: "var(--tab-bar-height)" },
-      width: { sidebar: "var(--sidebar-width)", drawer: "var(--drawer-width)" },
+      width: { sidebar: "var(--sidebar-width)", drawer: "var(--drawer-width)", tap: `${tokens.layout.minTap}px` },
       padding: { gutter: "var(--gutter)" },
       screens: { tablet: `${tokens.layout.breakpoints?.tablet ?? 768}px`, desktop: `${tokens.layout.breakpoints?.desktop ?? 1024}px` },
       minWidth: { tap: `${tokens.layout.minTap}px` },

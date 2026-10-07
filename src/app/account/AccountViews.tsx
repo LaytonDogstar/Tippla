@@ -74,12 +74,12 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
   return (
     <div className="flex flex-col gap-t4 pb-t6">
       <h1 className="sr-only">{t.profile.title}</h1>
-      <section aria-labelledby="det-h" className="mt-t2 rounded-md bg-surface">
+      <section aria-labelledby="det-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card">
         <h2 id="det-h" className="p-t4 pb-t2 text-h3 text-text">{t.profile.details}</h2>
         <dl>
-          <div className="border-t border-line px-t4 py-t3"><dt className="text-caption text-text-muted">{t.profile.name}</dt><dd className="text-body text-text">{details.name}</dd><dd className="text-caption text-text-muted">{t.profile.readOnly}</dd></div>
+          <div className="border-t border-divider px-t4 py-t3"><dt className="text-caption text-text-muted">{t.profile.name}</dt><dd className="text-body text-text">{details.name}</dd><dd className="text-caption text-text-muted">{t.profile.readOnly}</dd></div>
           {(["email", "mobile"] as const).map((f) => (
-            <div key={f} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-t3 border-t border-line px-t4 py-t2">
+            <div key={f} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-t3 border-t border-divider px-t4 py-t2">
               <dt className="col-start-1 row-start-1 text-caption text-text-muted">{t.profile[f]}</dt>
               <dd className="col-start-1 row-start-2 break-words text-body text-text">{details[f]}</dd>
               <dd className="col-start-2 row-span-2 row-start-1"><Button variant="tertiary" aria-label={t.profile.editTitle(t.profile[f])} onClick={() => { setEditing(f); setDraft(details[f]); setError(undefined); }}>{t.profile.edit}</Button></dd>
@@ -88,16 +88,16 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
         </dl>
       </section>
 
-      <section id="notifications" aria-labelledby="ch-h" className="scroll-mt-t6 rounded-md bg-surface p-t4">
-        <h2 id="ch-h" className="text-h3 text-text">{t.profile.channelsHeading}</h2>
+      <section id="notifications" aria-labelledby="ch-h" className="scroll-mt-t6 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+        <h2 id="ch-h" className="text-card text-text sm:text-card-l">{t.profile.channelsHeading}</h2>
         <p className="mt-t1 text-small text-text-muted">{t.profile.eventsOnly}</p>
         <p className="mt-t2 text-small text-text-muted">{t.profile.policy} <SampleTag q="Q21" present={present} /></p>
         <PushSetup persona={persona} />
-        <div className="mt-t3 border-t border-line pt-t2">
+        <div className="mt-t3 border-t border-divider pt-t2">
           <Toggle label={t.profile.pauseAll} checked={prefs.paused} onChange={(v) => setNotify("channel", { paused: v })} />
           <p className="text-caption text-text-muted">{t.profile.pauseNote}</p>
         </div>
-        <fieldset className="mt-t3 border-t border-line pt-t3">
+        <fieldset className="mt-t3 border-t border-divider pt-t3">
           <legend className="text-body-strong text-text">{t.profile.quietHeading}</legend>
           <div className="mt-t2 grid grid-cols-2 gap-t3">
             <SelectInput label={t.profile.quietFrom} value={prefs.quiet.start} options={HOURS.map((h) => ({ value: h, label: t.profile.time(h) }))}
@@ -107,17 +107,17 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
           </div>
           <p className="mt-t1 text-caption text-text-muted">{t.profile.quietNote}</p>
         </fieldset>
-        <div className="mt-t3 border-t border-line pt-t2">
+        <div className="mt-t3 border-t border-divider pt-t2">
           <Toggle label={t.profile.detailed} checked={prefs.detailed} onChange={(v) => setNotify("privacy", { detailed: v })} />
           <p className="text-caption text-text-muted">{t.profile.detailedNote}</p>
         </div>
-        <div className="mt-t3 border-t border-line pt-t2">
+        <div className="mt-t3 border-t border-divider pt-t2">
           <Toggle label={t.profile.digest} checked={prefs.digest} onChange={(v) => setNotify("digest", { digest: v })} />
           <p className="text-caption text-text-muted">{t.profile.digestNote}</p>
         </div>
-        <p className="mt-t4 border-t border-line pt-t3 text-small text-text-muted">{t.profile.channelsIntro}</p>
+        <p className="mt-t4 border-t border-divider pt-t3 text-small text-text-muted">{t.profile.channelsIntro}</p>
         {TYPES.map((type) => (
-          <fieldset key={type} className="mt-t4 border-t border-line pt-t3">
+          <fieldset key={type} className="mt-t4 border-t border-divider pt-t3">
             <legend className="sr-only">{t.profile.types[type]}</legend>
             <p aria-hidden className="text-body-strong text-text">{t.profile.types[type]}</p>
             {(["push", "email"] as const).map((ch) => (
@@ -128,8 +128,8 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
         ))}
       </section>
 
-      <section aria-labelledby="insights-h" className="rounded-md bg-surface p-t4">
-        <h2 id="insights-h" className="text-h3 text-text">{t.profile.insightsHeading}</h2>
+      <section aria-labelledby="insights-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+        <h2 id="insights-h" className="text-card text-text sm:text-card-l">{t.profile.insightsHeading}</h2>
         <Toggle label={t.profile.gamblingLabel} checked={!account.hideGambling} onChange={(v) => {
           update((l) => { const n = { ...l }; if (v) delete n.hideGambling; else n.hideGambling = true; return n; });
           toast({ kind: "confirm", message: t.profile.gamblingSaved(v) });
@@ -137,8 +137,8 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
         <p className="text-caption text-text-muted">{t.profile.gamblingNote}</p>
       </section>
 
-      <section aria-labelledby="usage-h" className="rounded-md bg-surface p-t4">
-        <h2 id="usage-h" className="text-h3 text-text">{t.profile.usageHeading}</h2>
+      <section aria-labelledby="usage-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+        <h2 id="usage-h" className="text-card text-text sm:text-card-l">{t.profile.usageHeading}</h2>
         <Toggle label={t.profile.usageLabel} checked={account.analytics !== false} onChange={(v) => {
           // Record the change only while it's on: turning it off is the last thing we'd record, so we don't.
           if (v) track("analytics_consent_changed", { granted: true });
@@ -148,7 +148,7 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
         <p className="text-caption text-text-muted">{t.profile.usageNote}</p>
       </section>
 
-      <section aria-labelledby="th-h" className="rounded-md bg-surface p-t4">
+      <section aria-labelledby="th-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
         <h2 id="th-h" className="sr-only">{t.profile.themeHeading}</h2>
         <RadioGroup legend={t.profile.themeHeading} value={theme} onChange={applyTheme}
           options={(["system", "light", "dark"] as Theme[]).map((v) => ({ value: v, label: t.profile.theme[v] }))} />
@@ -193,9 +193,9 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
   return (
     <div className="flex flex-col gap-t4 pb-t6">
       <h1 className="sr-only">{t.subscription.title}</h1>
-      <section aria-labelledby="plan-h" className="mt-t2 rounded-lg bg-surface p-t5">
+      <section aria-labelledby="plan-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
         <div className="flex flex-wrap items-center gap-t2">
-          <h2 id="plan-h" className="text-h2 font-display text-text">{t.subscription.plan(b.planName)}</h2>
+          <h2 id="plan-h" className="text-card text-text sm:text-card-l">{t.subscription.plan(b.planName)}</h2>
           <span className="inline-flex min-h-[24px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.subscription.status[b.status]}</span>
         </div>
         <p className="tnum mt-t1 text-body text-text">{t.subscription.price(formatCents(b.price))}</p>
@@ -234,8 +234,8 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
       </section>
 
       {b.status === "active" && al && pref && (
-        <section aria-labelledby="when-h" className="rounded-md bg-surface p-t4">
-          <h2 id="when-h" className="text-h3 text-text">{t.subscription.whenHeading}</h2>
+        <section aria-labelledby="when-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+          <h2 id="when-h" className="text-card text-text sm:text-card-l">{t.subscription.whenHeading}</h2>
           <div className="mt-t3 flex flex-col gap-t4">
             <RadioGroup legend={t.subscription.whenHeading} value={pref.mode}
               onChange={(mode) => setPref({ mode, cadence: mode === "fixed_date" ? "monthly" : pref.cadence, ...(mode === "fixed_date" ? { fixedDay: pref.fixedDay ?? Number(al.nominal.slice(8)) } : {}) })}
@@ -259,11 +259,11 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
         </section>
       )}
 
-      <section aria-labelledby="hist-h" className="rounded-md bg-surface">
+      <section aria-labelledby="hist-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card">
         <h2 id="hist-h" className="p-t4 pb-t2 text-h3 text-text">{t.subscription.history}</h2>
         {b.history.length ? (
           <ul>{b.history.map((h) => (
-            <li key={h.date} className="tnum flex min-h-[52px] items-center justify-between border-t border-line px-t4 text-small text-text">
+            <li key={h.date} className="tnum flex min-h-[52px] items-center justify-between border-t border-divider px-t4 text-small text-text">
               <span>{formatDate(h.date)} · {PLANS[h.plan].name}</span><span>{formatCents(h.amount)} · {t.subscription.paid}</span>
             </li>
           ))}</ul>
@@ -314,9 +314,9 @@ export function ConsentsView({ persona, account: initial, consents, asOf }: { pe
       {consents.map((c) => {
         const s = state(c);
         return (
-          <section key={c.id} id={c.id} aria-labelledby={`c-${c.id}`} className="rounded-md bg-surface p-t4">
+          <section key={c.id} id={c.id} aria-labelledby={`c-${c.id}`} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
             <div className="flex flex-wrap items-center gap-t2">
-              <h2 id={`c-${c.id}`} className="text-h3 text-text">{c.label}</h2>
+              <h2 id={`c-${c.id}`} className="text-card text-text sm:text-card-l">{c.label}</h2>
               <span className="inline-flex min-h-[24px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{c.required ? t.consents.required : t.consents.optional}</span>
             </div>
             <p className="mt-t1 text-caption text-text-muted">{s.granted && s.at ? t.consents.given(formatDate(toAESTDate(s.at))) : t.consents.notGiven} · {t.consents.version(c.version)}</p>
@@ -360,8 +360,8 @@ export function BankView({ persona, account: initial, accounts, refreshedAt, hea
       <h1 className="sr-only">{t.bank.title}</h1>
       <p className="mt-t2 text-small text-text-muted">{t.bank.intro}</p>
       {accounts.map((a) => (
-        <section key={a.id} aria-label={t.bank.account(a.nickname, a.last4)} className="rounded-md bg-surface p-t4">
-          <h2 className="text-h3 text-text">{t.bank.account(a.nickname, a.last4)}</h2>
+        <section key={a.id} aria-label={t.bank.account(a.nickname, a.last4)} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+          <h2 className="text-card text-text sm:text-card-l">{t.bank.account(a.nickname, a.last4)}</h2>
           <p className="text-caption text-text-muted">{a.type}{health ? ` · ${h.bank.status[health.status]}` : ""}</p>
           {health?.consentEndsOn && <p className="mt-t1 text-small text-text">{h.bank.consentEnds(formatShortDay(health.consentEndsOn))}</p>}
           {reminders.length > 0 && <p className="mt-t1 text-small text-text-muted">{h.bank.reminders(reminders.map((r) => formatShortDay(r)))}</p>}
@@ -382,13 +382,13 @@ export function BankView({ persona, account: initial, accounts, refreshedAt, hea
         </section>
       ))}
       {unconnected > 0 && (
-        <section aria-labelledby="add-acc" className="rounded-md bg-accent-soft p-t4">
-          <h2 id="add-acc" className="text-h3 text-text">{h.bank.addTitle}</h2>
+        <section aria-labelledby="add-acc" className="rounded-card-s bg-accent-soft sm:rounded-card p-t4">
+          <h2 id="add-acc" className="text-card text-text sm:text-card-l">{h.bank.addTitle}</h2>
           <p className="mt-t1 text-small text-text">{h.bank.addBody(unconnected)}</p>
           <Button full className="mt-t3" onClick={() => setSheet("add")}>{h.bank.add}</Button>
         </section>
       )}
-      <section className="rounded-md bg-surface p-t4">
+      <section className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
         <Button full variant="secondary" onClick={() => setSheet("add")}>{t.bank.add}</Button>
         <p className="mt-t2 text-small text-text-muted">{t.bank.addNote}</p>
       </section>

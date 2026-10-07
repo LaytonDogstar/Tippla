@@ -93,7 +93,7 @@ export function AssistantView({ suggestions, initial, entry, modeLabel, present 
         <section aria-labelledby="sugg-h">
           <h2 id="sugg-h" className="text-caption text-text-muted">{t.suggested}</h2>
           <ul className="mt-t2 flex flex-wrap gap-t2">
-            {suggestions.map((s) => <li key={s}><button type="button" onClick={() => ask(s)} className="min-h-tap rounded-pill border border-line bg-surface px-t4 text-small text-text hover:bg-surface2">{s}</button></li>)}
+            {suggestions.map((s) => <li key={s}><button type="button" onClick={() => ask(s)} className="min-h-tap rounded-pill border border-divider bg-surface px-t4 text-small text-text hover:bg-surface2">{s}</button></li>)}
           </ul>
         </section>
       )}
