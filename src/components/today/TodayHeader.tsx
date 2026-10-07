@@ -12,7 +12,7 @@ export function TodayHeader({ title, sub, subBefore, subHref, unread, ask }: { t
         <h1 className="text-greet text-text desktop:text-greet-l">{title}</h1>
         {subHref
           ? <Link href={subHref} className="mt-t1 block text-meta-s text-accent underline-offset-2 hover:underline desktop:text-body14">{sub}</Link>
-          : <p className="mt-t1 text-meta-s text-text-muted desktop:text-body14">{subBefore && <span className="hidden sm:inline">{subBefore} · </span>}{sub}</p>}
+          : <p className="mt-t1 text-meta-s text-text-muted desktop:text-body14">{subBefore && <span className="hidden sm:inline">{subBefore} · </span>}<span>{sub}</span></p>}
       </div>
       {ask && (
         <form action="/assistant" method="get" role="search" className="hidden h-[52px] flex-[0_1_340px] items-center gap-[10px] rounded-pill bg-surface pl-[18px] pr-[4px] text-text-muted shadow-card focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--color-focus)] desktop:flex">

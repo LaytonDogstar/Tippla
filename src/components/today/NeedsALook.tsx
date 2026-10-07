@@ -138,7 +138,8 @@ function Row({ item, first, onMenu, onDone, onSnooze, onOpen }: {
     if (drag.current?.engaged) setDx((v) => (v < -SWIPE / 2 ? -SWIPE : 0));
     drag.current = null;
   };
-  const meta = <span className="block truncate text-meta text-text-muted sm:whitespace-normal">{item.body}</span>;
+  // Wraps rather than truncating, so nothing is clipped at 200% text size.
+  const meta = <span className="block text-meta text-text-muted">{item.body}</span>;
   return (
     <li className={cx("relative overflow-hidden", !first && "border-t border-divider")}>
       {/* Revealed by a swipe left (phones). Hidden from the tab order unless open; the ⋯ menu is the accessible route. */}

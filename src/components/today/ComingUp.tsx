@@ -25,7 +25,7 @@ export function ComingUp({ items }: { items: ComingUpItem[] }) {
                   : it.kind === "payAdvance" ? <IconBubble icon={CreditCard} tone="caution" size={42} />
                   : <IconBubble tone="info" size={42}>{initials(it.kind === "tippla" ? "Tippla" : it.name)}</IconBubble>}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-body14 font-bold text-text">{name}</p>
+                  <p className="text-body14 font-bold text-text">{name}</p>
                   <p className="text-meta-s text-text-muted">{sub}{it.kind === "income" ? ` · ${t.qualifier[it.qualifier]}` : ""}</p>
                 </div>
                 <span className={cx("text-[0.9375rem] font-bold", it.kind === "income" ? "text-positive" : "text-text")}>{formatDollars(it.amount)}</span>

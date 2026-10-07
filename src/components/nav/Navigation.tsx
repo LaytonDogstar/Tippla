@@ -45,7 +45,7 @@ function Badge({ n, className }: { n: number; className?: string }) {
   return (
     <>
       {" "}
-      <span className={cx("inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-pill bg-accent-soft px-[6px] text-meta-s font-bold text-accent-strong", className)}>{n}</span>
+      <span className={cx("inline-flex min-h-[22px] min-w-[22px] items-center justify-center rounded-pill bg-accent-soft px-[6px] text-meta-s font-bold text-accent-strong", className)}>{n}</span>
       <span className="sr-only"> {nav.badgeTail(n)}</span>
     </>
   );
@@ -72,7 +72,7 @@ export function MobileDock({ path: forced, preview, badges = {} }: { path?: stri
         className={cx("relative flex h-full min-h-tap flex-col items-center justify-center gap-[2px] text-meta-s font-semibold", t.active ? "text-accent" : "text-text-muted")}>
         <t.icon aria-hidden size={22} strokeWidth={1.8} />
         {t.label}
-        <Badge n={t.badge ?? 0} className="absolute left-[calc(50%+6px)] top-[4px] h-[18px] min-w-[18px] px-[4px]" />
+        <Badge n={t.badge ?? 0} className="absolute left-[calc(50%+6px)] top-[4px] min-h-[18px] min-w-[18px] px-[4px]" />
       </Link>
     </li>
   );
@@ -97,7 +97,7 @@ export function MobileDock({ path: forced, preview, badges = {} }: { path?: stri
               className={cx("relative flex h-full min-h-tap w-full flex-col items-center justify-center gap-[2px] text-meta-s font-semibold", moreActive ? "text-accent" : "text-text-muted")}>
               <Ellipsis aria-hidden size={22} strokeWidth={1.8} />
               {nav.tabs.more}
-              <Badge n={moreBadge} className="absolute left-[calc(50%+6px)] top-[4px] h-[18px] min-w-[18px] px-[4px]" />
+              <Badge n={moreBadge} className="absolute left-[calc(50%+6px)] top-[4px] min-h-[18px] min-w-[18px] px-[4px]" />
             </button>
           </li>
         </ul>
