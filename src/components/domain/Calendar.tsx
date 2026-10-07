@@ -109,21 +109,22 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
                       <span aria-hidden className={cx("tnum text-small font-numeric", d.outside ? "text-text-muted" : "text-text", d.isToday && "underline decoration-2 underline-offset-4")}>
                         {Number(d.date.slice(8))}
                       </span>
-                      <span aria-hidden className="flex min-h-[10px] items-center gap-[3px]">
-                        {d.confirmedCount > 0 && <span className="h-[6px] w-[6px] rounded-pill bg-neutral" />}
-                        {d.predictedBills.slice(0, 2).map((x) => <span key={x.merchant} className="h-[8px] w-[8px] rounded-pill border-2 bg-surface" style={{ borderColor: "var(--chart-predicted)" }} />)}
+                      {/* Payday sits in the marker lane (not a lane of its own), so every cell in a week stays the same height. */}
+                      <span aria-hidden className="flex min-h-[16px] items-center gap-[3px]">
+                        {d.isPayday ? (
+                          <span className="inline-flex items-center gap-[1px] text-caption font-semibold text-accent"><ArrowDownToLine size={12} strokeWidth={2.4} />{t.pay}</span>
+                        ) : (
+                          <>
+                            {d.confirmedCount > 0 && <span className="h-[6px] w-[6px] rounded-pill bg-neutral" />}
+                            {d.predictedBills.slice(0, 2).map((x) => <span key={x.merchant} className="h-[8px] w-[8px] rounded-pill border-2 bg-surface" style={{ borderColor: "var(--chart-predicted)" }} />)}
+                          </>
+                        )}
                       </span>
-                      {d.isPayday && (
-                        <span aria-hidden className="flex flex-col items-center text-accent">
-                          <ArrowDownToLine size={16} />
-                          <span className="text-caption">{t.pay}</span>
-                        </span>
-                      )}
                       {d.balance !== null && (
                         <span aria-hidden className="mt-auto flex flex-col items-center gap-[2px]">
                           <BalanceStrip day={d} />
                           <span className={cx("tnum inline-flex items-center gap-[2px] text-meta font-semibold", d.belowZero && tintFor(d) ? "text-negative" : "text-text")}>
-                            {d.belowZero && tintFor(d) && <TriangleAlert size={11} strokeWidth={2.4} />}{formatCompact(d.balance)}
+                            {d.belowZero && tintFor(d) && <TriangleAlert size={11} strokeWidth={2.4} />}{cellAmount(d.balance)}
                           </span>
                         </span>
                       )}
@@ -168,4 +169,11 @@ export function DayDetail({ day }: { day: CalendarDay }) {
       </div>
     </div>
   );
+}
+
+// Day cells are about 50px wide on a phone: $1,000 and over shows as $1.4k (the day's label has the full figure).
+function cellAmount(n: number) {
+  if (Math.abs(n) < 1000) return formatCompact(n);
+  const k = Math.round(Math.abs(n) / 100) / 10;
+  return `${n < 0 ? "−" : ""}$${k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)}k`;
 }

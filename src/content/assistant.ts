@@ -2,7 +2,7 @@
 // about credit products; distress leads with support; gambling is supportive, never judgemental.
 export const assistantCopy = {
   title: "Ask Tippla",
-  sub: "Questions about your money, answered from your own figures",
+  sub: "Ask about your spending, bills, loans or SmartScore",
   entry: "Ask Tippla",
   entryBody: "Ask about your bills, spending, safe to spend or SmartScore.",
   askAbout: "Ask about this",

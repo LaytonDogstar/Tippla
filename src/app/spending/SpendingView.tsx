@@ -363,13 +363,11 @@ function SpendingHero({ p, asOf, summary: s, total, paidIn, onSpent, onPaidIn, o
             {s.isShort ? copy.payCycle.short(formatWhole(-s.leftAfterBills)) : copy.payCycle.left(formatWhole(s.leftAfterBills))}
           </p>
           {/* The same working as Today's hero, so the headline never seems to contradict Spent and Paid in (1.3). */}
-          <p className="tnum mt-t2 flex flex-wrap gap-x-t3 gap-y-t1 text-body14 text-hero-on-muted">
-            <span>{todayCopy.hero.balance} <strong className="font-bold text-hero-on">{formatWhole(s.balance)}</strong></span>
-            <span aria-hidden>·</span>
-            <span>{todayCopy.hero.due} <strong className="font-bold text-hero-on">{formatWhole(s.dueTotal)}</strong></span>
-            <span aria-hidden>·</span>
-            <span>{s.isShort ? t.hero.shortBy : t.hero.leftOver} <strong className="font-bold text-hero-on">{formatWhole(Math.abs(s.leftAfterBills))}</strong></span>
-          </p>
+          <dl className="tnum mt-t3 grid grid-cols-3 gap-t2 text-body14 text-hero-on-muted">
+            <div><dt>{todayCopy.hero.balance}</dt><dd className="font-bold text-hero-on">{formatWhole(s.balance)}</dd></div>
+            <div><dt>{todayCopy.hero.due}</dt><dd className="font-bold text-hero-on">{formatWhole(s.dueTotal)}</dd></div>
+            <div><dt>{s.isShort ? t.hero.shortBy : t.hero.leftOver}</dt><dd className="font-bold text-hero-on">{formatWhole(Math.abs(s.leftAfterBills))}</dd></div>
+          </dl>
         </div>
       ) : (
         <div>
