@@ -75,3 +75,20 @@ describe("2.1 hardship copy", () => {
     expect(hardshipPage.creditReportNote).toBe("Your lender may still record a hardship arrangement on your credit report. It's still usually better than missing payments.");
   });
 });
+
+describe("6.4 suggested budgets", () => {
+  it("discretionary only, never gambling or alcohol, about 15% under the 3-cycle average", async () => {
+    const { budgetSuggestions, averagePerCycle } = await import("@/lib/selectors");
+    const d = await load("jess");
+    const s = budgetSuggestions(d, {});
+    expect(s.length).toBeGreaterThan(0);
+    expect(s.length).toBeLessThanOrEqual(3);
+    for (const x of s) {
+      expect(["gambling", "alcohol", "housing", "loan_repayment", "bnpl", "wage_advance", "fees"]).not.toContain(x.category);
+      const avg = averagePerCycle(d, x.category, 3)!;
+      expect(x.suggested).toBe(Math.max(10, Math.floor((avg * 0.85) / 10) * 10));
+    }
+    // A category that already has a budget isn't suggested.
+    expect(budgetSuggestions(d, { [s[0]!.category]: 50 }).some((x) => x.category === s[0]!.category)).toBe(false);
+  });
+});

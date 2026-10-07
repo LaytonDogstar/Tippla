@@ -72,7 +72,8 @@ test("donut: legend rows select and clear a category", async ({ page }) => {
   const gambling = donut.getByRole("button", { name: /^Gambling/ });
   await gambling.click();
   await expect(gambling).toHaveAttribute("aria-pressed", "true");
-  await expect(donut.getByRole("button", { name: "Remove Gambling filter" })).toBeVisible();
+  // UX round 2, 6.1: the removable chip lives in the page's one filter bar, not inside the donut.
+  await expect(donut.getByText("6% of spending").or(donut.getByText(/of spending$/)).first()).toBeVisible();
   await gambling.click();
   await expect(gambling).toHaveAttribute("aria-pressed", "false");
 });

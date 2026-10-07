@@ -7,7 +7,6 @@ import { formatPercent, formatWhole } from "@/lib/format";
 import type { CategoryRow, SpendCategory } from "@/lib/selectors/spending";
 import { annulusPath, donutSectors } from "@/lib/ui/geometry";
 import { catVar } from "@/components/icons";
-import { FilterChip } from "@/components/ui/Chips";
 import { cx } from "@/components/ui/cx";
 
 const SIZE = 250, C = SIZE / 2, RO = 120, RI = 80;
@@ -93,7 +92,6 @@ export function Donut({ rows, total, periodLabel, selected, onSelect, loading, l
           )}
         </div>
       </div>
-      {sel && <div className="mt-t4"><FilterChip label={sel.name} onRemove={() => onSelect(null)} /></div>}
       {legend && <ul aria-label={t.legendLabel} className="mt-t4 grid grid-cols-1 gap-x-t4 sm:grid-cols-2">
         {named.map((r) => {
           const isSel = r.category === selected;

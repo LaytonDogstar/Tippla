@@ -18,7 +18,7 @@ import { formatCents, formatDate, formatDayMonth, formatShortDay, formatWhole } 
 import { sumMoney } from "@/lib/format/money";
 import { useBudgets, useCategoryEdits } from "@/lib/edits/client";
 import {
-  averagePerCycle, budgetable, budgetView, categorySparkline, categoryTotals, currentCycle, EDITABLE_CATEGORIES, merchantsIn, paidInFor,
+  averagePerCycle, budgetable, budgetSuggestions, budgetView, categorySparkline, categoryTotals, currentCycle, EDITABLE_CATEGORIES, merchantsIn, paidInFor,
   PERIOD_IDS, previousOf, resolvePeriod, spendingFeed, spendingInsights, totalSpent,
   type CategoryOverrides, type FeedDirection, type GamblingFacts, type PayCycleSummary, type Period, type PeriodId, type SpendCategory,
   type SpendData, type SpendFilter, type CategoryRow as Row,
@@ -49,7 +49,7 @@ type SheetState =
   | { kind: "support"; id: string }
   | { kind: "merchant"; merchant: string }
   | { kind: "tx"; id: string; fromMerchant?: string }
-  | { kind: "budget"; category: SpendCategory }
+  | { kind: "budget"; category: SpendCategory; suggest?: number }
   | { kind: "due" };
 
 const TABS: Tab[] = ["overview", "categories", "budgets"];
@@ -206,14 +206,20 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
     </div>
   );
 
+  const overviewRows = listRows.slice(0, 5).concat(selected && !listRows.slice(0, 5).some((r) => r.category === selected) ? listRows.filter((r) => r.category === selected) : []);
   const categoryList = (
     <section aria-labelledby="cats-h" className="mt-t4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-t3 px-t1 pb-t2 pt-t4">
         <h2 id="cats-h" className="text-card text-text sm:text-card-l">{t.categories.heading}</h2>
-        <span className="text-meta text-text-muted">{t.categories.count(listRows.length)}</span>
+        <span className="text-meta text-text-muted">{t.categories.count(tab === "overview" ? overviewRows.length : listRows.length)}</span>
       </div>
-      {selected && <div className="pb-t3"><FilterChip label={categoryNames[selected]} onRemove={() => setSelected(null)} /></div>}
-      {listRows.length ? <ul className="flex flex-col gap-t3">{listRows.map(rowFor)}</ul> : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.categories.empty}</p>}
+      {listRows.length ? <ul className="flex flex-col gap-t3">{(tab === "overview" ? overviewRows : listRows).map(rowFor)}</ul> : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.categories.empty}</p>}
+      {/* Overview shows the top five; the full list, filter and sort are on the Categories tab (UX round 2, 6.3). */}
+      {tab === "overview" && listRows.length > overviewRows.length && (
+        <button type="button" onClick={() => setTab("categories")} className="mt-t3 flex min-h-[52px] w-full items-center justify-between rounded-card-s bg-surface px-t5 text-body14 font-semibold text-accent shadow-card hover:bg-surface2 sm:rounded-card">
+          {t.categories.seeAll(listRows.length)}<ChevronRight aria-hidden size={20} />
+        </button>
+      )}
     </section>
   );
 
@@ -232,6 +238,17 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
       </div>
 
       {tab !== "budgets" && periodChips}
+
+      {/* One filter bar for everything on the page (UX round 2, 6.1): category, direction and search. */}
+      {(selected || direction !== "all" || q.trim()) && (
+        <div role="group" aria-label={t.filters.label} className="mt-t3 flex flex-wrap items-center gap-t2">
+          <span className="text-meta font-semibold text-text-muted">{t.filters.label}</span>
+          {selected && <FilterChip label={categoryNames[selected]} onRemove={() => setSelected(null)} />}
+          {direction !== "all" && <FilterChip label={t.feed.direction[direction]} onRemove={() => setDirection("all")} />}
+          {q.trim() && <FilterChip label={t.filters.search(q.trim())} onRemove={() => setQ("")} />}
+          <button type="button" onClick={() => { setSelected(null); setDirection("all"); setQ(""); }} className="inline-flex min-h-tap items-center px-t2 text-body14 font-semibold text-accent">{t.filters.clearAll}</button>
+        </div>
+      )}
 
       {tab === "overview" && (
         // Desktop: two columns (summary and categories | links and transactions). Phones: one column, same order.
@@ -289,7 +306,12 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
 
       {tab === "budgets" && (
         <PageColumns railLabel={t.feed.heading} rail={feedRail} main={<BudgetsTab data={data} cycle={cycle} budgets={budgets} edits={edits}
-          onEdit={(c) => setSheet({ kind: "budget", category: c })}
+          onEdit={(c, suggest) => setSheet({ kind: "budget", category: c, suggest })}
+          onSet={(c, v) => {
+            saveBudgets({ ...budgets, [c]: v });
+            toast({ kind: "confirm", message: t.budgets.saved(categoryNames[c]), onUndo: () => saveBudgets(budgets) });
+            router.refresh();
+          }}
           onMerchant={(m) => setSheet({ kind: "merchant", merchant: m })} />} />
       )}
 
@@ -407,7 +429,6 @@ const Feed = forwardRef<HTMLElement, {
         </label>
         <SegmentedControl label={t.feed.directionLabel} value={direction} onChange={setDirection}
           options={(["all", "out", "in"] as FeedDirection[]).map((v) => ({ value: v, label: t.feed.direction[v] }))} />
-        {selected && <FilterChip label={categoryNames[selected]} onRemove={onClearCategory} />}
       </div>
       {feed.length === 0 ? (
         <div className="px-t4 pb-t4"><EmptyState variant={q ? "noSearchResults" : "noTransactions"} query={q} onAction={onClear} /></div>
@@ -569,10 +590,13 @@ function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise
 }
 
 // ---- Budgets -----------------------------------------------------------------------------------------
-function BudgetsTab({ data, cycle, budgets, edits, onEdit, onMerchant }: {
+function BudgetsTab({ data, cycle, budgets, edits, onEdit, onSet, onMerchant }: {
   data: SpendData; cycle: Period; budgets: Partial<Record<SpendCategory, number>>; edits: CategoryOverrides;
-  onEdit: (c: SpendCategory) => void; onMerchant: (m: string) => void;
+  onEdit: (c: SpendCategory, suggest?: number) => void; onSet: (c: SpendCategory, v: number) => void; onMerchant: (m: string) => void;
 }) {
+  // Suggested budgets when none are set (UX round 2, 6.4); dismissed ones stay hidden for the session.
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const suggestions = budgetSuggestions(data, budgets, edits).filter((x) => !dismissed.has(x.category));
   const v = budgetView(data, cycle, budgets, edits);
   const rows = new Map(categoryTotals(data, cycle, edits).map((r) => [r.category, r]));
   const rowOf = (c: SpendCategory): Row => rows.get(c) ?? { category: c, name: categoryNames[c], type: categoryTypes[c], total: 0, count: 0, share: 0, previousTotal: 0, change: 0 };
@@ -590,6 +614,22 @@ function BudgetsTab({ data, cycle, budgets, edits, onEdit, onMerchant }: {
             </div>
             <p className="mt-t2 text-caption text-text-muted">{t.budgets.summaryNote(v.budgeted.length)}</p>
           </>
+        ) : suggestions.length ? (
+          <div className="mt-t4">
+            <p className="text-body14 text-text-secondary">{t.budgets.suggestIntro}</p>
+            <ul className="mt-t3 flex flex-col gap-t3">
+              {suggestions.map((x) => (
+                <li key={x.category} className="rounded-inset bg-surface2 p-t4">
+                  <p className="tnum text-body14 text-text"><strong className="font-bold">{x.name}:</strong> {t.budgets.suggest(formatWhole(x.average), formatWhole(x.suggested))}</p>
+                  <div className="mt-t2 flex flex-wrap gap-t2">
+                    <Button variant="secondary" onClick={() => onSet(x.category, x.suggested)} aria-label={t.budgets.setSr(formatWhole(x.suggested), x.name)}>{t.budgets.set}</Button>
+                    <Button variant="tertiary" onClick={() => onEdit(x.category, x.suggested)} aria-label={`${t.budgets.adjust}: ${x.name}`}>{t.budgets.adjust}</Button>
+                    <Button variant="tertiary" onClick={() => setDismissed((d) => new Set(d).add(x.category))} aria-label={`${t.budgets.dismiss}: ${x.name}`}>{t.budgets.dismiss}</Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : <p className="mt-t4 text-small text-text">{t.budgets.none}</p>}
         <p className="mt-t3 text-caption text-text-muted">{t.budgets.intro}</p>
       </section>
@@ -634,7 +674,8 @@ function BudgetSheet({ sheet, setSheet, data, budgets, edits, onSave }: {
 }) {
   const c = sheet?.kind === "budget" ? sheet.category : null;
   const [cents, setCents] = useState<number | null>(null);
-  useEffect(() => { if (c) setCents(budgets[c] !== undefined ? Math.round(budgets[c]! * 100) : null); }, [c, budgets]);
+  const suggest = sheet?.kind === "budget" ? sheet.suggest : undefined;
+  useEffect(() => { if (c) setCents(budgets[c] !== undefined ? Math.round(budgets[c]! * 100) : suggest !== undefined ? suggest * 100 : null); }, [c, budgets, suggest]);
   const avg = c ? averagePerCycle(data, c, 3, edits) : null;
   return (
     <Sheet open={!!c} onClose={() => setSheet(null)} title={c ? t.budgets.editTitle(categoryNames[c]) : ""}

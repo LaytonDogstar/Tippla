@@ -2,7 +2,7 @@ import { categoryNames, categoryTypes } from "@/content/en-AU";
 import { sumMoney } from "@/lib/format/money";
 import type { Budgets } from "./edits";
 import type { Period, SpendData } from "./periods";
-import { categoryTotals, type SpendCategory } from "./spending";
+import { averagePerCycle, categoryTotals, type SpendCategory } from "./spending";
 import type { CategoryOverrides } from "./transactions";
 
 /**
@@ -49,4 +49,21 @@ export function budgetView(d: SpendData, cycle: Period, budgets: Budgets, overri
     totalBudget: sumMoney(budgeted.map((r) => r.budget ?? 0)),
     totalSpent: sumMoney(budgeted.map((r) => r.spent)),
   };
+}
+
+/**
+ * UX round 2, 6.4: up to three suggested budgets when none are set, from the last three pay cycles. Discretionary
+ * categories only (no fixed commitments), and never gambling or alcohol: Tippla doesn't push a target on those.
+ * The suggestion is about 15% under the average, rounded down to $10 (at least $10).
+ */
+export interface BudgetSuggestion { category: SpendCategory; name: string; average: number; suggested: number }
+export function budgetSuggestions(d: SpendData, budgets: Budgets, overrides?: CategoryOverrides, max = 3): BudgetSuggestion[] {
+  const NOT_SUGGESTED: SpendCategory[] = ["gambling", "alcohol"];
+  return (Object.keys(categoryTypes) as SpendCategory[])
+    .filter((c) => budgetable(c) && categoryTypes[c] === "lifestyle" && !NOT_SUGGESTED.includes(c) && budgets[c] === undefined)
+    .map((c) => ({ c, avg: averagePerCycle(d, c, 3, overrides) }))
+    .filter((x): x is { c: SpendCategory; avg: number } => x.avg !== null && x.avg >= 20)
+    .sort((a, b) => b.avg - a.avg)
+    .slice(0, max)
+    .map(({ c, avg }) => ({ category: c, name: categoryNames[c], average: Math.round(avg), suggested: Math.max(10, Math.floor((avg * 0.85) / 10) * 10) }));
 }

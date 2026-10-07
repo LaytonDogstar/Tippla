@@ -49,6 +49,7 @@ export const spending = {
     notNow: "Not now",
   },
   categories: {
+    seeAll: (n: number) => `See all ${n} categories`,
     heading: "Categories",
     count: (n: number) => `${n} shown`,
     filterLabel: "Type",
@@ -65,6 +66,11 @@ export const spending = {
   },
   when: { last_cycle: "last pay cycle", month: (label: string) => `in ${label}`, rolling: (label: string) => `over the last ${label}` },
   vsLabel: { this_cycle: "last pay cycle", last_cycle: "the pay cycle before", month: "the month before", rolling: "the period before" },
+  filters: {
+    label: "Filtered by",
+    search: (q: string) => `"${q}"`,
+    clearAll: "Clear all",
+  },
   feed: {
     heading: "Transactions",
     count: (n: number) => (n === 1 ? "1 transaction" : `${n} transactions`),
@@ -94,6 +100,12 @@ export const spending = {
     summary: (spent: string, budget: string) => `${spent} spent of ${budget} budgeted`,
     summaryNote: (n: number) => (n === 1 ? "Across 1 budgeted category" : `Across ${n} budgeted categories`),
     none: "No budgets yet. Set one on any category below.",
+    suggestIntro: "Some ideas from your last three pay cycles. Set one, change the amount, or skip it.",
+    suggest: (avg: string, amt: string) => `you average ${avg} a pay cycle. Set a ${amt} budget?`,
+    set: "Set",
+    setSr: (amt: string, name: string) => `Set a ${amt} budget for ${name}`,
+    adjust: "Adjust",
+    dismiss: "Dismiss",
     noBudget: "No budget",
     editTitle: (cat: string) => `${cat} budget`,
     amountLabel: "Budget per pay cycle",

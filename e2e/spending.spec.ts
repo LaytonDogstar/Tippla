@@ -46,7 +46,10 @@ test("journey 2: dashboard → spending → category → merchant sheet → reca
   await expect(page.getByRole("status").filter({ hasText: "Moved to Groceries. Totals updated" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(row(page, /^Food & dining/)).toContainText("$105");
+  // Overview lists the top five (UX round 2, 6.3); Groceries is on the Categories tab.
+  await page.getByText("Categories", { exact: true }).first().click();
   await expect(row(page, /^Groceries/)).toContainText("$90");
+  await page.getByText("Overview", { exact: true }).click();
   await expect(page.getByRole("img", { name: /^Total \$1,832/ })).toBeVisible();
 
   // Mark another as a transfer between own accounts: spent drops on the hero, the donut and Home.
@@ -55,6 +58,7 @@ test("journey 2: dashboard → spending → category → merchant sheet → reca
   await page.keyboard.press("Escape");
   await expect(page.getByText("$1,804 spent").first()).toBeVisible();
   await expect(page.getByRole("img", { name: /^Total \$1,804/ })).toBeVisible();
+  await page.getByText("Categories", { exact: true }).first().click();
   await expect(row(page, /^Food & dining/)).toContainText("$77");
 
   await page.getByText("Budgets", { exact: true }).click();
@@ -70,13 +74,13 @@ test("journey 2: dashboard → spending → category → merchant sheet → reca
 
 test("donut slice filters the list and the feed; tapping again clears", async ({ page }) => {
   await page.goto("/spending?persona=jess&present=1");
-  await expect(page.getByText("11 shown")).toBeVisible();
+  await expect(page.getByText("5 shown")).toBeVisible(); // the top five on Overview (6.3)
   const slice = page.getByRole("img", { name: /^Total \$1,832/ }).locator("path").nth(2);
   await slice.click();
   await expect(page.getByText("1 shown")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Remove .+ filter$/ }).first()).toBeVisible();
   await slice.click();
-  await expect(page.getByText("11 shown")).toBeVisible();
+  await expect(page.getByText("5 shown")).toBeVisible();
 });
 
 test("search by merchant or amount, with a plain empty state", async ({ page }) => {
