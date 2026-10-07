@@ -50,7 +50,7 @@ export function PlanCard({ persona, account, asOf, plan, options, suggested }: {
     update((l) => ({ ...l, plan: { ...(l.plan ?? { type: plan.type, startedAt: plan.startedAt }), limit: Math.round(n) } }));
   };
   return (
-    <section aria-labelledby="plan-h" className="mt-t2 rounded-lg bg-surface p-t5">
+    <section aria-labelledby="plan-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
       <p className="text-caption text-text-muted">{plan.explicit ? t.heading : t.suggested} · {t.linked(plan.factor)}</p>
       <h2 id="plan-h" className="text-h2 font-display text-text">{plan.title}</h2>
       {plan.type === "gambling_less" && <p className="text-caption text-text-muted">{t.optIn}</p>}
@@ -113,7 +113,7 @@ export function PlanCard({ persona, account, asOf, plan, options, suggested }: {
 export function PlanCompact({ plan, title }: { plan: PlanProgress; title: string }) {
   const step = plan.current !== null ? plan.steps[plan.current]! : null;
   return (
-    <Link href="/savings" className="flex min-h-tap items-center gap-t3 rounded-lg bg-surface p-t4 hover:bg-surface2">
+    <Link href="/savings" className="flex min-h-tap items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4 hover:bg-surface2">
       <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><ListChecks size={24} /></span>
       <span className="min-w-0 flex-1">
         <span className="block text-body-strong text-text">{t.heading}</span>

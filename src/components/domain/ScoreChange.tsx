@@ -24,9 +24,9 @@ export function ScoreChangeLine({ change, attribution }: { change: { delta: numb
 /** The full breakdown on /score: each factor that moved, its estimated points and the reason. */
 export function ScoreChangeDetail({ attribution, present }: { attribution: ScoreAttribution; present: boolean }) {
   return (
-    <section aria-labelledby="what-changed" className="rounded-lg bg-surface p-t4">
+    <section aria-labelledby="what-changed" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6">
       <div className="flex flex-wrap items-center gap-t2">
-        <h2 id="what-changed" className="text-h3 text-text">{t.heading}</h2>
+        <h2 id="what-changed" className="text-card text-text sm:text-card-l">{t.heading}</h2>
         <EstimateTag />
         <SampleTag q="Q3" present={present} />
       </div>
@@ -36,7 +36,7 @@ export function ScoreChangeDetail({ attribution, present }: { attribution: Score
       {attribution.parts.length ? (
         <ul className="mt-t3 flex flex-col">
           {attribution.parts.map((p) => (
-            <li key={p.factor + p.name} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-t3 border-t border-line py-t3">
+            <li key={p.factor + p.name} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-t3 border-t border-divider py-t3">
               <span className="text-body-strong text-text">{p.factor === "GOVERNMENT_RELIANCE" ? p.name : t.factorMove(p.name, p.from.toFixed(1), p.to.toFixed(1))}</span>
               <span className="tnum text-body-strong text-text">{t.points(p.points)}</span>
               {p.reason && <span className="col-span-2 text-small text-text-muted">{p.reason}</span>}
@@ -54,9 +54,9 @@ export function ScoreProjectionCard({ projection, present }: { projection: Score
   const p = projectionCopy;
   const action = p.actions[projection.liftKey] ?? projection.factor;
   return (
-    <section aria-labelledby="projection" className="rounded-lg bg-surface p-t4">
+    <section aria-labelledby="projection" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6">
       <div className="flex flex-wrap items-center gap-t2">
-        <h2 id="projection" className="text-h3 text-text">{p.heading}</h2>
+        <h2 id="projection" className="text-card text-text sm:text-card-l">{p.heading}</h2>
         <EstimateTag />
         <SampleTag q="Q3" present={present} />
       </div>

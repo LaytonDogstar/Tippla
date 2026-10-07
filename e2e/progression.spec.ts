@@ -77,7 +77,7 @@ test("payday surplus: 'Move $50 to your buffer?' protects it in safe to spend", 
 test("cheaper-credit check prototype: Marcus sees his own costs; Jess isn't eligible", async ({ page }) => {
   await page.goto("/progress/cheaper-credit?persona=marcus&present=1");
   await expect(page.getByRole("note")).toContainText("Prototype. General information only");
-  await expect(page.getByText(/MoneyMe Lite: \$\d+ a repayment|Latitude: \$\d+ a repayment/).first()).toBeVisible();
+  await expect(page.getByText(/MoneyMe: \$\d+ a repayment|Latitude: \$\d+ a repayment/).first()).toBeVisible();
   await page.goto("/progress/cheaper-credit?persona=jess&present=1");
   await expect(page.getByText("This check is for members in the Healthy or Thriving stage", { exact: false })).toBeVisible();
 });

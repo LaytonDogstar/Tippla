@@ -9312,7 +9312,7 @@
       "friendly_name": "Estimated SACC Loan Status",
       "value": [
         {
-          "provider": "MoneyMe Lite",
+          "provider": "MoneyMe",
           "status": "settled"
         }
       ],
@@ -9326,7 +9326,7 @@
       "friendly_name": "SACC Loan Providers in Default",
       "value": [
         {
-          "provider": "MoneyMe Lite",
+          "provider": "MoneyMe",
           "defaults": 0
         }
       ],
@@ -9363,7 +9363,7 @@
       "friendly_name": "SACC Loan Providers Past Due",
       "value": [
         {
-          "provider": "MoneyMe Lite",
+          "provider": "MoneyMe",
           "defaults": 0
         }
       ],

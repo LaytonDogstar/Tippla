@@ -18,13 +18,13 @@ const t = todayCopy.score;
 const BANDS = STAGES.map((s) => ({ ...s, name: stageNames[s.id] }));
 const ARC = Math.PI * 90; // semicircle radius 90
 
-function Gauge({ score, band, size }: { score: number; band: string; size: "full" | "compact" }) {
+export function Gauge({ score, band, size, decorative }: { score: number; band: string; size: "full" | "compact"; decorative?: boolean }) {
   const w = size === "full" ? 220 : 120;
   const dash = (Math.max(0, Math.min(1000, score)) / 1000) * ARC;
   const id = `g-${size}`;
   return (
     <div className="relative shrink-0" style={{ width: w, height: w * 118 / 220 }}>
-      <svg role="img" aria-label={t.gaugeSr(score, band)} width={w} height={w * 118 / 220} viewBox="0 0 220 118">
+      <svg role={decorative ? undefined : "img"} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : t.gaugeSr(score, band)} width={w} height={w * 118 / 220} viewBox="0 0 220 118">
         <defs>
           <linearGradient id={id} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" style={{ stopColor: "var(--color-accent-brand)" }} />
@@ -41,7 +41,7 @@ function Gauge({ score, band, size }: { score: number; band: string; size: "full
   );
 }
 
-function bandTone(id: string) { return id === "building" || id === "steadying" ? "text-caution" : "text-positive"; }
+export function bandTone(id: string) { return id === "building" || id === "steadying" ? "text-caution" : "text-positive"; }
 
 function Spark({ points, down }: { points: number[]; down: boolean }) {
   if (points.length < 2) return null;

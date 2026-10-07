@@ -90,7 +90,7 @@ PERSONAS = {
    "centrelink": {"desc": "CENTRELINK FTB", "amount": 412.0, "first": date(2026, 4, 8)},
    "rent": {"desc": "QLD HOUSING RENT", "amount": 560.0, "offset": 2},
    "loans": [
-      {"type": "SACC", "provider": "MoneyMe Lite", "repay": 88.0, "every": 14, "offset": 3, "balance": 0.0, "end_day": 120},
+      {"type": "SACC", "provider": "MoneyMe", "repay": 88.0, "every": 14, "offset": 3, "balance": 0.0, "end_day": 120},
       {"type": "AOCC", "provider": "Latitude", "repay": 60.0, "every": 30, "offset": 10, "balance": 1180.0},
    ],
    "bnpl": [{"provider": "Afterpay", "repay": 32.0, "every": 14, "offset": 7}],

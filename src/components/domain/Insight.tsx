@@ -31,7 +31,7 @@ export function InsightCard({ items, loading, onOpen, onDismissUndo, dismissed }
   }
   if (loading) {
     return (
-      <section aria-busy="true" className="rounded-lg bg-surface p-t5">
+      <section aria-busy="true" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6">
         <Skeleton className="h-t3 w-24" />
         <Skeleton className="mt-t5 h-t5 w-3/4" />
         <Skeleton className="mt-t4 h-t3 w-full" />
@@ -39,12 +39,12 @@ export function InsightCard({ items, loading, onOpen, onDismissUndo, dismissed }
       </section>
     );
   }
-  if (!items.length) return <section className="min-h-[88px] rounded-lg bg-surface p-t5"><p className="text-small text-text">{t.empty}</p></section>;
+  if (!items.length) return <section className="min-h-[88px] rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6"><p className="text-small text-text">{t.empty}</p></section>;
   const idx = Math.min(i, items.length - 1);
   const item = items[idx]!;
   const go = (n: number) => { setI(n); if (status.current) status.current.textContent = ui.pageOf(n + 1, items.length); };
   return (
-    <section aria-label={t.pagerLabel} className="rounded-lg bg-accent-soft p-t5">
+    <section aria-label={t.pagerLabel} className="rounded-card-s bg-accent-soft p-t5 sm:rounded-card sm:p-t6">
       <div className="flex flex-wrap items-center justify-between gap-t2">
         <p className="text-caption text-text-muted">{item.context}</p>
         {items.length > 1 && (

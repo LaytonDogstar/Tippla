@@ -5,7 +5,7 @@ import { cancelExtraCopy as cx_ } from "@/content/actions";
 import { cancelGuide } from "@/data/directories";
 import { RuleChoiceSheet, SUBSCRIPTION_OPTIONS } from "@/components/domain/RuleChoice";
 import { correctionCopy } from "@/content/corrections";
-import { BellRing, Check, Repeat } from "lucide-react";
+import { BellRing, Check, ExternalLink, Repeat } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { PersonaId } from "@/lib/api/types";
@@ -51,6 +51,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
 
   if (!subs.rows.length) return <div className="mt-t4"><EmptyState variant="noSubscriptions" onAction={() => router.push("/spending")} /></div>;
   const row = subs.rows.find((r) => r.merchant === howTo);
+  const guide = row ? cancelGuide(row.merchant) : null;
 
   return (
     <div className="pb-t6">
@@ -126,11 +127,19 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
         {row && (
           <div className="flex flex-col gap-t4">
             <ol className="flex list-decimal flex-col gap-t2 pl-t5 text-body text-text">
-              {(cancelGuide(row.merchant)?.steps ?? t.cancelSteps(row.merchant, formatShortDay(row.nextCharge))).map((step) => <li key={step}>{step}</li>)}
+              {(guide?.steps ?? t.cancelSteps(row.merchant, formatShortDay(row.nextCharge))).map((step) => <li key={step}>{step}</li>)}
             </ol>
-            {cancelGuide(row.merchant)?.notes && <p className="text-small text-text">{cancelGuide(row.merchant)!.notes}</p>}
-            {cancelGuide(row.merchant)?.steps && <p className="text-caption text-text-muted">{cx_.stepsChange(row.merchant)}</p>}
-            <p className="text-small text-text-muted">{t.cancelStore}</p>
+            {guide?.deepLink && (
+              <a href={guide.deepLink} target="_blank" rel="noopener noreferrer"
+                className="inline-flex min-h-tap items-center gap-t2 text-body-strong text-accent underline-offset-2 hover:underline">
+                {cx_.openCancelPage(row.merchant)}<ExternalLink aria-hidden size={16} /><span className="sr-only"> {cx_.opensInNewTab}</span>
+              </a>
+            )}
+            {guide?.steps && <p className="text-small text-text">{cx_.nextCharge(formatShortDay(row.nextCharge))}</p>}
+            {guide?.notes && <p className="text-small text-text">{guide.notes}</p>}
+            {guide?.steps && <p className="text-caption text-text-muted">{cx_.stepsChange(row.merchant)}</p>}
+            {/* Merchant notes already say where to cancel when it's billed through an app store or a partner. */}
+            {!guide?.notes && <p className="text-small text-text-muted">{t.cancelStore}</p>}
             <p className="text-small text-text-muted">{t.cancelAfter}</p>
           </div>
         )}

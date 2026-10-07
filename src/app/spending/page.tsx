@@ -35,7 +35,7 @@ export default async function Spending({ searchParams }: { searchParams: Search 
     category: searchParams.category, direction: searchParams.direction, q: searchParams.q,
   };
   return (
-    <PortalShell path="/spending" persona={persona} present={present}
+    <PortalShell path="/spending" persona={persona} present={present} wide
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} action={<SpendingSearchButton />} />}>
       <SpendingView
         persona={persona}

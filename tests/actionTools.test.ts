@@ -14,7 +14,7 @@ describe("hardship letter", async () => {
   const jess = await load("jess");
 
   it("acceptance: pre-filled to Beforepay with $315 due 30/09", () => {
-    expect(hardshipPrefill(jess)[0]).toEqual({ lender: "Beforepay", amount: 315, date: "2026-09-30", contact: { email: null, phone: null, url: null } });
+    expect(hardshipPrefill(jess)[0]).toEqual({ lender: "Beforepay", amount: 315, date: "2026-09-30", contact: { email: "support@beforepay.com.au", phone: null, url: "https://www.beforepay.com.au/policies/hardship" } });
     const letter = buildLetter({ lender: "Beforepay", amount: "$315", due: "Wed 30/09", name: "Jess Taylor", reason: "reduced_hours", duration: "months", afford: "$100" });
     expect(letter).toBe([
       "Hi Beforepay,",
@@ -95,7 +95,7 @@ describe("bill comparison and entitlements", async () => {
     const ids = (a: object, pay: boolean) => pointers(a, { state: "VIC", hasEnergyBill: false, usesPayAdvances: pay }).map((p) => p.id);
     expect(ids({}, false)).toEqual(["payment_finder", "state_concessions", "nils"]);
     expect(ids({ rent: "yes", work: "looking" }, true)).toEqual(["payment_finder", "nils", "rent_assistance", "concession_cards", "state_concessions"]);
-    expect(pointers({}, { state: "VIC", hasEnergyBill: false, usesPayAdvances: false }).find((p) => p.id === "state_concessions")!.url).toBe("https://www.vic.gov.au/");
+    expect(pointers({}, { state: "VIC", hasEnergyBill: false, usesPayAdvances: false }).find((p) => p.id === "state_concessions")!.url).toBe("https://services.dffh.vic.gov.au/concessions-and-benefits");
   });
 
   it("the check appears once in the feed for Building / Steadying or a shortfall, until done", () => {
