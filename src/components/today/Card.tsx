@@ -54,9 +54,9 @@ export function Chip({ tone, children, className }: { tone: Tone | "positive" | 
 }
 
 /** Card-shaped placeholder, the same height as the card it stands in for (no layout shift). */
-export function CardSkeleton({ height, className, label }: { height: number; className?: string; label: string }) {
+export function CardSkeleton({ height, className, label }: { height: number; className?: string; label?: string }) {
   return (
-    <div role="status" aria-label={label} className={cx("animate-pulse rounded-card-s bg-surface p-t5 shadow-card motion-reduce:animate-none sm:rounded-card sm:p-t6", className)} style={{ minHeight: height }}>
+    <div role={label ? "status" : undefined} aria-label={label} aria-hidden={label ? undefined : true} className={cx("animate-pulse rounded-card-s bg-surface p-t5 shadow-card motion-reduce:animate-none sm:rounded-card sm:p-t6", className)} style={{ minHeight: height }}>
       <div className="h-[18px] w-[40%] rounded-pill bg-chip" />
       <div className="mt-t5 h-[14px] w-[80%] rounded-pill bg-chip" />
       <div className="mt-t3 h-[14px] w-[65%] rounded-pill bg-chip" />

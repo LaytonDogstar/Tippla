@@ -3,8 +3,9 @@
 // read by the shell and pages. Presentation mode never shows the switcher, but states still apply.
 import type { PersonaData, Transaction } from "@/lib/api/types";
 import { addDays } from "@/lib/format/dates";
+import { payCycleSummary } from "@/lib/selectors/payCycle";
 
-export const DEV_STATES = ["analysing", "lapsed", "bank_expired", "offline", "one_off", "two_accounts", "payday", "bill_due", "billing_failed", "stale", "consent_expiring", "improved"] as const;
+export const DEV_STATES = ["analysing", "lapsed", "bank_expired", "offline", "one_off", "two_accounts", "payday", "bill_due", "billing_failed", "stale", "consent_expiring", "improved", "tight", "no_bills"] as const;
 export type DevState = (typeof DEV_STATES)[number];
 export const DEV_COOKIE = "tippla-dev";
 
@@ -25,7 +26,24 @@ export function applyDevStates(d: PersonaData, states: DevState[]): PersonaData 
   if (states.includes("consent_expiring")) out = withConsentEnding(out, 10);
   // Spec 07: five improving pay cycles that take the member into Healthy (scores only; Q38).
   if (states.includes("improved")) out = withImprovement(out, 604);
+  // Today redesign: the "tight" hero (bills covered, nothing spare) and the "no bills" empty states.
+  if (states.includes("tight")) out = withTightCycle(out);
+  if (states.includes("no_bills")) out = withoutUpcomingBills(out);
   return out;
+}
+
+/** A one-off predicted bill tomorrow that leaves about $5 after bills: covered, but nothing spare before payday. */
+function withTightCycle(d: PersonaData): PersonaData {
+  const pc = payCycleSummary(d);
+  if (pc.isShort || pc.leftAfterBills <= 80) return d;
+  const bill = { date: addDays(d.asOf, 1), merchant: "Car registration", expected_amount: Math.round(pc.leftAfterBills - 5), category: "bills" as const, confidence: "predicted" as const, cadence_days: 365 };
+  return { ...d, derived: { ...d.derived, upcoming_bills: [...d.derived.upcoming_bills, bill].sort((a, b) => a.date.localeCompare(b.date)) } };
+}
+
+/** No bills in the next two weeks (Coming up and the hero's "nothing due"). */
+function withoutUpcomingBills(d: PersonaData): PersonaData {
+  const until = addDays(d.asOf, 14);
+  return { ...d, derived: { ...d.derived, upcoming_bills: d.derived.upcoming_bills.filter((b) => b.date > until) } };
 }
 
 function withOneOff(d: PersonaData): PersonaData {

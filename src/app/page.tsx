@@ -18,10 +18,24 @@ import { projectScore } from "@/lib/scoring/estimate";
 import { isOn } from "@/config/featureFlags";
 import { feed } from "@/lib/feed";
 import { HomeView } from "./HomeView";
+import { Suspense } from "react";
+import { PortalFrame } from "@/components/shell/Shells";
+import { TodayHeaderSkeleton, TodaySkeleton } from "@/components/today/TodaySkeleton";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
+/** The page shell streams straight away with card-shaped placeholders; the figures replace them when loaded. */
+export default function Home({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
+  const persona = currentPersona(searchParams.persona);
+  const present = presentationMode(searchParams.present);
+  return (
+    <Suspense fallback={<PortalFrame path="/" persona={persona} present={present} wide header={<TodayHeaderSkeleton />}><TodaySkeleton /></PortalFrame>}>
+      <TodayContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function TodayContent({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
   const persona = currentPersona(searchParams.persona);
   const { data, raw, account, goal, edits, states } = await loadCustomer(persona);
   // Disconnected by the customer, or (dev state) the connection expired: numbers stopped at the last refresh.

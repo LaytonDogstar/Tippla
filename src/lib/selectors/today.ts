@@ -18,12 +18,12 @@ export type HeroState = "short" | "tight" | "onTrack";
 
 /**
  * Short: bills due before payday are more than the balance (payCycleSummary.isShort).
- * Tight: bills are covered, but the safe-to-spend forecast leaves nothing spare before payday.
- * On track: something spare each day until payday.
+ * Tight: bills are covered, but safe to spend leaves nothing spare (under $1 a day) before payday.
+ * On track: something to spend each day until payday.
  */
-export function heroState(pc: PayCycleSummary, safe: Pick<SafeToSpend, "nothingSpare">): HeroState {
+export function heroState(pc: PayCycleSummary, safe: Pick<SafeToSpend, "nothingSpare" | "perDay">): HeroState {
   if (pc.isShort) return "short";
-  return safe.nothingSpare ? "tight" : "onTrack";
+  return safe.nothingSpare || safe.perDay < 1 ? "tight" : "onTrack";
 }
 
 /** One segment per day of the pay cycle: past, today, or still to come. */
