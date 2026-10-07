@@ -17,7 +17,8 @@ const row = (page: Page, name: RegExp) => page.getByRole("button", { name, expan
 
 test("journey 2: dashboard → spending → category → merchant sheet → recategorise (Jess)", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByText("$1,832 spent").first()).toBeVisible();
+  // Today redesign: spent this pay cycle sits in the hero.
+  await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,832")).toBeVisible();
   await page.getByRole("navigation").getByRole("link", { name: /^Money/ }).first().click();
   await expect(page).toHaveURL(/\/spending/);
   await expect(page.getByRole("img", { name: /^Total \$1,832/ })).toBeVisible();

@@ -48,11 +48,13 @@ import { ComingUp } from "@/components/today/ComingUp";
 import { PlanCard } from "@/components/today/PlanCard";
 import { SpendingSummary } from "@/components/today/SpendingSummary";
 import { cx } from "@/components/ui/cx";
+import { GoalRow } from "@/components/domain/GoalRow";
+import type { GoalOption } from "@/components/domain/GoalPicker";
 import { todayCopy } from "@/content/today";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null;
 
-export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, bars, groups, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, disconnected, plan, bufferSteps, milestones, surplus, moment, savingsLines, flags }: {
+export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, bars, groups, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, notice, plan, focusGoal, progressText, bufferSteps, milestones, surplus, moment, savingsLines, flags }: {
   persona: PersonaId; account: AccountState; checked: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; score: ScoreState; change: { delta: number; since: string } | null; trend: { date: string; score: number }[];
   action: FirstAction | null; projection: ScoreProjection | null; payCycle: PayCycleSummary; bars: MonthBar[];
@@ -64,8 +66,10 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
   goalLabel?: string | null; firstPayday?: boolean; recapLead?: "balance" | "advances" | "score" | null;
   /** Spec 05: "within $20 on 9 of the last 10 days" (only when accurate enough), and yesterday's bad miss. */
   accuracyLine?: string | null; miss?: ForecastPoint | null;
-  /** Spec 05: the data is over 72 h old (safe to spend pauses), or the bank is disconnected. */
-  stsPaused?: string | null; disconnected?: boolean;
+  /** Spec 05: the data is over 72 h old (safe to spend pauses). Banner copy shown at the top of the hero. */
+  stsPaused?: string | null; notice?: { kind: "bank" | "hardship"; text: string; href: string; action?: string } | null;
+  /** Spec 04: the goal and its options (null when goals_v1 is off), and the "Your progress" summary. */
+  focusGoal?: { current: GoalOption | null; options: GoalOption[] } | null; progressText?: string | null;
   /** Spec 07: the plan (the gambling plan is never named here). */
   plan?: { progress: PlanProgress; title: string } | null;
   bufferSteps?: { extra: number[]; next: number | null } | null; milestones?: Streak[]; surplus?: number | null; moment?: StageMoment | null; savingsLines?: string[];
@@ -138,7 +142,7 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
       {/* Left column on desktop; on smaller screens its cards join the single ordered stack. */}
       <div className="contents desktop:flex desktop:min-w-0 desktop:flex-[2_1_560px] desktop:flex-col desktop:gap-t6">
         <div className={cx(item, "order-1 sm:col-span-2")}>
-          <PayCycleHero pc={payCycle} safe={safe} asOf={asOf} stsPaused={!!stsPaused} disconnected={disconnected ? { href: "/account/bank" } : null}
+          <PayCycleHero pc={payCycle} safe={safe} asOf={asOf} stsPaused={!!stsPaused} notice={notice} trackSafe={flags.safe && !checkIn}
             movement={movement ? safeCopy.up(formatWhole(movement.up), movement.since) : null}
             onDue={() => setSheet("due")} onSafe={() => setSheet("safe")} onAdvance={() => setSheet("advance")} />
         </div>
@@ -156,7 +160,8 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
         <div className={cx(item, "order-5")}><SmartScoreCard state={score} change={change} attribution={attribution} trend={trend} /></div>
         <div className={cx(item, "order-7 desktop:order-6")}>
           <PlanCard plan={plan ?? null} action={action ? { title: action.title, summary: action.wouldChange ?? action.summary } : null} projection={projection}
-            goal={goalLabel ? { label: goalLabel } : null} onSeeHow={() => setSheet("action")} />
+            goalSlot={focusGoal ? <GoalRow inline persona={persona} account={account} asOf={asOf} goal={focusGoal.current} options={focusGoal.options} /> : undefined}
+            progress={progressText} onSeeHow={() => setSheet("action")} />
         </div>
         <div className={cx(item, "order-6 desktop:order-7")}><ComingUp items={coming} /></div>
         {miss && <div className={cx(item, "order-9 sm:order-8")}><ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} /></div>}

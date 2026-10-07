@@ -49,8 +49,8 @@ const TONE_CHIP: Record<Tone | "positive" | "neutral", string> = {
   neutral: "bg-chip text-text-secondary",
 };
 
-export function Chip({ tone, children, className }: { tone: Tone | "positive" | "neutral"; children: ReactNode; className?: string }) {
-  return <span className={cx("inline-flex items-center gap-t1 whitespace-nowrap rounded-pill px-[10px] py-[3px] text-meta-s font-semibold", TONE_CHIP[tone], className)}>{children}</span>;
+export function Chip({ tone, children, className, wrap }: { tone: Tone | "positive" | "neutral"; children: ReactNode; className?: string; wrap?: boolean }) {
+  return <span className={cx("inline-flex items-center gap-t1 rounded-pill px-[10px] py-[3px] text-meta-s font-semibold", wrap ? "whitespace-normal" : "whitespace-nowrap", TONE_CHIP[tone], className)}>{children}</span>;
 }
 
 /** Card-shaped placeholder, the same height as the card it stands in for (no layout shift). */

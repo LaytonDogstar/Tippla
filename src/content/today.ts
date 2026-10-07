@@ -77,7 +77,10 @@ export const todayCopy = {
     estimateBy: (date: string) => `by ${date} · estimate`,
     seeHow: "See how",
     seePlan: "See your plan",
+    planName: (title: string) => `Your plan ${title}`,
+    progress: "Your progress",
     goalLine: (goal: string) => `Your goal: ${goal}`,
+    stepGoal: (step: string) => `Goal for this step: ${step[0]!.toLowerCase()}${step.slice(1)}.`,
   },
   coming: {
     heading: "Coming up",
@@ -110,6 +113,4 @@ export const todayCopy = {
     heading: (day: string) => `Was ${day} unusual?`,
   },
   askPlaceholder: "Ask Tippla about bills, spending or score",
-  disconnected: "Your bank isn't connected, so these figures stopped updating.",
-  reconnect: "Reconnect",
 };

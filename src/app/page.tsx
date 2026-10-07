@@ -3,13 +3,14 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { categoryTotals, comingUp, monthPeriod, scoreTrend, spendGroups, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
-import { addDays, daysBetween, formatShortDay, formatUpdated, formatWhole, toAESTDate } from "@/lib/format";
+import { goalOptions, goalPlan, dashboardBanner, categoryTotals, comingUp, monthPeriod, scoreTrend, spendGroups, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
+import { addDays, daysBetween, formatDate, formatDayMonth, formatShortDay, formatUpdated, formatWhole, toAESTDate } from "@/lib/format";
 import { safeCopy } from "@/content/loop";
 import { flagsFor } from "@/config/featureFlags";
 import { billId } from "@/lib/account/state";
 import { dashboard as t } from "@/content/dashboard";
-import { accuracyCopy } from "@/content/corrections";
+import { accuracyCopy, healthCopy } from "@/content/corrections";
+import { progressCopy as p } from "@/content/progress";
 import { savingsCopy } from "@/content/plans";
 import { PortalShell } from "@/components/shell/Portal";
 import { TodayHeader } from "@/components/today/TodayHeader";
@@ -48,8 +49,16 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
   const renewed = !!account.bank?.renewedOn && account.bank.renewedOn >= data.asOf;
   const staleSince = account.bank?.disconnected ? data.asOf : expired && !renewed ? expired : health?.status === "stale" ? health.dataFrom : null;
   const status = refreshStatus(data, f.open.length, { staleSince, expiringOn: health?.status === "expiring" ? health.consentEndsOn : null });
-  // The old banners are covered elsewhere now: hardship options sit in the hero, a score drop in the SmartScore
-  // card, and a disconnected bank as a notice inside the hero.
+  // Banners become a notice at the top of the hero (same copy): the bank connection stopped, or money's tight.
+  // A score drop is covered by the SmartScore card.
+  const banner = dashboardBanner(data, { bankExpiredSince: account.bank?.disconnected ? data.asOf : renewed ? null : expired, hardshipSelfSelected: account.hardshipSelfSelected });
+  // The hero always offers "Options if money's tight"; the hardship notice is for members who've said money's
+  // tight themselves (Profile: "we'll keep these options at the top of Home").
+  const notice = !banner || banner.kind === "score_drop" || (banner.kind === "hardship" && !account.hardshipSelfSelected) ? null
+    : banner.kind === "hardship" ? { kind: "hardship" as const, text: t.banners.hardship, href: "/hardship" }
+    : { kind: "bank" as const, text: account.bank?.disconnected ? t.banners.bankDisconnected : t.banners.bankExpired(formatDate(banner.since)), href: "/account/bank" };
+  // Spec 05: data over 72 hours old pauses safe to spend; the hero says so, with Reconnect.
+  const pausedNotice = health?.pauseSafeToSpend ? { kind: "bank" as const, text: healthCopy.pausedBody(formatShortDay(health.dataFrom)), action: healthCopy.paused, href: "/account/bank/reconnect?return=/" } : null;
   const checkIn = on.cycle_checkin_v1 ? paydayCheckIn(data, stsOptions(data, account)) : null;
   const recap = on.cycle_recap_v1 && paydayCheckIn(data) ? cycleRecap(data, edits) : null;
   const tally = valueTally(data, account);
@@ -68,8 +77,13 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
     .map((b) => ({ id: billId(b), merchant: b.merchant, amount: b.expected_amount, date: b.date, paid: paid.has(billId(b)) }));
   const oneOffDates = Array.from({ length: Math.max(0, daysBetween(data.asOf, payday) - 1) }, (_, i) => addDays(data.asOf, i + 1));
   const next = firstAction(data, goal);
-  // Spec 04: the member's goal, shown in the plan card (changed on the progress page).
-  const goalName = on.goals_v1 && goal ? goalLabel(data, goal.type) : null;
+  // Spec 04: the member's goal, shown in the plan card and changed there in a sheet.
+  const focusGoal = on.goals_v1 ? {
+    current: goal ? { type: goal.type, label: goalLabel(data, goal.type) } : null,
+    options: goalOptions(data).map((type) => ({ type, label: goalLabel(data, type) })),
+  } : null;
+  const plan = goalPlan(data, account.goal);
+  const progressText = plan ? (plan.latest ? p.homeGoal(formatWhole(plan.amount), formatDayMonth(plan.by), plan.percent) : p.homeGoalPending(formatWhole(plan.amount), formatDayMonth(plan.by))) : p.homeNoGoal;
   // Spec 05: forecast accuracy (from fresh data only: a stale forecast isn't judged).
   const acc = on.forecast_accuracy_v1 && !staleSince ? forecastAccuracy(data) : null;
   const accuracyLine = acc?.show ? accuracyCopy.line(formatWhole(acc.within), acc.hits, acc.of) : null;
@@ -78,13 +92,13 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
   const bars = sixMonthSpending(data, edits);
   const lastMonth = bars.at(-1)?.month ?? data.asOf.slice(0, 7);
   const groups = spendGroups(categoryTotals(data, monthPeriod(data, lastMonth), edits), { hideGambling: account.hideGambling });
-  // Phones show the update time (or the stale-data line); wider screens add what was checked.
-  const updated = data.score?.scoredAt ? formatUpdated(lastRefresh(data).at) : "";
-  const headerSub = status.stale ? status.line : updated;
+  // Spec 01 status line under the greeting (what Tippla checked, what needs a look, or stale data); wider
+  // screens add when the data was updated before it.
+  const updated = data.score?.scoredAt ? formatUpdated(lastRefresh(data).at) : null;
 
   return (
     <PortalShell path="/" persona={persona} present={presentationMode(searchParams.present)} wide
-      header={<TodayHeader title={t.hi(data.profile.first_name)} sub={headerSub} subMore={status.stale ? null : status.checked} subHref={status.stale ? "/account/bank" : undefined}
+      header={<TodayHeader title={t.hi(data.profile.first_name)} sub={on.status_line_v1 ? status.line : updated ?? ""} subBefore={on.status_line_v1 && !status.stale ? updated : null} subHref={status.stale ? "/account/bank" : undefined}
         unread={unreadCount(notifications(data, account))} ask={on.assistant_v1 ? { placeholder: todayCopy.askPlaceholder } : null} />}>
       <HomeView
         persona={persona}
@@ -109,7 +123,9 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
         adjustBills={adjustBills}
         oneOffDates={oneOffDates}
         focus={next?.title ?? null}
-        goalLabel={goalName}
+        goalLabel={focusGoal?.current?.label ?? null}
+        focusGoal={focusGoal}
+        progressText={progressText}
         firstPayday={!!checkIn && on.onboarding_v2 && isFirstPayday(data, account.onboardedAt)}
         recapLead={recapLead(goal?.type)}
         accuracyLine={accuracyLine}
@@ -121,7 +137,7 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
         moment={on.streaks_v1 ? stageMoment(data, account) : null}
         plan={multiPlan ? { progress: multiPlan, title: publicPlanTitle(multiPlan) } : null}
         stsPaused={health?.pauseSafeToSpend ? health.dataFrom : null}
-        disconnected={!!account.bank?.disconnected || (!!expired && !renewed)}
+        notice={notice ?? pausedNotice}
         payPending={!checkIn && payday === data.asOf}
         checkIn={checkIn}
         recap={recap}

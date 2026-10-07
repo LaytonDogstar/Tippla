@@ -19,7 +19,9 @@ async function textProblems(page: Page): Promise<string[]> {
       if (cs.display === "none" || cs.visibility === "hidden" || el.closest("svg") || el.closest(".sr-only")) continue;
       if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent?.trim())) continue;
       const label = `<${el.tagName.toLowerCase()}> "${el.textContent?.trim().slice(0, 40)}"`;
-      if (el.getBoundingClientRect().right > W + 1 && cs.position !== "fixed") out.push(`off-screen ${label}`);
+      // Content inside a sideways-scrolling row (Today's quick actions) is reachable by scrolling, not off-screen.
+      const inScroller = (() => { for (let p = el.parentElement; p; p = p.parentElement) if (["auto", "scroll"].includes(getComputedStyle(p).overflowX)) return true; return false; })();
+      if (el.getBoundingClientRect().right > W + 1 && cs.position !== "fixed" && !inScroller) out.push(`off-screen ${label}`);
       const clipped = el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 2;
       if (clipped && cs.overflow !== "visible" && !["auto", "scroll"].includes(cs.overflowY) && !["TEXTAREA", "INPUT"].includes(el.tagName)) out.push(`clipped ${label}`);
       if (/\bh-/.test(String(el.className)) && el.clientHeight > 0 && el.scrollHeight > el.clientHeight + 2) out.push(`spills ${label}`);
@@ -90,7 +92,7 @@ test.describe("states (docs/09)", () => {
 
   test("lapsed subscription: score visible on Home, drill-downs show the reactivate sheet, support never gated", async ({ page }) => {
     await page.goto(url("/", "marcus", "&state=lapsed"));
-    await expect(page.getByText(/SmartScore 612/)).toBeVisible();
+    await expect(page.getByRole("link", { name: /SmartScore 612 out of 1,000/ })).toBeVisible();
     await expect(page.getByText("Your subscription has ended, so the rest of Tippla is paused. Your SmartScore stays here.")).toBeVisible();
     await page.goto(url("/spending", "marcus"));
     const sheet = page.getByRole("dialog");

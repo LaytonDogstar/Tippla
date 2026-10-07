@@ -75,8 +75,9 @@ test("Jess on 25/09 with a goal: it waits, and safe to spend is unchanged", asyn
   await page.getByRole("dialog").getByRole("button", { name: "Save goal" }).click();
   await expect(region(page, "Your goal")).toContainText("Your bills take everything this pay cycle, so your goal waits until there's room.");
   await page.goto("/?persona=jess&present=1");
-  await expect(region(page, "Safe to spend today")).toContainText("Nothing spare before payday");
-  await region(page, "Safe to spend today").getByRole("button", { name: "How we worked this out" }).click();
+  // Today redesign: safe to spend is in the hero; Jess is short, and the working is one tap away.
+  await expect(region(page, "This pay cycle")).toContainText("Short before payday");
+  await region(page, "This pay cycle").getByRole("button", { name: "How we worked this out" }).click();
   await expect(page.getByRole("dialog").getByText("Your goal waits this pay cycle: bills and everyday spending come first.")).toBeVisible();
 });
 

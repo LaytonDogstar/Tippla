@@ -38,8 +38,8 @@ export function SpendingSummary({ bars, asOf, groups }: {
             </p>
           )}
           {avg && (diff !== null
-            ? <Chip tone={diff <= 0 ? "positive" : "caution"} className="self-start">{diff <= 0 ? t.under(formatWhole(-diff), avg.months) : t.over(formatWhole(diff), avg.months)}</Chip>
-            : <Chip tone="neutral" className="self-start">{t.averageChip(formatWhole(avg.average), avg.months)}</Chip>)}
+            ? <Chip tone={diff <= 0 ? "positive" : "caution"} wrap className="self-start">{diff <= 0 ? t.under(formatWhole(-diff), avg.months) : t.over(formatWhole(diff), avg.months)}</Chip>
+            : <Chip tone="neutral" wrap className="self-start">{t.averageChip(formatWhole(avg.average), avg.months)}</Chip>)}
           <div role="img" aria-label={t.barsSr(sr)} className="relative mt-t3" style={{ height: HEIGHT + 30 }}>
             {avg && (
               <>

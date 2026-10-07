@@ -6,7 +6,9 @@
 // Then the days-to-payday strip, balance against what's due, paid in / spent / pay advance (never income),
 // and two actions: what's due, and options if money's tight (always next to a short state).
 import Link from "next/link";
-import { ArrowDown, ArrowUp, CreditCard, Unplug } from "lucide-react";
+import { useEffect } from "react";
+import { ArrowDown, ArrowUp, CreditCard, HeartHandshake, Unplug } from "lucide-react";
+import { track } from "@/lib/analytics/client";
 import { todayCopy } from "@/content/today";
 import { cx } from "@/components/ui/cx";
 import { formatShortDay, formatDayMonth, formatWhole } from "@/lib/format";
@@ -17,16 +19,22 @@ import { cycleDays, dueCoverage, heroState, type HeroState } from "@/lib/selecto
 const t = todayCopy.hero;
 const DOT: Record<HeroState, string> = { short: "bg-hero-negative-mark", tight: "bg-hero-caution-mark", onTrack: "bg-hero-positive-mark" };
 
-export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, disconnected, onDue, onSafe, onAdvance }: {
+export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trackSafe = true, onDue, onSafe, onAdvance }: {
   pc: PayCycleSummary; safe: SafeToSpend; asOf: string;
   /** Data too old for safe to spend: show what's left after bills instead (spec 05). */
   stsPaused?: boolean;
   movement?: string | null;
-  /** The bank is disconnected: the figures stopped at the last refresh. */
-  disconnected?: { href: string } | null;
+  /** A notice at the top of the hero: the bank connection stopped (figures are from the last refresh), or the
+   * member said money's tight (Profile: "we'll keep these options at the top of Home"). Existing banner copy. */
+  notice?: { kind: "bank" | "hardship"; text: string; href: string; action?: string } | null;
+  /** Report the safe-to-spend view (spec 09), unless the payday check-in already does. */
+  trackSafe?: boolean;
   onDue: () => void; onSafe: () => void; onAdvance: () => void;
 }) {
   const state = heroState(pc, safe);
+  useEffect(() => {
+    if (trackSafe && !stsPaused) track("sts_viewed", { value_cents: safe.perDay * 100, days_left: safe.days, nothing_spare: safe.nothingSpare });
+  }, [trackSafe, stsPaused, safe.perDay, safe.days, safe.nothingSpare]);
   const payday = formatShortDay(pc.nextPayday);
   const cov = dueCoverage(pc);
   const days = cycleDays(pc, asOf);
@@ -43,11 +51,13 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, disconnected
   const dueList = due.slice(0, 2).map((b) => `${b.merchant} ${formatWhole(b.expected_amount)}`).join(" · ") + (due.length > 2 ? ` ${t.more(due.length - 2)}` : "");
 
   return (
-    <section aria-labelledby="hero-h" className="on-brand flex flex-col gap-t4 rounded-hero-s bg-hero p-t4 text-hero-on shadow-hero sm:gap-t6 sm:p-t6 desktop:rounded-hero desktop:px-t7 desktop:py-[28px]">
+    <section aria-labelledby="hero-h" className="on-brand flex flex-col gap-t3 rounded-hero-s bg-hero p-t4 text-hero-on shadow-hero sm:gap-t6 sm:p-t6 desktop:rounded-hero desktop:px-t7 desktop:py-[28px]">
       <h2 id="hero-h" className="sr-only">{t.label}</h2>
-      {disconnected && (
-        <Link href={disconnected.href} className="flex min-h-tap items-center gap-t2 rounded-inset bg-hero-glass px-t3 py-t2 text-meta font-semibold">
-          <Unplug aria-hidden size={16} strokeWidth={1.8} /><span className="flex-1">{todayCopy.disconnected}</span><span className="underline">{todayCopy.reconnect}</span>
+      {notice && (
+        <Link href={notice.href} className="flex min-h-tap items-center gap-t2 rounded-inset bg-hero-glass px-t3 py-t2 text-meta font-semibold">
+          {notice.kind === "bank" ? <Unplug aria-hidden size={16} strokeWidth={1.8} className="shrink-0" /> : <HeartHandshake aria-hidden size={16} strokeWidth={1.8} className="shrink-0" />}
+          <span className="flex-1">{notice.text}</span>
+          {notice.action && <span className="shrink-0 underline underline-offset-2">{notice.action}</span>}
         </Link>
       )}
       <div className="flex flex-wrap items-center gap-t3">
@@ -64,6 +74,7 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, disconnected
             <span aria-hidden className="mt-t2 block text-[0.9375rem] leading-[1.375rem] text-hero-on-muted sm:text-[1rem] sm:leading-6">{line} <strong className="font-bold text-hero-on">{payday}</strong></span>
             <span className="sr-only">{sr}</span>
           </p>
+          {/* Short: the headline is balance minus what's due, explained by "See what's due". */}
           {state !== "short" && (
             <div className="mt-t2 flex flex-wrap items-center gap-t2">
               {(movement || (state === "onTrack" && !showLeft)) && <span className="rounded-pill bg-hero-glass px-t2 py-[2px] text-meta-s font-semibold">{movement ?? t.estimate}</span>}
@@ -94,11 +105,15 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, disconnected
           {state === "short" && <span className="flex-1" style={{ background: "repeating-linear-gradient(135deg, var(--hero-negative-mark) 0 4px, var(--hero-inset) 4px 8px)" }} />}
         </div>
         <div className="flex flex-wrap gap-x-t5 gap-y-t2 text-meta text-hero-on">
-          <span className="inline-flex items-center gap-[6px]"><span aria-hidden className="h-[8px] w-[8px] rounded-pill bg-hero-on" />{t.covered(formatWhole(cov.covered))}</span>
+          {/* Phones: "Covered" repeats the balance above (the bar's text alternative still says it). */}
+          <span className={cx("items-center gap-[6px]", state === "short" ? "hidden sm:inline-flex" : "inline-flex")}><span aria-hidden className="h-[8px] w-[8px] rounded-pill bg-hero-on" />{t.covered(formatWhole(cov.covered))}</span>
           {state === "short"
             ? <span className="inline-flex items-center gap-[6px]"><span aria-hidden className="h-[8px] w-[8px] rounded-pill bg-hero-negative-mark" />{t.short(formatWhole(cov.short))}</span>
             : <span>{t.left(formatWhole(cov.left))}</span>}
-          <span className="hidden flex-1 sm:block" />
+          <span className="flex-1" />
+          {/* Short: the safe-to-spend working (why there's nothing spare, and why a goal waits) stays one tap away,
+              without adding height (the 44px target overlaps the row's padding). */}
+          {state === "short" && <button type="button" onClick={onSafe} className="-my-t3 inline-flex min-h-tap items-center font-semibold underline underline-offset-2 sm:order-last sm:ml-t3">{t.how}</button>}
           {/* On phones the list is one tap away in "See what's due". */}
           <span className="hidden sm:inline">{due.length ? dueList : t.nothingDue}</span>
         </div>

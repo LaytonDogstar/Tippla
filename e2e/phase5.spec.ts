@@ -24,7 +24,9 @@ test("withdrawing lender matching hides Offers immediately (Marcus), and Undo br
   await matching.getByText("On", { exact: true }).click();
   await expect(matching.getByRole("status")).toHaveText("Lender matching is paused. Lenders won't see your profile.");
 
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /^Borrowing/ }).first().click();
+  // Today redesign: Borrowing sits under More on phones.
+  await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: /^More/ }).click();
+  await page.getByRole("dialog", { name: "More" }).getByRole("link", { name: "Loans & credit" }).click();
   await page.getByRole("link", { name: /^Offers from partner lenders/ }).click();
   await expect(page.getByRole("heading", { name: "Lender matching is off" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Harbour Lending" })).toHaveCount(0);
@@ -62,15 +64,20 @@ test("Pause instead is the single optional alternative, with its effect shown be
 
 const ROUTES = ["/", "/score", "/savings", "/spending", "/calendar", "/subscriptions", "/loans", "/loans/repayment", "/offers", "/help", "/hardship", "/notifications", "/account", "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/spending/compare"];
 
-test("Hardship support is always visible in the nav: mobile row and desktop rail, without scrolling", async ({ page, browser }) => {
+test("Hardship support is always reachable: one tap from Today and the desktop rail, two taps from anywhere on phones", async ({ page, browser }) => {
+  // Today redesign (07/10/2026): phones have Hardship help as a quick action on Today and under More everywhere.
+  await page.goto("/?persona=jess&present=1");
+  await expect(page.getByRole("navigation", { name: "Quick actions" }).getByRole("link", { name: "Hardship help" })).toBeInViewport();
   for (const r of ROUTES) {
     await page.goto(`${r}?persona=jess&present=1`);
-    await expect(page.getByRole("link", { name: "Hardship support" }).first(), r).toBeInViewport();
+    await expect(page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: /^More/ }), r).toBeInViewport();
   }
+  await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: /^More/ }).click();
+  await expect(page.getByRole("dialog", { name: "More" }).getByRole("link", { name: "Hardship support" })).toHaveAttribute("href", "/hardship");
   const desk = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   for (const r of ["/", "/loans", "/account/profile"]) {
     await desk.goto(`http://localhost:3200${r}?persona=jess&present=1`);
-    await expect(desk.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Hardship support" }), r).toBeInViewport();
+    await expect(desk.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /^Help & hardship/ }), r).toBeInViewport();
   }
   await desk.close();
 });

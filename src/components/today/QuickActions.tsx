@@ -20,9 +20,9 @@ export function QuickActions() {
     <nav aria-label={t.label} className="-mx-gutter sm:mx-0">
       <ul className="no-scrollbar flex snap-x snap-mandatory gap-t3 overflow-x-auto scroll-px-[var(--gutter)] px-gutter py-t1 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
         {ACTIONS.map((a) => (
-          <li key={a.key} className="snap-start">
+          <li key={a.key} className="flex snap-start">
             <Link href={a.href}
-              className={cx("pressable flex h-[84px] w-[76px] flex-col items-center justify-center gap-t2 rounded-tile px-t1 text-center text-meta-s font-semibold leading-tight sm:h-[96px] sm:w-auto sm:text-meta",
+              className={cx("pressable flex min-h-[5.25rem] w-[4.75rem] flex-col items-center justify-center gap-t2 rounded-tile px-t1 py-t2 text-center text-meta-s font-semibold leading-tight sm:min-h-[6rem] sm:w-auto sm:text-meta",
                 a.primary ? "bg-cta text-hero-on shadow-cta" : "bg-surface text-text shadow-card")}>
               <a.icon aria-hidden size={22} strokeWidth={1.8} className={a.primary ? undefined : "text-accent"} />
               {a.label}
