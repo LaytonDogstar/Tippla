@@ -13,7 +13,8 @@ async function expectNoAxe(page: Page) {
   expect(s, s.join("\n")).toEqual([]);
 }
 
-const row = (page: Page, name: RegExp) => page.getByRole("button", { name, expanded: undefined }).first();
+// Category rows (the donut's legend also has category buttons since UX round 2, 5.2).
+const row = (page: Page, name: RegExp) => page.getByRole("region", { name: "Categories" }).getByRole("button", { name, expanded: undefined }).first();
 
 test("journey 2: dashboard → spending → category → merchant sheet → recategorise (Jess)", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
@@ -45,7 +46,10 @@ test("journey 2: dashboard → spending → category → merchant sheet → reca
   await expect(page.getByRole("status").filter({ hasText: "Moved to Groceries. Totals updated" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(row(page, /^Food & dining/)).toContainText("$105");
+  // Overview lists the top five (UX round 2, 6.3); Groceries is on the Categories tab.
+  await page.getByText("Categories", { exact: true }).first().click();
   await expect(row(page, /^Groceries/)).toContainText("$90");
+  await page.getByText("Overview", { exact: true }).click();
   await expect(page.getByRole("img", { name: /^Total \$1,832/ })).toBeVisible();
 
   // Mark another as a transfer between own accounts: spent drops on the hero, the donut and Home.
@@ -54,6 +58,7 @@ test("journey 2: dashboard → spending → category → merchant sheet → reca
   await page.keyboard.press("Escape");
   await expect(page.getByText("$1,804 spent").first()).toBeVisible();
   await expect(page.getByRole("img", { name: /^Total \$1,804/ })).toBeVisible();
+  await page.getByText("Categories", { exact: true }).first().click();
   await expect(row(page, /^Food & dining/)).toContainText("$77");
 
   await page.getByText("Budgets", { exact: true }).click();
@@ -69,13 +74,13 @@ test("journey 2: dashboard → spending → category → merchant sheet → reca
 
 test("donut slice filters the list and the feed; tapping again clears", async ({ page }) => {
   await page.goto("/spending?persona=jess&present=1");
-  await expect(page.getByText("11 shown")).toBeVisible();
+  await expect(page.getByText("5 shown")).toBeVisible(); // the top five on Overview (6.3)
   const slice = page.getByRole("img", { name: /^Total \$1,832/ }).locator("path").nth(2);
   await slice.click();
   await expect(page.getByText("1 shown")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Remove .+ filter$/ }).first()).toBeVisible();
   await slice.click();
-  await expect(page.getByText("11 shown")).toBeVisible();
+  await expect(page.getByText("5 shown")).toBeVisible();
 });
 
 test("search by merchant or amount, with a plain empty state", async ({ page }) => {
@@ -125,13 +130,18 @@ test("calendar: Home's next bill opens its day; range totals; forecast below $0 
   await expect(page.getByRole("heading", { name: "September 2026" })).toBeVisible();
 });
 
-test("subscriptions: keep, remind, how to cancel", async ({ page }) => {
+test("subscriptions: still using? Yes keeps it with an optional reminder; how to cancel from the menu", async ({ page }) => {
   await page.goto("/subscriptions?persona=jess&present=1");
-  await expect(page.getByText("About $31 a pay cycle · $810 a year")).toBeVisible(); // includes Binge (new 08/09)
+  const rail = page.getByRole("complementary");
+  await expect(rail.getByText("$31")).toBeVisible(); // a pay cycle; includes Binge (new 08/09)
+  await expect(rail.getByText("$810 a year")).toBeVisible();
   const netflix = page.getByRole("article", { name: "Netflix" });
+  await netflix.getByRole("button", { name: "Yes: Still using Netflix?" }).click();
+  await expect(netflix.getByText("Kept", { exact: true })).toBeVisible();
   await netflix.getByRole("button", { name: "Remind me before next charge" }).click();
   await expect(page.getByRole("status").filter({ hasText: "We'll remind you about Netflix on Thu 01/10" })).toBeVisible();
-  await netflix.getByRole("button", { name: "How to cancel" }).click();
+  await page.getByRole("button", { name: "More options for Netflix" }).click();
+  await page.getByRole("dialog", { name: "Netflix" }).getByRole("button", { name: "How to cancel" }).click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: "How to cancel Netflix" })).toBeVisible();
 });
 

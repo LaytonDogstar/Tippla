@@ -20,8 +20,9 @@ const sizes: Record<ButtonSize, string> = {
 const variants: Record<ButtonVariant, string> = {
   primary:
     "bg-accent text-on-accent hover:shadow-[inset_0_0_0_2px_var(--color-on-accent)] active:shadow-[inset_0_0_0_2px_var(--color-on-accent),inset_0_-2px_0_0_var(--color-on-accent)]",
+  // Outline: secondary actions never compete with the one solid main action on a screen (UX round 2, 3.3).
   secondary:
-    "bg-accent-soft text-accent hover:shadow-[inset_0_0_0_2px_var(--color-accent)] active:shadow-[inset_0_0_0_2px_var(--color-accent),inset_0_-2px_0_0_var(--color-accent)]",
+    "bg-surface text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft active:shadow-[inset_0_0_0_2px_var(--color-accent)]",
   tertiary: "bg-transparent text-accent hover:bg-surface2 active:bg-surface2 active:shadow-[inset_0_-2px_0_0_var(--color-accent)]",
   destructive:
     "bg-destructive text-text-inverse hover:shadow-[inset_0_0_0_2px_var(--color-text-inverse)] active:shadow-[inset_0_0_0_2px_var(--color-text-inverse),inset_0_-2px_0_0_var(--color-text-inverse)]",

@@ -176,7 +176,7 @@ export function Showcase({ data }: { data: ShowcaseData }) {
             <>
               <CategoryRow row={jess.rows[0]!} merchants={jess.merchants[jess.rows[0]!.category]} />
               <CategoryRow row={gam} merchants={jess.merchants.gambling} insightLabel="See insight" onInsight={() => openInsight("gambling")} />
-              <CategoryRow row={food} merchants={jess.merchants.food} showLifestyle budget={150} defaultExpanded />
+              <CategoryRow row={food} merchants={jess.merchants.food} budget={150} defaultExpanded />
               <CategoryRow row={groc} merchants={jess.merchants.groceries} budget={60} />
               <CategoryRow row={jess.rows.find((r) => r.category === "transport")!} budget={null} />
             </>

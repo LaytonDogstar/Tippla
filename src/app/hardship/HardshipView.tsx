@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Feedback";
 import { SampleTag } from "@/components/ui/SampleTag";
 import { Toggle } from "@/components/ui/Form";
+import { CardLink } from "@/components/ui/CardLink";
+import { PageColumns } from "@/components/shell/PageColumns";
 import { statesCopy } from "@/content/states";
 import { useAccount } from "@/lib/account/client";
 import type { AccountState } from "@/lib/account/state";
@@ -79,34 +81,55 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
     { id: "gambling", icon: Layers, ...t.gambling, onClick: () => setSheet("gambling") },
   ];
 
+  const rail = (
+    <>
+      <section aria-labelledby="ndh-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+        <h2 id="ndh-h" className="text-card text-text sm:text-card-l">{t.rail.ndhTitle}</h2>
+        <p className="mt-t1 text-body14 text-text-secondary">{NDH.name}. {t.rail.ndhBody}</p>
+        <p className="tnum mt-t3 text-section-num text-text">{NDH.phoneDisplay}</p>
+        <p className="text-meta text-text-muted">{NDH.hours}</p>
+        <div className="mt-t3 flex flex-wrap gap-t2">
+          <a href={NDH.tel} className="inline-flex min-h-tap items-center gap-t2 rounded-pill bg-surface px-t4 text-body14 font-bold text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft"><Phone aria-hidden size={16} />{t.rail.call(NDH.phoneDisplay)}</a>
+          <a href={NDH.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-tap items-center gap-t1 px-t2 text-body14 font-semibold text-accent">{t.rail.website}<ExternalLink aria-hidden size={14} /></a>
+        </div>
+      </section>
+      <section aria-labelledby="expect-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+        <h2 id="expect-h" className="text-card text-text sm:text-card-l">{t.rail.expectTitle}</h2>
+        <ol className="mt-t3 flex flex-col gap-t3">
+          {t.rail.expect.map((x, i) => (
+            <li key={x} className="flex gap-t3 text-body14 text-text-secondary">
+              <span aria-hidden className="tnum flex min-h-[24px] min-w-[24px] shrink-0 items-center justify-center self-start rounded-pill bg-accent-soft px-[6px] text-meta font-bold text-accent-strong">{i + 1}</span>{x}
+            </li>
+          ))}
+        </ol>
+      </section>
+    </>
+  );
+
   return (
     <div className="pb-t6">
+      <PageColumns railLabel={t.rail.label} rail={rail} main={<>
       <p className="mt-t2 text-h1 font-display text-text">{t.opener}</p>
       <p className="mt-t2 text-body text-text-muted">{t.scoreNote} <SampleTag q="Q8" present={present} /></p>
+      <p className="mt-t1 text-body14 text-text-secondary">{t.creditReportNote}</p>
       <ul className="mt-t5 flex flex-col gap-t3">
         {cards.map((c) => (
           <li key={c.id}>
-            <section aria-labelledby={`h-${c.id}`} className={cx("rounded-md p-t4", c.soft ? "bg-accent-soft" : "bg-surface")}>
-              <div className="flex items-start gap-t3">
-                <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><c.icon size={24} /></span>
-                <div className="min-w-0 flex-1">
-                  <h2 id={`h-${c.id}`} className="text-card text-text sm:text-card-l">{c.title}</h2>
-                  <p className="mt-t1 text-small text-text-muted">{c.body}</p>
-                </div>
-              </div>
-              <button type="button" onClick={c.onClick} className="mt-t3 flex min-h-tap w-full items-center justify-between rounded-sm pl-[52px] text-small text-accent hover:bg-surface2">
-                {c.action}<ChevronRight aria-hidden size={20} />
-              </button>
-            </section>
+            {/* Whole card is the target, with a chevron; the title says what it is (UX round 2, 3.4). */}
+            <CardLink icon={c.icon} title={c.title} body={c.body} soft={c.soft} onClick={c.onClick} ariaLabel={`${c.title}: ${c.action}`} />
           </li>
         ))}
       </ul>
 
       <section className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
-        <Toggle label={statesCopy.hardshipSelf.label} checked={!!account.hardshipSelfSelected}
-          onChange={(v) => update((l) => ({ ...l, hardshipSelfSelected: v || undefined }))} />
+        <Toggle label={statesCopy.hardshipSelf.label} description={statesCopy.hardshipSelf.description} checked={!!account.hardshipSelfSelected}
+          onChange={(v) => {
+            update((l) => ({ ...l, hardshipSelfSelected: v || undefined }));
+            toast({ kind: "confirm", message: v ? statesCopy.hardshipSelf.toastOn : statesCopy.hardshipSelf.toastOff });
+          }} />
         {account.hardshipSelfSelected && <p role="status" className="mt-t1 px-t1 text-small text-text-muted">{statesCopy.hardshipSelf.on}</p>}
       </section>
+      </>} />
 
       {letter && (
         <Sheet open={sheet === "template"} onClose={() => setSheet(null)} title={lc.title}>

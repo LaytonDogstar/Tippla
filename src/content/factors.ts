@@ -47,7 +47,7 @@ export const drivers = {
   },
   mix: {
     essentials: (pct: string) => `Everyday essentials were about ${pct} of your spending over the last 90 days`,
-    sample: "Sample logic: TaleFin to confirm what this factor measures (Q2)",
+    none: "We don't have enough spending yet to show the mix.",
   },
   nullFactor: "We don't have enough history to work this out yet.",
 };
@@ -63,7 +63,8 @@ export const scorePage = {
   incomeMix: "Your score also looks at the mix of wages and government payments in your income.",
   stagesNote: "Stages: Building 0–449 · Steadying 450–599 · Healthy 600–749 · Thriving 750–1,000.",
   trend: "Fortnightly trend",
-  trendScale: "Scale 0–1,000",
+  trendScale: (lo: number, hi: number) => `Scale ${lo}–${hi}`,
+  trendDelta: (delta: number, since: string) => (delta === 0 ? `No change since ${since}` : `${delta > 0 ? "+" : "−"}${Math.abs(delta)} since ${since}`),
   trendPoint: (date: string, score: number) => `${date}: ${score}`,
   roomToMove: "Factors with room to move",
   other: "Other factors",

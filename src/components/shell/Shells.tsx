@@ -68,7 +68,9 @@ export function PageHeader({ title, sub, action }: { title: string; sub?: string
 }
 
 /** The portal frame. Pages use PortalShell from ./Portal (server), which adds state notices and gates. */
-export function PortalFrame({ path, title, backHref, persona, present, cta, header, wide, notice, badges, name, children }: {
+export function PortalFrame({ path, title, backHref, persona, present, cta, header, wide, notice, badges, name, hideOffers, children }: {
+  /** UX round 2, 2.2: no Offers nav item (shouldShowLenderOffers). */
+  hideOffers?: boolean;
   /** The member's first name, for the sidebar's account entry. */
   name?: string;
   path: string; title?: string; backHref?: string; persona: PersonaId; present: boolean;
@@ -98,8 +100,8 @@ export function PortalFrame({ path, title, backHref, persona, present, cta, head
           <div className="mx-auto max-w-[720px] px-gutter py-t4">{cta}</div>
         </div>
       )}
-      <MobileDock path={path} badges={badges} />
-      <DesktopSidebar path={path} badges={badges} name={name} />
+      <MobileDock path={path} badges={badges} hideOffers={hideOffers} />
+      <DesktopSidebar path={path} badges={badges} name={name} hideOffers={hideOffers} />
       {!present && <PersonaSwitcher current={persona} raised={!!cta} />}
     </div>
   );

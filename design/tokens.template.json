@@ -12,7 +12,7 @@
       "surface2": "#F1EEF7",
       "line": "#E2DDEC",
       "text": "#1C1830",
-      "textMuted": "#6B6580",
+      "textMuted": "#5E6382",
       "textInverse": "#FFFFFF",
       "accent": "#5B3FD6",
       "accentSoft": "#ECE8FB",
@@ -48,7 +48,7 @@
       "surface2": "#211D36",
       "line": "#2E2947",
       "text": "#EEEBFA",
-      "textMuted": "#A39DBD",
+      "textMuted": "#A9ADCC",
       "textInverse": "#140F2E",
       "accent": "#9C87FF",
       "accentSoft": "#2A2350",
@@ -270,14 +270,14 @@
       "letterSpacing": 0
     },
     "caption": {
-      "size": 12,
-      "lineHeight": 16,
+      "size": 13,
+      "lineHeight": 18,
       "weight": 500,
       "letterSpacing": 0
     },
     "eyebrow": {
-      "size": 11,
-      "lineHeight": 14,
+      "size": 13,
+      "lineHeight": 18,
       "weight": 700,
       "letterSpacing": 0.08,
       "transform": "uppercase"
@@ -361,8 +361,8 @@
       "letterSpacing": 0
     },
     "metaS": {
-      "size": 12,
-      "lineHeight": 16,
+      "size": 13,
+      "lineHeight": 18,
       "weight": 500,
       "letterSpacing": 0
     },

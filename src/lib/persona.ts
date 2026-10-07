@@ -16,8 +16,18 @@ export function presentationMode(searchParam?: string | string[]): boolean {
   const q = Array.isArray(searchParam) ? searchParam[0] : searchParam;
   if (q === "1") return true;
   if (q === "0") return false;
-  return cookies().get("tippla-present")?.value === "1";
+  const c = cookies().get("tippla-present")?.value;
+  if (c === "1") return true;
+  if (c === "0") return false;
+  return !devToolsByDefault();
 }
+
+/**
+ * Dev tools (the persona pill, "Sample logic" tags) are off by default on a production build, so the hosted site
+ * looks like the real product (UX round 2, 1.4). ?dev=1 turns them on for that browser (remembered), ?dev=0 off;
+ * TIPPLA_DEV_TOOLS=1 turns them on by default. Local development always starts with them on.
+ */
+export const devToolsByDefault = () => process.env.NODE_ENV !== "production" || process.env.TIPPLA_DEV_TOOLS === "1";
 
 /** The customer's recategorised transactions (cookie, so every server-rendered screen agrees). */
 export function categoryEdits(persona: PersonaId): CategoryOverrides {

@@ -48,13 +48,17 @@ test("follow-up next pay cycle: 'Did you hear back?', and the helpline if they s
   await expectNoAxe(page);
 });
 
-test("cancellation helper: 'Still using Netflix?' No opens the guide; iCloud has its own steps", async ({ page }) => {
+test("cancellation helper: 'Still using Netflix?' No leads to how to cancel; iCloud has its own steps", async ({ page }) => {
   await page.goto("/subscriptions?persona=jess&present=1");
+  // UX round 2, 6.5: No shows How to cancel (the main action) and a reminder; the answer is listed in the rail.
   await page.getByRole("button", { name: "No: Still using Netflix?" }).click();
+  await expect(page.getByRole("complementary").getByText("Netflix")).toBeVisible();
+  await page.getByRole("article", { name: "Netflix" }).getByRole("button", { name: "How to cancel" }).click();
   await expect(page.getByRole("dialog", { name: "How to cancel Netflix" })).toBeVisible();
   await page.keyboard.press("Escape");
-  await page.getByRole("article", { name: /Apple iCloud/ }).getByRole("button", { name: "How to cancel" }).click();
-  await expect(page.getByRole("dialog")).toContainText("iCloud storage is billed by Apple");
+  await page.getByRole("button", { name: "More options for Apple iCloud" }).click();
+  await page.getByRole("dialog", { name: "Apple iCloud" }).getByRole("button", { name: "How to cancel" }).click();
+  await expect(page.getByRole("dialog", { name: "How to cancel Apple iCloud" })).toContainText("iCloud storage is billed by Apple");
   await expect(page.getByRole("article", { name: /Apple iCloud/ }).getByText(/Still using/)).toHaveCount(0); // $4.49: under $10
 });
 

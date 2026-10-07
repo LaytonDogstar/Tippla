@@ -72,7 +72,8 @@ test("donut: legend rows select and clear a category", async ({ page }) => {
   const gambling = donut.getByRole("button", { name: /^Gambling/ });
   await gambling.click();
   await expect(gambling).toHaveAttribute("aria-pressed", "true");
-  await expect(donut.getByRole("button", { name: "Remove Gambling filter" })).toBeVisible();
+  // UX round 2, 6.1: the removable chip lives in the page's one filter bar, not inside the donut.
+  await expect(donut.getByText("6% of spending").or(donut.getByText(/of spending$/)).first()).toBeVisible();
   await gambling.click();
   await expect(gambling).toHaveAttribute("aria-pressed", "false");
 });
@@ -90,13 +91,18 @@ test("no red, no green: financial components never use the destructive or positi
   const offenders = await page.evaluate(() => {
     const css = getComputedStyle(document.documentElement);
     const destructive = css.getPropertyValue("--color-destructive").trim().toLowerCase();
+    const negSoft = css.getPropertyValue("--color-negative-soft").trim().toLowerCase();
     const sections = ["score-ring", "stage-scale", "factor-tile", "pay-cycle", "insight", "category-row", "donut", "transaction-row", "calendar", "loan-card", "offer-card", "recommendation"];
     const hex = (rgb: string) => { const m = rgb.match(/\d+/g); return m ? "#" + m.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, "0")).join("") : ""; };
     const bad: string[] = [];
     for (const id of sections)
       for (const el of document.querySelectorAll(`#${id} [data-theme=light] *`)) {
         const s = getComputedStyle(el);
-        for (const v of [s.color, s.backgroundColor, s.borderTopColor]) if (hex(v) === destructive) bad.push(`${id}: ${el.tagName}`);
+        // Rule 6 (updated 07/10/2026): the negative colour is allowed only on the soft negative tint, as text, an
+        // icon or an outline (e.g. the calendar's below-$0 day). Never as a fill on its own.
+        let onSoft = false;
+        for (let a: Element | null = el; a && !onSoft; a = a.parentElement) onSoft = hex(getComputedStyle(a).backgroundColor) === negSoft;
+        for (const v of [s.color, s.backgroundColor, s.borderTopColor]) if (hex(v) === destructive && !(onSoft && v !== s.backgroundColor)) bad.push(`${id}: ${el.tagName}`);
       }
     return bad;
   });

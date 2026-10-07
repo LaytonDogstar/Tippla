@@ -33,7 +33,8 @@ export function StageScale({ score, stage, onStage, onNext, embedded }: { score:
       )}
       <div ref={strip} className={cx("relative", !embedded && "mt-t4")}>
         <div aria-hidden className="flex gap-t1">
-          {STAGES.map((s) => <span key={s.id} className="h-t2 flex-1 rounded-pill" style={{ background: `var(--stage-${s.id})` }} />)}
+          {/* The band colours used on Today's SmartScore card, so a stage looks the same everywhere (UX round 2, 5.5). */}
+          {STAGES.map((s) => <span key={s.id} className="h-t2 flex-1 rounded-pill" style={{ background: `var(--band-${s.id})` }} />)}
         </div>
         <span
           aria-hidden

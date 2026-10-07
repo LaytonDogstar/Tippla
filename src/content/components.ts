@@ -92,6 +92,9 @@ export const category = {
 };
 
 export const donut = {
+  legendLabel: "Categories in the chart",
+  other: (n: number) => `Other (${n} more)`,
+  otherHint: "Opens all categories",
   heading: "Spending by category",
   centreLabel: "Spent",
   shareOf: (pct: string) => `${pct} of spending`,
@@ -104,6 +107,9 @@ export const transaction = {
   pending: "Pending",
   edited: "Category edited",
   pendingEdited: "Pending · Category edited",
+  /** Spending feed (UX round 2, 1.8): the same charge twice, flagged in Needs a look. */
+  possibleDouble: "Possible double charge",
+  seeInNeeds: "See it in Needs a look",
   moneyOut: "money out",
   moneyIn: "money in",
 };
@@ -139,6 +145,9 @@ export const loan = {
   estimateNote: "Estimates use connected bank activity. Check your lender for exact figures.",
   viewRepayments: "View repayments",
   missing: "Balance not available",
+  balanceShort: "Balance",
+  notAvailable: "Not available",
+  frequencyShort: "Frequency",
   seeDetails: "See loan details",
   everyDays: (n: number) => (n === 14 ? "Every fortnight" : n === 7 ? "Every week" : n >= 28 && n <= 31 ? "Every month" : `Every ${n} days`),
 };

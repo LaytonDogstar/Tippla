@@ -18,7 +18,7 @@ export default async function Subscriptions({ searchParams }: { searchParams: { 
   // When each cancellation marked in the app can be confirmed (or has been) in the bank data.
   const confirm = Object.fromEntries([...tally.pending.filter((p) => p.kind === "subscription").map((p) => [p.key.slice(4), p.confirmAfter]), ...tally.items.filter((i) => i.kind === "subscription").map((i) => [i.label.merchant!, i.date])]);
   return (
-    <PortalShell path="/subscriptions" persona={persona} present={presentationMode(searchParams.present)}
+    <PortalShell path="/subscriptions" persona={persona} present={presentationMode(searchParams.present)} wide
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} />}>
       <SubscriptionsView persona={persona} subs={subscriptions(data, edits)} account={account} asOf={data.asOf} confirm={confirm} chargedAgain={tally.chargedAgain} cancelHelper={isOn("cancel_helper_v1", persona)} corrections={isOn("corrections_v1", persona)} />
     </PortalShell>

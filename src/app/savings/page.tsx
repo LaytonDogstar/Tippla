@@ -8,6 +8,9 @@ import { BillCompare } from "@/components/domain/BillCompare";
 import { recs } from "@/content/recommendations";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
+import { PageColumns } from "@/components/shell/PageColumns";
+import { CardLink } from "@/components/ui/CardLink";
+import { TrendingUp } from "lucide-react";
 import { SavingsView } from "./SavingsView";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +21,17 @@ export default async function Savings({ searchParams }: { searchParams: { person
   // Spec 07: the member's plan (or the one their goal and band suggest), above the single steps.
   const plan = isOn("plans_v1", persona) ? activePlan(data, account, goal) : null;
   return (
-    <PortalShell path="/savings" persona={persona} present={presentationMode(searchParams.present)} header={<PageHeader title={recs.pageTitle} sub={recs.pageIntro} />}>
-      {plan && <PlanCard persona={persona} account={account} asOf={data.asOf} plan={plan} options={availablePlans(data)} suggested={suggestedPlan(data, goal?.type)} />}
-      <SavingsView items={recommendations(data, goal)} cycleKey={`${persona}:${currentCycle(data).start}`} />
-      {isOn("bill_switch_v1", persona) && <BillCompare persona={persona} account={account} asOf={data.asOf} bills={billSwitchCandidates(data)} state={data.profile.state} />}
+    <PortalShell path="/savings" persona={persona} present={presentationMode(searchParams.present)} wide header={<PageHeader title={recs.pageTitle} sub={recs.pageIntro} />}>
+      {/* Two columns (UX round 2, 4.1): the plan and its steps, then progress and bill comparisons in the rail. */}
+      <PageColumns railLabel={recs.railLabel}
+        main={<>
+          {plan && <PlanCard persona={persona} account={account} asOf={data.asOf} plan={plan} options={availablePlans(data)} suggested={suggestedPlan(data, goal?.type)} />}
+          <SavingsView items={recommendations(data, goal)} cycleKey={`${persona}:${currentCycle(data).start}`} />
+        </>}
+        rail={<>
+          <CardLink icon={TrendingUp} title={recs.progressLink} body={recs.progressLinkBody} href="/progress" as="p" className="desktop:mt-t2" />
+          {isOn("bill_switch_v1", persona) && <BillCompare persona={persona} account={account} asOf={data.asOf} bills={billSwitchCandidates(data)} state={data.profile.state} />}
+        </>} />
     </PortalShell>
   );
 }

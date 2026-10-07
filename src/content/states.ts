@@ -34,7 +34,11 @@ export const statesCopy = {
   clearStates: "Clear states",
   hardshipSelf: {
     label: "I'm finding things hard right now",
+    /** UX round 2, 2.3: what the toggle does, under the label. */
+    description: "We'll pause offers and keep reminders gentle while this is on.",
     on: "We'll keep these options at the top of Home for you.",
+    toastOn: "Got it. Offers are paused and we'll keep reminders gentle.",
+    toastOff: "Turned off. You can turn it back on any time.",
     off: "",
   },
 } as const;

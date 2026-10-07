@@ -1,12 +1,18 @@
 // Component 08. One native button per row. Direction shown with a sign and accessible text, never red/green.
-import { ChevronRight, Pencil } from "lucide-react";
+import { ChevronRight, Copy, Pencil } from "lucide-react";
 import { transaction as t } from "@/content/components";
 import { categoryNames } from "@/content/en-AU";
 import { formatCents, formatDate } from "@/lib/format";
 import type { Transaction } from "@/lib/api/types";
 import { categoryIcons, catVar } from "@/components/icons";
 
-export function TransactionRow({ tx, edited, onOpen }: { tx: Transaction; edited?: boolean; onOpen?: () => void }) {
+export function TransactionRow({ tx, edited, onOpen, flag, showDate = true }: {
+  tx: Transaction; edited?: boolean; onOpen?: () => void;
+  /** "Possible double charge": the duplicate-charge rule matched this transaction (1.8). */
+  flag?: string | null;
+  /** Off under a date heading, which already says the day (6.2). */
+  showDate?: boolean;
+}) {
   const icon = tx.subcategory === "centrelink" ? "centrelink" : tx.category;
   const Icon = categoryIcons[icon];
   const pending = tx.status === "pending";
@@ -26,7 +32,8 @@ export function TransactionRow({ tx, edited, onOpen }: { tx: Transaction; edited
           <span className="text-body-strong text-text">{tx.merchant}</span>
           <span className="tnum text-body-strong font-numeric text-text">{out ? "−" : "+"}{formatCents(Math.abs(tx.amount))}<span className="sr-only">, {out ? t.moneyOut : t.moneyIn},</span></span>
         </span>
-        <span className="mt-t2 block text-caption text-text-muted">{categoryNames[tx.category]} · {formatDate(tx.date)}</span>
+        <span className="mt-t1 block text-meta text-text-muted">{categoryNames[tx.category]}{showDate ? ` · ${formatDate(tx.date)}` : ""}</span>
+        {flag && <span className="mt-t2 inline-flex items-center gap-t1 rounded-pill bg-caution-soft px-t2 py-[2px] text-meta font-semibold text-caution"><Copy aria-hidden size={14} />{flag}</span>}
         {status && (
           <span className="mt-t2 flex items-center gap-t2 text-caption text-text-muted">
             {edited && <Pencil aria-hidden size={16} />}

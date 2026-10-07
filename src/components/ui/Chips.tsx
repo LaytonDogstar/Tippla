@@ -67,7 +67,7 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
               className={cx(
                 "relative flex min-w-tap flex-1 cursor-pointer items-center justify-center rounded-pill px-t2 text-body14 font-semibold transition-colors duration-fast ease-tippla",
                 "has-[:focus-visible]:outline has-[:focus-visible]:outline-[length:var(--focus-width)] has-[:focus-visible]:outline-offset-[var(--focus-offset)] has-[:focus-visible]:outline-focus",
-                checked ? "bg-accent text-on-accent shadow-card" : "text-text-secondary hover:text-text",
+                checked ? "bg-surface font-bold text-accent-strong shadow-[0_1px_3px_rgba(20,22,60,0.12),inset_0_0_0_1.5px_var(--color-accent)]" : "text-text-secondary hover:text-text",
                 disabled && (checked ? "bg-neutral-soft text-text-muted shadow-[inset_0_0_0_2px_var(--color-neutral)]" : "text-text-muted"),
               )}
             >

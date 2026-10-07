@@ -38,7 +38,9 @@ test("acceptance: Jess marks Telstra as already paid; the shortfall and safe to 
 
 test("subscription: This has ended takes it out; the rule is listed", async ({ page }) => {
   await page.goto("/subscriptions?persona=jess&present=1");
-  await page.getByRole("button", { name: "Not right? Stan" }).click();
+  // UX round 2, 6.5: "Not right?" is in the ⋯ menu.
+  await page.getByRole("button", { name: "More options for Stan" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Not right? Stan" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "This has ended" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Got it. Your forecast is updated" })).toBeVisible();
   await expect(page.getByRole("article", { name: "Stan" })).toHaveCount(0);

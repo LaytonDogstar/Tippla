@@ -1,10 +1,11 @@
 // Today redesign (07/10/2026): the presentation selectors pick the right hero state and every figure on the page
 // still reconciles with the selectors it comes from.
+import { categoryNames } from "@/content/en-AU";
 import { describe, expect, it } from "vitest";
 import { applyDevStates } from "@/lib/dev/states";
 import {
-  categoryTotals, comingUp, cycleDays, dueCoverage, feedAmount, feedTone, heroState, initials, monthAverage, monthPeriod,
-  payCycleSummary, safeToSpendFor, sixMonthSpending, spendGroups,
+  categoryTotals, comingUp, cycleDays, dueCoverage, feedAmount, feedTone, heroState, initials, 
+  payCycleSummary, safeToSpendFor, cycleSpending, cycleAverage, topCategories, currentCycle, totalSpent,
 } from "@/lib/selectors";
 import { load } from "./helpers";
 
@@ -80,35 +81,55 @@ describe("coming up", () => {
   });
 });
 
-describe("spending summary", () => {
-  it("groups add up to the month's category total, which matches the month's bar", async () => {
+describe("spending summary (pay cycles, one category list: UX round 2, 1.1)", () => {
+  it("the current bar is this pay cycle's spend, the same figure as the Spending page and the Today hero", async () => {
     for (const p of ["jess", "marcus", "priya"] as const) {
       const d = await load(p);
-      const bars = sixMonthSpending(d);
-      const last = bars.at(-1)!;
-      const rows = categoryTotals(d, monthPeriod(d, last.month));
-      const groups = spendGroups(rows);
-      const sum = groups.reduce((s, g) => s + Math.round(g.total * 100), 0);
-      expect(sum, p).toBe(rows.reduce((s, r) => s + Math.round(r.total * 100), 0));
-      expect(Math.round(sum / 100), p).toBe(Math.round(last.total!));
-      expect(groups.at(-1)?.group === "other" || !groups.some((g) => g.group === "other")).toBe(true);
+      const bars = cycleSpending(d);
+      expect(bars).toHaveLength(6);
+      expect(bars.at(-1)!.current).toBe(true);
+      expect(bars.at(-1)!.total, p).toBeCloseTo(totalSpent(d, currentCycle(d)), 2);
+      expect(Math.round(bars.at(-1)!.total!), p).toBe(Math.round(payCycleSummary(d).spent));
     }
   });
 
-  it("with gambling insights turned off, gambling counts in Other", async () => {
-    const d = await load("jess");
-    const rows = categoryTotals(d, monthPeriod(d, "2026-09"));
-    expect(spendGroups(rows).some((g) => g.group === "gambling")).toBe(true);
-    const hidden = spendGroups(rows, { hideGambling: true });
-    expect(hidden.some((g) => g.group === "gambling")).toBe(false);
-    expect(hidden.reduce((s, g) => s + g.total, 0)).toBeCloseTo(spendGroups(rows).reduce((s, g) => s + g.total, 0), 2);
+  it("top categories and Other add up to the pay cycle's category total; names come from the one list", async () => {
+    for (const p of ["jess", "marcus", "priya"] as const) {
+      const d = await load(p);
+      const rows = categoryTotals(d, currentCycle(d));
+      const top = topCategories(rows);
+      expect(top.items.length).toBeLessThanOrEqual(5);
+      const sum = top.items.reduce((s, g) => s + Math.round(g.total * 100), 0) + Math.round((top.other?.total ?? 0) * 100);
+      expect(sum, p).toBe(rows.reduce((s, r) => s + Math.round(r.total * 100), 0));
+      for (const g of top.items) expect(categoryNames[g.category]).toBeTruthy();
+    }
   });
 
-  it("the average uses complete months only", async () => {
-    const bars = sixMonthSpending(await load("jess"));
-    const avg = monthAverage(bars)!;
-    expect(avg.months).toBe(5);
-    expect(avg.average).toBe(Math.round((4529.46 + 6360.88 + 4988.57 + 5384.7 + 5256.6) / 5));
-    expect(monthAverage(sixMonthSpending(await load("priya")))?.months).toBe(1);
+  it("Jess: Other is the remainder after the five biggest, not a catch-all for unmapped categories", async () => {
+    const d = await load("jess");
+    const top = topCategories(categoryTotals(d, currentCycle(d)));
+    const named = new Set(top.items.map((g) => g.category));
+    for (const c of top.other?.categories ?? []) expect(named.has(c)).toBe(false);
+    expect(top.items.map((g) => g.category)).toEqual(["housing", "loan_repayment", "gambling", "transport", "food"]);
+  });
+
+  it("with gambling insights turned off, gambling is never named: it counts in Other", async () => {
+    const d = await load("jess");
+    const rows = categoryTotals(d, currentCycle(d));
+    const hidden = topCategories(rows, { hideGambling: true });
+    expect(hidden.items.some((g) => g.category === "gambling")).toBe(false);
+    expect(hidden.other!.categories).toContain("gambling");
+  });
+
+  it("the average uses complete pay cycles only", async () => {
+    const d = await load("jess");
+    const bars = cycleSpending(d);
+    const avg = cycleAverage(bars)!;
+    expect(avg.cycles).toBe(5);
+    const done = bars.slice(0, 5).map((b) => b.total!);
+    expect(avg.average).toBe(Math.round(done.reduce((s, v) => s + v, 0) / 5));
+    // Priya: 45 days of data, so only the full cycles inside it count.
+    const pb = cycleSpending(await load("priya"));
+    expect(cycleAverage(pb)!.cycles).toBe(pb.filter((b) => !b.current && !b.partialHistory && b.total !== null).length);
   });
 });

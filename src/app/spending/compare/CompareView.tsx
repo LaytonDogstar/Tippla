@@ -67,7 +67,7 @@ function Cohort({ c, present }: { c: ReturnType<typeof sampleCohort>; present: b
   return (
     <>
       <div className="mt-t4 flex flex-wrap items-center gap-t2">
-        <span className="inline-flex min-h-[24px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.cohort.sample}</span>
+        {!present && <span className="inline-flex min-h-[24px] items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.cohort.sample}</span>}
         <SampleTag q="Q6" present={present} />
       </div>
       <p className="mt-t3 text-small text-text">{t.cohort.intro}</p>

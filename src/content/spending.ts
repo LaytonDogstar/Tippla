@@ -18,6 +18,8 @@ export const spending = {
     perCycle: (amt: string) => `About ${amt} a pay cycle`,
     switchHint: "Switch to This pay cycle to see what's left before payday.",
     seeDue: "See what's due",
+    shortBy: "Short",
+    leftOver: "Left",
   },
   insightsContext: "Your spending",
   insights: {
@@ -47,6 +49,7 @@ export const spending = {
     notNow: "Not now",
   },
   categories: {
+    seeAll: (n: number) => `See all ${n} categories`,
     heading: "Categories",
     count: (n: number) => `${n} shown`,
     filterLabel: "Type",
@@ -63,6 +66,11 @@ export const spending = {
   },
   when: { last_cycle: "last pay cycle", month: (label: string) => `in ${label}`, rolling: (label: string) => `over the last ${label}` },
   vsLabel: { this_cycle: "last pay cycle", last_cycle: "the pay cycle before", month: "the month before", rolling: "the period before" },
+  filters: {
+    label: "Filtered by",
+    search: (q: string) => `"${q}"`,
+    clearAll: "Clear all",
+  },
   feed: {
     heading: "Transactions",
     count: (n: number) => (n === 1 ? "1 transaction" : `${n} transactions`),
@@ -92,6 +100,12 @@ export const spending = {
     summary: (spent: string, budget: string) => `${spent} spent of ${budget} budgeted`,
     summaryNote: (n: number) => (n === 1 ? "Across 1 budgeted category" : `Across ${n} budgeted categories`),
     none: "No budgets yet. Set one on any category below.",
+    suggestIntro: "Some ideas from your last three pay cycles. Set one, change the amount, or skip it.",
+    suggest: (avg: string, amt: string) => `you average ${avg} a pay cycle. Set a ${amt} budget?`,
+    set: "Set",
+    setSr: (amt: string, name: string) => `Set a ${amt} budget for ${name}`,
+    adjust: "Adjust",
+    dismiss: "Dismiss",
     noBudget: "No budget",
     editTitle: (cat: string) => `${cat} budget`,
     amountLabel: "Budget per pay cycle",
@@ -139,6 +153,24 @@ export const compare = {
 } as const;
 
 export const calendarPage = {
+  /** UX round 2, 5.1: the fortnight's balance as a line. */
+  chart: {
+    heading: "Balance across the fortnight",
+    today: "Today",
+    confirmed: "Confirmed",
+    forecast: "Forecast",
+    belowLegend: "Below $0",
+    billLegend: "Bill due",
+    payLegend: "Payday",
+    below: (day: string, amt: string) => `Below $0 on ${day} (${amt})`,
+    payday: (day: string, amt: string) => `Payday ${day}${amt ? `: about ${amt} in` : ""}`,
+    bills: (day: string, list: string) => `Due ${day}: ${list}`,
+    summary: (from: string, to: string, belowDay: string | null, low: string) =>
+      `End-of-day balance from ${from} to ${to}. Lowest ${low}.${belowDay ? ` Forecast to go below $0 on ${belowDay}.` : ""} The day list has every figure.`,
+  },
+  upcomingBills: "Bills coming up",
+  noUpcomingBills: "No bills predicted in this view.",
+  railLabel: "Selected day and bills coming up",
   title: "Calendar",
   info: "About the calendar",
   infoBody: [
@@ -155,7 +187,9 @@ export const calendarPage = {
   prevMonth: "Previous month",
   nextMonth: "Next month",
   range: (a: string, b: string) => `${a} – ${b}`,
-  legend: { confirmed: "Confirmed spend", predicted: "Predicted bill", below: "Below $0", note: "End-of-day balances · outline = forecast" },
+  legend: {
+    ok: (amt: string) => `${amt} or more`,
+    low: (amt: string) => `Under ${amt}`, confirmed: "Confirmed spend", predicted: "Predicted bill", below: "Below $0", note: "End-of-day balances · outline = forecast" },
   today: (day: string) => `Today · ${day}`,
   selected: (day: string) => day,
   confirmed: "confirmed",
@@ -200,6 +234,16 @@ export const subscriptionsPage = {
   intro: "Regular charges we've found in your account.",
   total: (perCycle: string, perYear: string) => `About ${perCycle} a pay cycle · ${perYear} a year`,
   count: (n: number) => (n === 1 ? "1 subscription" : `${n} subscriptions`),
+  perCycleShort: "a pay cycle",
+  perYearLine: (amt: string) => `${amt} a year`,
+  perYearShort: (amt: string) => `${amt} a year`,
+  railLabel: "Subscription totals",
+  notUsingHeading: "You said you don't use",
+  notUsingNone: "Answer \"Still using it?\" on a subscription and any you don't use show here, with what cancelling would save.",
+  notUsingSaving: (amt: string) => `Cancelling these would save about ${amt} a year`,
+  moreFor: (m: string) => `More options for ${m}`,
+  changeAnswer: "Change my answer",
+  cancelledState: "You've cancelled this. We'll check it doesn't charge again.",
   amount: (amt: string, cadence: string) => `${amt} ${cadence}`,
   cadence: { monthly: "a month" },
   lastCharged: (date: string) => `Last charged ${date}`,

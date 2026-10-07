@@ -52,8 +52,8 @@ export function PlanCard({ plan, action, projection, goalSlot, progress, onSeeHo
         </div>
       )}
       {action
-        ? <button type="button" onClick={onSeeHow} aria-label={`${t.seeHow}: ${heading}`} className="pressable flex h-[46px] items-center justify-center rounded-pill bg-cta text-body14 font-bold text-hero-on shadow-cta">{t.seeHow}</button>
-        : <Link href="/savings" className="pressable flex h-[46px] items-center justify-center rounded-pill bg-cta text-body14 font-bold text-hero-on shadow-cta">{t.seePlan}</Link>}
+        ? <button type="button" onClick={onSeeHow} aria-label={`${t.seeHow}: ${heading}`} className="pressable flex h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft">{t.seeHow}</button>
+        : <Link href="/savings" className="pressable flex h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft">{t.seePlan}</Link>}
       {progress && (
         <Link href="/progress" className="flex min-h-tap items-center justify-between gap-t2 rounded-md text-meta text-text-secondary hover:text-text">
           <span><strong className="font-semibold text-accent">{t.progress}</strong> · {progress}</span><span aria-hidden>›</span>

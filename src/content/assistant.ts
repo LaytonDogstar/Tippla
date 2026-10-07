@@ -6,7 +6,7 @@ export const assistantCopy = {
   entry: "Ask Tippla",
   entryBody: "Ask about your bills, spending, safe to spend or SmartScore.",
   askAbout: "Ask about this",
-  placeholder: "For example: can I afford $80 on Saturday?",
+  placeholder: "Ask Tippla anything",
   label: "Your question",
   send: "Ask",
   thinking: "Working it out",

@@ -2,6 +2,7 @@
 import { entitlementsCopy } from "@/content/actions";
 import { ChevronDown, ChevronRight, ChevronUp, Search } from "lucide-react";
 import Link from "next/link";
+import { PageColumns } from "@/components/shell/PageColumns";
 import { useEffect, useState } from "react";
 import { helpPage as t } from "@/content/account";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +25,7 @@ export function HelpView({ initialQ, initialOpen, entitlements = false }: { init
 
   return (
     <div className="pb-t6">
+      <PageColumns railLabel={t.railLabel} main={<>
       <label className="mt-t2 flex min-h-[52px] items-center gap-t2 rounded-sm border border-neutral bg-surface px-t3 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
         <Search aria-hidden size={20} className="text-text-muted" />
         <span className="sr-only">{t.searchLabel}</span>
@@ -58,18 +60,20 @@ export function HelpView({ initialQ, initialOpen, entitlements = false }: { init
         <p className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.empty(q.trim())}</p>
       )}
 
-      <div className="mt-t4 flex flex-col gap-t2">
-        <Button variant="secondary" full onClick={() => setContact(true)}>{t.contact}</Button>
-        <Link href="/hardship" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">{t.hardshipLink}<ChevronRight aria-hidden size={20} /></Link>
-        {entitlements && <Link href="/help/entitlements" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">{entitlementsCopy.title}<ChevronRight aria-hidden size={20} /></Link>}
-      </div>
-
-      <section aria-labelledby="acct-h" className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card">
-        <h2 id="acct-h" className="p-t4 pb-t2 text-h3 text-text">{t.accountHeading}</h2>
-        {(Object.keys(t.accountLinks) as (keyof typeof t.accountLinks)[]).map((k) => (
-          <Link key={k} href={`/account/${k}`} className="flex min-h-[52px] items-center justify-between border-t border-divider px-t4 text-small text-accent hover:bg-surface2">{t.accountLinks[k]}<ChevronRight aria-hidden size={20} /></Link>
-        ))}
-      </section>
+      </>} rail={<>
+        {/* Rail (UX round 2, 4.1): ways to get help and account links, beside the questions. */}
+        <section className="flex flex-col gap-t2 rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+          <Button variant="secondary" full onClick={() => setContact(true)}>{t.contact}</Button>
+          <Link href="/hardship" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-body14 font-semibold text-accent hover:bg-surface2">{t.hardshipLink}<ChevronRight aria-hidden size={20} /></Link>
+          {entitlements && <Link href="/help/entitlements" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-body14 font-semibold text-accent hover:bg-surface2">{entitlementsCopy.title}<ChevronRight aria-hidden size={20} /></Link>}
+        </section>
+        <section aria-labelledby="acct-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card">
+          <h2 id="acct-h" className="p-t5 pb-t2 text-card text-text sm:text-card-l">{t.accountHeading}</h2>
+          {(Object.keys(t.accountLinks) as (keyof typeof t.accountLinks)[]).map((k) => (
+            <Link key={k} href={`/account/${k}`} className="flex min-h-[52px] items-center justify-between border-t border-divider px-t5 text-body14 font-semibold text-accent hover:bg-surface2">{t.accountLinks[k]}<ChevronRight aria-hidden size={20} /></Link>
+          ))}
+        </section>
+      </>} />
 
       <Sheet open={contact} onClose={() => setContact(false)} title={t.contactTitle}>
         <p className="text-body text-text-muted">{t.contactBody}</p>

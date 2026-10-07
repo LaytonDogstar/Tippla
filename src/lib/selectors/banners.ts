@@ -5,6 +5,7 @@ import { daysOverdrawn90 } from "./balance";
 import { scoreDroppedForBanner } from "./score";
 import { payCycleSummary } from "./payCycle";
 import { currentCycle } from "./periods";
+import { shouldShowLenderOffers } from "./plans";
 import type { AccountState } from "@/lib/account/state";
 import { STAGES } from "@/config/stages";
 
@@ -33,21 +34,22 @@ export function dashboardBanner(d: PersonaData, state: { bankExpiredSince?: stri
   return null;
 }
 
-export type OfferPause = "short" | "hardship" | "building";
+export type OfferPause = "short" | "hardship" | "plan" | "building";
 
 /**
  * Spec 11 always-on rule 2: never show offers to a member who is short before payday, has engaged with
  * hardship support this pay cycle (opened it, self-selected, or made a hardship letter), or is in the Building
  * stage. Threshold to confirm with counsel (Q43).
  */
-export function offerPause(d: PersonaData, a: Pick<AccountState, "hardshipSelfSelected" | "hardshipVisitedAt" | "hardshipLetters"> = {}): OfferPause | null {
+export function offerPause(d: PersonaData, a: AccountState = {}, goal?: Parameters<typeof shouldShowLenderOffers>[2]): OfferPause | null {
   if (payCycleSummary(d).isShort) return "short";
   const start = currentCycle(d).start;
   if (a.hardshipSelfSelected || (a.hardshipVisitedAt && a.hardshipVisitedAt >= start) || (a.hardshipLetters ?? []).some((l) => l.at >= start)) return "hardship";
+  if (!shouldShowLenderOffers(d, a, goal)) return "plan";
   const s = d.score?.score;
   if (s !== null && s !== undefined && !d.score?.override && s < STAGE_MIN_STEADYING) return "building";
   return null;
 }
 
 /** Offers are only visible with lender-matching consent, and never while paused (rule 2). */
-export const visibleOffers = (d: PersonaData, a: Parameters<typeof offerPause>[1] = {}) => (lenderMatchingOn(d) && !offerPause(d, a) ? d.offers.offers : []);
+export const visibleOffers = (d: PersonaData, a: Parameters<typeof offerPause>[1] = {}, goal?: Parameters<typeof offerPause>[2]) => (lenderMatchingOn(d) && !offerPause(d, a, goal) ? d.offers.offers : []);

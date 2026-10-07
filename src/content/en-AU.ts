@@ -46,7 +46,7 @@ export const factorCopy: Record<FactorKey, { name: string; explains: string; lif
   MISSED_PAYMENT: { name: "Payments on time", explains: "Recent missed or failed payments (recent ones count most)", lifts: "A run of pay cycles with no failed payments" },
   RELIABLE_PAYMENT_HISTORY: { name: "Payment track record", explains: "Your longer-term record of paying on time", lifts: "Keeps improving the longer payments go through" },
   CASH_SPEND: { name: "Cash use", explains: "How much you take out as cash (lenders can't see where cash goes)", lifts: "Paying by card instead of cash where you can" },
-  PRODUCTIVE_SPEND: { name: "Spending mix", explains: "The balance of essentials and other spending", lifts: "Sample logic: TaleFin to confirm what lifts this factor" },
+  PRODUCTIVE_SPEND: { name: "Spending mix", explains: "The balance of essentials and other spending", lifts: "More of your spending going on essentials like rent, bills and groceries" },
   ADVERSE_SPEND: { name: "Gambling & alcohol spending", explains: "Spending lenders treat as higher risk", lifts: "Keeping gambling lower over the next 90 days is one of the ways to lift this factor." },
   GOVERNMENT_RELIANCE: { name: "Income sources", explains: "The mix of wages and government payments in your income", lifts: "" },
 };

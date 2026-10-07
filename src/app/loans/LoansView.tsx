@@ -1,5 +1,5 @@
 "use client";
-import { CalendarClock, ChevronRight, HandCoins } from "lucide-react";
+import { CalendarClock, ChevronRight, Flag, HandCoins } from "lucide-react";
 import type { PersonaId } from "@/lib/api/types";
 import { RuleChoiceSheet, LOAN_OPTIONS } from "@/components/domain/RuleChoice";
 import { correctionCopy } from "@/content/corrections";
@@ -11,13 +11,19 @@ import { formatCents, formatMonthLong, formatPercent, formatShortDay, formatWhol
 import { sumMoney } from "@/lib/format/money";
 import type { HistoryMonth, Loan, OtherCredit, PayAdvance, UpcomingRepayment, failedPayments, loanTotals } from "@/lib/selectors";
 import { LoanCard } from "@/components/domain/LoanCard";
+import { PageColumns } from "@/components/shell/PageColumns";
+import { CardLink } from "@/components/ui/CardLink";
+import { ProductCard } from "@/components/domain/ProductCard";
+import { loan as lc } from "@/content/components";
 import { Chip, ChipGroup, FilterChip, SegmentedControl } from "@/components/ui/Chips";
 
 type Tab = "overview" | "upcoming" | "history" | "other";
 const TABS: Tab[] = ["overview", "upcoming", "history", "other"];
 const money = (n: number) => (Number.isInteger(n) ? formatWhole(n) : formatCents(n));
 
-export function LoansView({ persona, corrections = false, initialTab, initialProvider, loans, other, totals, advance, upcoming, history, failed, offersCount }: {
+export function LoansView({ persona, corrections = false, initialTab, initialProvider, loans, other, totals, advance, upcoming, history, failed, offersCount, showOffers = true }: {
+  /** UX round 2, 2.2 (shouldShowLenderOffers): no offers link during a debt plan or when finding things hard. */
+  showOffers?: boolean;
   persona: PersonaId; corrections?: boolean;
   initialTab?: string; initialProvider: string | null; loans: Loan[]; other: OtherCredit[]; totals: ReturnType<typeof loanTotals>;
   advance: PayAdvance | null; upcoming: Record<30 | 60 | 90, UpcomingRepayment[]>; history: HistoryMonth[];
@@ -40,24 +46,49 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
   const advances = other.filter((o) => o.kind === "wage_advance");
   const viewRepayments = (p: string) => { setProvider(p); setTab("history"); window.scrollTo({ top: 0 }); };
 
+  const next3 = upcoming[30].slice(0, 3);
+  // Rail (UX round 2, 4.1): the debt-to-income summary, the next three repayments and the plan.
+  const rail = (
+    <>
+      {totals.debtToIncomePct90 !== null && (
+        <section className="rounded-card-s bg-accent-soft p-t5 sm:rounded-card">
+          <p className="text-row text-text">{t.dti(formatPercent(totals.debtToIncomePct90, 0))}</p>
+          <p className="mt-t1 text-meta text-text-secondary">{t.dtiNote}</p>
+        </section>
+      )}
+      <section aria-labelledby="next3-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+        <h2 id="next3-h" className="text-card text-text sm:text-card-l">{t.nextRepayments}</h2>
+        {next3.length ? (
+          <ul className="mt-t2 flex flex-col">
+            {next3.map((u) => (
+              <li key={`${u.provider}-${u.date}`} className="flex min-h-[52px] items-center justify-between gap-t3 border-t border-divider first:border-t-0">
+                <span><span className="block text-body14 font-semibold text-text">{u.provider}</span><span className="block text-meta text-text-muted">{formatShortDay(u.date)} · {t.upcoming.predicted}</span></span>
+                <span className="tnum text-row text-text">{money(u.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="mt-t2 text-body14 text-text-muted">{t.upcoming.empty}</p>}
+        <button type="button" onClick={() => setTab("upcoming")} className="mt-t2 inline-flex min-h-tap items-center gap-t1 text-body14 font-semibold text-accent">{t.seeAllUpcoming}<ChevronRight aria-hidden size={16} /></button>
+      </section>
+      <CardLink icon={Flag} title={t.planLink} body={t.planLinkBody} href="/savings" as="p" />
+    </>
+  );
+
   return (
     <div className="pb-t6">
+      <PageColumns railLabel={t.railLabel} rail={rail} main={<>
       <RuleChoiceSheet persona={persona} merchant={fixing ?? ""} title={fixing ? correctionCopy.loan.title(fixing) : ""} options={LOAN_OPTIONS} open={!!fixing} onClose={() => setFixing(null)} scoreNote />
       <SegmentedControl label={t.tabsLabel} value={tab} onChange={setTab} options={TABS.map((v) => ({ value: v, label: t.tabs[v] }))} />
 
       {tab === "overview" && (
         <div className="mt-t4 flex flex-col gap-t3">
-          {totals.debtToIncomePct90 !== null && (
-            <section className="rounded-card-s bg-accent-soft sm:rounded-card p-t5">
-              <p className="text-h3 text-text">{t.dti(formatPercent(totals.debtToIncomePct90, 0))}</p>
-              <p className="mt-t1 text-caption text-text-muted">{t.dtiNote}</p>
-            </section>
-          )}
           {loans.length ? (
             <>
-              <h2 className="mt-t3 text-h2 font-display text-text">{t.loansHeading}</h2>
+              <h2 className="mt-t3 px-t1 text-card text-text sm:text-card-l">{t.loansHeading}</h2>
+              {/* The small loans' balance can't be split per lender: say it once, for the group (1.6). */}
+              {combined && saccs.some((l) => l.estimatedBalance === null) && <p className="tnum px-t1 text-body14 text-text-secondary">{combined}</p>}
               {[...loans].sort((a, b) => (a.type === "SACC" ? 0 : 1) - (b.type === "SACC" ? 0 : 1)).map((l) => (
-                <LoanCard key={l.provider} loan={l} combinedBalance={l.estimatedBalance === null && l.type === "SACC" ? combined : undefined}
+                <LoanCard key={l.provider} loan={l}
                   onViewRepayments={() => viewRepayments(l.provider)} onNotRight={corrections ? () => setFixing(l.provider) : undefined} />
               ))}
               {totals.totalOutstanding > 0 && <p className="tnum px-t1 text-small text-text-muted">{t.totalLeft(formatWhole(totals.totalOutstanding))}</p>}
@@ -65,7 +96,7 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
           ) : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.noLoans}</p>}
           <CreditGroups bnpl={bnpl} advances={advances} advance={advance} onView={viewRepayments} />
           <nav aria-label={t.title} className="mt-t3 flex flex-col overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
-            {[{ href: "/loans/repayment", label: t.calculatorLink }, { href: "/offers", label: offersCount ? `${t.offersLink} (${offersCount})` : t.offersLink }].map((l) => (
+            {[{ href: "/loans/repayment", label: t.calculatorLink }, ...(showOffers ? [{ href: "/offers", label: offersCount ? `${t.offersLink} (${offersCount})` : t.offersLink }] : [])].map((l) => (
               <Link key={l.href} href={l.href} className="flex min-h-[52px] items-center justify-between border-b border-divider px-t4 text-small text-accent last:border-b-0 hover:bg-surface2">
                 {l.label}<ChevronRight aria-hidden size={20} />
               </Link>
@@ -134,57 +165,48 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
           </section>
         </div>
       )}
+      </>} />
     </div>
   );
 }
 
 function CreditGroups({ bnpl, advances, advance, onView }: { bnpl: OtherCredit[]; advances: OtherCredit[]; advance: PayAdvance | null; onView: (p: string) => void }) {
+  // The same card template as loans (UX round 2, 3.5): Balance, Next repayment, Frequency as label/value pairs.
   return (
     <>
       {bnpl.length > 0 && (
         <>
-          <h2 className="mt-t3 text-h2 font-display text-text">{t.bnplHeading}</h2>
+          <h2 className="mt-t3 px-t1 text-card text-text sm:text-card-l">{t.bnplHeading}</h2>
           {bnpl.map((o) => (
-            <CreditCard key={o.provider} icon="bnpl" title={o.provider} onView={() => onView(o.provider)}
-              lines={[t.perCadence(money(o.repayment), t.cadence(o.cadenceDays)), ...(o.nextDue ? [t.nextDue(formatShortDay(o.nextDue))] : [])]} note={t.balanceUnavailable} />
+            <ProductCard key={o.provider} icon={CalendarClock} name={o.provider} type={t.bnplHeading} onOpen={() => onView(o.provider)} openLabel={t.viewRepayments}
+              pairs={[
+                { label: lc.nextRepayment, value: <>{money(o.repayment)}{o.nextDue ? <span className="text-body14 font-semibold text-text-secondary"> · {formatShortDay(o.nextDue)}</span> : null}</>, main: true },
+                { label: lc.balanceShort, value: lc.notAvailable, status: true },
+                { label: lc.frequencyShort, value: t.cadenceLabel(o.cadenceDays) },
+              ]} note={t.estimated} />
           ))}
         </>
       )}
       {advances.length > 0 && (
         <>
-          <h2 className="mt-t3 text-h2 font-display text-text">{t.advanceHeading}</h2>
+          <h2 className="mt-t3 px-t1 text-card text-text sm:text-card-l">{t.advanceHeading}</h2>
           {advances.map((o) => {
             const a = advance && advance.provider === o.provider ? advance : null;
             return (
-              <CreditCard key={o.provider} icon="advance" title={o.provider} subtitle={t.advanceHeading} onView={() => onView(o.provider)}
-                lines={a ? [t.received(formatWhole(a.amount), formatShortDay(a.date))] : [t.perCadence(money(o.repayment), t.cadence(o.cadenceDays))]}
-                detail={a && a.repayAmount !== null && a.repayDate ? `${copy.payCycle.advanceLine(formatWhole(a.amount))}: ${copy.payCycle.advanceRepay(formatWhole(a.repayAmount), formatShortDay(a.repayDate), formatWhole(a.amount), formatWhole(a.fee ?? 0))}` : undefined}
-                note={t.estimated} />
+              <ProductCard key={o.provider} icon={HandCoins} name={o.provider} type={t.advanceHeading} onOpen={() => onView(o.provider)} openLabel={t.viewRepayments}
+                pairs={a ? [
+                  ...(a.repayAmount !== null && a.repayDate ? [{ label: t.dueBackLabel, value: <>{formatWhole(a.repayAmount)}<span className="text-body14 font-semibold text-text-secondary"> · {formatShortDay(a.repayDate)}</span></>, main: true }] : []),
+                  { label: t.receivedLabel, value: <>{formatWhole(a.amount)}<span className="text-body14 font-semibold text-text-secondary"> · {formatShortDay(a.date)}</span></> },
+                  ...(a.repayAmount !== null && a.repayDate ? [{ label: t.feeLabel, value: formatWhole(a.fee ?? 0) }] : []),
+                ] : [
+                  { label: lc.nextRepayment, value: money(o.repayment), main: true },
+                  { label: lc.frequencyShort, value: t.cadenceLabel(o.cadenceDays) },
+                ]}
+                note={a ? <>{t.notIncome} {t.estimated[0]!.toUpperCase() + t.estimated.slice(1)}.</> : t.estimated} />
             );
           })}
         </>
       )}
     </>
-  );
-}
-
-function CreditCard({ icon, title, subtitle, lines, detail, note, onView }: { icon: "bnpl" | "advance"; title: string; subtitle?: string; lines: string[]; detail?: string; note: string; onView: () => void }) {
-  const Icon = icon === "bnpl" ? CalendarClock : HandCoins;
-  return (
-    <article aria-label={title} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
-      <div className="flex items-start gap-t3">
-        <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><Icon size={24} /></span>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-h3 text-text">{title}</h3>
-          {subtitle && <p className="text-caption text-text-muted">{subtitle}</p>}
-          {lines.map((l) => <p key={l} className="tnum mt-t2 text-body text-text">{l}</p>)}
-          {detail && <p className="mt-t2 text-small text-text-muted">{detail}</p>}
-          <p className="mt-t2 text-caption text-text-muted">{note}</p>
-        </div>
-      </div>
-      <button type="button" onClick={onView} className="mt-t2 flex min-h-tap w-full items-center justify-between rounded-sm text-small text-accent hover:bg-surface2">
-        {t.viewRepayments}<ChevronRight aria-hidden size={20} />
-      </button>
-    </article>
   );
 }

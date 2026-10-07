@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { dashboard as t } from "@/content/dashboard";
 import { formatShortDay, formatWhole } from "@/lib/format";
-import type { MonthBar } from "@/lib/selectors/monthly";
 import type { PayCycleSummary } from "@/lib/selectors/payCycle";
 import type { FirstAction } from "@/lib/selectors/recommendations";
 import type { ScoreState } from "@/lib/selectors/score";
@@ -26,7 +25,7 @@ import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 import type { CycleRecap, PaydayCheckIn } from "@/lib/selectors/payCycleLoop";
 import type { SafeToSpend } from "@/lib/selectors/safeToSpend";
 import type { valueTally } from "@/lib/selectors/tally";
-import type { ComingUpItem, SpendGroup } from "@/lib/selectors/today";
+import type { ComingUpItem, CycleBar, TopCategories } from "@/lib/selectors/today";
 import { CheckInAdjustSheet, CheckInCard, PayPendingCard, RecapCard, SafeToSpendSheet, TallyCard, TallySheet } from "@/components/domain/LoopCards";
 import { checkInCopy, safeCopy, tallyCopy } from "@/content/loop";
 import { track } from "@/lib/analytics/client";
@@ -57,8 +56,8 @@ type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null
 export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, bars, groups, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, notice, plan, focusGoal, progressText, bufferSteps, milestones, surplus, moment, savingsLines, flags }: {
   persona: PersonaId; account: AccountState; checked: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; score: ScoreState; change: { delta: number; since: string } | null; trend: { date: string; score: number }[];
-  action: FirstAction | null; projection: ScoreProjection | null; payCycle: PayCycleSummary; bars: MonthBar[];
-  groups: { group: SpendGroup; total: number; share: number }[]; coming: ComingUpItem[];
+  action: FirstAction | null; projection: ScoreProjection | null; payCycle: PayCycleSummary; bars: CycleBar[];
+  groups: TopCategories; coming: ComingUpItem[];
   safe: SafeToSpend; checkIn: PaydayCheckIn | null; recap: CycleRecap | null; feesAvoided: number; tally: ReturnType<typeof valueTally>; present: boolean;
   movement?: { up: number; since: string } | null; adjustBills?: { id: string; merchant: string; amount: number; date: string; paid: boolean }[];
   oneOffDates?: string[]; focus?: string | null; payPending?: boolean;
@@ -154,6 +153,11 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
           </div>
         )}
         <div className={cx(item, "order-8 sm:order-9 sm:col-span-2")}><SpendingSummary bars={bars} asOf={asOf} groups={groups} /></div>
+        {/* Under Spending in the left column, so the columns end level and the feedback card is easy to see (4.2). */}
+        {miss && <div className={cx(item, "order-9 sm:order-8")}><ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} /></div>}
+        <div className={cx(item, "order-11 sm:col-span-2 desktop:col-span-1 empty:hidden")}>
+          <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
+        </div>
       </div>
       {/* Right column on desktop. */}
       <div className="contents desktop:flex desktop:min-w-0 desktop:flex-[1_1_320px] desktop:flex-col desktop:gap-t6">
@@ -164,11 +168,7 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
             progress={progressText} onSeeHow={() => setSheet("action")} />
         </div>
         <div className={cx(item, "order-6 desktop:order-7")}><ComingUp items={coming} /></div>
-        {miss && <div className={cx(item, "order-9 sm:order-8")}><ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} /></div>}
         {showTally && <div className={cx(item, "order-10 sm:col-span-2 desktop:col-span-1")}><TallyCard tally={tally} onOpen={() => setSheet("tally")} /></div>}
-        <div className={cx(item, "order-11 sm:col-span-2 desktop:col-span-1 empty:hidden")}>
-          <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
-        </div>
       </div>
 
       <SafeToSpendSheet safe={shownSafe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} onBuffer={flags.buffer ? setBuffer : undefined} accuracy={accuracyLine} bufferSteps={bufferSteps} />

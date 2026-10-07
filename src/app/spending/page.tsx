@@ -5,6 +5,7 @@ import { loadCustomer } from "@/lib/customer";
 import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
 import { gamblingInsight, payCycleSummary, type SpendData } from "@/lib/selectors";
 import { formatUpdated } from "@/lib/format";
+import { duplicateCharge } from "@/lib/feed/rules/duplicateCharge";
 import { spending as t } from "@/content/spending";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
@@ -29,6 +30,8 @@ export default async function Spending({ searchParams }: { searchParams: Search 
   };
   // Hidden by the member (spec 01): no gambling insight on Spending.
   const g = account.hideGambling ? null : gamblingInsight(data);
+  // Transactions the duplicate-charge rule flags (the same check as Needs a look), tagged in the feed (1.8).
+  const doubles = Object.fromEntries(duplicateCharge({ d: data, edits: categoryEdits(persona), account }).flatMap((i) => (i.transactionIds ?? []).map((id) => [id, i.id])));
   const accounts = (data.bankStatement.profiles[0]?.accounts ?? []).map((a) => ({ id: a.id, label: `${a.nickname} ··${a.last4}` }));
   const params: SpendingParams = {
     tab: searchParams.tab, period: searchParams.period, month: searchParams.month,
@@ -46,6 +49,7 @@ export default async function Spending({ searchParams }: { searchParams: Search 
         gambling={g ? { pctOfIncome90: g.pctOfIncome90, factor: g.factor } : null}
         accounts={accounts.length > 1 ? accounts : []}
         params={params}
+        doubles={doubles}
         asOf={data.asOf}
         ask={isOn("assistant_v1", persona) ? assistantCopy.suggestions.takeaway : null}
         corrections={isOn("corrections_v1", persona) ? { oneOff: data.memberRules?.oneOffIncome ?? [], regular: data.memberRules?.regularIncome ?? [] } : null}

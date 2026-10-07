@@ -164,6 +164,19 @@ for (const mode of ["light", "dark"]) {
   const g = C.spend?.[mode]?.gambling;
   if (g && [C[mode].negative, C[mode].destructive].some((x) => x?.toLowerCase() === g.toLowerCase())) fail(`Gambling (${mode}): must not use the warning text colour`);
 }
+// ---- UX round 2 (07/10/2026): no text below 13 px; muted text readable on every tinted card ----------
+for (const [k, v] of Object.entries(tokens.type ?? {})) {
+  if (k.startsWith("_")) continue;
+  if (v.size < 13) fail(`Type: ${k} is ${v.size}px; nothing that holds a number or an action may be below 13px`);
+}
+for (const mode of ["light", "dark"]) {
+  if (!C[mode]?.negative) continue;
+  const s = (k) => get(null, mode, k);
+  for (const bg of ["accentSoft", "accentTint2", "positiveSoft", "cautionSoft", "negativeSoft"])
+    for (const fg of ["text", "textSecondary", "textMuted"]) pair(mode, `${fg} on ${bg}`, s(fg), s(bg), 4.5);
+  pair(mode, "accent on chip", s("accent"), s("chip"), 4.5);
+}
+
 if (C.hero) {
   // Hero text sits on every part of the gradient: check each stop.
   for (const stop of ["from", "mid", "to"]) {

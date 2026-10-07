@@ -9,6 +9,11 @@ export const loansPage = {
   dti: (pct: string) => `Debt repayments are about ${pct} of income.`,
   dtiNote: "Over the last 90 days. Includes loans, buy now pay later and pay advances.",
   loansHeading: "Loans",
+  nextRepayments: "Next repayments",
+  seeAllUpcoming: "See all upcoming",
+  planLink: "Your plan",
+  planLinkBody: "Steps to borrow less, one pay cycle at a time.",
+  railLabel: "Borrowing summary",
   totalLeft: (amt: string) => `About ${amt} left across your loans, estimated`,
   noLoans: "We didn't find any loans in the connected account.",
   bnplHeading: "Buy now, pay later",
@@ -17,6 +22,13 @@ export const loansPage = {
   cadence: (days: number | null) => (days === null ? "each repayment" : days >= 28 ? "per month" : days >= 13 && days <= 15 ? "per fortnight" : days === 7 ? "per week" : `every ${days} days`),
   balanceUnavailable: "Balance not available",
   received: (amt: string, date: string) => `${amt} received ${date}`,
+  /** One advance: "$300 received Thu 24/09 · $315 due back Wed 30/09 ($300 + $15 fee)" (UX round 2, 1.5). */
+  dueBack: (repay: string, date: string, amt: string, fee: string) => `${repay} due back ${date} (${amt} + ${fee} fee)`,
+  notIncome: "Pay advances aren't income.",
+  receivedLabel: "Received",
+  dueBackLabel: "Due back",
+  feeLabel: "Fee",
+  cadenceLabel: (days: number | null) => (days === null ? "Varies" : days >= 28 ? "Every month" : days >= 13 && days <= 15 ? "Every fortnight" : days === 7 ? "Every week" : `Every ${days} days`),
   estimated: "estimated from your transactions",
   viewRepayments: "View repayments",
   nextDue: (date: string) => `Next due ${date}`,
@@ -90,6 +102,7 @@ export const offersPage = {
     why: {
       short: "We don't show loan offers while you're forecast to be short before payday.",
       hardship: "We don't show loan offers in a pay cycle where you've used hardship support.",
+      plan: "We don't show loan offers while you're working on getting off pay advances.",
       building: "We don't show loan offers until your SmartScore reaches the Steadying stage.",
     } as Record<string, string>,
     body: "A new loan can make a tight spot harder. Offers come back on their own when this changes, and nothing you've set up is lost.",
@@ -118,6 +131,23 @@ export const hardshipPage = {
   sub: "Support, on your terms",
   opener: "If money's tight right now, these are real options.",
   scoreNote: "Using them doesn't count against your SmartScore.",
+  // TODO: compliance review. UX round 2, 4.1: the Hardship rail.
+  rail: {
+    label: "Help and what to expect",
+    ndhTitle: "Talk to a free financial counsellor",
+    ndhBody: "Free, independent and confidential. They can talk to your lenders for you.",
+    call: (n: string) => `Call ${n}`,
+    website: "Visit the website",
+    expectTitle: "What happens when I ask for hardship",
+    expect: [
+      "Tell your lender you're having trouble paying. You can ask by phone, email or in writing, and you don't need to have missed a payment first.",
+      "Your lender looks at your situation. They may ask for details like your income and expenses.",
+      "They might lower or pause repayments for a while, or give you more time. Any change should be confirmed in writing.",
+      "If they say no and you don't agree, a free financial counsellor can help you work out what to do next.",
+    ],
+  },
+  // TODO: compliance review. UX round 2, 2.1: the one place this line lives, so compliance can edit it.
+  creditReportNote: "Your lender may still record a hardship arrangement on your credit report. It's still usually better than missing payments.",
   info: "About this page",
   infoBody: [
     "Everything here is optional. Tippla doesn't tell lenders you've visited this page or used any of these options.",
@@ -150,6 +180,7 @@ export const hardshipPage = {
 } as const;
 
 export const helpPage = {
+  railLabel: "Contact and account",
   title: "Help",
   searchLabel: "Search help",
   searchPlaceholder: "Search, for example: declined",

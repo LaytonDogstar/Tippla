@@ -1,11 +1,13 @@
 "use client";
-// Actions per row: Keep · Remind me before next charge · How to cancel. Choices persist per persona (mock:
-// localStorage). Nothing here is urgent and nothing is pre-ticked.
+// Progressive disclosure per row (UX round 2, 6.5): "Still using it? Yes / No" first; Yes → Kept (with an optional
+// reminder), No → How to cancel and a reminder. "Not right?" and How to cancel are always in the ⋯ menu. Answers
+// persist per persona (mock: localStorage). Nothing here is urgent and nothing is pre-ticked.
 import { cancelExtraCopy as cx_ } from "@/content/actions";
 import { cancelGuide } from "@/data/directories";
 import { RuleChoiceSheet, SUBSCRIPTION_OPTIONS } from "@/components/domain/RuleChoice";
 import { correctionCopy } from "@/content/corrections";
-import { BellRing, Check, ExternalLink, Repeat } from "lucide-react";
+import { BellRing, Check, Ellipsis, ExternalLink, Repeat } from "lucide-react";
+import { PageColumns } from "@/components/shell/PageColumns";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { PersonaId } from "@/lib/api/types";
@@ -23,7 +25,7 @@ import { mockNow, type AccountState } from "@/lib/account/state";
 import type { ChargedAgain } from "@/lib/selectors/tally";
 
 type Subs = ReturnType<typeof subscriptions>;
-interface Prefs { kept: Record<string, boolean>; reminders: Record<string, string> }
+interface Prefs { kept: Record<string, boolean>; reminders: Record<string, string>; notUsing?: Record<string, boolean> }
 const KEY = "tippla-subscriptions";
 /** Spec 06: "Still using this?" for subscriptions over this much a month. */
 const USAGE_CHECK_MIN = 10;
@@ -43,6 +45,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
   const key = `${KEY}:${persona}`;
   const [prefs, setPrefs] = useState<Prefs>({ kept: {}, reminders: {} });
   const [howTo, setHowTo] = useState<string | null>(null);
+  const [menu, setMenu] = useState<string | null>(null);
   useEffect(() => {
     try { const v = JSON.parse(localStorage.getItem(key) ?? "null") as Prefs | null; if (v?.kept && v?.reminders) setPrefs(v); } catch { /* fall back to defaults */ }
   }, [key]);
@@ -53,68 +56,114 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
   const row = subs.rows.find((r) => r.merchant === howTo);
   const guide = row ? cancelGuide(row.merchant) : null;
 
+  const notUsing = subs.rows.filter((r) => prefs.notUsing?.[r.merchant] && !cancelled.has(r.merchant));
+  const answer = (merchant: string, using: boolean) => {
+    const before = prefs;
+    save({ ...prefs, kept: { ...prefs.kept, [merchant]: using }, notUsing: { ...prefs.notUsing, [merchant]: !using } });
+    if (using) toast({ kind: "confirm", message: t.keptToast(merchant), onUndo: () => save(before) });
+    else track("cancel_guide_opened", { merchant });
+  };
+  const remind = (s: Subs["rows"][number]) => {
+    const before = prefs;
+    save({ ...prefs, reminders: { ...prefs.reminders, [s.merchant]: s.remindOn } });
+    toast({ kind: "confirm", message: t.reminderToast(s.merchant, formatShortDay(s.remindOn)), onUndo: () => save(before) });
+  };
+  const reminderButton = (s: Subs["rows"][number]) => prefs.reminders[s.merchant]
+    ? <Button variant="tertiary" onClick={() => { const r = { ...prefs.reminders }; delete r[s.merchant]; save({ ...prefs, reminders: r }); }}>{t.cancelReminder}</Button>
+    : <Button variant="tertiary" onClick={() => remind(s)}>{t.remind}</Button>;
+
+  // Rail (UX round 2, 4.1): the totals, and the ones you said you don't use with what cancelling would save.
+  const rail = (
+    <>
+      <section className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+        <p className="text-body14 text-text-muted">{t.count(subs.rows.length)}</p>
+        <p className="tnum mt-t2 text-section-num text-text">{formatWhole(subs.totalPerPayCycle)} <span className="text-body14 font-semibold text-text-secondary">{t.perCycleShort}</span></p>
+        <p className="tnum text-body14 text-text-secondary">{t.perYearLine(formatWhole(subs.totalPerYear))}</p>
+        <p className="mt-t2 text-meta text-text-muted">{t.intro}</p>
+      </section>
+      <section aria-labelledby="not-using-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+        <h2 id="not-using-h" className="text-card text-text sm:text-card-l">{t.notUsingHeading}</h2>
+        {notUsing.length ? (
+          <>
+            <ul className="mt-t2 flex flex-col">
+              {notUsing.map((r) => (
+                <li key={r.merchant} className="flex min-h-[52px] items-center justify-between gap-t3 border-t border-divider first:border-t-0">
+                  <span className="text-body14 font-semibold text-text">{r.merchant}</span>
+                  <span className="tnum text-body14 text-text">{t.perYearShort(formatCents(r.perYear))}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="tnum mt-t3 rounded-inset bg-positive-soft px-t4 py-t3 text-body14 font-semibold text-positive">{t.notUsingSaving(formatWhole(notUsing.reduce((n, r) => n + r.perYear, 0)))}</p>
+          </>
+        ) : <p className="mt-t2 text-body14 text-text-muted">{t.notUsingNone}</p>}
+      </section>
+    </>
+  );
+
   return (
     <div className="pb-t6">
-      <section className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
-        <p className="text-small text-text-muted">{t.count(subs.rows.length)}</p>
-        <p className="tnum mt-t2 text-h2 font-display text-text">{t.total(formatWhole(subs.totalPerPayCycle), formatWhole(subs.totalPerYear))}</p>
-        <p className="mt-t2 text-small text-text-muted">{t.intro}</p>
-      </section>
-      <ul className="mt-t3 flex flex-col gap-t3">
+      <PageColumns railLabel={t.railLabel} rail={rail} main={
+      <ul className="mt-t2 flex flex-col gap-t3">
         {subs.rows.map((s) => {
-          const kept = !!prefs.kept[s.merchant];
+          const id = `sub-${s.merchant.replace(/\W+/g, "-")}`;
+          // Progressive disclosure (UX round 2, 6.5): the question first; Yes → Kept; No → how to cancel.
+          const asked = cancelHelper && s.amount > USAGE_CHECK_MIN;
+          const state = cancelled.has(s.merchant) ? "cancelled" : prefs.notUsing?.[s.merchant] ? "no" : prefs.kept[s.merchant] ? "kept" : asked ? "ask" : "quiet";
           const reminder = prefs.reminders[s.merchant];
           return (
             <li key={s.merchant}>
-              <article aria-labelledby={`sub-${s.merchant.replace(/\W+/g, "-")}`} className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
+              <article aria-labelledby={id} className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
                 <div className="flex items-start gap-t3">
-                  <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2" style={{ color: catVar("subscriptions") }}><Repeat size={24} /></span>
+                  <span aria-hidden className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-pill bg-chip" style={{ color: catVar("subscriptions") }}><Repeat size={20} strokeWidth={1.8} /></span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-t3">
-                      <h2 id={`sub-${s.merchant.replace(/\W+/g, "-")}`} className="text-card text-text sm:text-card-l">{s.merchant}</h2>
-                      <span className="tnum text-body-strong text-text">{t.amount(formatCents(s.amount), t.cadence[s.cadence])}</span>
+                      <h2 id={id} className="text-row text-text">{s.merchant}</h2>
+                      <span className="tnum text-row text-text">{t.amount(formatCents(s.amount), t.cadence[s.cadence])}</span>
                     </div>
-                    <p className="mt-t1 text-caption text-text-muted">{t.lastCharged(formatShortDay(s.last_charged))} · {t.nextCharge(formatShortDay(s.nextCharge))}</p>
-                    <p className="tnum mt-t1 text-small text-text">{t.perCycle(formatCents(s.perPayCycle))} · {t.perYear(formatCents(s.perYear))}</p>
-                    {/* Spec 06: usage check for subscriptions over $10 a month (until answered or cancelled). */}
-                    {cancelHelper && s.amount > USAGE_CHECK_MIN && !kept && !cancelled.has(s.merchant) && (
-                      <div className="mt-t2 flex flex-wrap items-center gap-x-t2 rounded-sm bg-surface2 px-t3 py-t1">
-                        <span className="text-small text-text">{cx_.stillUsing(s.merchant)}</span>
-                        <Button variant="tertiary" onClick={() => save({ ...prefs, kept: { ...prefs.kept, [s.merchant]: true } })} aria-label={`${cx_.yes}: ${cx_.stillUsing(s.merchant)}`}>{cx_.yes}</Button>
-                        <Button variant="tertiary" onClick={() => { track("cancel_guide_opened", { merchant: s.merchant }); setHowTo(s.merchant); }} aria-label={`${cx_.no}: ${cx_.stillUsing(s.merchant)}`}>{cx_.no}</Button>
-                      </div>
-                    )}
-                    {(kept || reminder) && (
-                      <p className="mt-t2 flex flex-wrap gap-t3 text-caption text-text-muted">
-                        {kept && <span className="inline-flex items-center gap-t1"><Check aria-hidden size={16} />{t.kept}</span>}
-                        {reminder && <span className="inline-flex items-center gap-t1"><BellRing aria-hidden size={16} />{t.reminderSet(formatShortDay(reminder))}</span>}
-                      </p>
-                    )}
+                    <p className="mt-t1 text-meta text-text-muted">{t.nextCharge(formatShortDay(s.nextCharge))} · {t.perYear(formatCents(s.perYear))}</p>
                   </div>
+                  <button type="button" onClick={() => setMenu(s.merchant)} aria-label={t.moreFor(s.merchant)} aria-haspopup="dialog"
+                    className="-mr-t2 -mt-t2 flex h-tap w-tap shrink-0 items-center justify-center rounded-pill text-icon-muted hover:bg-surface2">
+                    <Ellipsis aria-hidden size={20} strokeWidth={1.8} />
+                  </button>
                 </div>
-                <div className="mt-t3 flex flex-wrap gap-t2 border-t border-divider pt-t3">
-                  <Button variant="tertiary" aria-pressed={kept} onClick={() => {
-                    const before = prefs;
-                    save({ ...prefs, kept: { ...prefs.kept, [s.merchant]: !kept } });
-                    if (!kept) toast({ kind: "confirm", message: t.keptToast(s.merchant), onUndo: () => save(before) });
-                  }}>{t.keep}</Button>
-                  {reminder ? (
-                    <Button variant="tertiary" onClick={() => { const r = { ...prefs.reminders }; delete r[s.merchant]; save({ ...prefs, reminders: r }); }}>{t.cancelReminder}</Button>
-                  ) : (
-                    <Button variant="tertiary" onClick={() => {
-                      const before = prefs;
-                      save({ ...prefs, reminders: { ...prefs.reminders, [s.merchant]: s.remindOn } });
-                      toast({ kind: "confirm", message: t.reminderToast(s.merchant, formatShortDay(s.remindOn)), onUndo: () => save(before) });
-                    }}>{t.remind}</Button>
+                <div className="mt-t3 border-t border-divider pt-t3">
+                  {state === "ask" && (
+                    <div className="flex flex-wrap items-center gap-x-t2">
+                      <span className="text-body14 font-semibold text-text">{cx_.stillUsing(s.merchant)}</span>
+                      <Button variant="tertiary" onClick={() => answer(s.merchant, true)} aria-label={`${cx_.yes}: ${cx_.stillUsing(s.merchant)}`}>{cx_.yes}</Button>
+                      <Button variant="tertiary" onClick={() => answer(s.merchant, false)} aria-label={`${cx_.no}: ${cx_.stillUsing(s.merchant)}`}>{cx_.no}</Button>
+                    </div>
                   )}
-                  <Button variant="tertiary" onClick={() => { track("cancel_guide_opened", { merchant: s.merchant }); setHowTo(s.merchant); }}>{t.howToCancel}</Button>
-                  {corrections && <Button variant="tertiary" onClick={() => setFixing(s.merchant)} aria-label={correctionCopy.notRightFor(s.merchant)}>{correctionCopy.notRight}</Button>}
+                  {(state === "kept" || state === "quiet") && (
+                    <div className="flex flex-wrap items-center gap-x-t3">
+                      {state === "kept" && <span className="inline-flex items-center gap-t1 rounded-pill bg-positive-soft px-t3 py-[3px] text-meta font-semibold text-positive"><Check aria-hidden size={14} />{t.kept}</span>}
+                      {reminderButton(s)}
+                    </div>
+                  )}
+                  {state === "no" && (
+                    <div className="flex flex-wrap items-center gap-t2">
+                      <Button variant="secondary" onClick={() => { track("cancel_guide_opened", { merchant: s.merchant }); setHowTo(s.merchant); }}>{t.howToCancel}</Button>
+                      {reminderButton(s)}
+                    </div>
+                  )}
+                  {state === "cancelled" && <p className="text-body14 text-text-muted">{t.cancelledState}</p>}
+                  {reminder && <p className="mt-t1 inline-flex items-center gap-t1 text-meta text-text-muted"><BellRing aria-hidden size={14} />{t.reminderSet(formatShortDay(reminder))}</p>}
                 </div>
               </article>
             </li>
           );
         })}
-      </ul>
+      </ul>} />
+      <Sheet open={!!menu} onClose={() => setMenu(null)} title={menu ?? ""}>
+        {menu && (
+          <div className="flex flex-col gap-t2">
+            <Button full variant="secondary" onClick={() => { const m = menu; setMenu(null); track("cancel_guide_opened", { merchant: m }); setHowTo(m); }}>{t.howToCancel}</Button>
+            {(prefs.kept[menu] || prefs.notUsing?.[menu]) && <Button full variant="tertiary" onClick={() => { const m = menu; setMenu(null); const k = { ...prefs.kept }; delete k[m]; const n = { ...prefs.notUsing }; delete n[m]; save({ ...prefs, kept: k, notUsing: n }); }}>{t.changeAnswer}</Button>}
+            {corrections && <Button full variant="tertiary" onClick={() => { const m = menu; setMenu(null); setFixing(m); }} aria-label={correctionCopy.notRightFor(menu)}>{correctionCopy.notRight}</Button>}
+          </div>
+        )}
+      </Sheet>
       <RuleChoiceSheet persona={persona} merchant={fixing ?? ""} title={fixing ? correctionCopy.subscription.title(fixing) : ""} options={SUBSCRIPTION_OPTIONS} open={!!fixing} onClose={() => setFixing(null)} />
       <Sheet open={!!row} onClose={() => setHowTo(null)} title={row ? t.cancelTitle(row.merchant) : ""}
         footer={row && cancelHelper ? (cancelled.has(row.merchant)

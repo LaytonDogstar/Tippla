@@ -29,6 +29,9 @@ export const SECTIONS: Section[] = [
 ];
 const ACCOUNT_PAGES = [{ href: "/account", label: nav.items.account }, { href: "/notifications", label: nav.items.notifications }];
 
+/** Without the Offers page when lender offers are off (UX round 2, 2.2). */
+const withoutOffers = (pages: { href: string; label: string }[], hide?: boolean) => (hide ? pages.filter((p) => p.href !== "/offers") : pages);
+
 const under = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(href + "/"));
 const sectionOf = (path: string): FeedSection | "account" | null => {
   if (ACCOUNT_PAGES.some((p) => under(path, p.href))) return "account";
@@ -60,7 +63,7 @@ const MORE: { label: string; pages: { href: string; label: string }[] }[] = [
   { label: nav.groups.account, pages: ACCOUNT_PAGES },
 ];
 
-export function MobileDock({ path: forced, preview, badges = {} }: { path?: string; preview?: string; badges?: Badges }) {
+export function MobileDock({ path: forced, preview, badges = {}, hideOffers }: { path?: string; preview?: string; badges?: Badges; hideOffers?: boolean }) {
   const current = usePathname();
   const path = forced ?? current ?? "/";
   const [more, setMore] = useState(false);
@@ -109,7 +112,7 @@ export function MobileDock({ path: forced, preview, badges = {} }: { path?: stri
               <div key={g.label}>
                 <p className="pb-t1 text-meta text-text-muted">{g.label}</p>
                 <ul className="flex flex-col">
-                  {g.pages.map((p) => (
+                  {withoutOffers(g.pages, hideOffers).map((p) => (
                     <li key={p.href}>
                       <Link href={p.href} onClick={() => setMore(false)} aria-current={under(path, p.href) ? "page" : undefined}
                         className="flex min-h-[48px] items-center rounded-md px-t2 text-row text-text hover:bg-surface2">{p.label}</Link>
@@ -139,7 +142,7 @@ function SideLink({ href, label, icon: Icon, active, badge = 0, onClick, childre
   );
 }
 
-export function DesktopSidebar({ path: forced, brand = "Tippla", preview, badges = {}, name }: { path?: string; brand?: string; preview?: string; badges?: Badges; name?: string }) {
+export function DesktopSidebar({ path: forced, brand = "Tippla", preview, badges = {}, name, hideOffers }: { path?: string; brand?: string; preview?: string; badges?: Badges; name?: string; hideOffers?: boolean }) {
   const current = usePathname();
   const path = forced ?? current ?? "/";
   const at = sectionOf(path);
@@ -163,7 +166,7 @@ export function DesktopSidebar({ path: forced, brand = "Tippla", preview, badges
             <SideLink href={s.href} label={s.label} icon={s.icon} active={at === s.section} badge={badges[s.section] ?? 0}
               onClick={preview ? undefined : () => track("nav_section_opened", { section: s.section, had_badge: (badges[s.section] ?? 0) > 0 })} />
             {/* The section's own pages, when it's open (Today has none worth listing besides the plan). */}
-            {at === s.section && s.pages.length > 1 && s.section !== "today" && subLinks(s.pages)}
+            {at === s.section && withoutOffers(s.pages, hideOffers).length > 1 && s.section !== "today" && subLinks(withoutOffers(s.pages, hideOffers))}
           </div>
         ))}
       </div>

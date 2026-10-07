@@ -36,7 +36,7 @@ export function RecommendationCard({ item, snoozed, dismissed, onSeeHow, onSnooz
       {item.impact && (
         <p className="mt-t4 rounded-sm bg-surface2 p-t3 text-small text-text"><span className="text-caption text-text-muted">{recs.wouldChange}: </span>{item.impact}</p>
       )}
-      <Button full className="mt-t5" onClick={onSeeHow}>{t.seeHow}</Button>
+      <Button full variant="secondary" className="mt-t5" onClick={onSeeHow}>{t.seeHow}</Button>
       {item.action && (
         <Link href={item.action.href} className="mt-t2 flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">
           {item.action.label}<ChevronRight aria-hidden size={20} />
