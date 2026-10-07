@@ -113,11 +113,12 @@ export function Donut({ rows, total, periodLabel, selected, onSelect, loading, l
         })}
         {otherTotal > 0 && (
           <li>
-            <button type="button" onClick={onOther} aria-label={t.otherSr(rest.length, formatWhole(otherTotal))}
+            <button type="button" onClick={onOther}
               className="flex min-h-tap w-full items-center gap-t3 rounded-sm px-t2 text-left hover:bg-surface2">
               <svg aria-hidden width="12" height="12" className="shrink-0 rounded-pill"><rect width="12" height="12" fill="url(#donut-other)" /></svg>
               <span className="flex-1 text-body14 text-text">{t.other(rest.length)}</span>
               <span className="tnum text-body14 font-bold text-text">{formatWhole(otherTotal)}</span>
+              <span className="sr-only">. {t.otherHint}</span>
             </button>
           </li>
         )}

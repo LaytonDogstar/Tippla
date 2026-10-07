@@ -65,12 +65,12 @@ export function SpendingSummary({ bars, asOf, groups }: { bars: CycleBar[]; asOf
               {parts.map((g) => (
                 <li key={g.key}>
                   <Link href={g.key === "other" ? "/spending?tab=categories" : `/spending?category=${g.key}`}
-                    aria-label={g.key === "other" ? `${t.otherSr(groups.other!.categories.length)}, ${formatWhole(g.total)}` : `${t.openCategory(g.name)}, ${formatWhole(g.total)}`}
                     className="flex min-h-tap items-center gap-t2 rounded-md px-t2 text-body14 hover:bg-surface2">
                     <span aria-hidden className="h-[10px] w-[10px] shrink-0 rounded-pill" style={{ background: g.colour }} />
                     <span className="flex-1 text-text-secondary">{g.name}</span>
                     {/* Amounts in the normal text colour: gambling is never singled out in a warning colour. */}
                     <strong className="tnum font-bold text-text">{formatWhole(g.total)}</strong>
+                    <span className="sr-only">. {g.key === "other" ? t.otherHint(groups.other!.categories.length) : t.openHint}</span>
                     <ChevronRight aria-hidden size={16} className="shrink-0 text-icon-muted" />
                   </Link>
                 </li>

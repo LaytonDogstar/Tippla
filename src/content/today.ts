@@ -106,8 +106,8 @@ export const todayCopy = {
     where: "Where it went this pay cycle",
     splitSr: (rows: string) => `Spending by category this pay cycle: ${rows}`,
     other: "Other",
-    otherSr: (n: number) => `Other: ${n} more ${n === 1 ? "category" : "categories"}. Opens all categories`,
-    openCategory: (name: string) => `${name}: see transactions`,
+    otherHint: (n: number) => `${n} more ${n === 1 ? "category" : "categories"}: opens all categories`,
+    openHint: "See transactions",
     noData: "No data",
   },
   unusual: {

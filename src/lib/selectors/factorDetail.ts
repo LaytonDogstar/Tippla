@@ -76,8 +76,9 @@ export function factorDrivers(d: PersonaData, key: FactorKey): DriverFact[] {
       const living = metric<ArrayMetricValue>(d.bankStatement, "AM2008")["90"]?.sum_amount ?? 0;
       const all = metric<ArrayMetricValue>(d.bankStatement, "AM2004")["90"]?.sum_amount ?? 0;
       return [
-        ...(all ? [{ text: c.mix.essentials(formatPercent((living / all) * 100, 0)), sample: true }] : []),
-        { text: c.mix.sample, sample: true },
+        // What TaleFin measures here is still open (Q2): the driver carries the dev-only Sample logic tag, and no
+        // placeholder line reaches customers (UX round 2, 1.4).
+        ...(all ? [{ text: c.mix.essentials(formatPercent((living / all) * 100, 0)), sample: true }] : [{ text: c.mix.none, sample: true }]),
       ];
     }
     case "GOVERNMENT_RELIANCE":

@@ -94,7 +94,7 @@ export const category = {
 export const donut = {
   legendLabel: "Categories in the chart",
   other: (n: number) => `Other (${n} more)`,
-  otherSr: (n: number, amt: string) => `Other: ${n} more categories, ${amt}. Opens all categories`,
+  otherHint: "Opens all categories",
   heading: "Spending by category",
   centreLabel: "Spent",
   shareOf: (pct: string) => `${pct} of spending`,

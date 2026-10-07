@@ -47,7 +47,7 @@ export const drivers = {
   },
   mix: {
     essentials: (pct: string) => `Everyday essentials were about ${pct} of your spending over the last 90 days`,
-    sample: "Sample logic: TaleFin to confirm what this factor measures (Q2)",
+    none: "We don't have enough spending yet to show the mix.",
   },
   nullFactor: "We don't have enough history to work this out yet.",
 };
