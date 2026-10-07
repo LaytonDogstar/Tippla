@@ -141,6 +141,21 @@ export const compare = {
 } as const;
 
 export const calendarPage = {
+  /** UX round 2, 5.1: the fortnight's balance as a line. */
+  chart: {
+    heading: "Balance across the fortnight",
+    today: "Today",
+    confirmed: "Confirmed",
+    forecast: "Forecast",
+    belowLegend: "Below $0",
+    billLegend: "Bill due",
+    payLegend: "Payday",
+    below: (day: string, amt: string) => `Below $0 on ${day} (${amt})`,
+    payday: (day: string, amt: string) => `Payday ${day}${amt ? `: about ${amt} in` : ""}`,
+    bills: (day: string, list: string) => `Due ${day}: ${list}`,
+    summary: (from: string, to: string, belowDay: string | null, low: string) =>
+      `End-of-day balance from ${from} to ${to}. Lowest ${low}.${belowDay ? ` Forecast to go below $0 on ${belowDay}.` : ""} The day list has every figure.`,
+  },
   upcomingBills: "Bills coming up",
   noUpcomingBills: "No bills predicted in this view.",
   railLabel: "Selected day and bills coming up",
@@ -160,7 +175,9 @@ export const calendarPage = {
   prevMonth: "Previous month",
   nextMonth: "Next month",
   range: (a: string, b: string) => `${a} – ${b}`,
-  legend: { confirmed: "Confirmed spend", predicted: "Predicted bill", below: "Below $0", note: "End-of-day balances · outline = forecast" },
+  legend: {
+    ok: (amt: string) => `${amt} or more`,
+    low: (amt: string) => `Under ${amt}`, confirmed: "Confirmed spend", predicted: "Predicted bill", below: "Below $0", note: "End-of-day balances · outline = forecast" },
   today: (day: string) => `Today · ${day}`,
   selected: (day: string) => day,
   confirmed: "confirmed",

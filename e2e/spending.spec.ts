@@ -13,7 +13,8 @@ async function expectNoAxe(page: Page) {
   expect(s, s.join("\n")).toEqual([]);
 }
 
-const row = (page: Page, name: RegExp) => page.getByRole("button", { name, expanded: undefined }).first();
+// Category rows (the donut's legend also has category buttons since UX round 2, 5.2).
+const row = (page: Page, name: RegExp) => page.getByRole("region", { name: "Categories" }).getByRole("button", { name, expanded: undefined }).first();
 
 test("journey 2: dashboard → spending → category → merchant sheet → recategorise (Jess)", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");

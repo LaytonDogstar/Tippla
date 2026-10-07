@@ -11,7 +11,8 @@ import { calendar as cal, transaction as txCopy } from "@/content/components";
 import { categoryNames } from "@/content/en-AU";
 import { formatCents, formatShortDay, formatWhole } from "@/lib/format";
 import { rangeTotals, type CalendarDay } from "@/lib/selectors/calendar";
-import { BalanceStrip, CalendarGrid } from "@/components/domain/Calendar";
+import { BalanceStrip, CalendarGrid, LOW_BALANCE } from "@/components/domain/Calendar";
+import { BalanceChart } from "@/components/domain/BalanceChart";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SegmentedControl } from "@/components/ui/Chips";
 import { Sheet } from "@/components/ui/Sheet";
@@ -81,6 +82,8 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
         ) : <span className="h-tap w-tap" />}
       </div>
 
+      {view === "fortnight" && <BalanceChart days={days.filter((d) => !d.outside)} />}
+
       <div className="mt-t2 flex justify-end">
         <Button variant="tertiary" aria-pressed={list} onClick={() => setList((v) => !v)}>{list ? t.showGrid : t.showList}</Button>
       </div>
@@ -113,11 +116,14 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
         </button>
       )}
 
-      <div className="mt-t4 flex flex-wrap items-center gap-x-t5 gap-y-t2 text-caption text-text-muted">
+      <div className="mt-t4 flex flex-wrap items-center gap-x-t5 gap-y-t2 text-meta text-text-secondary">
         <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[6px] w-[6px] rounded-pill bg-neutral" />{t.legend.confirmed}</span>
         <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[8px] w-[8px] rounded-pill border-2" style={{ borderColor: "var(--chart-predicted)" }} />{t.legend.predicted}</span>
-        <span className="inline-flex items-center gap-t2"><BalanceStrip day={{ balance: -1, balancePredicted: true, belowZero: true }} />{t.legend.below}</span>
-        <span className="w-full">{t.legend.note}</span>
+        {/* Day tints: forecast balance, soft tints only (UX round 2, 5.1). */}
+        <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-positive-soft" />{t.legend.ok(formatWhole(LOW_BALANCE))}</span>
+        <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-caution-soft" />{t.legend.low(formatWhole(LOW_BALANCE))}</span>
+        <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-negative-soft shadow-[inset_0_0_0_2px_var(--color-negative)]" />{t.legend.below}</span>
+        <span className="w-full text-text-muted">{t.legend.note}</span>
       </div>
 
       <div className="mt-t4 flex flex-wrap items-center gap-t3">

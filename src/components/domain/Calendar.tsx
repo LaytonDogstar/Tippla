@@ -3,8 +3,11 @@
 // inside it (never separate tiny buttons). Lanes, top to bottom: date · spend/bill markers · payday · balance.
 // Confirmed spend = one solid neutral dot (presence, not a count). Predicted bills = hollow outlined circles.
 // Balance strips encode status, not size: confirmed = solid neutral, forecast = outline, below $0 = neutral
-// hatch (confirmed dense, forecast open + dashed). Never red.
-import { ArrowDownToLine, ChevronRight } from "lucide-react";
+// hatch (confirmed dense, forecast open + dashed). Never a saturated red.
+// UX round 2, 5.1: today and future cells are tinted by their forecast balance, soft tints only (rule 6): below $0
+// soft negative with a warning icon and an outline (the shortfall day can't be missed), under $100 soft caution,
+// otherwise soft positive.
+import { ArrowDownToLine, ChevronRight, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { calendar as t } from "@/content/components";
 import { formatDate, formatShortDay, formatWhole } from "@/lib/format";
@@ -22,6 +25,12 @@ export function BalanceStrip({ day }: { day: Pick<CalendarDay, "balance" | "bala
     : day.balancePredicted ? { outline: "2px solid var(--chart-predicted)", outlineOffset: -2, background: "var(--color-surface)" } : { background: "var(--color-neutral)" };
   return <span aria-hidden className="block h-[14px] w-[36px] rounded-[4px]" style={style} />;
 }
+
+/** Under this (but not below $0) a forecast balance is "low" in the calendar tint. */
+export const LOW_BALANCE = 100;
+const tintFor = (d: CalendarDay) => (d.balance === null || d.outside || (!d.isToday && !d.isFuture) ? null
+  : d.belowZero ? "negative" : d.balance < LOW_BALANCE ? "caution" : "positive");
+const TINT = { negative: "bg-negative-soft shadow-[inset_0_0_0_2px_var(--color-negative)]", caution: "bg-caution-soft", positive: "bg-positive-soft" } as const;
 
 export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, rangeTo, initialFocus, onDay, onNextPayday }: {
   days: CalendarDay[];
@@ -63,7 +72,7 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
     <div>
       <table role="grid" aria-label={label} className="w-full table-fixed border-collapse">
         <thead>
-          <tr>{headers.map((h) => <th key={h} scope="col" className="pb-t2 text-caption font-medium text-text-muted">{h}</th>)}</tr>
+          <tr>{headers.map((h) => <th key={h} scope="col" className="pb-t2 text-meta font-semibold text-text-muted">{h}</th>)}</tr>
         </thead>
         <tbody>
           {weeks.map((week, w) => (
@@ -94,7 +103,7 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
                       className={cx(
                         "relative flex min-h-[106px] w-full flex-col items-center gap-t1 rounded-xs pb-t1 pt-t2",
                         selected === d.date ? "bg-accent-soft shadow-[inset_0_0_0_2px_var(--color-accent)]"
-                          : inRange ? "bg-accent-soft" : "bg-surface hover:bg-surface2",
+                          : inRange ? "bg-accent-soft" : tintFor(d) ? TINT[tintFor(d)!] : "bg-surface hover:bg-surface2",
                       )}
                     >
                       <span aria-hidden className={cx("tnum text-small font-numeric", d.outside ? "text-text-muted" : "text-text", d.isToday && "underline decoration-2 underline-offset-4")}>
@@ -113,7 +122,9 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
                       {d.balance !== null && (
                         <span aria-hidden className="mt-auto flex flex-col items-center gap-[2px]">
                           <BalanceStrip day={d} />
-                          <span className="tnum text-[length:min(0.6875rem,12px)] leading-[14px] text-text">{formatCompact(d.balance)}</span>
+                          <span className={cx("tnum inline-flex items-center gap-[2px] text-meta font-semibold", d.belowZero && tintFor(d) ? "text-negative" : "text-text")}>
+                            {d.belowZero && tintFor(d) && <TriangleAlert size={11} strokeWidth={2.4} />}{formatCompact(d.balance)}
+                          </span>
                         </span>
                       )}
                     </button>

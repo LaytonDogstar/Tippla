@@ -1,13 +1,14 @@
 "use client";
 // SmartScore screen parts (screens.md §5): summary with embedded stage path, fortnightly trend (0–1,000),
 // list-density factor rows with icons.
-import { ArrowDownToLine, Banknote, BanknoteArrowUp, CalendarCheck, ChartNoAxesColumn, Check, ChevronRight, Layers, Wallet, type LucideIcon } from "lucide-react";
+import { ArrowDownToLine, Banknote, BanknoteArrowUp, CalendarCheck, ChartNoAxesColumn, Check, ChevronRight, Layers, Minus, TrendingDown, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
 import type { FactorKey } from "@/lib/api/types";
 import { scorePage as t } from "@/content/factors";
 import { copy } from "@/content/en-AU";
 import { formatDayMonth } from "@/lib/format";
 import type { Factor, ScoreState } from "@/lib/selectors/score";
 import { Gauge, bandTone } from "@/components/today/SmartScoreCard";
+import { STAGES } from "@/config/stages";
 import { StageScale } from "./StageScale";
 import { cx } from "@/components/ui/cx";
 
@@ -44,39 +45,56 @@ export function ScoreSummary({ state, onStage }: { state: Extract<ScoreState, { 
 export function TrendChart({ points, onPoint }: { points: { date: string; score: number }[]; onPoint?: (p: { date: string; score: number }) => void }) {
   if (points.length < 2) return null;
   const W = 318, H = 72;
-  // Points sit at the centre of equal columns, so each has a ≥44 px hit zone.
+  // Scaled to the data with padding (UX round 2, 5.4), so a 49-point fall is visible; the scale is labelled, and
+  // the net change is said in words beside it.
+  const vals = points.map((p) => p.score);
+  const lo = Math.max(0, Math.floor((Math.min(...vals) - 20) / 10) * 10);
+  const hi = Math.min(1000, Math.ceil((Math.max(...vals) + 20) / 10) * 10);
   const x = (i: number) => ((i + 0.5) * W) / points.length;
-  const y = (v: number) => H - (v / 1000) * H; // fixed 0–1,000: a 49-point change is not exaggerated
+  const y = (v: number) => H - ((v - lo) / (hi - lo || 1)) * H;
+  const delta = points.at(-1)!.score - points[0]!.score;
+  const DeltaIcon = delta < 0 ? TrendingDown : delta > 0 ? TrendingUp : Minus;
   return (
     <section aria-labelledby="trend-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6">
-      <h2 id="trend-h" className="text-card text-text sm:text-card-l">{t.trend}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-t2">
+        <h2 id="trend-h" className="text-card text-text sm:text-card-l">{t.trend}</h2>
+        {/* Soft tint with an icon and words: never colour alone, never a saturated fill (rule 6). */}
+        <span className={cx("tnum inline-flex items-center gap-t1 rounded-pill px-t3 py-[3px] text-meta font-bold",
+          delta < 0 ? "bg-negative-soft text-negative" : delta > 0 ? "bg-positive-soft text-positive" : "bg-chip text-text-secondary")}>
+          <DeltaIcon aria-hidden size={14} strokeWidth={2} />{t.trendDelta(delta, formatDayMonth(points[0]!.date))}
+        </span>
+      </div>
       <div className="mt-t1 flex justify-between text-meta text-text-muted">
-        <span>{formatDayMonth(points[0]!.date)} → {formatDayMonth(points.at(-1)!.date)}</span><span>{t.trendScale}</span>
+        <span>{formatDayMonth(points[0]!.date)} → {formatDayMonth(points.at(-1)!.date)}</span><span>{t.trendScale(lo, hi)}</span>
       </div>
       <div className="relative mt-t3" style={{ height: H + 28 }}>
         <svg aria-hidden width="100%" height={H + 28} viewBox={`0 0 ${W} ${H + 28}`} preserveAspectRatio="none" className="absolute inset-0">
+          <line x1={0} x2={W} y1={24} y2={24} stroke="var(--color-divider)" strokeWidth={1} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
           <polyline fill="none" stroke="var(--color-accent)" strokeWidth={2} points={points.map((p, i) => `${x(i)},${y(p.score) + 24}`).join(" ")} vectorEffect="non-scaling-stroke" />
-          <line x1={0} x2={W} y1={H + 24} y2={H + 24} stroke="var(--color-line)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+          <line x1={0} x2={W} y1={H + 24} y2={H + 24} stroke="var(--color-divider)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
         </svg>
         <ol className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${points.length}, minmax(0, 1fr))` }}>
           {points.map((p) => (
             <li key={p.date} className="relative">
               <button type="button" onClick={() => onPoint?.(p)} aria-label={t.trendPoint(formatDayMonth(p.date), p.score)}
                 className="absolute inset-0 flex min-w-tap flex-col items-center rounded-sm hover:bg-surface2">
-                <span aria-hidden className="tnum text-caption text-text">{p.score}</span>
-                <span aria-hidden className="absolute h-[8px] w-[8px] rounded-pill border-2 border-accent bg-surface"
-                  style={{ top: y(p.score) + 24 - 4, left: "calc(50% - 4px)" }} />
+                <span aria-hidden className="tnum text-meta text-text">{p.score}</span>
+                <span aria-hidden className="absolute h-[9px] w-[9px] rounded-pill border-2 border-accent bg-surface"
+                  style={{ top: y(p.score) + 24 - 4.5, left: "calc(50% - 4.5px)" }} />
               </button>
             </li>
           ))}
         </ol>
       </div>
-      <div aria-hidden className="mt-t2 flex justify-between text-caption text-text-muted">
+      <div aria-hidden className="mt-t2 flex justify-between text-meta text-text-muted">
         <span>{formatDayMonth(points[0]!.date)}</span><span>{formatDayMonth(points.at(-1)!.date)}</span>
       </div>
     </section>
   );
 }
+
+/** A factor's 0–10 value on the same bands as the score (0–1,000). */
+export const factorBand = (value: number) => (STAGES.find((s) => value * 100 >= s.min && value * 100 <= s.max) ?? STAGES.at(-1)!).id;
 
 export function FactorRow({ factor, explanation, onOpen }: { factor: Factor; explanation?: string; onOpen: () => void }) {
   const Icon = factorIcons[factor.key];
@@ -90,10 +108,11 @@ export function FactorRow({ factor, explanation, onOpen }: { factor: Factor; exp
           <span className="text-row text-text">{factor.name}</span>
           <span className={cx("tnum ml-auto text-[0.9375rem] font-bold", isNull ? "text-text-muted" : "text-text")}>{isNull ? "—" : `${factor.value!.toFixed(1)} / 10`}</span>
         </span>
-        {/* Out of 10, in the brand colour only: never red or green for a factor (no "good" or "bad" fill). */}
+        {/* Out of 10, in the SmartScore band colours (pastel, as on the score's band bar), so low factors stand out
+            (UX round 2, 5.5). The value is always written beside it. */}
         {!isNull && (
           <span aria-hidden className="mt-t2 block h-[6px] overflow-hidden rounded-pill bg-chip">
-            <span className="block h-full rounded-pill bg-accent" style={{ width: `${Math.max(2, Math.min(100, factor.value! * 10))}%` }} />
+            <span className="block h-full rounded-pill" style={{ width: `${Math.max(2, Math.min(100, factor.value! * 10))}%`, background: `var(--band-${factorBand(factor.value!)})` }} />
           </span>
         )}
         {(explanation || isNull) && <span className="mt-t2 block text-meta text-text-secondary">{isNull ? copy.score.factorNull : explanation}</span>}

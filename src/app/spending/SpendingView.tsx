@@ -249,7 +249,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
               </div>
             )}
             <div className="mt-t4">
-              <Donut legend={false} rows={allRows} total={total} periodLabel={p.label} selected={selected} onSelect={selectCategory} />
+              <Donut rows={allRows} total={total} periodLabel={p.label} selected={selected} onSelect={selectCategory} onOther={() => setTab("categories")} />
             </div>
             {categoryList}
           </div>
