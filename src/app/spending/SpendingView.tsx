@@ -178,7 +178,6 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
       <li key={r.category}>
         <CategoryRow
           row={r}
-          showLifestyle
           merchants={merchantsIn(scoped, p, r.category, edits)}
           budget={showBudgets && (budgetable(r.category) || budgets[r.category] !== undefined) ? budgets[r.category] ?? null : undefined}
           insightLabel={ins?.chip}

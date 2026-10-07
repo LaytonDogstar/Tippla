@@ -142,6 +142,9 @@ export const loan = {
   estimateNote: "Estimates use connected bank activity. Check your lender for exact figures.",
   viewRepayments: "View repayments",
   missing: "Balance not available",
+  balanceShort: "Balance",
+  notAvailable: "Not available",
+  frequencyShort: "Frequency",
   seeDetails: "See loan details",
   everyDays: (n: number) => (n === 14 ? "Every fortnight" : n === 7 ? "Every week" : n >= 28 && n <= 31 ? "Every month" : `Every ${n} days`),
 };

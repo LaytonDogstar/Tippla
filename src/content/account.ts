@@ -20,6 +20,10 @@ export const loansPage = {
   /** One advance: "$300 received Thu 24/09 · $315 due back Wed 30/09 ($300 + $15 fee)" (UX round 2, 1.5). */
   dueBack: (repay: string, date: string, amt: string, fee: string) => `${repay} due back ${date} (${amt} + ${fee} fee)`,
   notIncome: "Pay advances aren't income.",
+  receivedLabel: "Received",
+  dueBackLabel: "Due back",
+  feeLabel: "Fee",
+  cadenceLabel: (days: number | null) => (days === null ? "Varies" : days >= 28 ? "Every month" : days >= 13 && days <= 15 ? "Every fortnight" : days === 7 ? "Every week" : `Every ${days} days`),
   estimated: "estimated from your transactions",
   viewRepayments: "View repayments",
   nextDue: (date: string) => `Next due ${date}`,

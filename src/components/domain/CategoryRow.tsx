@@ -14,7 +14,6 @@ export interface CategoryRowProps {
   row: Row;
   merchants?: MerchantRow[];
   budget?: number | null; // null = no budget set
-  showLifestyle?: boolean;
   insightLabel?: string; // present → shows the insight chip
   onInsight?: () => void;
   onMerchant?: (m: MerchantRow) => void;
@@ -30,7 +29,7 @@ export interface CategoryRowProps {
   onToggle?: (open: boolean) => void;
 }
 
-export function CategoryRow({ row, merchants = [], budget, showLifestyle, insightLabel, onInsight, onMerchant, onViewAll, onEditBudget, defaultExpanded, changeText, sparkline, expanded, onToggle }: CategoryRowProps) {
+export function CategoryRow({ row, merchants = [], budget, insightLabel, onInsight, onMerchant, onViewAll, onEditBudget, defaultExpanded, changeText, sparkline, expanded, onToggle }: CategoryRowProps) {
   const [openState, setOpen] = useState(!!defaultExpanded);
   const open = expanded ?? openState;
   const id = useId();
@@ -60,11 +59,9 @@ export function CategoryRow({ row, merchants = [], budget, showLifestyle, insigh
         {open ? <ChevronUp aria-hidden size={20} className="shrink-0 text-text-muted" /> : <ChevronDown aria-hidden size={20} className="shrink-0 text-text-muted" />}
       </button>
 
-      {(showLifestyle || hasBudget || insightLabel) && (
+      {/* No "Lifestyle" tag on rows: the Essentials / Lifestyle filter on Categories covers it (UX round 2, 3.7). */}
+      {(hasBudget || insightLabel) && (
         <div className="flex flex-col gap-t3 pb-t4 pl-[76px] sm:pl-[84px] pr-t4">
-          {showLifestyle && row.type === "lifestyle" && (
-            <span className="inline-flex min-h-[24px] w-fit items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.lifestyle}</span>
-          )}
           {hasBudget && <BudgetSlot spent={row.total} budget={budget ?? null} onEdit={onEditBudget} />}
           {insightLabel && (
             <button type="button" onClick={onInsight} className="inline-flex min-h-tap w-fit items-center gap-t2 rounded-pill bg-accent-soft px-t3 py-t1 text-left text-small text-accent hover:shadow-[inset_0_0_0_2px_var(--color-accent)]">

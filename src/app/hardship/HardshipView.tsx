@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Feedback";
 import { SampleTag } from "@/components/ui/SampleTag";
 import { Toggle } from "@/components/ui/Form";
+import { CardLink } from "@/components/ui/CardLink";
 import { statesCopy } from "@/content/states";
 import { useAccount } from "@/lib/account/client";
 import type { AccountState } from "@/lib/account/state";
@@ -87,18 +88,8 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       <ul className="mt-t5 flex flex-col gap-t3">
         {cards.map((c) => (
           <li key={c.id}>
-            <section aria-labelledby={`h-${c.id}`} className={cx("rounded-md p-t4", c.soft ? "bg-accent-soft" : "bg-surface")}>
-              <div className="flex items-start gap-t3">
-                <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2 text-neutral"><c.icon size={24} /></span>
-                <div className="min-w-0 flex-1">
-                  <h2 id={`h-${c.id}`} className="text-card text-text sm:text-card-l">{c.title}</h2>
-                  <p className="mt-t1 text-small text-text-muted">{c.body}</p>
-                </div>
-              </div>
-              <button type="button" onClick={c.onClick} className="mt-t3 flex min-h-tap w-full items-center justify-between rounded-sm pl-[52px] text-small text-accent hover:bg-surface2">
-                {c.action}<ChevronRight aria-hidden size={20} />
-              </button>
-            </section>
+            {/* Whole card is the target, with a chevron; the title says what it is (UX round 2, 3.4). */}
+            <CardLink icon={c.icon} title={c.title} body={c.body} soft={c.soft} onClick={c.onClick} ariaLabel={`${c.title}: ${c.action}`} />
           </li>
         ))}
       </ul>

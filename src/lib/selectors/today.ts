@@ -1,7 +1,7 @@
 // Today page (redesign 07/10/2026): presentation-only figures, all derived from the existing selectors.
 // Nothing here changes a calculation: it picks the hero state, groups what's already computed, and lines up
 // the next two weeks. Pure and unit tested (tests/today.test.ts).
-import type { PersonaData, UpcomingBill } from "@/lib/api/types";
+import type { CategoryId, PersonaData, UpcomingBill } from "@/lib/api/types";
 import type { AccountState } from "@/lib/account/state";
 import { addDays, daysBetween, sumMoney, type ISODate } from "@/lib/format";
 import type { FeedItem, FeedType } from "@/lib/feed/types";
@@ -68,6 +68,8 @@ export interface ComingUpItem {
   kind: "bill" | "payAdvance" | "income" | "tippla";
   name: string;
   amount: number;
+  /** For the row's icon (the category icon set used in the transaction list, UX round 2, 3.6). */
+  category?: CategoryId;
   /** Predicted bill, expected income, or a Tippla payment that can be paused. */
   qualifier: "predicted" | "confirmed" | "expected" | "estimated" | "pausable";
 }
@@ -76,7 +78,7 @@ export interface ComingUpItem {
 export function comingUp(d: PersonaData, a: AccountState = {}, days = 14): ComingUpItem[] {
   const until = addDays(d.asOf, days);
   const bills = d.derived.upcoming_bills.filter((b: UpcomingBill) => b.date > d.asOf && b.date <= until).map((b): ComingUpItem => ({
-    date: b.date, kind: b.category === "wage_advance" ? "payAdvance" : "bill", name: b.merchant, amount: b.expected_amount, qualifier: b.confidence,
+    date: b.date, kind: b.category === "wage_advance" ? "payAdvance" : "bill", name: b.merchant, amount: b.expected_amount, category: b.category, qualifier: b.confidence,
   }));
   const income = upcomingIncome(d, until).filter((i) => i.date > d.asOf).map((i): ComingUpItem => ({
     date: i.date, kind: "income", name: i.payer, amount: i.amount, qualifier: i.exact ? "expected" : "estimated",
