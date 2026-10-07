@@ -43,7 +43,7 @@ export async function PortalShell(props: {
   const health = isOn("connection_health_v1", props.persona) && !props.path.startsWith("/account/bank") ? connectionHealth(data, account, states) : null;
   const stamp = health && (health.status === "stale" || health.status === "broken") ? <DataStamp dataFrom={health.dataFrom} returnTo={props.path} /> : undefined;
   return (
-    <PortalFrame {...props} notice={notice ?? stamp} badges={bySection}>
+    <PortalFrame {...props} notice={notice ?? stamp} badges={bySection} name={data.profile.first_name}>
       {body}
       <PageAnalytics route={props.path} payday={paydayCheckIn(data) !== null} />
     </PortalFrame>

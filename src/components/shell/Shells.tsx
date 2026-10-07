@@ -66,7 +66,9 @@ export function PageHeader({ title, sub, action }: { title: string; sub?: string
 }
 
 /** The portal frame. Pages use PortalShell from ./Portal (server), which adds state notices and gates. */
-export function PortalFrame({ path, title, backHref, persona, present, cta, header, wide, notice, badges, children }: {
+export function PortalFrame({ path, title, backHref, persona, present, cta, header, wide, notice, badges, name, children }: {
+  /** The member's first name, for the sidebar's account entry. */
+  name?: string;
   path: string; title?: string; backHref?: string; persona: PersonaId; present: boolean;
   /** Open "Needs a look" items per nav section. */
   badges?: Badges;
@@ -82,20 +84,20 @@ export function PortalFrame({ path, title, backHref, persona, present, cta, head
 }) {
   return (
     <div className="min-h-[100dvh] bg-bg text-text desktop:pl-sidebar">
-      <div className={wide ? "mx-auto max-w-[720px] desktop:max-w-[1180px] desktop:px-t5" : "mx-auto max-w-[720px]"}>
+      <div className={wide ? "mx-auto max-w-[720px] desktop:max-w-[1240px]" : "mx-auto max-w-[720px]"}>
         {header ?? <Header backHref={backHref} title={title} />}
         {notice && <div className="px-gutter pb-t2">{notice}</div>}
-        <main id="main" className={cta ? "px-gutter pb-[calc(44px+var(--tab-bar-height)+80px+env(safe-area-inset-bottom)+16px)]" : "px-gutter pb-[calc(44px+var(--tab-bar-height)+env(safe-area-inset-bottom)+24px)]"}>
+        <main id="main" className={cta ? "px-gutter pb-[calc(var(--tab-bar-height)+80px+env(safe-area-inset-bottom)+16px)]" : "px-gutter pb-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom)+24px)]"}>
           {children}
         </main>
       </div>
       {cta && (
-        <div className="fixed inset-x-0 bottom-[calc(44px+var(--tab-bar-height)+env(safe-area-inset-bottom))] z-20 border-t border-line bg-bg desktop:bottom-0 desktop:left-sidebar">
+        <div className="fixed inset-x-0 bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom))] z-20 border-t border-line bg-bg desktop:bottom-0 desktop:left-sidebar">
           <div className="mx-auto max-w-[720px] px-gutter py-t4">{cta}</div>
         </div>
       )}
       <MobileDock path={path} badges={badges} />
-      <DesktopSidebar path={path} badges={badges} />
+      <DesktopSidebar path={path} badges={badges} name={name} />
       {!present && <PersonaSwitcher current={persona} raised={!!cta} />}
     </div>
   );

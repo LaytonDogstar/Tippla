@@ -32,7 +32,7 @@ export function PersonaSwitcher({ current, raised }: { current: PersonaId; raise
   };
   return (
     <div className={cx("fixed left-t2 z-40 desktop:left-[calc(var(--sidebar-width)+8px)]",
-      raised ? "bottom-[calc(44px+var(--tab-bar-height)+env(safe-area-inset-bottom)+88px)] desktop:bottom-[96px]" : "bottom-[calc(44px+var(--tab-bar-height)+env(safe-area-inset-bottom)+8px)] desktop:bottom-t4")}>
+      raised ? "bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom)+88px)] desktop:bottom-[96px]" : "bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom)+8px)] desktop:bottom-t4")}>
       {open && (
         <div role="menu" aria-label="Persona" className="mb-t2 flex flex-col rounded-md border border-line bg-surface p-t1 shadow-e2">
           {PERSONAS.map((p) => (
