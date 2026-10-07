@@ -10,7 +10,6 @@ import type { AccountState } from "@/lib/account/state";
 import { useAccount } from "@/lib/account/client";
 import { track } from "@/lib/analytics/client";
 import { useToast } from "@/components/ui/Feedback";
-import { Button } from "@/components/ui/Button";
 
 const money = (n: number) => (n < 0 ? `−${formatWhole(-n)}` : formatWhole(n));
 
@@ -25,11 +24,14 @@ export function ForecastMissCard({ persona, account, miss, onFixBill }: { person
     else toast({ kind: "confirm", message: t.thanks });
   };
   return (
-    <section aria-labelledby="miss" className="rounded-lg bg-surface p-t4">
-      <h2 id="miss" className="text-h3 text-text">{t.missTitle}</h2>
-      <p className="mt-t1 text-small text-text-muted">{t.missBody(formatShortDay(miss.forDate), money(miss.predicted), money(miss.actual))}</p>
-      <div className="mt-t3 flex flex-wrap gap-t2">
-        {Object.entries(t.answers).map(([k, label]) => <Button key={k} variant="secondary" onClick={() => answer(k)}>{label}</Button>)}
+    // Today redesign: a small, low-emphasis card with neutral chip buttons, at the bottom of the page.
+    <section aria-labelledby="miss" className="flex flex-col gap-t3 rounded-tile bg-surface px-t5 py-[18px] shadow-card">
+      <h2 id="miss" className="text-body14 font-bold text-text">{t.missTitle}</h2>
+      <p className="text-meta text-text-muted">{t.missBody(formatShortDay(miss.forDate), money(miss.predicted), money(miss.actual))}</p>
+      <div className="flex flex-wrap gap-t2">
+        {Object.entries(t.answers).map(([k, label]) => (
+          <button key={k} type="button" onClick={() => answer(k)} className="pressable min-h-tap rounded-pill bg-chip px-[14px] text-meta font-semibold text-text-secondary hover:bg-surface2">{label}</button>
+        ))}
       </div>
     </section>
   );

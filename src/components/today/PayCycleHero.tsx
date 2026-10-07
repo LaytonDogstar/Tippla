@@ -65,10 +65,10 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, disconnected
             <span className="sr-only">{sr}</span>
           </p>
           {state !== "short" && (
-            <button type="button" onClick={onSafe} className="mt-t2 inline-flex min-h-tap items-center text-meta font-semibold text-hero-on underline underline-offset-2">
-              {movement ?? (state === "onTrack" && !showLeft ? t.estimate : null) ? <span className="mr-t2 rounded-pill bg-hero-glass px-t2 py-[2px] no-underline">{movement ?? t.estimate}</span> : null}
-              {t.how}
-            </button>
+            <div className="mt-t2 flex flex-wrap items-center gap-t2">
+              {(movement || (state === "onTrack" && !showLeft)) && <span className="rounded-pill bg-hero-glass px-t2 py-[2px] text-meta-s font-semibold">{movement ?? t.estimate}</span>}
+              <button type="button" onClick={onSafe} className="inline-flex min-h-tap items-center text-meta font-semibold text-hero-on underline underline-offset-2">{t.how}</button>
+            </div>
           )}
         </div>
         <div className="flex w-full flex-col gap-t2 sm:w-auto sm:flex-[0_1_260px]">
