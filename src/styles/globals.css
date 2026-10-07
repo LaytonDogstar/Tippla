@@ -9,6 +9,8 @@ body {
   font-family: var(--font-body);
   font-size: 0.9375rem;
   line-height: 1.375rem;
+  /* Numbers line up in columns everywhere (Today redesign, 07/10/2026). */
+  font-variant-numeric: tabular-nums;
 }
 
 .tnum { font-variant-numeric: tabular-nums; font-family: var(--font-numeric); }
@@ -24,6 +26,14 @@ body {
   background: linear-gradient(118deg, var(--brand-from), var(--brand-to));
   color: var(--brand-on);
 }
+
+/* Today redesign: tappable cards and tiles shrink slightly when pressed (no shrink with reduced motion). */
+.pressable { transition: transform var(--motion-fast) var(--motion-easing); }
+.pressable:active { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) { .pressable:active { transform: none; filter: brightness(0.96); } }
+/* A row that scrolls sideways without showing a scrollbar (quick actions). */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* Press feedback: additive inset outlines, never opacity (components.md shared contract). */
 .press-accent:active { box-shadow: inset 0 0 0 2px var(--color-accent); }
