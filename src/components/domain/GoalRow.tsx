@@ -25,15 +25,39 @@ export function GoalRow({ persona, account, asOf, goal, options, inline }: { per
     setOpen(false);
     toast({ kind: "confirm", message: g.saved });
   };
-  return (
-    <section aria-label={g.heading} className={inline ? "flex min-h-tap items-center gap-t2" : "flex min-h-tap items-center gap-t3 rounded-lg bg-surface px-t4 py-t2"}>
-      <Target aria-hidden size={inline ? 16 : 20} className="shrink-0 text-accent" />
-      <p className={inline ? "min-w-0 flex-1 text-meta font-semibold text-text-secondary" : "min-w-0 flex-1 text-small text-text"}>{goal ? g.home(goal.label) : g.none}</p>
-      <Button variant="tertiary" onClick={() => { setChoice(goal?.type ?? null); setOpen(true); }} aria-label={goal ? `${g.change}: ${g.heading}` : g.none}>{goal ? g.change : g.none}</Button>
-      <Sheet open={open} onClose={() => setOpen(false)} title={g.changeTitle} subtitle={g.intro}
+  const openSheet = () => { setChoice(goal?.type ?? null); setOpen(true); };
+  const sheet = (
+    <Sheet open={open} onClose={() => setOpen(false)} title={g.changeTitle} subtitle={g.intro}
         footer={<Button full disabled={!choice || choice === goal?.type} onClick={save}>{g.save}</Button>}>
         <GoalPicker options={options} value={choice} onChange={setChoice} legend={g.changeTitle} />
-      </Sheet>
+    </Sheet>
+  );
+  if (inline) {
+    // Inside Today's plan card: one pill button when there's no goal; the goal and a small Change when there is.
+    return (
+      <section aria-label={g.heading} className="flex min-h-tap flex-wrap items-center gap-x-t3 gap-y-t1">
+        {goal ? (
+          <>
+            <p className="flex min-w-0 flex-1 items-center gap-t2 text-meta font-semibold text-text-secondary"><Target aria-hidden size={16} className="shrink-0 text-accent" />{g.home(goal.label)}</p>
+            <button type="button" onClick={openSheet} aria-label={`${g.change}: ${g.heading}`}
+              className="inline-flex min-h-tap items-center rounded-pill px-t3 text-meta font-semibold text-accent hover:bg-surface">{g.change}</button>
+          </>
+        ) : (
+          <button type="button" onClick={openSheet}
+            className="pressable inline-flex min-h-tap items-center gap-t2 rounded-pill bg-surface px-t4 text-meta font-semibold text-accent shadow-card hover:text-accent-strong">
+            <Target aria-hidden size={16} className="shrink-0" />{g.none}
+          </button>
+        )}
+        {sheet}
+      </section>
+    );
+  }
+  return (
+    <section aria-label={g.heading} className="flex min-h-tap items-center gap-t3 rounded-lg bg-surface px-t4 py-t2">
+      <Target aria-hidden size={20} className="shrink-0 text-accent" />
+      <p className="min-w-0 flex-1 text-small text-text">{goal ? g.home(goal.label) : g.none}</p>
+      <Button variant="tertiary" onClick={openSheet} aria-label={goal ? `${g.change}: ${g.heading}` : g.none}>{goal ? g.change : g.none}</Button>
+      {sheet}
     </section>
   );
 }
