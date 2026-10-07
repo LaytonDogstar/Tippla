@@ -5,6 +5,13 @@ import type { Period, SpendData } from "./periods";
 import { categoryTotals, type SpendCategory } from "./spending";
 import type { CategoryOverrides } from "./transactions";
 
+/**
+ * Fixed commitments: rent, loan and pay-advance repayments, buy now pay later instalments and bank fees. A budget
+ * can't change what's owed, so none is offered for them (UX round 2, 1.7); everything else is discretionary.
+ */
+export const FIXED_COMMITMENTS: readonly SpendCategory[] = ["housing", "loan_repayment", "bnpl", "wage_advance", "fees"];
+export const budgetable = (c: SpendCategory) => !FIXED_COMMITMENTS.includes(c);
+
 export interface BudgetRow {
   category: SpendCategory;
   name: string;
@@ -35,7 +42,7 @@ export function budgetView(d: SpendData, cycle: Period, budgets: Budgets, overri
   });
   const byAmount = (a: BudgetRow, b: BudgetRow) => b.spent - a.spent || a.name.localeCompare(b.name);
   const budgeted = rows.filter((r) => r.budget !== null).sort(byAmount);
-  const other = rows.filter((r) => r.budget === null).sort(byAmount);
+  const other = rows.filter((r) => r.budget === null && budgetable(r.category)).sort(byAmount);
   return {
     budgeted,
     other,

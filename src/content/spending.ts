@@ -18,6 +18,8 @@ export const spending = {
     perCycle: (amt: string) => `About ${amt} a pay cycle`,
     switchHint: "Switch to This pay cycle to see what's left before payday.",
     seeDue: "See what's due",
+    shortBy: "Short",
+    leftOver: "Left",
   },
   insightsContext: "Your spending",
   insights: {

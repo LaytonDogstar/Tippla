@@ -111,7 +111,7 @@ export const onboarding = {
     payEvery: (weekday: string) => `Every second ${weekday}`,
     history: "History so far",
     historyDays: (n: number) => `${n} days`,
-    loansOpen: (n: number) => `you have ${n} loans open.`,
+    loansOpen: (n: number) => `You have ${n} loans open.`,
     measures: "What it measures",
     driving: "What's driving it",
     lifts: "What lifts it",

@@ -41,14 +41,15 @@ export function LoanCard({ loan, combinedBalance, onViewRepayments, defaultExpan
           </>
         ) : (
           <>
-            <p className="text-h3 text-text">{t.missing}</p>
-            {combinedBalance && <p className="mt-t1 text-small text-text-muted">{combinedBalance}</p>}
+            {/* Status, never the boldest thing on the card; the next repayment is the main value (1.6). */}
+            <p className="text-body14 text-text-muted">{t.missing}</p>
+            {combinedBalance && <p className="mt-t1 text-body14 text-text-muted">{combinedBalance}</p>}
           </>
         )}
       </div>
-      <div className="mt-t5">
-        <p className="text-caption text-text-muted">{t.nextRepayment}</p>
-        <p className="tnum text-small font-numeric text-text">{formatWhole(loan.repayment)}{loan.nextDue ? ` · ${formatShortDay(loan.nextDue)}` : ""}</p>
+      <div className="mt-t4">
+        <p className="text-meta text-text-muted">{t.nextRepayment}</p>
+        <p className={loan.estimatedBalance === null ? "tnum mt-t1 text-section-num text-text" : "tnum mt-t1 text-row text-text"}>{formatWhole(loan.repayment)}{loan.nextDue ? <span className="text-body14 font-semibold text-text-secondary"> · {formatShortDay(loan.nextDue)}</span> : null}</p>
       </div>
 
       <div id={id} hidden={!open}>

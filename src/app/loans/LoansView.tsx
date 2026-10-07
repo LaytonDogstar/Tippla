@@ -56,8 +56,10 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
           {loans.length ? (
             <>
               <h2 className="mt-t3 text-h2 font-display text-text">{t.loansHeading}</h2>
+              {/* The small loans' balance can't be split per lender: say it once, for the group (1.6). */}
+              {combined && saccs.some((l) => l.estimatedBalance === null) && <p className="tnum px-t1 text-body14 text-text-secondary">{combined}</p>}
               {[...loans].sort((a, b) => (a.type === "SACC" ? 0 : 1) - (b.type === "SACC" ? 0 : 1)).map((l) => (
-                <LoanCard key={l.provider} loan={l} combinedBalance={l.estimatedBalance === null && l.type === "SACC" ? combined : undefined}
+                <LoanCard key={l.provider} loan={l}
                   onViewRepayments={() => viewRepayments(l.provider)} onNotRight={corrections ? () => setFixing(l.provider) : undefined} />
               ))}
               {totals.totalOutstanding > 0 && <p className="tnum px-t1 text-small text-text-muted">{t.totalLeft(formatWhole(totals.totalOutstanding))}</p>}
@@ -157,8 +159,8 @@ function CreditGroups({ bnpl, advances, advance, onView }: { bnpl: OtherCredit[]
             const a = advance && advance.provider === o.provider ? advance : null;
             return (
               <CreditCard key={o.provider} icon="advance" title={o.provider} subtitle={t.advanceHeading} onView={() => onView(o.provider)}
-                lines={a ? [t.received(formatWhole(a.amount), formatShortDay(a.date))] : [t.perCadence(money(o.repayment), t.cadence(o.cadenceDays))]}
-                detail={a && a.repayAmount !== null && a.repayDate ? `${copy.payCycle.advanceLine(formatWhole(a.amount))}: ${copy.payCycle.advanceRepay(formatWhole(a.repayAmount), formatShortDay(a.repayDate), formatWhole(a.amount), formatWhole(a.fee ?? 0))}` : undefined}
+                lines={a ? [`${t.received(formatWhole(a.amount), formatShortDay(a.date))}${a.repayAmount !== null && a.repayDate ? ` · ${t.dueBack(formatWhole(a.repayAmount), formatShortDay(a.repayDate), formatWhole(a.amount), formatWhole(a.fee ?? 0))}` : ""}`] : [t.perCadence(money(o.repayment), t.cadence(o.cadenceDays))]}
+                detail={a ? t.notIncome : undefined}
                 note={t.estimated} />
             );
           })}

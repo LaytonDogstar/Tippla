@@ -7,8 +7,10 @@ import { addDays, daysBetween, sumMoney, type ISODate } from "@/lib/format";
 import type { FeedItem, FeedType } from "@/lib/feed/types";
 import type { PayCycleSummary } from "./payCycle";
 import type { SafeToSpend } from "./safeToSpend";
-import type { MonthBar } from "./monthly";
-import type { CategoryRow } from "./spending";
+import type { CategoryRow, SpendCategory } from "./spending";
+import { totalSpent } from "./spending";
+import { lastCycles, type SpendData } from "./periods";
+import type { CategoryOverrides } from "./transactions";
 import { upcomingIncome } from "./income";
 import { billing } from "./account";
 
@@ -94,37 +96,54 @@ export function initials(name: string): string {
 }
 
 // ---- Spending ----------------------------------------------------------------------------------------------
+// Same time frame and categories as the Spending page (UX round 2, 1.1): pay cycles, and the one category list
+// (content/en-AU categoryNames). Nothing is regrouped under other names.
 
-export type SpendGroup = "bills" | "groceries" | "shopping" | "eatingOut" | "transport" | "gambling" | "other";
-const GROUP_OF: Partial<Record<string, SpendGroup>> = {
-  housing: "bills", bills: "bills", subscriptions: "bills", groceries: "groceries", shopping: "shopping",
-  food: "eatingOut", transport: "transport", gambling: "gambling",
-};
-export const SPEND_GROUPS: SpendGroup[] = ["bills", "groceries", "shopping", "eatingOut", "transport", "gambling", "other"];
-
-/**
- * Category totals in the seven Today groups (everything else is Other). With gambling insights turned off,
- * gambling counts in Other. The groups always add up to the categories' total.
- */
-export function spendGroups(rows: CategoryRow[], opts: { hideGambling?: boolean } = {}): { group: SpendGroup; total: number; share: number }[] {
-  const totals = new Map<SpendGroup, number[]>();
-  for (const r of rows) {
-    let g = GROUP_OF[r.category] ?? "other";
-    if (g === "gambling" && opts.hideGambling) g = "other";
-    totals.set(g, [...(totals.get(g) ?? []), r.total]);
-  }
-  const all = sumMoney(rows.map((r) => r.total));
-  return SPEND_GROUPS.filter((g) => totals.has(g)).map((g) => {
-    const total = sumMoney(totals.get(g)!);
-    return { group: g, total, share: all ? total / all : 0 };
-  }).filter((g) => g.total > 0)
-    // Largest first, Other always last.
-    .sort((a, b) => (a.group === "other" ? 1 : b.group === "other" ? -1 : b.total - a.total));
+export interface CycleBar {
+  start: ISODate; end: ISODate;
+  /** null = before the data starts (never shown as $0). */
+  total: number | null;
+  /** The current pay cycle: only part-way through. */
+  current: boolean;
+  /** Starts before the data does, so it's only a part cycle: left out of the average. */
+  partialHistory: boolean;
 }
 
-/** The average of the complete months before the current one (null when there are none). */
-export function monthAverage(bars: MonthBar[]): { average: number; months: number } | null {
-  const done = bars.filter((b) => !b.partial && b.total !== null).map((b) => b.total as number);
+/** Total spent in each of the last `n` pay cycles, oldest first, ending with the current one. */
+export function cycleSpending(d: SpendData, overrides: CategoryOverrides = {}, n = 6): CycleBar[] {
+  return lastCycles(d, n).map((p, i, all) => ({
+    start: addDays(p.end, -13), end: p.end,
+    total: p.basedOnDays === 0 ? null : totalSpent(d, p, overrides),
+    current: i === all.length - 1,
+    partialHistory: p.limitedByHistory,
+  }));
+}
+
+/** The average of the complete pay cycles before the current one (null when there are none). */
+export function cycleAverage(bars: CycleBar[]): { average: number; cycles: number } | null {
+  const done = bars.filter((b) => !b.current && !b.partialHistory && b.total !== null).map((b) => b.total as number);
   if (!done.length) return null;
-  return { average: Math.round(done.reduce((s, v) => s + v, 0) / done.length), months: done.length };
+  return { average: Math.round(done.reduce((s, v) => s + v, 0) / done.length), cycles: done.length };
+}
+
+export interface TopCategories {
+  items: { category: SpendCategory; total: number; share: number }[];
+  /** Everything after the top `n`, with the categories in it (tappable: opens the full list). */
+  other: { total: number; share: number; categories: SpendCategory[] } | null;
+}
+
+/**
+ * The biggest `n` categories, then the rest as Other. With gambling insights turned off (spec 01), gambling is
+ * never named here: it counts in Other. Items and Other always add up to the categories' total.
+ */
+export function topCategories(rows: CategoryRow[], opts: { hideGambling?: boolean; n?: number } = {}): TopCategories {
+  const all = sumMoney(rows.map((r) => r.total));
+  const named = rows.filter((r) => r.total > 0 && !(opts.hideGambling && r.category === "gambling")).sort((a, b) => b.total - a.total);
+  const top = named.slice(0, opts.n ?? 5);
+  const rest = rows.filter((r) => r.total > 0 && !top.includes(r));
+  const restTotal = sumMoney(rest.map((r) => r.total));
+  return {
+    items: top.map((r) => ({ category: r.category, total: r.total, share: all ? r.total / all : 0 })),
+    other: restTotal > 0 ? { total: restTotal, share: all ? restTotal / all : 0, categories: rest.map((r) => r.category) } : null,
+  };
 }

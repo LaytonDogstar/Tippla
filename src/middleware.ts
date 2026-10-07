@@ -1,6 +1,7 @@
 // Dev conveniences carried in cookies so every route sees them:
 //   ?persona=jess|marcus|priya   switches the mock customer
 //   ?present=1 / ?present=0       presentation mode on/off (hides dev tools and "Sample logic" tags)
+//   ?dev=1 / ?dev=0               the same, the other way round: dev tools on/off (off by default in production)
 //   ?state=lapsed,offline / none  dev state toggles (src/lib/dev/states.ts)
 // And, when SITE_PASSWORD is set (hosted preview), every page needs the preview password first.
 import { NextResponse, type NextRequest } from "next/server";
@@ -20,7 +21,8 @@ export async function middleware(req: NextRequest) {
     }
   }
   const persona = req.nextUrl.searchParams.get("persona");
-  const present = req.nextUrl.searchParams.get("present");
+  const dev = req.nextUrl.searchParams.get("dev");
+  const present = req.nextUrl.searchParams.get("present") ?? (dev === "1" ? "0" : dev === "0" ? "1" : null);
   const state = req.nextUrl.searchParams.get("state");
   // Who this page is for, so the service worker never serves one person's cached page to another (spec 10).
   const who = persona && PERSONAS.includes(persona) ? persona : req.cookies.get("tippla-persona")?.value ?? "jess";
@@ -30,6 +32,8 @@ export async function middleware(req: NextRequest) {
     if (state === "none" || state === "") req.cookies.delete("tippla-dev");
     else req.cookies.set("tippla-dev", state);
   }
+  // ?dev= alone: the page reads the cookie, so it must see the new value on this request.
+  if (present === "1" || present === "0") req.cookies.set("tippla-present", present);
   const res = NextResponse.next({ request: { headers: req.headers } });
   if (persona && PERSONAS.includes(persona)) res.cookies.set("tippla-persona", persona, { path: "/", sameSite: "lax" });
   if (present === "1" || present === "0") res.cookies.set("tippla-present", present, { path: "/", sameSite: "lax" });

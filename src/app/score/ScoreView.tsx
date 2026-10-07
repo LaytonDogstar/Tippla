@@ -112,7 +112,7 @@ export function ScoreView({ state, attribution, projection, trend, top, others, 
                 {panel.drivers.map((d) => <li key={d.text}>{d.text}{d.sample && <SampleTag q="Q2" present={present} className="ml-t2" />}</li>)}
               </ul>
             </section>
-            {panel.factor.value !== null && <section><h3 className="text-h3 text-text">{t.lifts}</h3><p className="mt-t2 text-small text-text-muted">{panel.factor.lifts.replace(/\.$/, "")}.</p></section>}
+            {panel.factor.value !== null && <section><h3 className="text-h3 text-text">{t.lifts}</h3><p className="mt-t2 text-small text-text-muted">{panel.factor.lifts.replace(/\.$/, "")}.{panel.factor.key === "PRODUCTIVE_SPEND" && <SampleTag q="Q2" present={present} className="ml-t2" />}</p></section>}
           </div>
         )}
         {panel?.related && related && (

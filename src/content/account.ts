@@ -17,6 +17,9 @@ export const loansPage = {
   cadence: (days: number | null) => (days === null ? "each repayment" : days >= 28 ? "per month" : days >= 13 && days <= 15 ? "per fortnight" : days === 7 ? "per week" : `every ${days} days`),
   balanceUnavailable: "Balance not available",
   received: (amt: string, date: string) => `${amt} received ${date}`,
+  /** One advance: "$300 received Thu 24/09 · $315 due back Wed 30/09 ($300 + $15 fee)" (UX round 2, 1.5). */
+  dueBack: (repay: string, date: string, amt: string, fee: string) => `${repay} due back ${date} (${amt} + ${fee} fee)`,
+  notIncome: "Pay advances aren't income.",
   estimated: "estimated from your transactions",
   viewRepayments: "View repayments",
   nextDue: (date: string) => `Next due ${date}`,

@@ -104,6 +104,9 @@ export const transaction = {
   pending: "Pending",
   edited: "Category edited",
   pendingEdited: "Pending · Category edited",
+  /** Spending feed (UX round 2, 1.8): the same charge twice, flagged in Needs a look. */
+  possibleDouble: "Possible double charge",
+  seeInNeeds: "See it in Needs a look",
   moneyOut: "money out",
   moneyIn: "money in",
 };

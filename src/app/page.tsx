@@ -3,7 +3,7 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { goalOptions, goalPlan, dashboardBanner, categoryTotals, comingUp, monthPeriod, scoreTrend, spendGroups, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState, sixMonthSpending } from "@/lib/selectors";
+import { goalOptions, goalPlan, dashboardBanner, categoryTotals, comingUp, scoreTrend, cycleSpending, topCategories, currentCycle, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState } from "@/lib/selectors";
 import { addDays, daysBetween, formatDate, formatDayMonth, formatShortDay, formatUpdated, formatWhole, toAESTDate } from "@/lib/format";
 import { safeCopy } from "@/content/loop";
 import { flagsFor } from "@/config/featureFlags";
@@ -89,9 +89,9 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
   const accuracyLine = acc?.show ? accuracyCopy.line(formatWhole(acc.within), acc.hits, acc.of) : null;
   const miss = acc?.miss && !account.forecastAnswers?.[acc.miss.forDate] ? acc.miss : null;
   const multiPlan = on.plans_v1 ? activePlan(data, account, goal) : null;
-  const bars = sixMonthSpending(data, edits);
-  const lastMonth = bars.at(-1)?.month ?? data.asOf.slice(0, 7);
-  const groups = spendGroups(categoryTotals(data, monthPeriod(data, lastMonth), edits), { hideGambling: account.hideGambling });
+  // Spending: pay cycles and the one category list, as on the Spending page (UX round 2, 1.1).
+  const bars = cycleSpending(data, edits);
+  const groups = topCategories(categoryTotals(data, currentCycle(data), edits), { hideGambling: account.hideGambling });
   // Spec 01 status line under the greeting (what Tippla checked, what needs a look, or stale data); wider
   // screens add when the data was updated before it.
   const updated = data.score?.scoredAt ? formatUpdated(lastRefresh(data).at) : null;

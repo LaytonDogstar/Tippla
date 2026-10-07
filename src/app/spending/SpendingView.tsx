@@ -11,13 +11,14 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type Ref
 import type { CategoryId, PersonaId, Transaction } from "@/lib/api/types";
 import { categoryNames, categoryTypes, copy, factorCopy, periodLabels } from "@/content/en-AU";
 import { spending as t } from "@/content/spending";
+import { todayCopy } from "@/content/today";
 import { gamblingSupport } from "@/content/support";
 import { category as catCopy, transaction as txCopy } from "@/content/components";
 import { formatCents, formatDate, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
 import { sumMoney } from "@/lib/format/money";
 import { useBudgets, useCategoryEdits } from "@/lib/edits/client";
 import {
-  averagePerCycle, budgetView, categorySparkline, categoryTotals, currentCycle, EDITABLE_CATEGORIES, merchantsIn, paidInFor,
+  averagePerCycle, budgetable, budgetView, categorySparkline, categoryTotals, currentCycle, EDITABLE_CATEGORIES, merchantsIn, paidInFor,
   PERIOD_IDS, previousOf, resolvePeriod, spendingFeed, spendingInsights, totalSpent,
   type CategoryOverrides, type FeedDirection, type GamblingFacts, type PayCycleSummary, type Period, type PeriodId, type SpendCategory,
   type SpendData, type SpendFilter, type CategoryRow as Row,
@@ -72,7 +73,9 @@ function vsLabel(p: Period): string {
   return t.vsLabel.rolling;
 }
 
-export function SpendingView({ persona, data, initialEdits, payCycle, gambling, accounts, params, asOf, corrections = null, ask = null }: {
+export function SpendingView({ persona, data, initialEdits, payCycle, gambling, accounts, params, asOf, corrections = null, ask = null, doubles = {} }: {
+  /** Transaction id → Needs a look item id, for transactions flagged as a possible double charge. */
+  doubles?: Record<string, string>;
   /** Spec 08: "Ask about this" question (null when the assistant is off). */
   ask?: string | null;
   /** Spec 05: corrections on (with the payers the member has marked one-off or regular). */
@@ -177,12 +180,12 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
           row={r}
           showLifestyle
           merchants={merchantsIn(scoped, p, r.category, edits)}
-          budget={showBudgets ? budgets[r.category] ?? null : undefined}
+          budget={showBudgets && (budgetable(r.category) || budgets[r.category] !== undefined) ? budgets[r.category] ?? null : undefined}
           insightLabel={ins?.chip}
           onInsight={ins ? () => setSheet({ kind: "insight", id: ins.id }) : undefined}
           onMerchant={(m) => setSheet({ kind: "merchant", merchant: m.merchant })}
           onViewAll={() => viewAll(r.category)}
-          onEditBudget={showBudgets ? () => setSheet({ kind: "budget", category: r.category }) : undefined}
+          onEditBudget={showBudgets && (budgetable(r.category) || budgets[r.category] !== undefined) ? () => setSheet({ kind: "budget", category: r.category }) : undefined}
           changeText={changeText(r)}
           sparkline={categorySparkline(scoped, r.category, 6, edits)}
           expanded={expanded.has(r.category)}
@@ -254,7 +257,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
             </nav>
             <Feed ref={feedRef} searchRef={searchRef} feed={feed} shown={shown} onMore={() => setShown((n) => n + PAGE)} q={q} setQ={setQ}
               direction={direction} setDirection={setDirection} selected={selected} onClearCategory={() => setSelected(null)}
-              edits={edits} onOpen={(id) => setSheet({ kind: "tx", id })}
+              edits={edits} doubles={doubles} onOpen={(id) => setSheet({ kind: "tx", id })}
               onClear={() => { setQ(""); setDirection("all"); setSelected(null); }} />
           </div>
         </div>
@@ -289,6 +292,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
       <InsightSheets sheet={sheet} setSheet={setSheet} items={insightItems} insights={insights} budgets={budgets} onBudget={(c) => setSheet({ kind: "budget", category: c })} />
       <MerchantSheet sheet={sheet} setSheet={setSheet} data={scoped} p={p} edits={edits} original={original} onRecategorise={recategorise} />
       <TransactionSheet sheet={sheet} setSheet={setSheet} tx={sheet?.kind === "tx" ? txById.get(sheet.id) ?? null : null} original={original} edits={edits} onRecategorise={recategorise}
+        double={sheet?.kind === "tx" && !!doubles[sheet.id]}
         persona={persona} corrections={corrections}
         onReset={(id) => recategorise(id, original[id]!)} />
       <BudgetSheet sheet={sheet} setSheet={setSheet} data={data} budgets={budgets} edits={edits}
@@ -326,9 +330,19 @@ function SpendingHero({ p, asOf, summary: s, total, paidIn, onSpent, onPaidIn, o
         )}
       </div>
       {isCycle ? (
-        <p className="tnum text-[1.625rem] font-bold leading-8 tracking-[-0.01em] sm:text-[2rem] sm:leading-10">
-          {s.isShort ? copy.payCycle.short(formatWhole(-s.leftAfterBills)) : copy.payCycle.left(formatWhole(s.leftAfterBills))}
-        </p>
+        <div>
+          <p className="tnum text-[1.625rem] font-bold leading-8 tracking-[-0.01em] sm:text-[2rem] sm:leading-10">
+            {s.isShort ? copy.payCycle.short(formatWhole(-s.leftAfterBills)) : copy.payCycle.left(formatWhole(s.leftAfterBills))}
+          </p>
+          {/* The same working as Today's hero, so the headline never seems to contradict Spent and Paid in (1.3). */}
+          <p className="tnum mt-t2 flex flex-wrap gap-x-t3 gap-y-t1 text-body14 text-hero-on-muted">
+            <span>{todayCopy.hero.balance} <strong className="font-bold text-hero-on">{formatWhole(s.balance)}</strong></span>
+            <span aria-hidden>·</span>
+            <span>{todayCopy.hero.due} <strong className="font-bold text-hero-on">{formatWhole(s.dueTotal)}</strong></span>
+            <span aria-hidden>·</span>
+            <span>{s.isShort ? t.hero.shortBy : t.hero.leftOver} <strong className="font-bold text-hero-on">{formatWhole(Math.abs(s.leftAfterBills))}</strong></span>
+          </p>
+        </div>
       ) : (
         <div>
           <p className="tnum text-hero-num desktop:text-hero-num-l">{t.hero.total(formatWhole(total))}</p>
@@ -364,8 +378,8 @@ function HeroStat({ icon, text, onClick }: { icon: React.ReactNode; text: string
 const Feed = forwardRef<HTMLElement, {
   searchRef: RefObject<HTMLInputElement>; feed: Transaction[]; shown: number; onMore: () => void; q: string; setQ: (v: string) => void;
   direction: FeedDirection; setDirection: (v: FeedDirection) => void; selected: SpendCategory | null; onClearCategory: () => void;
-  edits: CategoryOverrides; onOpen: (id: string) => void; onClear: () => void;
-}>(function Feed({ searchRef, feed, shown, onMore, q, setQ, direction, setDirection, selected, onClearCategory, edits, onOpen, onClear }, ref) {
+  edits: CategoryOverrides; doubles: Record<string, string>; onOpen: (id: string) => void; onClear: () => void;
+}>(function Feed({ searchRef, feed, shown, onMore, q, setQ, direction, setDirection, selected, onClearCategory, edits, doubles, onOpen, onClear }, ref) {
   const visible = feed.slice(0, shown);
   const groups: { date: string; items: Transaction[] }[] = [];
   for (const x of visible) {
@@ -396,7 +410,7 @@ const Feed = forwardRef<HTMLElement, {
           {groups.map((g) => (
             <div key={g.date}>
               <h3 className="bg-surface2 px-t5 py-t2 text-meta font-semibold text-text-muted">{formatShortDay(g.date)}/{g.date.slice(0, 4)}</h3>
-              <ul>{g.items.map((x) => <li key={x.id} className="border-b border-divider px-t1 last:border-b-0"><TransactionRow tx={{ ...x, category: edits[x.id] ?? x.category }} edited={!!edits[x.id]} onOpen={() => onOpen(x.id)} /></li>)}</ul>
+              <ul>{g.items.map((x) => <li key={x.id} className="border-b border-divider px-t1 last:border-b-0"><TransactionRow tx={{ ...x, category: edits[x.id] ?? x.category }} edited={!!edits[x.id]} showDate={false} flag={doubles[x.id] ? txCopy.possibleDouble : null} onOpen={() => onOpen(x.id)} /></li>)}</ul>
             </div>
           ))}
           {feed.length > shown && (
@@ -484,7 +498,8 @@ function MerchantSheet({ sheet, setSheet, data, p, edits, original, onRecategori
 }
 
 // ---- Transaction sheet -------------------------------------------------------------------------------
-function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise, onReset, persona, corrections }: {
+function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise, onReset, persona, corrections, double }: {
+  double: boolean;
   persona: PersonaId; corrections: { oneOff: string[]; regular: string[] } | null;
   sheet: SheetState; setSheet: (s: SheetState) => void; tx: Transaction | null; original: Record<string, CategoryId>;
   edits: CategoryOverrides; onRecategorise: (id: string, c: CategoryId) => void; onReset: (id: string) => void;
@@ -507,6 +522,11 @@ function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise
             <p className="text-small text-text-muted">{tx.description}</p>
           </div>
           {tx.status === "pending" && <p className="text-small text-text-muted">{t.tx.pending}</p>}
+          {double && (
+            <Link href="/#needs-a-look" className="flex min-h-tap items-center justify-between gap-t2 rounded-inset bg-caution-soft px-t4 text-body14 font-semibold text-caution">
+              <span>{txCopy.possibleDouble}: {txCopy.seeInNeeds}</span><ChevronRight aria-hidden size={18} />
+            </Link>
+          )}
           {debit ? (
             <>
               <SelectInput label={t.tx.category} value={tx.category} options={categoryOptions} onChange={(v) => onRecategorise(tx.id, v)} />
