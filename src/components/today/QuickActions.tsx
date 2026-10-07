@@ -22,7 +22,7 @@ export function QuickActions() {
         {ACTIONS.map((a) => (
           <li key={a.key} className="flex snap-start">
             <Link href={a.href}
-              className={cx("pressable flex min-h-[5.25rem] w-[4.75rem] flex-col items-center justify-center gap-t2 rounded-tile px-t1 py-t2 text-center text-meta-s font-semibold leading-tight sm:min-h-[6rem] sm:w-auto sm:text-meta",
+              className={cx("pressable flex min-h-[5.25rem] w-[4.75rem] flex-col items-center justify-center gap-t2 rounded-tile px-t1 py-t2 text-center text-meta-s font-semibold leading-tight sm:min-h-[6rem] sm:w-full sm:text-meta",
                 a.primary ? "bg-cta text-hero-on shadow-cta" : "bg-surface text-text shadow-card")}>
               <a.icon aria-hidden size={22} strokeWidth={1.8} className={a.primary ? undefined : "text-accent"} />
               {a.label}
