@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Offers({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
   const persona = currentPersona(searchParams.persona);
-  const { data, account, edits } = await loadCustomer(persona);
+  const { data, account, edits, goal } = await loadCustomer(persona);
   // Guardrail context for analytics: offers should never reach someone short before payday or in hardship.
   const score = data.score?.score ?? null;
   const guard = {
@@ -25,7 +25,7 @@ export default async function Offers({ searchParams }: { searchParams: { persona
   return (
     <PortalShell path="/offers" persona={persona} present={presentationMode(searchParams.present)}
       header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} />}>
-      <OffersView persona={persona} account={account} matching={lenderMatchingOn(data)} offers={visibleOffers(data, account)} paused={offerPause(data, account)} guard={guard} />
+      <OffersView persona={persona} account={account} matching={lenderMatchingOn(data)} offers={visibleOffers(data, account, goal)} paused={offerPause(data, account, goal)} guard={guard} />
     </PortalShell>
   );
 }

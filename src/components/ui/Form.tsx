@@ -109,14 +109,18 @@ export function Checkbox({ label, helper, checked, onChange, disabled, error }: 
   );
 }
 
-export function Toggle({ label, checked, onChange, disabled, saving, failed }: { label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; saving?: boolean; failed?: boolean }) {
+export function Toggle({ label, description, checked, onChange, disabled, saving, failed }: { label: string; description?: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; saving?: boolean; failed?: boolean }) {
   const id = useId();
+  const described = [description && `${id}-d`, (saving || failed) && `${id}-st`].filter(Boolean).join(" ");
   return (
     <div>
       <label htmlFor={id} className={rowCls}>
-        <span className="flex-1 text-small text-text">{label}</span>
+        <span className="flex-1">
+          <span className="block text-small text-text">{label}</span>
+          {description && <span id={`${id}-d`} className="mt-t1 block text-meta text-text-muted">{description}</span>}
+        </span>
         <input id={id} type="checkbox" role="switch" aria-checked={checked} className="sr-only" checked={checked} disabled={disabled || saving}
-          aria-describedby={saving || failed ? `${id}-st` : undefined} onChange={(e) => onChange(e.target.checked)} />
+          aria-describedby={described || undefined} onChange={(e) => onChange(e.target.checked)} />
         <span aria-hidden className={cx(
           "relative inline-block h-[24px] w-[44px] shrink-0 rounded-pill transition-colors duration-fast ease-tippla",
           disabled ? "bg-neutral-soft border-2 border-neutral" : checked ? "bg-accent" : "border-2 border-neutral bg-surface",

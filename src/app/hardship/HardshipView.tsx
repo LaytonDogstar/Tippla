@@ -83,6 +83,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
     <div className="pb-t6">
       <p className="mt-t2 text-h1 font-display text-text">{t.opener}</p>
       <p className="mt-t2 text-body text-text-muted">{t.scoreNote} <SampleTag q="Q8" present={present} /></p>
+      <p className="mt-t1 text-body14 text-text-secondary">{t.creditReportNote}</p>
       <ul className="mt-t5 flex flex-col gap-t3">
         {cards.map((c) => (
           <li key={c.id}>
@@ -103,8 +104,11 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       </ul>
 
       <section className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
-        <Toggle label={statesCopy.hardshipSelf.label} checked={!!account.hardshipSelfSelected}
-          onChange={(v) => update((l) => ({ ...l, hardshipSelfSelected: v || undefined }))} />
+        <Toggle label={statesCopy.hardshipSelf.label} description={statesCopy.hardshipSelf.description} checked={!!account.hardshipSelfSelected}
+          onChange={(v) => {
+            update((l) => ({ ...l, hardshipSelfSelected: v || undefined }));
+            toast({ kind: "confirm", message: v ? statesCopy.hardshipSelf.toastOn : statesCopy.hardshipSelf.toastOff });
+          }} />
         {account.hardshipSelfSelected && <p role="status" className="mt-t1 px-t1 text-small text-text-muted">{statesCopy.hardshipSelf.on}</p>}
       </section>
 

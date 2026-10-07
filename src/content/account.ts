@@ -93,6 +93,7 @@ export const offersPage = {
     why: {
       short: "We don't show loan offers while you're forecast to be short before payday.",
       hardship: "We don't show loan offers in a pay cycle where you've used hardship support.",
+      plan: "We don't show loan offers while you're working on getting off pay advances.",
       building: "We don't show loan offers until your SmartScore reaches the Steadying stage.",
     } as Record<string, string>,
     body: "A new loan can make a tight spot harder. Offers come back on their own when this changes, and nothing you've set up is lost.",
@@ -121,6 +122,8 @@ export const hardshipPage = {
   sub: "Support, on your terms",
   opener: "If money's tight right now, these are real options.",
   scoreNote: "Using them doesn't count against your SmartScore.",
+  // TODO: compliance review. UX round 2, 2.1: the one place this line lives, so compliance can edit it.
+  creditReportNote: "Your lender may still record a hardship arrangement on your credit report. It's still usually better than missing payments.",
   info: "About this page",
   infoBody: [
     "Everything here is optional. Tippla doesn't tell lenders you've visited this page or used any of these options.",

@@ -127,5 +127,19 @@ export function activePlan(d: PersonaData, a: AccountState, goal?: { type: Focus
   return type ? planProgress(d, a, type, goal?.startedAt ?? d.asOf, false) : null;
 }
 
+/** Plans about borrowing less: while one is active, lender offers would work against it. */
+export const DEBT_REDUCTION_PLANS: readonly PlanType[] = ["off_advances"];
+
+/**
+ * UX round 2, 2.2: the one rule for showing lender offers (the Offers nav item, the link on Borrowing and the
+ * offers themselves). Change it here. Off while the member has an active debt-reduction plan, or has said
+ * they're finding things hard right now. (Offers also pause when short before payday or at Building: offerPause.)
+ */
+export function shouldShowLenderOffers(d: PersonaData, a: AccountState, goal?: { type: FocusGoalType; startedAt: string }): boolean {
+  if (a.hardshipSelfSelected) return false;
+  const plan = activePlan(d, a, goal);
+  return !(plan && DEBT_REDUCTION_PLANS.includes(plan.type));
+}
+
 /** Name shown outside the plan page: never the gambling plan's name. */
 export const publicPlanTitle = (p: PlanProgress) => (p.type === "gambling_less" ? t.privateTitle : p.title);

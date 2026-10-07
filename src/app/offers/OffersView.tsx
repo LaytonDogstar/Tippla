@@ -18,7 +18,7 @@ import { Sheet } from "@/components/ui/Sheet";
 export function OffersView({ persona, account: initial, matching, offers, guard, paused = null }: {
   persona: PersonaId; account: AccountState; matching: boolean; offers: Offer[]; guard: EventProps<"offer_viewed">;
   /** Spec 11 rule 2: why offers are paused (short, hardship this pay cycle, Building), if they are. */
-  paused?: "short" | "hardship" | "building" | null;
+  paused?: "short" | "hardship" | "plan" | "building" | null;
 }) {
   const toast = useToast();
   const { account, save } = useAccount(persona, initial);

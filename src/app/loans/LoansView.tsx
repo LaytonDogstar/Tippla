@@ -17,7 +17,9 @@ type Tab = "overview" | "upcoming" | "history" | "other";
 const TABS: Tab[] = ["overview", "upcoming", "history", "other"];
 const money = (n: number) => (Number.isInteger(n) ? formatWhole(n) : formatCents(n));
 
-export function LoansView({ persona, corrections = false, initialTab, initialProvider, loans, other, totals, advance, upcoming, history, failed, offersCount }: {
+export function LoansView({ persona, corrections = false, initialTab, initialProvider, loans, other, totals, advance, upcoming, history, failed, offersCount, showOffers = true }: {
+  /** UX round 2, 2.2 (shouldShowLenderOffers): no offers link during a debt plan or when finding things hard. */
+  showOffers?: boolean;
   persona: PersonaId; corrections?: boolean;
   initialTab?: string; initialProvider: string | null; loans: Loan[]; other: OtherCredit[]; totals: ReturnType<typeof loanTotals>;
   advance: PayAdvance | null; upcoming: Record<30 | 60 | 90, UpcomingRepayment[]>; history: HistoryMonth[];
@@ -67,7 +69,7 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
           ) : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.noLoans}</p>}
           <CreditGroups bnpl={bnpl} advances={advances} advance={advance} onView={viewRepayments} />
           <nav aria-label={t.title} className="mt-t3 flex flex-col overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
-            {[{ href: "/loans/repayment", label: t.calculatorLink }, { href: "/offers", label: offersCount ? `${t.offersLink} (${offersCount})` : t.offersLink }].map((l) => (
+            {[{ href: "/loans/repayment", label: t.calculatorLink }, ...(showOffers ? [{ href: "/offers", label: offersCount ? `${t.offersLink} (${offersCount})` : t.offersLink }] : [])].map((l) => (
               <Link key={l.href} href={l.href} className="flex min-h-[52px] items-center justify-between border-b border-divider px-t4 text-small text-accent last:border-b-0 hover:bg-surface2">
                 {l.label}<ChevronRight aria-hidden size={20} />
               </Link>

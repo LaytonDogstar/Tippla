@@ -57,3 +57,21 @@ describe("1.8 possible double charge", () => {
     expect(txs.every((x) => x.merchant === "Amazon AU" && x.amount === -10.73 && x.date === "2026-09-24")).toBe(true);
   });
 });
+
+describe("2.2 shouldShowLenderOffers: one rule for the Offers nav item, link and offers", () => {
+  it("off during a debt-reduction plan (Jess) or while finding things hard; on otherwise (Marcus)", async () => {
+    const { shouldShowLenderOffers, offerPause } = await import("@/lib/selectors");
+    const [jess, marcus] = await Promise.all([load("jess"), load("marcus")]);
+    expect(shouldShowLenderOffers(jess, {})).toBe(false); // suggested plan: off pay advances
+    expect(shouldShowLenderOffers(marcus, {})).toBe(true);
+    expect(shouldShowLenderOffers(marcus, { hardshipSelfSelected: true })).toBe(false);
+    expect(offerPause(marcus, { hardshipSelfSelected: true })).toBe("hardship");
+  });
+});
+
+describe("2.1 hardship copy", () => {
+  it("the credit-report line lives in one string", async () => {
+    const { hardshipPage } = await import("@/content/account");
+    expect(hardshipPage.creditReportNote).toBe("Your lender may still record a hardship arrangement on your credit report. It's still usually better than missing payments.");
+  });
+});
