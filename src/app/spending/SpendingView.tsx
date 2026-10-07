@@ -4,7 +4,7 @@
 import { AskAboutThis } from "@/components/domain/AskTippla";
 import { useCorrections } from "@/lib/account/useCorrections";
 import { correctionCopy } from "@/content/corrections";
-import { ChevronRight, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
@@ -36,6 +36,7 @@ import { EmptyState, useToast } from "@/components/ui/Feedback";
 import { CurrencyInput, SelectInput } from "@/components/ui/Form";
 import { Sheet } from "@/components/ui/Sheet";
 import { cx } from "@/components/ui/cx";
+import { HEADER_ACTION } from "@/components/shell/Shells";
 
 export interface SpendingParams { tab?: string; period?: string; month?: string; category?: string; direction?: string; q?: string }
 type Tab = "overview" | "categories" | "budgets";
@@ -58,8 +59,8 @@ const PAGE = 30;
 export function SpendingSearchButton() {
   return (
     <button type="button" aria-label={t.search} onClick={() => window.dispatchEvent(new Event(SEARCH_EVENT))}
-      className="inline-flex h-[48px] w-[48px] items-center justify-center rounded-pill bg-surface2 text-text hover:bg-neutral-soft">
-      <Search aria-hidden size={24} />
+      className={HEADER_ACTION}>
+      <Search aria-hidden size={20} strokeWidth={1.8} />
     </button>
   );
 }
@@ -203,57 +204,64 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
   );
 
   const categoryList = (
-    <section aria-labelledby="cats-h" className="mt-t3">
+    <section aria-labelledby="cats-h" className="mt-t4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-t3 px-t1 pb-t2 pt-t4">
-        <h2 id="cats-h" className="text-h3 text-text">{t.categories.heading}</h2>
-        <span className="text-caption text-text-muted">{t.categories.count(listRows.length)}</span>
+        <h2 id="cats-h" className="text-card text-text sm:text-card-l">{t.categories.heading}</h2>
+        <span className="text-meta text-text-muted">{t.categories.count(listRows.length)}</span>
       </div>
       {selected && <div className="pb-t3"><FilterChip label={categoryNames[selected]} onRemove={() => setSelected(null)} /></div>}
-      {listRows.length ? <ul className="flex flex-col gap-t3">{listRows.map(rowFor)}</ul> : <p className="rounded-md bg-surface p-t5 text-small text-text">{t.categories.empty}</p>}
+      {listRows.length ? <ul className="flex flex-col gap-t3">{listRows.map(rowFor)}</ul> : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.categories.empty}</p>}
     </section>
   );
 
   return (
     <div className="pb-t6">
       {ask && <div className="mb-t2"><AskAboutThis question={ask} /></div>}
-      <SegmentedControl label={t.tabsLabel} value={tab} onChange={setTab}
-        options={TABS.map((v) => ({ value: v, label: t.tabs[v] }))} />
+      <div className="desktop:max-w-[560px]">
+        <SegmentedControl label={t.tabsLabel} value={tab} onChange={setTab}
+          options={TABS.map((v) => ({ value: v, label: t.tabs[v] }))} />
+      </div>
 
       {tab !== "budgets" && periodChips}
 
       {tab === "overview" && (
-        <>
-          <div className="mt-t4">
-            <SpendingHero p={p} asOf={data.asOf} summary={hero} total={total} paidIn={paidInFor(scoped, p)}
-              onSpent={() => { setDirection("out"); scrollToFeed(); }}
-              onPaidIn={() => { setDirection("in"); setSelected(null); scrollToFeed(); }}
-              onDue={() => setSheet({ kind: "due" })} />
-          </div>
-          {insightItems.length > 0 && (
-            <div className="mt-t3">
-              <InsightCard key={`${p.id}-${p.month ?? ""}`} items={insightItems} onOpen={(id) => setSheet({ kind: "insight", id })} />
+        // Desktop: two columns (summary and categories | links and transactions). Phones: one column, same order.
+        <div className="desktop:flex desktop:items-start desktop:gap-t6">
+          <div className="desktop:min-w-0 desktop:flex-[3_1_0]">
+            <div className="mt-t4">
+              <SpendingHero p={p} asOf={data.asOf} summary={hero} total={total} paidIn={paidInFor(scoped, p)}
+                onSpent={() => { setDirection("out"); scrollToFeed(); }}
+                onPaidIn={() => { setDirection("in"); setSelected(null); scrollToFeed(); }}
+                onDue={() => setSheet({ kind: "due" })} />
             </div>
-          )}
-          <div className="mt-t3">
-            <Donut legend={false} rows={allRows} total={total} periodLabel={p.label} selected={selected} onSelect={selectCategory} />
+            {insightItems.length > 0 && (
+              <div className="mt-t4">
+                <InsightCard key={`${p.id}-${p.month ?? ""}`} items={insightItems} onOpen={(id) => setSheet({ kind: "insight", id })} />
+              </div>
+            )}
+            <div className="mt-t4">
+              <Donut legend={false} rows={allRows} total={total} periodLabel={p.label} selected={selected} onSelect={selectCategory} />
+            </div>
+            {categoryList}
           </div>
-          {categoryList}
-          <nav aria-label={t.title} className="mt-t3 flex flex-col overflow-hidden rounded-md bg-surface">
-            {[{ href: "/spending/compare", label: t.compareLink }, { href: "/calendar", label: t.calendarLink }, { href: "/subscriptions", label: t.subscriptionsLink }].map((l) => (
-              <Link key={l.href} href={l.href} className="flex min-h-[52px] items-center justify-between border-b border-line px-t4 text-small text-accent last:border-b-0 hover:bg-surface2">
-                {l.label}<ChevronRight aria-hidden size={20} />
-              </Link>
-            ))}
-          </nav>
-          <Feed ref={feedRef} searchRef={searchRef} feed={feed} shown={shown} onMore={() => setShown((n) => n + PAGE)} q={q} setQ={setQ}
-            direction={direction} setDirection={setDirection} selected={selected} onClearCategory={() => setSelected(null)}
-            edits={edits} onOpen={(id) => setSheet({ kind: "tx", id })}
-            onClear={() => { setQ(""); setDirection("all"); setSelected(null); }} />
-        </>
+          <div className="desktop:min-w-0 desktop:flex-[2_1_0]">
+            <nav aria-label={t.title} className="mt-t4 flex flex-col overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
+              {[{ href: "/spending/compare", label: t.compareLink }, { href: "/calendar", label: t.calendarLink }, { href: "/subscriptions", label: t.subscriptionsLink }].map((l) => (
+                <Link key={l.href} href={l.href} className="flex min-h-[56px] items-center justify-between border-b border-divider px-t5 text-body14 font-semibold text-accent last:border-b-0 hover:bg-surface2">
+                  {l.label}<ChevronRight aria-hidden size={20} />
+                </Link>
+              ))}
+            </nav>
+            <Feed ref={feedRef} searchRef={searchRef} feed={feed} shown={shown} onMore={() => setShown((n) => n + PAGE)} q={q} setQ={setQ}
+              direction={direction} setDirection={setDirection} selected={selected} onClearCategory={() => setSelected(null)}
+              edits={edits} onOpen={(id) => setSheet({ kind: "tx", id })}
+              onClear={() => { setQ(""); setDirection("all"); setSelected(null); }} />
+          </div>
+        </div>
       )}
 
       {tab === "categories" && (
-        <>
+        <div className="desktop:max-w-[760px]">
           <div className="mt-t4 flex flex-col gap-t3">
             <SegmentedControl label={t.categories.filterLabel} value={filter} onChange={(v) => { setFilter(v); setSelected(null); }}
               options={(["all", "essentials", "lifestyle"] as SpendFilter[]).map((v) => ({ value: v, label: t.categories.filters[v] }))} />
@@ -267,13 +275,13 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
             </div>
           </div>
           {categoryList}
-        </>
+        </div>
       )}
 
       {tab === "budgets" && (
-        <BudgetsTab data={data} cycle={cycle} budgets={budgets} edits={edits}
+        <div className="desktop:max-w-[760px]"><BudgetsTab data={data} cycle={cycle} budgets={budgets} edits={edits}
           onEdit={(c) => setSheet({ kind: "budget", category: c })}
-          onMerchant={(m) => setSheet({ kind: "merchant", merchant: m })} />
+          onMerchant={(m) => setSheet({ kind: "merchant", merchant: m })} /></div>
       )}
 
       {/* ---- Sheets (one at a time; follow-ons replace content with Back) ---- */}
@@ -297,47 +305,57 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
 }
 
 // ---- Hero ------------------------------------------------------------------------------------------
+// The same gradient hero as Today. This pay cycle: what's left after bills (or the shortfall, with what's due one
+// tap away). Other periods: the total spent and the pay-cycle average. Spent and Paid in filter the feed below.
 function SpendingHero({ p, asOf, summary: s, total, paidIn, onSpent, onPaidIn, onDue }: {
   p: Period; asOf: string; summary: PayCycleSummary; total: number; paidIn: number; onSpent: () => void; onPaidIn: () => void; onDue: () => void;
 }) {
   const isCycle = p.id === "this_cycle";
   const cycles = Math.max(1, p.basedOnDays / 14);
   const perCycle = Math.round(total / cycles);
+  const range = isCycle ? copy.payCycle.range(formatDayMonth(s.cycle.start), formatDayMonth(s.cycle.end)) : `${p.label} · ${formatDayMonth(p.start)} – ${formatDayMonth(p.end > asOf ? asOf : p.end)}`;
   return (
-    <section aria-label={isCycle ? copy.payCycle.range(formatDayMonth(s.cycle.start), formatDayMonth(s.cycle.end)) : p.label} className="overflow-hidden rounded-lg bg-surface">
-      <div className="brand-surface on-brand p-t5">
-        {isCycle ? (
-          <>
-            <p className="text-small">{copy.payCycle.range(formatDayMonth(s.cycle.start), formatDayMonth(s.cycle.end))}</p>
-            <p className="mt-t3 text-h1 font-display">{s.isShort ? copy.payCycle.short(formatWhole(-s.leftAfterBills)) : copy.payCycle.left(formatWhole(s.leftAfterBills))}</p>
-            <p className="mt-t3 text-caption">{copy.payCycle.daysToPayday(s.daysToPayday, formatShortDay(s.nextPayday))}</p>
-          </>
-        ) : (
-          <>
-            <p className="text-small">{p.label} · {formatDayMonth(p.start)} – {formatDayMonth(p.end > asOf ? asOf : p.end)}</p>
-            <p className="tnum mt-t3 text-h1 font-display">{t.hero.total(formatWhole(total))}</p>
-            {p.id !== "last_cycle" && <p className="mt-t3 text-caption">{t.hero.perCycle(formatWhole(perCycle))}</p>}
-          </>
+    <section aria-label={isCycle ? range : p.label} className="on-brand flex flex-col gap-t4 rounded-hero-s bg-hero p-t5 text-hero-on shadow-hero sm:gap-t5 sm:p-t6 desktop:rounded-hero desktop:px-t7">
+      <div className="flex flex-wrap items-center gap-x-t3 gap-y-t2">
+        <span className="text-body14 text-hero-on-muted">{range}</span>
+        {isCycle && (
+          <span className="inline-flex items-center gap-t2 rounded-pill bg-hero-glass px-t3 py-[5px] text-meta font-semibold">
+            <span aria-hidden className={cx("h-[8px] w-[8px] rounded-pill", s.isShort ? "bg-hero-negative-mark" : "bg-hero-positive-mark")} />
+            {copy.payCycle.daysToPayday(s.daysToPayday, formatShortDay(s.nextPayday))}
+          </span>
         )}
       </div>
-      <div className="p-t5 pt-t4">
-        <div className="flex flex-wrap justify-between gap-x-t4 gap-y-t1">
-          <button type="button" onClick={onSpent} className="min-h-tap rounded-sm text-left hover:bg-surface2">
-            <span className="tnum text-body-strong text-text">{copy.payCycle.spent(formatWhole(isCycle ? s.spent : total))}</span>
-          </button>
-          <button type="button" onClick={onPaidIn} className="min-h-tap rounded-sm text-right hover:bg-surface2">
-            <span className="tnum text-body-strong text-text">{copy.payCycle.paidIn(formatWhole(isCycle ? s.paidIn : paidIn))}</span>
-          </button>
+      {isCycle ? (
+        <p className="tnum text-[1.625rem] font-bold leading-8 tracking-[-0.01em] sm:text-[2rem] sm:leading-10">
+          {s.isShort ? copy.payCycle.short(formatWhole(-s.leftAfterBills)) : copy.payCycle.left(formatWhole(s.leftAfterBills))}
+        </p>
+      ) : (
+        <div>
+          <p className="tnum text-hero-num desktop:text-hero-num-l">{t.hero.total(formatWhole(total))}</p>
+          {p.id !== "last_cycle" && <p className="mt-t2 text-[0.9375rem] text-hero-on-muted">{t.hero.perCycle(formatWhole(perCycle))}</p>}
         </div>
-        {isCycle ? (
-          <button type="button" onClick={onDue} className="mt-t3 flex min-h-tap w-full items-center justify-between rounded-sm text-small text-accent hover:bg-surface2">
-            <span>{t.hero.seeDue}</span><ChevronRight aria-hidden size={20} />
-          </button>
-        ) : (
-          <p className="mt-t3 text-caption text-text-muted">{t.hero.switchHint}</p>
-        )}
+      )}
+      <div className="grid grid-cols-2 gap-t2 rounded-inset bg-hero-inset p-t2">
+        <HeroStat icon={<ArrowUp size={16} strokeWidth={2} />} onClick={onSpent} text={copy.payCycle.spent(formatWhole(isCycle ? s.spent : total))} />
+        <HeroStat icon={<ArrowDown size={16} strokeWidth={2} />} onClick={onPaidIn} text={copy.payCycle.paidIn(formatWhole(isCycle ? s.paidIn : paidIn))} />
       </div>
+      {isCycle ? (
+        <button type="button" onClick={onDue} className="pressable flex h-[48px] items-center justify-center gap-t2 rounded-pill bg-hero-on px-t5 text-[0.9375rem] font-bold text-hero-from sm:self-start">
+          {t.hero.seeDue}<ChevronRight aria-hidden size={18} />
+        </button>
+      ) : (
+        <p className="text-meta text-hero-on-muted">{t.hero.switchHint}</p>
+      )}
     </section>
+  );
+}
+
+function HeroStat({ icon, text, onClick }: { icon: React.ReactNode; text: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="flex min-h-[52px] items-center gap-t2 rounded-[14px] px-t3 text-left hover:bg-hero-glass">
+      <span aria-hidden className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-pill bg-hero-glass">{icon}</span>
+      <span className="tnum text-[0.9375rem] font-bold">{text}</span>
+    </button>
   );
 }
 
@@ -355,13 +373,13 @@ const Feed = forwardRef<HTMLElement, {
     if (g && g.date === x.date) g.items.push(x); else groups.push({ date: x.date, items: [x] });
   }
   return (
-    <section ref={ref} aria-labelledby="feed-h" className="mt-t3 scroll-mt-t6 rounded-md bg-surface">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-t3 p-t4 pb-t2">
-        <h2 id="feed-h" className="text-h3 text-text">{t.feed.heading}</h2>
+    <section ref={ref} aria-labelledby="feed-h" className="mt-t4 scroll-mt-t6 overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-t3 p-t5 pb-t3">
+        <h2 id="feed-h" className="text-card text-text sm:text-card-l">{t.feed.heading}</h2>
         <span role="status" className="text-caption text-text-muted">{t.feed.count(feed.length)}</span>
       </div>
-      <div className="flex flex-col gap-t3 px-t4 pb-t3">
-        <label className="flex min-h-[52px] items-center gap-t2 rounded-sm border border-neutral bg-surface px-t3 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
+      <div className="flex flex-col gap-t3 px-t5 pb-t4">
+        <label className="flex min-h-[52px] items-center gap-t2 rounded-pill border border-neutral bg-surface px-t4 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
           <Search aria-hidden size={20} className="text-text-muted" />
           <span className="sr-only">{t.feed.searchLabel}</span>
           <input id="spending-search" ref={searchRef} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.feed.searchLabel}
@@ -377,8 +395,8 @@ const Feed = forwardRef<HTMLElement, {
         <>
           {groups.map((g) => (
             <div key={g.date}>
-              <h3 className="bg-surface2 px-t4 py-t2 text-caption text-text-muted">{formatShortDay(g.date)}/{g.date.slice(0, 4)}</h3>
-              <ul>{g.items.map((x) => <li key={x.id} className="border-b border-line last:border-b-0"><TransactionRow tx={{ ...x, category: edits[x.id] ?? x.category }} edited={!!edits[x.id]} onOpen={() => onOpen(x.id)} /></li>)}</ul>
+              <h3 className="bg-surface2 px-t5 py-t2 text-meta font-semibold text-text-muted">{formatShortDay(g.date)}/{g.date.slice(0, 4)}</h3>
+              <ul>{g.items.map((x) => <li key={x.id} className="border-b border-divider px-t1 last:border-b-0"><TransactionRow tx={{ ...x, category: edits[x.id] ?? x.category }} edited={!!edits[x.id]} onOpen={() => onOpen(x.id)} /></li>)}</ul>
             </div>
           ))}
           {feed.length > shown && (
@@ -535,8 +553,8 @@ function BudgetsTab({ data, cycle, budgets, edits, onEdit, onMerchant }: {
   const frac = v.totalBudget ? Math.min(v.totalSpent / v.totalBudget, 1) : 0;
   return (
     <div className="mt-t4 flex flex-col gap-t3">
-      <section aria-labelledby="bud-h" className="rounded-lg bg-surface p-t5">
-        <h2 id="bud-h" className="text-h3 text-text">{t.budgets.heading}</h2>
+      <section aria-labelledby="bud-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6">
+        <h2 id="bud-h" className="text-card text-text sm:text-card-l">{t.budgets.heading}</h2>
         <p className="mt-t1 text-small text-text-muted">{copy.payCycle.range(formatDayMonth(cycle.start), formatDayMonth(cycle.end))}</p>
         {v.budgeted.length ? (
           <>
@@ -560,8 +578,8 @@ function BudgetsTab({ data, cycle, budgets, edits, onEdit, onMerchant }: {
         </ul>
       )}
       {v.other.length > 0 && (
-        <section aria-labelledby="bud-other" className="rounded-md bg-surface">
-          <h2 id="bud-other" className="p-t4 pb-t2 text-h3 text-text">{t.budgets.otherCategories}</h2>
+        <section aria-labelledby="bud-other" className="rounded-card-s bg-surface shadow-card sm:rounded-card">
+          <h2 id="bud-other" className="p-t5 pb-t2 text-card text-text sm:text-card-l">{t.budgets.otherCategories}</h2>
           <ul>
             {v.other.map((r) => {
               const Icon = categoryIcons[r.category];

@@ -30,7 +30,7 @@ test("acceptance: Jess's hardship letter to Beforepay is pre-filled with $315 du
   await expect(letter).toHaveValue(/including the \$315 due on Wed 30\/09/);
   await expect(letter).toHaveValue(/My working hours have been cut\./);
   await expect(sheet.getByText("Tippla never sends this for you.", { exact: false })).toBeVisible();
-  await expect(sheet.getByRole("link", { name: "Open in email" })).toHaveAttribute("href", /^mailto:\?subject=Hardship%20request%3A%20Beforepay%20repayment&body=Hi%20Beforepay/);
+  await expect(sheet.getByRole("link", { name: "Open in email" })).toHaveAttribute("href", /^mailto:support%40beforepay\.com\.au\?subject=Hardship%20request%3A%20Beforepay%20repayment&body=Hi%20Beforepay/);
   await expectNoAxe(page);
   await sheet.getByRole("button", { name: "Copy", exact: true }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/^Hi Beforepay,/);

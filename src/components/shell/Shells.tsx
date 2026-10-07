@@ -52,13 +52,15 @@ export function OnboardingShell({ backHref, title, footer, children, step, conne
   );
 }
 
-/** Large page header: "Hi Jess" / "SmartScore", a freshness line and one icon action (bell, info). */
+/** Large page header, matching Today's: the page name, a freshness line and one round icon action (search, info). */
+export const HEADER_ACTION = "flex h-tap w-tap shrink-0 items-center justify-center rounded-pill bg-surface text-text-secondary shadow-card hover:text-text desktop:h-[48px] desktop:w-[48px]";
+
 export function PageHeader({ title, sub, action }: { title: string; sub?: string; action?: ReactNode }) {
   return (
-    <header className="flex items-start gap-t3 px-gutter pb-t2 pt-t5">
+    <header className="flex items-center gap-t4 px-gutter pb-t3 pt-t4 sm:pb-t4 sm:pt-t5 desktop:pt-t7">
       <div className="min-w-0 flex-1">
-        <h1 className="text-h1 font-display text-text">{title}</h1>
-        {sub && <p className="mt-t1 text-small text-text-muted">{sub}</p>}
+        <h1 className="text-greet text-text desktop:text-greet-l">{title}</h1>
+        {sub && <p className="mt-t1 text-meta-s text-text-muted desktop:text-body14">{sub}</p>}
       </div>
       {action}
     </header>

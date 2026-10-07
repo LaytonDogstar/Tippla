@@ -7,7 +7,7 @@ import { scorePage as t } from "@/content/factors";
 import { copy } from "@/content/en-AU";
 import { formatDayMonth } from "@/lib/format";
 import type { Factor, ScoreState } from "@/lib/selectors/score";
-import { ringGeometry } from "@/lib/ui/geometry";
+import { Gauge, bandTone } from "@/components/today/SmartScoreCard";
 import { StageScale } from "./StageScale";
 import { cx } from "@/components/ui/cx";
 
@@ -18,28 +18,22 @@ export const factorIcons: Record<FactorKey, LucideIcon> = {
 
 export function ScoreSummary({ state, onStage }: { state: Extract<ScoreState, { kind: "scored" }>; onStage?: (id: string) => void }) {
   const { score, stage } = state;
-  const g = ringGeometry(112, 8, stage.progress);
   return (
-    <section aria-label={t.title} className="rounded-lg bg-surface p-t4">
-      <div className="flex items-center gap-t5">
+    <section aria-label={t.title} className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6">
+      <div className="flex flex-col items-center gap-t4 sm:flex-row sm:items-center sm:gap-t6">
         <div role="meter" aria-label="SmartScore" aria-valuemin={stage.stage.min} aria-valuemax={stage.next?.at ?? 1000} aria-valuenow={score}
-          aria-valuetext={stage.next ? `SmartScore ${score}. ${stage.name}. ${stage.next.pointsToGo} points to ${stage.next.name}.` : `SmartScore ${score}. ${stage.name}.`}
-          className="relative h-[112px] w-[112px] shrink-0">
-          <svg aria-hidden width={112} height={112} viewBox="0 0 112 112">
-            <circle cx={56} cy={56} r={g.r} fill="none" stroke="var(--chart-ring-track)" strokeWidth={8} />
-            {!g.hideArc && <circle cx={56} cy={56} r={g.r} fill="none" stroke={`var(--stage-${stage.stage.id})`} strokeWidth={8} strokeLinecap="round" strokeDasharray={`${g.dash} ${g.circumference}`} transform="rotate(-90 56 56)" />}
-          </svg>
-          <span aria-hidden className="tnum absolute inset-0 flex items-center justify-center text-h1 font-numeric text-text">{score}</span>
+          aria-valuetext={stage.next ? `SmartScore ${score}. ${stage.name}. ${stage.next.pointsToGo} points to ${stage.next.name}.` : `SmartScore ${score}. ${stage.name}.`}>
+          <Gauge score={score} band={stage.name} size="full" decorative />
         </div>
-        <div aria-hidden className="min-w-0">
-          <p className="text-h3 text-text">{stage.name}</p>
+        <div aria-hidden className="min-w-0 text-center sm:text-left">
+          <p className={cx("text-row", bandTone(stage.stage.id))}>{stage.name}</p>
           {stage.next ? (
             <>
-              <p className="tnum mt-t2 text-h2 font-display text-text">{t.points(stage.next.pointsToGo)}</p>
-              <p className="text-small text-text-muted">{t.toStageShort(stage.next.name)}</p>
-              <p className="tnum mt-t1 text-caption text-text-muted">{t.range(stage.stage.min, stage.next.at)}</p>
+              <p className="tnum mt-t1 text-section-num text-text">{t.points(stage.next.pointsToGo)}</p>
+              <p className="text-body14 text-text-secondary">{t.toStageShort(stage.next.name)}</p>
+              <p className="tnum mt-t1 text-meta text-text-muted">{t.range(stage.stage.min, stage.next.at)}</p>
             </>
-          ) : <p className="mt-t2 text-small text-text-muted">{copy.score.topStage}</p>}
+          ) : <p className="mt-t2 text-body14 text-text-secondary">{copy.score.topStage}</p>}
         </div>
       </div>
       <div className="mt-t5"><StageScale embedded score={score} stage={stage} onStage={onStage} /></div>
@@ -54,9 +48,9 @@ export function TrendChart({ points, onPoint }: { points: { date: string; score:
   const x = (i: number) => ((i + 0.5) * W) / points.length;
   const y = (v: number) => H - (v / 1000) * H; // fixed 0–1,000: a 49-point change is not exaggerated
   return (
-    <section aria-labelledby="trend-h" className="rounded-lg bg-surface p-t4">
-      <h2 id="trend-h" className="text-h3 text-text">{t.trend}</h2>
-      <div className="mt-t1 flex justify-between text-caption text-text-muted">
+    <section aria-labelledby="trend-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6">
+      <h2 id="trend-h" className="text-card text-text sm:text-card-l">{t.trend}</h2>
+      <div className="mt-t1 flex justify-between text-meta text-text-muted">
         <span>{formatDayMonth(points[0]!.date)} → {formatDayMonth(points.at(-1)!.date)}</span><span>{t.trendScale}</span>
       </div>
       <div className="relative mt-t3" style={{ height: H + 28 }}>
@@ -89,16 +83,22 @@ export function FactorRow({ factor, explanation, onOpen }: { factor: Factor; exp
   const isNull = factor.value === null;
   return (
     <button type="button" onClick={onOpen}
-      className="flex min-h-[80px] w-full items-start gap-t3 rounded-md bg-surface p-t4 text-left hover:bg-surface2">
-      <Icon aria-hidden size={20} className="mt-[2px] shrink-0 text-text-muted" />
+      className="pressable flex min-h-[80px] w-full items-start gap-t3 rounded-card-s bg-surface p-t4 text-left shadow-card hover:bg-surface2 sm:rounded-card sm:px-t5">
+      <span aria-hidden className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-pill bg-accent-soft text-accent"><Icon size={18} strokeWidth={1.8} /></span>
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-baseline justify-between gap-x-t3">
-          <span className="text-h3 text-text">{factor.name}</span>
-          <span className={cx("tnum ml-auto text-small font-numeric", isNull ? "text-text-muted" : "text-text")}>{isNull ? "—" : `${factor.value!.toFixed(1)} / 10`}</span>
+          <span className="text-row text-text">{factor.name}</span>
+          <span className={cx("tnum ml-auto text-[0.9375rem] font-bold", isNull ? "text-text-muted" : "text-text")}>{isNull ? "—" : `${factor.value!.toFixed(1)} / 10`}</span>
         </span>
-        {(explanation || isNull) && <span className="mt-t2 block text-small text-text-muted">{isNull ? copy.score.factorNull : explanation}</span>}
+        {/* Out of 10, in the brand colour only: never red or green for a factor (no "good" or "bad" fill). */}
+        {!isNull && (
+          <span aria-hidden className="mt-t2 block h-[6px] overflow-hidden rounded-pill bg-chip">
+            <span className="block h-full rounded-pill bg-accent" style={{ width: `${Math.max(2, Math.min(100, factor.value! * 10))}%` }} />
+          </span>
+        )}
+        {(explanation || isNull) && <span className="mt-t2 block text-meta text-text-secondary">{isNull ? copy.score.factorNull : explanation}</span>}
       </span>
-      <ChevronRight aria-hidden size={20} className="mt-[2px] shrink-0 text-text-muted" />
+      <ChevronRight aria-hidden size={20} className="mt-[10px] shrink-0 text-icon-muted" />
     </button>
   );
 }

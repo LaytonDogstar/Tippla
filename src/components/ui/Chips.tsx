@@ -18,10 +18,10 @@ export function Chip({ selected, disabled, onClick, children }: { selected?: boo
       disabled={disabled}
       onClick={onClick}
       className={cx(
-        "inline-flex min-h-tap min-w-tap items-center py-t1 gap-t2 rounded-pill border px-t3 text-small transition-colors duration-fast ease-tippla",
+        "inline-flex min-h-tap min-w-tap items-center py-t1 gap-t2 rounded-pill border px-t4 text-body14 font-semibold transition-colors duration-fast ease-tippla",
         selected
-          ? "border-accent bg-accent-soft text-accent active:shadow-[inset_0_0_0_2px_var(--color-accent)]"
-          : "border-neutral bg-surface text-text hover:bg-surface2",
+          ? "border-accent bg-accent-soft text-accent-strong active:shadow-[inset_0_0_0_2px_var(--color-accent)]"
+          : "border-transparent bg-surface text-text-secondary shadow-card hover:text-text",
         "disabled:border-neutral disabled:bg-neutral-soft disabled:text-text-muted",
       )}
     >
@@ -58,16 +58,16 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
   return (
     <fieldset className="min-w-0" disabled={disabled}>
       <legend className="sr-only">{label}</legend>
-      <div className="flex min-h-[52px] gap-t1 rounded-md bg-surface2 p-t1">
+      <div className="flex min-h-[52px] gap-t1 rounded-pill bg-chip p-t1">
         {options.map((o) => {
           const checked = o.value === value;
           return (
             <label
               key={o.value}
               className={cx(
-                "relative flex min-w-tap flex-1 cursor-pointer items-center justify-center rounded-sm px-t2 text-small transition-colors duration-fast ease-tippla",
+                "relative flex min-w-tap flex-1 cursor-pointer items-center justify-center rounded-pill px-t2 text-body14 font-semibold transition-colors duration-fast ease-tippla",
                 "has-[:focus-visible]:outline has-[:focus-visible]:outline-[length:var(--focus-width)] has-[:focus-visible]:outline-offset-[var(--focus-offset)] has-[:focus-visible]:outline-focus",
-                checked ? "bg-accent text-on-accent" : "text-text-muted hover:bg-neutral-soft",
+                checked ? "bg-accent text-on-accent shadow-card" : "text-text-secondary hover:text-text",
                 disabled && (checked ? "bg-neutral-soft text-text-muted shadow-[inset_0_0_0_2px_var(--color-neutral)]" : "text-text-muted"),
               )}
             >

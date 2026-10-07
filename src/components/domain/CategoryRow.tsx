@@ -37,31 +37,31 @@ export function CategoryRow({ row, merchants = [], budget, showLifestyle, insigh
   const Icon = categoryIcons[row.category];
   const hasBudget = typeof budget === "number";
   return (
-    <section className="rounded-md bg-surface">
+    <section className="rounded-card-s bg-surface shadow-card sm:rounded-card">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={id}
         onClick={() => { setOpen(!open); onToggle?.(!open); }}
-        className="flex min-h-[88px] w-full items-center gap-t3 rounded-md p-t4 text-left hover:bg-surface2 active:bg-surface2"
+        className="flex min-h-[88px] w-full items-center gap-t3 rounded-card-s p-t4 text-left hover:bg-surface2 active:bg-surface2 sm:rounded-card sm:px-t5"
       >
-        <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2" style={{ color: catVar(row.category) }}>
-          <Icon size={24} />
+        <span aria-hidden className="inline-flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-pill bg-chip" style={{ color: catVar(row.category) }}>
+          <Icon size={20} strokeWidth={1.8} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-h3 text-text">{row.name}</span>
-          <span className="mt-t1 block text-caption text-text-muted">{t.transactions(row.count)}</span>
-          {changeText && <span className="tnum mt-t1 block text-caption text-text-muted">{changeText}</span>}
+          <span className="block text-row text-text">{row.name}</span>
+          <span className="mt-t1 block text-meta text-text-muted">{t.transactions(row.count)}</span>
+          {changeText && <span className="tnum mt-t1 block text-meta text-text-muted">{changeText}</span>}
         </span>
         <span className="flex shrink-0 flex-col items-end gap-t1">
-          <span className="tnum text-small font-numeric text-text">{formatWhole(row.total)}</span>
+          <span className="tnum text-[0.9375rem] font-bold text-text">{formatWhole(row.total)}</span>
           {sparkline && <Sparkline values={sparkline} category={row.category} />}
         </span>
         {open ? <ChevronUp aria-hidden size={20} className="shrink-0 text-text-muted" /> : <ChevronDown aria-hidden size={20} className="shrink-0 text-text-muted" />}
       </button>
 
       {(showLifestyle || hasBudget || insightLabel) && (
-        <div className="flex flex-col gap-t3 pb-t4 pl-[68px] pr-t4">
+        <div className="flex flex-col gap-t3 pb-t4 pl-[76px] sm:pl-[84px] pr-t4">
           {showLifestyle && row.type === "lifestyle" && (
             <span className="inline-flex min-h-[24px] w-fit items-center rounded-xs bg-neutral-soft px-t2 text-caption text-neutral">{t.lifestyle}</span>
           )}
@@ -75,7 +75,7 @@ export function CategoryRow({ row, merchants = [], budget, showLifestyle, insigh
         </div>
       )}
 
-      <div id={id} hidden={!open} className="pb-t2 pl-[68px] pr-t4">
+      <div id={id} hidden={!open} className="pb-t2 pl-[76px] sm:pl-[84px] pr-t4">
         <ul>
           {merchants.map((m) => (
             <li key={m.merchant} className="border-t border-line">

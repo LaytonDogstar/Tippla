@@ -24,7 +24,7 @@ export function StageScale({ score, stage, onStage, onNext, embedded }: { score:
   const x = stageMarkerX(w, idx, stage.progress);
 
   return (
-    <section aria-label={stageScale.label} className={embedded ? "" : "min-h-[196px] rounded-md bg-surface p-t5"}>
+    <section aria-label={stageScale.label} className={embedded ? "" : "min-h-[196px] rounded-card-s bg-surface shadow-card sm:rounded-card p-t5"}>
       {!embedded && (
         <div className="flex flex-wrap items-baseline justify-between gap-t3">
           <p className="text-h3 text-text">{stage.name}</p>
