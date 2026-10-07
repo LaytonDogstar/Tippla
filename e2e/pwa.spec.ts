@@ -12,7 +12,9 @@ test("the manifest makes Tippla installable", async ({ request }) => {
 
 test("the service worker registers and keeps Today for offline use", async ({ page }) => {
   await page.goto("/?persona=jess&present=1&state=none");
-  await page.waitForFunction(async () => !!(await navigator.serviceWorker.getRegistration())?.active, null, { timeout: 15_000 });
+  // navigator.serviceWorker.ready resolves once a worker is active. (An async waitForFunction predicate returned
+  // before install finished, so the next visit sometimes raced the worker.)
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await page.goto("/help");
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
   // Visits once the worker is in charge go through it and are kept (Playwright's reload() skips the worker).

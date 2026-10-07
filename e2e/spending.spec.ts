@@ -17,7 +17,8 @@ const row = (page: Page, name: RegExp) => page.getByRole("button", { name, expan
 
 test("journey 2: dashboard → spending → category → merchant sheet → recategorise (Jess)", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByText("$1,832 spent").first()).toBeVisible();
+  // Today redesign: spent this pay cycle sits in the hero.
+  await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,832")).toBeVisible();
   await page.getByRole("navigation").getByRole("link", { name: /^Money/ }).first().click();
   await expect(page).toHaveURL(/\/spending/);
   await expect(page.getByRole("img", { name: /^Total \$1,832/ })).toBeVisible();
@@ -59,7 +60,7 @@ test("journey 2: dashboard → spending → category → merchant sheet → reca
   await expect(page.getByText("$90 of $100")).toBeVisible();
 
   await page.getByRole("navigation").getByRole("link", { name: /^Today/ }).first().click();
-  await expect(page.getByText("$1,804 spent").first()).toBeVisible();
+  await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,804")).toBeVisible();
 
   // Undo is one tap away: back on Spending, the edit is still there after a reload (cookie).
   await page.goto("/spending?persona=jess&present=1");

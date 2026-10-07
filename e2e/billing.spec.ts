@@ -48,11 +48,12 @@ test("pause for a month straight from the page; billing resumes after a payday",
 
 test("the feed offers the pause under Help when Jess is short; it never appears as an offer", async ({ page }) => {
   await page.goto("/?persona=jess&present=1&state=none");
-  await expect(page.getByRole("navigation", { name: "Main" }).first().getByRole("link", { name: "Help 2 things to look at" })).toBeVisible();
-  await page.getByRole("button", { name: /^See all \(\d+\)$/ }).click();
-  const card = page.getByRole("region", { name: "Needs a look" }).getByRole("article").filter({ hasText: "You can pause your $9.99 Tippla payment" });
-  await expect(card).toContainText("It's due Fri 02/10.");
-  await card.getByRole("link", { name: "See pause and plan options" }).click();
+  // Help items count on More on phones (Today redesign).
+  await expect(page.getByRole("navigation", { name: "Main" }).first().getByRole("button", { name: "More 2 things to look at" })).toBeVisible();
+  const row = page.getByRole("region", { name: "Needs a look" }).getByRole("listitem").filter({ hasText: "You can pause your $9.99 Tippla payment" });
+  await expect(row).toContainText("It's due Fri 02/10.");
+  await row.getByRole("button", { name: /^More actions:/ }).click();
+  await page.getByRole("dialog").getByRole("link", { name: "See pause and plan options" }).click();
   await expect(page).toHaveURL(/\/account\/subscription/);
 });
 

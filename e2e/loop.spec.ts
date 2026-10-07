@@ -13,17 +13,23 @@ async function expectNoAxe(page: Page) {
 }
 const region = (page: Page, name: string | RegExp) => page.getByRole("region", { name });
 
-test("safe to spend: nothing spare for Jess before payday, with the working and hardship options", async ({ page }) => {
-  await page.goto("/?persona=jess&present=1");
-  const card = region(page, "Safe to spend today");
-  await expect(card).toContainText("Nothing spare before payday");
-  await expect(card.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
-  await card.getByRole("button", { name: "How we worked this out" }).click();
+test("safe to spend: short or nothing spare before payday, with the working and hardship options", async ({ page }) => {
+  // Today redesign: safe to spend lives in the hero. Jess is short (the hardship options sit next to it) ...
+  await page.goto("/?persona=jess&present=1&state=none");
+  const hero = region(page, "This pay cycle");
+  await expect(hero).toContainText("Short before payday");
+  await expect(hero.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  // ... and Marcus with a tight cycle has nothing spare, with the working one tap away.
+  await page.goto("/?persona=marcus&present=1&state=tight");
+  await expect(hero).toContainText("left after bills, with nothing spare before payday");
+  await hero.getByRole("button", { name: "How we worked this out" }).click();
   const sheet = page.getByRole("dialog");
-  await expect(sheet.getByText("Forecast balance on Wed 30/09")).toBeVisible();
+  await expect(sheet.getByText("Forecast balance on Tue 06/10")).toBeVisible();
   await expect(sheet.getByText("Kept aside as a buffer")).toBeVisible();
-  await expect(sheet.getByText("÷ 6 days")).toBeVisible();
+  await expect(sheet.getByText("÷ 12 days")).toBeVisible();
+  await page.keyboard.press("Escape");
   await expectNoAxe(page);
+  await page.goto("/?persona=marcus&present=1&state=none");
 });
 
 test("payday: check-in and recap replace the snapshot; no offers, nothing about gambling", async ({ page }) => {
@@ -85,7 +91,8 @@ test("value tally: actions in the app are pending, then confirmed from bank data
 
   // 3. On Tue 29/09 (spec 01: flagged within 3 days), Done on the "Beforepay bigger than your balance" card.
   await page.goto("/?persona=jess&present=1&state=bill_due");
-  await page.getByRole("button", { name: /^Done: Beforepay \$315/ }).click();
+  await region(page, "Needs a look").getByRole("button", { name: /^More actions: Beforepay \$315/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Done", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Marked as done" })).toBeVisible();
 
   // Payday: the Beforepay repayment went through without a failed-payment fee.

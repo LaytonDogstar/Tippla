@@ -16,7 +16,8 @@ async function expectNoAxe(page: Page) {
 test("journey 3: dashboard → score → factor detail → recommendation sheet (Jess)", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
   await expect(page.getByRole("heading", { name: "Hi Jess" })).toBeVisible();
-  await page.getByRole("link", { name: /See what's shaping it/ }).first().click();
+  // Today redesign: the compact SmartScore card opens the SmartScore page.
+  await page.getByRole("link", { name: /^Open SmartScore/ }).click();
 
   await expect(page).toHaveURL(/\/score$/);
   await expect(page.getByRole("heading", { name: "SmartScore", level: 1 })).toBeVisible();

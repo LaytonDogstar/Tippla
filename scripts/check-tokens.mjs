@@ -144,6 +144,36 @@ for (const mode of ["light", "dark"]) {
   }
 }
 
+// ---- Today redesign (07/10/2026): soft status tints, pastel spending groups, hero text ----------
+// Red is allowed only as soft negative tints (negativeSoft behind negative text), never as a saturated fill.
+for (const mode of ["light", "dark"]) {
+  if (!C[mode]?.negative) continue;
+  const s = (k) => get(null, mode, k);
+  for (const [fg, bg] of [["textSecondary", "surface"], ["textSecondary", "surface2"], ["textSecondary", "bg"], ["textMuted", "chip"], ["textSecondary", "chip"],
+    ["negative", "negativeSoft"], ["negative", "surface"], ["caution", "surface"], ["positive", "surface"], ["accentStrong", "accentSoft"], ["accent", "accentSoft"]])
+    pair(mode, `${fg} on ${bg}`, s(fg), s(bg), 4.5);
+  pair(mode, "iconMuted on surface", s("iconMuted"), s("surface"), 3);
+  for (const k of ["negativeSoft", "cautionSoft", "positiveSoft"]) {
+    const { l } = hsl(s(k));
+    if (mode === "light" ? l < 0.88 : l > 0.25) fail(`Soft tints (${mode}): ${k} must be a soft tint (lightness ${(l * 100).toFixed(0)}%)`);
+  }
+  for (const k of Object.keys(C.spend?.[mode] ?? {}).filter((x) => !x.startsWith("_"))) {
+    const c = get("spend", mode, k);
+    if (c && hsl(c).l < 0.6) fail(`Spending groups (${mode}): ${k} must be a soft pastel (lightness ${(hsl(c).l * 100).toFixed(0)}%)`);
+  }
+  const g = C.spend?.[mode]?.gambling;
+  if (g && [C[mode].negative, C[mode].destructive].some((x) => x?.toLowerCase() === g.toLowerCase())) fail(`Gambling (${mode}): must not use the warning text colour`);
+}
+if (C.hero) {
+  // Hero text sits on every part of the gradient: check each stop.
+  for (const stop of ["from", "mid", "to"]) {
+    pair("both", `hero.on on hero.${stop}`, parse(C.hero.on), parse(C.hero[stop]), 4.5);
+    pair("both", `hero.onMuted on hero.${stop}`, parse(C.hero.onMuted), parse(C.hero[stop]), 4.5);
+    pair("both", `hero.negativeMark on hero.${stop}`, parse(C.hero.negativeMark), parse(C.hero[stop]), 3);
+  }
+  for (const stop of ["ctaFrom", "ctaTo"]) pair("both", `white on hero.${stop}`, [255, 255, 255], parse(C.hero[stop]), 4.5);
+}
+
 // ---- report ---------------------------------------------------------------------------
 console.log(`\nChecking ${path.relative(root, target)}\n`);
 const bad = rows.filter((r) => !r.ok);

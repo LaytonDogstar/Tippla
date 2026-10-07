@@ -178,6 +178,12 @@ export const buttons = { loading: "Loading…" };
 
 export const nav = {
   label: "Main",
+  // Today redesign (07/10/2026): five sections; mobile tabs Today, Money, Ask, Score, More.
+  sections: { today: "Today", money: "Money", score: "Score & plan", borrowing: "Borrowing", help: "Help & hardship" },
+  tabs: { today: "Today", money: "Money", ask: "Ask", score: "Score", more: "More" },
+  askLabel: "Ask Tippla",
+  moreTitle: "More",
+  accountEntry: (name: string) => `${name} · Account`,
   home: "Today",
   score: "Score",
   spending: "Money",

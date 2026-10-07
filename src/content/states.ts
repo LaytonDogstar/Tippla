@@ -27,6 +27,8 @@ export const statesCopy = {
     billing_failed: "Tippla payment failed",
     stale: "Bank data 3+ days old",
     consent_expiring: "Bank consent ends in 10 days",
+    tight: "Tight pay cycle (bills covered, nothing spare)",
+    no_bills: "No bills in the next two weeks",
     improved: "5 improving cycles (to Healthy)",
   },
   clearStates: "Clear states",
