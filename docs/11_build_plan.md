@@ -20,7 +20,7 @@ Work in phases; open a PR (or commit) per phase with screenshots of jess/marcus/
 
 ## Phase 4 — Spending (all tabs), comparison, calendar, subscriptions
 - Match the reference prototype's behaviour.
-- **Accept:** journey 2 passes; recategorising a transaction updates donut, rows, budgets, hero and dashboard.
+- **Accept:** journey 2 passes; recategorising a transaction updates the category list, rows, budgets, hero and dashboard.
 
 ## Phase 5 — Loans, calculator, offers, hardship, help, account, notifications
 - **Accept:** consent withdrawal hides Offers immediately; cancel subscription in one tap + confirm; hardship always visible in nav.

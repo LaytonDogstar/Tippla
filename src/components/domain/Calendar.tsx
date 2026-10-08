@@ -1,12 +1,13 @@
 "use client";
 // Component 11: a labelled grid with roving focus. Each date is one control; markers and balance are layers
-// inside it (never separate tiny buttons). Lanes, top to bottom: date · spend/bill markers · payday · balance.
-// Confirmed spend = one solid neutral dot (presence, not a count). Predicted bills = hollow outlined circles.
-// Balance strips encode status, not size: confirmed = solid neutral, forecast = outline, below $0 = neutral
-// hatch (confirmed dense, forecast open + dashed). Never a saturated red.
-// UX round 2, 5.1: today and future cells are tinted by their forecast balance, soft tints only (rule 6): below $0
-// soft negative with a warning icon and an outline (the shortfall day can't be missed), under $100 soft caution,
-// otherwise soft positive.
+// inside it (never separate tiny buttons). Lanes, top to bottom: date · markers · end-of-day balance.
+// 08/10/2026 (the timeline is now the main view; this grid is the secondary one):
+// - markers: confirmed spend = a small solid dot; a predicted bill of $100 or more shows its amount in a dashed
+//   chip (and its name on wide screens); smaller bills are hollow dots; payday takes the lane on its own day.
+// - tints say how close the balance gets, relative to this view, never a fixed cutoff: below $0 is the soft
+//   negative tint with an outline (rule 6); "close to $0" (under a fifth of the view's highest forecast balance)
+//   is soft caution; the lowest point gets a dashed outline. Everything else stays plain.
+// - no balance strips: the number is the balance. After the forecast ends a day shows a dash, and says why.
 import { ArrowDownToLine, ChevronRight, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { calendar as t } from "@/content/components";
@@ -15,25 +16,32 @@ import { formatCompact } from "@/lib/format/money";
 import type { CalendarDay } from "@/lib/selectors/calendar";
 import { cx } from "@/components/ui/cx";
 
-const HATCH_FORECAST = { background: "repeating-linear-gradient(45deg, var(--chart-hatch) 0 2px, var(--color-surface) 2px 10px)", outline: "2px dashed var(--chart-predicted)", outlineOffset: -2 };
-const HATCH_CONFIRMED = { background: "repeating-linear-gradient(45deg, var(--chart-hatch) 0 2px, var(--color-neutral-soft) 2px 6px)" };
+/** Predicted bills at or over this show their amount in the grid; smaller ones are dots. */
+export const BIG_BILL = 100;
 
-export function BalanceStrip({ day }: { day: Pick<CalendarDay, "balance" | "balancePredicted" | "belowZero"> }) {
-  if (day.balance === null) return null;
-  const style = day.belowZero
-    ? day.balancePredicted ? HATCH_FORECAST : HATCH_CONFIRMED
-    : day.balancePredicted ? { outline: "2px solid var(--chart-predicted)", outlineOffset: -2, background: "var(--color-surface)" } : { background: "var(--color-neutral)" };
-  return <span aria-hidden className="block h-[14px] w-[36px] rounded-[4px]" style={style} />;
+/** "Close to $0" for this view: under a fifth of the highest balance from today on. */
+export function closeToZero(days: CalendarDay[]): number {
+  const ahead = days.filter((d) => !d.outside && d.balance !== null && (d.isToday || d.isFuture)).map((d) => d.balance!);
+  return ahead.length ? Math.max(0, ...ahead) * 0.2 : 0;
 }
 
-/** Under this (but not below $0) a forecast balance is "low" in the calendar tint. */
-export const LOW_BALANCE = 100;
-const tintFor = (d: CalendarDay) => (d.balance === null || d.outside || (!d.isToday && !d.isFuture) ? null
-  : d.belowZero ? "negative" : d.balance < LOW_BALANCE ? "caution" : "positive");
-const TINT = { negative: "bg-negative-soft shadow-[inset_0_0_0_2px_var(--color-negative)]", caution: "bg-caution-soft", positive: "bg-positive-soft" } as const;
+export type DayTint = "negative" | "caution" | "lowest";
+export function tintFor(d: CalendarDay, close: number, lowest: string | null | undefined): DayTint | null {
+  if (d.balance === null || d.outside || (!d.isToday && !d.isFuture)) return null;
+  if (d.belowZero) return "negative";
+  if (d.date === lowest) return "lowest";
+  return d.balance < close ? "caution" : null;
+}
+const TINT: Record<DayTint, string> = {
+  negative: "bg-negative-soft shadow-[inset_0_0_0_2px_var(--color-negative)]",
+  caution: "bg-caution-soft",
+  lowest: "bg-surface [outline:2px_dashed_var(--color-text-secondary)] [outline-offset:-3px]",
+};
 
-export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, rangeTo, initialFocus, onDay, onNextPayday }: {
+export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, rangeTo, initialFocus, onDay, onNextPayday, lowest = null }: {
   days: CalendarDay[];
+  /** The view's lowest forecast balance (dashed outline). */
+  lowest?: string | null;
   label: string;
   nextPayday?: string | null;
   selected?: string | null;
@@ -66,6 +74,7 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
     const map: Record<string, number> = { ArrowRight: i + 1, ArrowLeft: i - 1, ArrowDown: i + 7, ArrowUp: i - 7, Home: i - (i % 7), End: i - (i % 7) + 6 };
     if (e.key in map) { e.preventDefault(); move(map[e.key]!); }
   };
+  const close = closeToZero(days);
   const weeks = Array.from({ length: Math.ceil(days.length / 7) }, (_, w) => days.slice(w * 7, w * 7 + 7));
 
   return (
@@ -80,6 +89,9 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
               {week.map((d, j) => {
                 const i = w * 7 + j;
                 const inRange = !!a && !!b && d.date >= a && d.date <= b;
+                const tint = tintFor(d, close, lowest);
+                const big = d.predictedBills.filter((x) => x.expected_amount >= BIG_BILL).sort((x, y) => y.expected_amount - x.expected_amount);
+                const small = d.predictedBills.filter((x) => x.expected_amount < BIG_BILL);
                 const parts = [
                   d.isToday && t.today,
                   d.confirmedCount ? `${t.spendCount(d.confirmedCount)} ${formatWhole(d.confirmedSpend)}` : null,
@@ -87,6 +99,7 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
                   ...d.predictedIncome.map((p) => t.incomeExpected(p.payer)),
                   d.isPayday && !d.predictedIncome.length ? t.pay : null,
                   d.balance !== null ? `${d.balancePredicted ? t.forecastBalance : t.confirmedClosing} ${formatWhole(d.balance)}` : t.balanceUnavailable,
+                  tint === "lowest" ? t.lowestPoint : tint === "caution" ? t.closeToZero : null,
                   inRange ? t.inRange : null,
                 ].filter(Boolean) as string[];
                 return (
@@ -101,33 +114,36 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
                       aria-label={t.dayLabel(`${formatShortDay(d.date)}/${d.date.slice(0, 4)}`, parts)}
                       aria-current={d.isToday ? "date" : undefined}
                       className={cx(
-                        "relative flex min-h-[106px] w-full flex-col items-center gap-t1 rounded-xs pb-t1 pt-t2",
+                        "relative flex min-h-[88px] w-full flex-col items-center gap-t1 rounded-xs px-[2px] pb-t1 pt-t2",
                         selected === d.date ? "bg-accent-soft shadow-[inset_0_0_0_2px_var(--color-accent)]"
-                          : inRange ? "bg-accent-soft" : tintFor(d) ? TINT[tintFor(d)!] : "bg-surface hover:bg-surface2",
+                          : inRange ? "bg-accent-soft" : tint ? TINT[tint] : "bg-surface hover:bg-surface2",
                       )}
                     >
                       <span aria-hidden className={cx("tnum text-small font-numeric", d.outside ? "text-text-muted" : "text-text", d.isToday && "underline decoration-2 underline-offset-4")}>
                         {Number(d.date.slice(8))}
                       </span>
                       {/* Payday sits in the marker lane (not a lane of its own), so every cell in a week stays the same height. */}
-                      <span aria-hidden className="flex min-h-[16px] items-center gap-[3px]">
+                      <span aria-hidden className="flex min-h-[18px] w-full flex-col items-center gap-[2px]">
                         {d.isPayday ? (
                           <span className="inline-flex items-center gap-[1px] text-caption font-semibold text-accent"><ArrowDownToLine size={12} strokeWidth={2.4} />{t.pay}</span>
-                        ) : (
+                        ) : big.length ? (
                           <>
-                            {d.confirmedCount > 0 && <span className="h-[6px] w-[6px] rounded-pill bg-neutral" />}
-                            {d.predictedBills.slice(0, 2).map((x) => <span key={x.merchant} className="h-[8px] w-[8px] rounded-pill border-2 bg-surface" style={{ borderColor: "var(--chart-predicted)" }} />)}
+                            <span className="hidden w-full truncate text-center text-caption text-text-muted desktop:block">{big[0]!.merchant}</span>
+                            <span className="tnum rounded-[4px] border border-dashed px-[3px] text-caption font-semibold text-text" style={{ borderColor: "var(--chart-predicted)" }}>
+                              {cellAmount(big.reduce((n, x) => n + x.expected_amount, 0))}{big.length > 1 ? "+" : ""}
+                            </span>
                           </>
+                        ) : (
+                          <span className="flex items-center gap-[3px] pt-[4px]">
+                            {d.confirmedCount > 0 && <span className="h-[6px] w-[6px] rounded-pill bg-neutral" />}
+                            {small.slice(0, 2).map((x) => <span key={x.merchant} className="h-[8px] w-[8px] rounded-pill border-2 bg-surface" style={{ borderColor: "var(--chart-predicted)" }} />)}
+                          </span>
                         )}
                       </span>
-                      {d.balance !== null && (
-                        <span aria-hidden className="mt-auto flex flex-col items-center gap-[2px]">
-                          <BalanceStrip day={d} />
-                          <span className={cx("tnum inline-flex items-center gap-[2px] text-meta font-semibold", d.belowZero && tintFor(d) ? "text-negative" : "text-text")}>
-                            {d.belowZero && tintFor(d) && <TriangleAlert size={11} strokeWidth={2.4} />}{cellAmount(d.balance)}
-                          </span>
-                        </span>
-                      )}
+                      <span aria-hidden className={cx("tnum mt-auto inline-flex items-center gap-[2px] text-meta",
+                        d.balance === null ? "text-text-muted" : tint === "negative" ? "font-semibold text-negative" : tint === "lowest" ? "font-bold text-text" : "font-semibold text-text")}>
+                        {d.balance === null ? "–" : <>{tint === "negative" && <TriangleAlert size={11} strokeWidth={2.4} />}{cellAmount(d.balance)}</>}
+                      </span>
                     </button>
                   </td>
                 );

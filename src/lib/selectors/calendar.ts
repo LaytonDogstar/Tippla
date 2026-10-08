@@ -4,7 +4,7 @@ import { sumMoney } from "@/lib/format/money";
 import { dailyBalances, projectedBalances } from "./balance";
 import { currentCycle } from "./periods";
 import { upcomingIncome, type ExpectedIncome } from "./income";
-import { applyOverrides, isDebit, isIncome, posted, type CategoryOverrides } from "./transactions";
+import { applyOverrides, isCredit, isDebit, isIncome, posted, type CategoryOverrides } from "./transactions";
 
 export interface CalendarDay {
   date: ISODate;
@@ -18,6 +18,10 @@ export interface CalendarDay {
   confirmedCount: number;
   /** Income received that day (wages, Centrelink). Pay advances are not income. */
   paidIn: number;
+  /** The same income, by payer (the timeline names it). */
+  income: { payer: string; amount: number }[];
+  /** Other money in that day (pay advances, refunds): not income, but it moves the balance. */
+  otherIn: { payer: string; amount: number }[];
   predictedBills: UpcomingBill[];
   /** Income expected on a future day (wages, Centrelink, other regular income), typical amounts. */
   predictedIncome: ExpectedIncome[];
@@ -50,6 +54,8 @@ function buildDays(d: PersonaData, dates: ISODate[], overrides?: CategoryOverrid
       confirmedSpend: sumMoney(spend.map((t) => -t.amount)),
       confirmedCount: spend.length,
       paidIn: sumMoney(income.map((t) => t.amount)),
+      income: income.map((t) => ({ payer: t.merchant, amount: t.amount })),
+      otherIn: tx.filter((t) => t.date === date && isCredit(t) && !isIncome(t)).map((t) => ({ payer: t.merchant, amount: t.amount })),
       predictedBills: d.derived.upcoming_bills.filter((b) => b.date === date && b.date > d.asOf),
       predictedIncome,
       balance,
@@ -121,4 +127,91 @@ export function rangeTotals(days: CalendarDay[], from: ISODate, to: ISODate) {
 /** A day's posted and pending transactions (the day sheet). */
 export function dayTransactions(d: PersonaData, date: ISODate, overrides?: CategoryOverrides): Transaction[] {
   return applyOverrides(d.transactions, overrides).filter((t) => t.date === date).sort((a, b) => a.amount - b.amount);
+}
+
+// ---- Headline and timeline (08/10/2026): the answer first, then every money event in date order ------------
+
+export type CalendarHeadline =
+  /** The forecast goes below $0: how short, when, and how long before the next payday. */
+  | { kind: "short"; date: ISODate; amount: number; payday: ISODate | null; daysBefore: number | null; bills: number; billCount: number }
+  /** Never below $0: the lowest point and the payday it lasts until. */
+  | { kind: "covered"; date: ISODate; balance: number; payday: ISODate | null; bills: number; billCount: number }
+  /** A view that's all in the past: its lowest point and where it ended. */
+  | { kind: "past"; date: ISODate; balance: number; closing: number; spent: number; count: number }
+  | { kind: "none" };
+
+const lowestOf = (list: CalendarDay[]) => list.reduce((lo, d) => (d.balance! < lo.balance! ? d : lo), list[0]!);
+
+/**
+ * The view's answer, from the same day figures as the chart, grid and timeline. Forecast days are today and after.
+ * `followingPayday` is the payday just after the view (a fortnight ends the day before one).
+ */
+export function calendarHeadline(days: CalendarDay[], asOf: ISODate, followingPayday: ISODate | null = null): CalendarHeadline {
+  const inView = days.filter((d) => !d.outside && d.balance !== null);
+  if (!inView.length) return { kind: "none" };
+  const ahead = inView.filter((d) => d.date >= asOf);
+  if (!ahead.length) {
+    const low = lowestOf(inView);
+    const all = days.filter((d) => !d.outside);
+    return { kind: "past", date: low.date, balance: low.balance!, closing: inView.at(-1)!.balance!,
+      spent: sumMoney(all.map((d) => d.confirmedSpend)), count: all.reduce((n, d) => n + d.confirmedCount, 0) };
+  }
+  const low = lowestOf(ahead);
+  const payday = days.find((d) => !d.outside && d.date > low.date && d.predictedIncome.length > 0)?.date ?? followingPayday;
+  const due = days.filter((d) => !d.outside && d.date >= asOf && (!payday || d.date < payday)).flatMap((d) => d.predictedBills);
+  const bills = sumMoney(due.map((b) => b.expected_amount));
+  if (low.balance! < 0) {
+    return { kind: "short", date: low.date, amount: -low.balance!, payday, daysBefore: payday ? daysBetween(low.date, payday) : null, bills, billCount: due.length };
+  }
+  return { kind: "covered", date: low.date, balance: low.balance!, payday, bills, billCount: due.length };
+}
+
+export interface TimelineEvent {
+  key: string;
+  kind: "income" | "credit" | "bill" | "spending" | "balance";
+  label: string;
+  /** Signed: money in positive, money out negative. 0 for a balance-only row. */
+  amount: number;
+  predicted: boolean;
+  /** Spending rows: how many transactions they add up. */
+  count?: number;
+}
+export interface TimelineDay {
+  date: ISODate;
+  isToday: boolean;
+  events: TimelineEvent[];
+  /** End-of-day balance, shown once on the day's last line. */
+  balance: number | null;
+  balancePredicted: boolean;
+  belowZero: boolean;
+  isLowest: boolean;
+}
+
+/**
+ * Every money event in the view, grouped by day: confirmed pay and spending (one line per day) up to today, then
+ * expected pay and predicted bills. Days with nothing happening are left out. `forecastEnds` is the first day the
+ * forecast doesn't reach, so the view can say so instead of showing blanks.
+ */
+export function calendarTimeline(days: CalendarDay[], asOf: ISODate, lowest: ISODate | null): { days: TimelineDay[]; forecastEnds: ISODate | null } {
+  const out: TimelineDay[] = [];
+  for (const d of days) {
+    if (d.outside || (d.balance === null && d.date > asOf)) continue;
+    const events: TimelineEvent[] = d.date <= asOf
+      ? [
+          ...d.income.map((i, n) => ({ key: `in-${n}`, kind: "income" as const, label: i.payer, amount: i.amount, predicted: false })),
+          ...d.otherIn.map((i, n) => ({ key: `cr-${n}`, kind: "credit" as const, label: i.payer, amount: i.amount, predicted: false })),
+          ...(d.confirmedCount ? [{ key: "spend", kind: "spending" as const, label: "", amount: -d.confirmedSpend, predicted: false, count: d.confirmedCount }] : []),
+        ]
+      : [
+          ...d.predictedIncome.map((i) => ({ key: `in-${i.payer}`, kind: "income" as const, label: i.payer, amount: i.amount, predicted: true })),
+          ...[...d.predictedBills].sort((a, b) => b.expected_amount - a.expected_amount)
+            .map((b) => ({ key: `bill-${b.merchant}`, kind: "bill" as const, label: b.merchant, amount: -b.expected_amount, predicted: true })),
+        ];
+    const isLowest = d.date === lowest;
+    if (!events.length && !isLowest) continue;
+    if (!events.length) events.push({ key: "bal", kind: "balance", label: "", amount: 0, predicted: d.balancePredicted });
+    out.push({ date: d.date, isToday: d.isToday, events, balance: d.balance, balancePredicted: d.balancePredicted, belowZero: d.belowZero, isLowest });
+  }
+  const gap = days.find((d) => !d.outside && d.date > asOf && d.balance === null);
+  return { days: out, forecastEnds: gap?.date ?? null };
 }

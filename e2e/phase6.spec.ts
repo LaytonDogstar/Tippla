@@ -46,9 +46,9 @@ test.describe("dynamic type 200%", () => {
       expect(problems, problems.join("\n")).toEqual([]);
     });
   }
-  test("calendar switches to its list alternative at large text", async ({ page }) => {
+  test("calendar: the timeline (the default view) works at large text", async ({ page }) => {
     await page.goto(url("/calendar", "jess"));
-    await expect(page.getByRole("list", { name: /^Days as a list/ })).toBeVisible();
+    await expect(page.getByRole("list", { name: /^Money in and out/ })).toBeVisible();
     await page.getByRole("button", { name: /^Wed 30\/09\/2026/ }).click();
     await expect(page.getByRole("dialog").getByText("$262 − $315 = −$53")).toBeVisible();
   });
