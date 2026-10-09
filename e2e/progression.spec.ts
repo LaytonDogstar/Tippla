@@ -16,7 +16,7 @@ const withAccount = (context: BrowserContext, persona: string, a: object) =>
 test("acceptance: Jess (goal: stop relying on pay advances) sees Get off pay advances at step 1; switch any time", async ({ page, context }) => {
   await withAccount(context, "jess", { focusGoal: { type: "off_advances", startedAt: "2026-09-25" } });
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByRole("link", { name: /Your plan Get off pay advances · Step 1 of 3: A pay cycle with pay advances of \$150 or less/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Your plan · Step 1 of 3\s?: Get off pay advances\. A pay cycle with pay advances of \$150 or less/ })).toBeVisible();
   await page.goto("/savings?persona=jess&present=1");
   const plan = page.getByRole("region", { name: "Get off pay advances" });
   await expect(plan).toContainText("Suggested for you");

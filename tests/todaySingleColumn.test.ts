@@ -2,11 +2,9 @@
 // compares the same day of the last pay cycle; the change colour has one tunable threshold.
 import { describe, expect, it } from "vitest";
 import {
-  CHANGE_THRESHOLD, changeTone, comingUp, comingUpBlocks, currentBalance, fortnight, FIXED_COMMITMENTS, payCycleSummary, spendingSoFar, totalSpent,
-  withMembershipCharge, categoryTotals,
+  CHANGE_THRESHOLD, changeTone, comingUp, comingUpBlocks, currentBalance, fortnight, payCycleSummary, withMembershipCharge,
 } from "@/lib/selectors";
 import { feed } from "@/lib/feed";
-import { addDays, daysBetween } from "@/lib/format";
 import { all, load } from "./helpers";
 
 describe("Coming up running balances", () => {
@@ -38,51 +36,6 @@ describe("Coming up running balances", () => {
     expect(once.derived.upcoming_bills.filter((b) => b.membership)).toHaveLength(1);
     const paused = withMembershipCharge(d, { subscription: { status: "paused", plan: d.profile.tier, effective: d.asOf, at: d.asOf } } as never);
     expect(paused.derived.upcoming_bills.some((b) => b.membership)).toBe(false);
-  });
-});
-
-describe("Spending so far: the same point of the last pay cycle", () => {
-  it("compares day N with day N, never the whole previous cycle", async () => {
-    const d = await load("jess");
-    const s = spendingSoFar(d, {}, { fixed: FIXED_COMMITMENTS });
-    expect(s.day).toBe(daysBetween("2026-09-17", d.asOf) + 1); // day 9
-    expect(s.of).toBe(14);
-    const prevStart = addDays("2026-09-17", -14);
-    const same = { id: "cycle" as const, label: "", start: prevStart, end: addDays(prevStart, s.day - 1), basedOnDays: s.day, limitedByHistory: false };
-    expect(s.previous).toBe(totalSpent(d, same));
-    const full = { ...same, end: addDays(prevStart, 13) };
-    expect(s.previous).not.toBe(totalSpent(d, full));
-    expect(s.change).toBe(Math.round((s.total - s.previous!) * 100) / 100);
-  });
-
-  it("fixed costs are FIXED_COMMITMENTS; everyday rows are sorted by amount spent; everything adds up", async () => {
-    for (const d of await all()) {
-      const s = spendingSoFar(d, {}, { fixed: FIXED_COMMITMENTS, n: 4 });
-      expect(s.fixed.categories.every((c) => FIXED_COMMITMENTS.includes(c))).toBe(true);
-      expect(s.everyday.every((r) => !FIXED_COMMITMENTS.includes(r.category))).toBe(true);
-      const amounts = s.everyday.map((r) => r.total);
-      expect(amounts).toEqual([...amounts].sort((a, b) => b - a));
-      const sum = s.fixed.total + s.everyday.reduce((n, r) => n + r.total, 0) + (s.other?.total ?? 0);
-      expect(Math.round(sum * 100)).toBe(Math.round(s.total * 100));
-    }
-  });
-
-  it("no previous pay cycle in the data: no comparison at all (never zeros)", async () => {
-    const d = await load("priya");
-    const late = { ...d, profile: { ...d.profile, data_from: "2026-09-20" } };
-    const s = spendingSoFar(late, {}, { fixed: FIXED_COMMITMENTS });
-    expect(s.previous).toBeNull();
-    expect(s.change).toBeNull();
-    expect(s.fixed.change).toBeNull();
-    expect(s.everyday.every((r) => r.change === null && r.tone === "neutral")).toBe(true);
-  });
-
-  it("gambling insights off: gambling isn't named, it counts in Other", async () => {
-    const d = await load("jess");
-    const s = spendingSoFar(d, {}, { fixed: FIXED_COMMITMENTS, hideGambling: true });
-    expect(s.everyday.some((r) => r.category === "gambling")).toBe(false);
-    expect(categoryTotals(d, { id: "cycle", label: "", start: "2026-09-17", end: d.asOf, basedOnDays: 9, limitedByHistory: false }).some((r) => r.category === "gambling")).toBe(true);
-    expect(s.other).not.toBeNull();
   });
 });
 

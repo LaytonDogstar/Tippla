@@ -57,6 +57,9 @@ export function budgetView(d: SpendData, cycle: Period, budgets: Budgets, overri
  * The suggestion is about 15% under the average, rounded down to $10 (at least $10).
  */
 export interface BudgetSuggestion { category: SpendCategory; name: string; average: number; suggested: number }
+/** About 15% under the usual (3-cycle) average, in tens, never under $10: Budget ideas and the Spending panels. */
+export const suggestedBudget = (average: number) => Math.max(10, Math.floor((average * 0.85) / 10) * 10);
+
 export function budgetSuggestions(d: SpendData, budgets: Budgets, overrides?: CategoryOverrides, max = 3): BudgetSuggestion[] {
   const NOT_SUGGESTED: SpendCategory[] = ["gambling", "alcohol"];
   return (Object.keys(categoryTypes) as SpendCategory[])
@@ -65,5 +68,5 @@ export function budgetSuggestions(d: SpendData, budgets: Budgets, overrides?: Ca
     .filter((x): x is { c: SpendCategory; avg: number } => x.avg !== null && x.avg >= 20)
     .sort((a, b) => b.avg - a.avg)
     .slice(0, max)
-    .map(({ c, avg }) => ({ category: c, name: categoryNames[c], average: Math.round(avg), suggested: Math.max(10, Math.floor((avg * 0.85) / 10) * 10) }));
+    .map(({ c, avg }) => ({ category: c, name: categoryNames[c], average: Math.round(avg), suggested: suggestedBudget(avg) }));
 }

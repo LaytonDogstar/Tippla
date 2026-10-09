@@ -1,5 +1,5 @@
-// Phase 4 acceptance: journey 2 (dashboard → spending → category → merchant sheet → recategorise), and
-// recategorising updates donut, rows, budgets, hero and the dashboard. Axe on every Phase 4 screen.
+// Phase 4 acceptance, for Spending v5 (09/10/2026): journey 2 (dashboard → spending → category → merchant →
+// recategorise), and recategorising moves the rows, budgets, summary and the dashboard. Axe on every Phase 4 screen.
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -13,116 +13,119 @@ async function expectNoAxe(page: Page) {
   expect(s, s.join("\n")).toEqual([]);
 }
 
-// Category rows (the donut's legend also has category buttons since UX round 2, 5.2).
-const row = (page: Page, name: RegExp) => page.getByRole("region", { name: "Categories" }).getByRole("button", { name, expanded: undefined }).first();
+const where = (page: Page) => page.getByRole("region", { name: "Where it went" });
+const row = (page: Page, name: RegExp) => where(page).getByRole("button", { name }).first();
 
-test("journey 2: dashboard → spending → category → merchant sheet → recategorise (Jess)", async ({ page }) => {
+test("journey 2: dashboard → spending → category → merchant → recategorise (Jess)", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  // Today redesign: spent this pay cycle sits in the hero.
   await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,832")).toBeVisible();
   await page.getByRole("navigation").getByRole("link", { name: /^Money/ }).first().click();
   await expect(page).toHaveURL(/\/spending/);
-  await expect(page.getByRole("region", { name: "Spending by category" }).getByText(/^\$1,832 spent/)).toBeVisible();
+  // Spending v5: one column; the summary is the same component and numbers as Today's.
+  await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,832")).toBeVisible();
 
-  // A budget first, so we can watch it move.
-  await page.getByText("Budgets", { exact: true }).click();
-  await page.getByRole("button", { name: /^Groceries budget: Set a budget/ }).click();
-  await page.getByRole("dialog").getByLabel("Budget per pay cycle").fill("100");
-  await page.getByRole("dialog").getByRole("button", { name: "Save budget" }).click();
-  await expect(page.getByText("$82 of $100")).toBeVisible();
-  await page.getByText("Categories", { exact: true }).first().click();
-
-  // Category → merchants → merchant sheet (Categories tab; Overview opens a category's transactions in place).
+  // A budget first, from the category's own panel (the same amount logic as Budget ideas).
   const food = row(page, /^Food & dining/);
   await expect(food).toContainText("$112");
   await food.click();
-  await page.getByRole("button", { name: /^McDonald's/ }).first().click();
+  await where(page).getByRole("button", { name: "Set a budget of $150" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Save budget" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Budget saved" })).toBeVisible();
+
+  // Category → merchant → its transactions → the transaction sheet → recategorise.
+  await where(page).getByRole("button", { name: /^McDonald's/ }).click();
+  await where(page).getByRole("button", { name: /^Fri 25\/09/ }).click();
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByRole("heading", { name: "McDonald's" })).toBeVisible();
   await expectNoAxe(page);
-
-  // Recategorise one $7.68 transaction to Groceries: rows and budget move, spent doesn't.
-  await sheet.getByRole("combobox", { name: /Category for McDonald's on 25\/09\/2026/ }).selectOption({ label: "Groceries" });
+  await sheet.getByRole("combobox", { name: "Category" }).selectOption({ label: "Groceries" });
   await expect(page.getByRole("status").filter({ hasText: "Moved to Groceries. Totals updated" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(row(page, /^Food & dining/)).toContainText("$105");
   await expect(row(page, /^Groceries/)).toContainText("$90");
-  await page.getByText("Overview", { exact: true }).click();
-  await expect(page.getByRole("region", { name: "Spending by category" }).getByText(/^\$1,832 spent/)).toBeVisible();
 
-  // Mark another as a transfer between own accounts: spent drops on the hero, the category list and Home.
-  await page.getByText("Categories", { exact: true }).first().click();
-  await page.getByRole("region", { name: "Categories" }).getByRole("button", { name: /^McDonald's/ }).first().click();
+  // "Wrong category?" opens the merchant sheet: mark another as a transfer, and spent drops everywhere.
+  await row(page, /^Food & dining/).click();
+  await row(page, /^Food & dining/).click();
+  await where(page).getByRole("button", { name: "Wrong category?" }).click();
   await page.getByRole("dialog").getByRole("combobox", { name: /on 23\/09\/2026/ }).selectOption({ label: "Transfers between your accounts" });
   await page.keyboard.press("Escape");
-  await expect(row(page, /^Food & dining/)).toContainText("$77");
-  await page.getByText("Overview", { exact: true }).click();
-  await expect(page.getByText("$1,804 spent").first()).toBeVisible();
-  await expect(page.getByRole("region", { name: "Spending by category" }).getByText(/^\$1,804 spent/)).toBeVisible();
-
-  await page.getByText("Budgets", { exact: true }).click();
-  await expect(page.getByText("$90 of $100")).toBeVisible();
-
-  await page.getByRole("navigation").getByRole("link", { name: /^Today/ }).first().click();
+  await expect(row(page, /^Food & dining/)).toContainText("$76");
   await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,804")).toBeVisible();
 
-  // Undo is one tap away: back on Spending, the edit is still there after a reload (cookie).
-  await page.goto("/spending?persona=jess&present=1");
-  await expect(page.getByText("$1,804 spent").first()).toBeVisible();
+  await page.goto("/spending/budgets?persona=jess&present=1");
+  await expect(page.getByText("$76 of $150")).toBeVisible();
+
+  await page.goto("/?persona=jess&present=1");
+  await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,804")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Spending" }).getByText("$1,804")).toBeVisible();
 });
 
-test("by category: a row opens its transactions in place and never filters the Transactions card", async ({ page }) => {
+test("Spending v5: one column in order, sections with chips, no tabs, no hero, no carousel", async ({ page }) => {
   await page.goto("/spending?persona=jess&present=1");
-  const card = page.getByRole("region", { name: "Spending by category" });
-  const feed = page.getByRole("region", { name: "Transactions" });
-  await expect(feed.getByText("26 transactions")).toBeVisible();
-  await card.getByRole("button", { name: /^Food & dining/ }).click();
-  await expect(card.getByRole("button", { name: /^Food & dining/ })).toHaveAttribute("aria-expanded", "true");
-  await expect(card.getByRole("button", { name: /^See all 6 Food & dining transactions/ })).toBeVisible();
-  await expect(feed.getByText("26 transactions")).toBeVisible(); // untouched
-  await expect(feed.getByRole("radio", { name: "All" })).toBeChecked();
-  // One row open at a time.
-  await card.getByRole("button", { name: /^Rent & housing/ }).click();
-  await expect(card.getByRole("button", { name: /^Food & dining/ })).toHaveAttribute("aria-expanded", "false");
-  // See all filters the card, which says so: a chip, and no direction pill selected.
-  await card.getByRole("button", { name: /^Food & dining/ }).click();
-  await card.getByRole("button", { name: /^See all 6 Food & dining transactions/ }).click();
-  await expect(feed.getByText("6 transactions · Food & dining")).toBeVisible();
-  await expect(feed.getByRole("radio", { name: "All" })).not.toBeChecked();
-  await feed.getByRole("button", { name: /^Remove Food & dining filter$/ }).click();
-  await expect(feed.getByText("26 transactions")).toBeVisible();
-  await expect(feed.getByRole("radio", { name: "All" })).toBeChecked();
+  const main = page.locator("main");
+  for (const name of ["Spending views", "Your spending"]) await expect(main.getByRole("group", { name })).toHaveCount(0);
+  await expect(main.getByRole("button", { name: "See what's due" })).toHaveCount(0);
+  await expect(main.getByText(/^Most went on/)).toHaveCount(0);
+  const order = ["This cycle so far", "Plan ahead", "Longer term", "Activity"];
+  const tops: number[] = [];
+  for (const h of order) tops.push((await main.getByRole("heading", { name: h, level: 2 }).boundingBox())!.y);
+  expect(tops).toEqual([...tops].sort((a, b) => a - b));
+  const chips = page.getByRole("navigation", { name: "Sections" });
+  await chips.getByRole("link", { name: "Activity" }).click();
+  await expect(chips.getByRole("link", { name: "Activity" })).toHaveAttribute("aria-current", "location");
+  // The shortfall: one line, linking to Coming up on Today.
+  await expect(main.getByRole("link", { name: /\$53 short before payday/ })).toHaveAttribute("href", "/#coming-up");
+  // Summary: day 9 of 14, everyday spending against the same day last cycle, usual (3 cycles), pending.
+  const sum = page.getByRole("region", { name: "This pay cycle" });
+  await expect(sum).toContainText("spent by day 9 of 14");
+  await expect(sum).toContainText("$39 less on everyday spending than at this point last cycle");
+  await expect(sum).toContainText("Your full cycle is usually about $2,601 · plus $212 pending");
 });
 
-test("by category: ranked by amount, top five then Show more inline; lenders flag gambling and loans", async ({ page }) => {
+test("Where it went: fixed and repayments lines; Essentials and Lifestyle by amount; the B2 panel", async ({ page }) => {
   await page.goto("/spending?persona=jess&present=1");
-  const card = page.getByRole("region", { name: "Spending by category" });
-  const rows = card.getByRole("button", { expanded: false }).filter({ hasText: "$" });
-  await expect(rows).toHaveCount(5);
-  const amounts = await rows.evaluateAll((els) => els.map((e) => Number((e.textContent!.match(/\$([\d,]+)/)?.[1] ?? "0").replace(/,/g, ""))));
-  expect([...amounts].sort((a, b) => b - a)).toEqual(amounts);
-  await expect(card.getByText(/^Other/)).toHaveCount(0);
-  await card.getByRole("button", { name: /^Show \d+ more/ }).click();
-  await expect(card.getByRole("button", { name: /^Show fewer/ })).toBeVisible();
-  await expect(card.getByRole("link", { name: /^Lenders look at this\W+Loan repayments/ })).toHaveAttribute("href", "/score/current-borrowing");
-  await card.getByRole("button", { name: /^Lenders look at this\W+Gambling/ }).click();
-  await expect(page.getByRole("dialog").getByRole("heading", { name: "How gambling affects your SmartScore" })).toBeVisible();
+  const w = where(page);
+  await expect(w.getByRole("button", { name: /^Fixed costs/ })).toContainText("$820");
+  await expect(w.getByRole("button", { name: /^Repayments/ })).toContainText("$335");
+  await expect(w.getByText(/^Other/)).toHaveCount(0);
+  await w.getByRole("button", { name: /^Transport/ }).click();
+  await expect(w).toContainText("Spent so far$115");
+  await expect(w).toContainText("$3 over your usual cycle");
+  await expect(w).toContainText("Up $115 on this point last cycle. Mostly Opal Top Up ($68).");
+  await w.getByRole("button", { name: /^Gambling/ }).click(); // one panel at a time
+  await expect(w.getByRole("button", { name: /^Transport/ })).toHaveAttribute("aria-expanded", "false");
+  await expect(w).toContainText("About usual for this point");
+  await expect(w).toContainText("Mostly TAB ($110).");
+  await w.getByRole("button", { name: /^Food & dining/ }).click();
+  await expect(w.getByRole("button", { name: "Set a budget of $150" })).toBeVisible();
+  await expect(w.getByRole("button", { name: "See all 6" })).toBeVisible();
+  await w.getByRole("button", { name: "See all 6" }).click();
+  const activity = page.getByRole("region", { name: "Activity" });
+  await expect(activity.getByRole("button", { name: /^Remove Food & dining filter$/ })).toBeVisible();
+  await expect(activity.getByRole("radio", { name: "All" })).not.toBeChecked();
+  await expectNoAxe(page);
 });
 
-test("search by merchant or amount, with a plain empty state", async ({ page }) => {
+test("search by merchant or amount, with a plain empty state; the double charge strip", async ({ page }) => {
   await page.goto("/spending?persona=jess&present=1");
-  await page.getByRole("button", { name: "Search transactions" }).click();
+  const activity = page.getByRole("region", { name: "Activity" });
+  await expect(activity.getByText("Amazon AU may have charged you twice ($10.73)")).toBeVisible();
+  await page.getByRole("button", { name: "Fix", exact: true }).click();
   await expect(page.getByRole("searchbox", { name: "Search merchant or amount" })).toBeFocused();
-  await page.getByRole("searchbox").fill("4.49");
+  await page.getByRole("searchbox", { name: "Search merchant or amount" }).fill("4.49");
   await expect(page.getByRole("button", { name: /^Apple iCloud −\$4\.49 , money out/ })).toBeVisible();
-  await page.getByRole("searchbox").fill("zzzz");
+  await page.getByRole("searchbox", { name: "Search merchant or amount" }).fill("zzzz");
   await expect(page.getByText('No transactions match "zzzz".')).toBeVisible();
   await expect(page).toHaveURL(/q=zzzz/);
 });
 
-test("gambling insight: neutral sheet, support replaces content with Back", async ({ page }) => {
+test("gambling insight from How lenders see your spending: neutral sheet, support replaces content with Back", async ({ page }) => {
   await page.goto("/spending?persona=jess&present=1");
-  await page.getByRole("button", { name: "See how" }).first().click();
+  const lenders = page.getByRole("region", { name: "How lenders see your spending" });
+  await expect(lenders).toContainText("3 lenders");
+  await expect(lenders).toContainText("1 this cycle");
+  await lenders.getByRole("button", { name: /^2 deposits/ }).click();
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByRole("heading", { name: "How gambling affects your SmartScore" })).toBeVisible();
   await expect(sheet.getByRole("link", { name: "See how your score is worked out" })).toHaveAttribute("href", "/score/gambling-and-alcohol");
@@ -137,8 +140,8 @@ test("gambling insight: neutral sheet, support replaces content with Back", asyn
 
 test("dashboard month bar opens that month on Spending", async ({ page }) => {
   await page.goto("/spending?persona=marcus&present=1&month=2026-05");
-  await expect(page.getByRole("button", { name: "May 2026", pressed: true })).toBeVisible();
-  await expect(page.getByText("in May 2026").first()).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Period" })).toHaveValue("month:2026-05");
+  await expect(page.getByRole("region", { name: "May 2026" })).toContainText("spent");
 });
 
 test("calendar: Home's next bill opens its day; range totals in the calendar view; month switch", async ({ page }) => {

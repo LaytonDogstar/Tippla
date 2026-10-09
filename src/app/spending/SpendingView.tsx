@@ -1,324 +1,278 @@
 "use client";
-// P3 Spending, after reference/spending_interaction_prototype.html: the chart is a control, rows expand to
-// merchants, any transaction can be recategorised and every figure (donut, rows, budgets, hero, Home) moves.
-import { AskAboutThis } from "@/components/domain/AskTippla";
-import { useCorrections } from "@/lib/account/useCorrections";
-import { correctionCopy } from "@/content/corrections";
-import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
+// Spending (v5, single column, 09/10/2026; reference: tippla-spending-single-column-v5.html). One centred column in
+// the order people think: this cycle so far (a one-line shortfall link, the summary, where it went) → plan ahead
+// (budget ideas) → longer term (how lenders see it) → activity (the transactions) → housekeeping. Section headings
+// sit outside the cards, with sticky chips to jump between them. Every figure comes from spendingView(), the same
+// selector Today's Spending section uses; recategorising a transaction moves everything at once.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, Search, TriangleAlert } from "lucide-react";
 import type { CategoryId, PersonaId, Transaction } from "@/lib/api/types";
-import { categoryNames, categoryTypes, copy, factorCopy, periodLabels } from "@/content/en-AU";
-import { spending as t } from "@/content/spending";
-import { todayCopy } from "@/content/today";
-import { gamblingSupport } from "@/content/support";
-import { category as catCopy, transaction as txCopy } from "@/content/components";
-import { formatCents, formatDate, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
-import { sumMoney } from "@/lib/format/money";
+import { categoryNames, categoryTypes, periodLabels } from "@/content/en-AU";
+import { spending as sp } from "@/content/spending";
+import { transaction as txCopy } from "@/content/components";
+import { formatCents, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
 import { useBudgets, useCategoryEdits } from "@/lib/edits/client";
 import {
-  averagePerCycle, budgetable, budgetSuggestions, budgetView, categorySparkline, categoryTotals, currentCycle, EDITABLE_CATEGORIES, merchantsIn, paidInFor,
-  PERIOD_IDS, previousOf, resolvePeriod, spendingFeed, spendingInsights, totalSpent,
-  type CategoryOverrides, type FeedDirection, type GamblingFacts, type PayCycleSummary, type Period, type PeriodId, type SpendCategory,
-  type SpendData, type SpendFilter, type CategoryRow as Row,
+  budgetSuggestions, lenderFacts, PERIOD_IDS, resolvePeriod, spendingFeed, spendingInsights, spendingView,
+  type CategoryOverrides, type GamblingFacts, type FeedDirection, type PayCycleSummary, type PeriodId, type SpendCategory, type SpendData,
 } from "@/lib/selectors";
-import { FACTOR_SLUGS } from "@/lib/ui/factorSlugs";
-import { CategoryRow } from "@/components/domain/CategoryRow";
-import { CategoryBreakdown } from "@/components/domain/CategoryBreakdown";
-import { DueSheet } from "@/components/domain/DueSheet";
-import { InsightCard, InsightSheetBody, type InsightItem } from "@/components/domain/Insight";
-import { SupportOptions } from "@/components/domain/SupportOptions";
+import { SpendSummary } from "@/components/money/SpendSummary";
+import { WhereItWent } from "@/components/money/WhereItWent";
+import { Section, SectionChips, GROUP_GAP } from "@/components/shell/Sections";
 import { TransactionRow } from "@/components/domain/TransactionRow";
-import { categoryIcons, catVar } from "@/components/icons";
-import { Button, ButtonLink } from "@/components/ui/Button";
-import { Chip, ChipGroup, FilterChip, SegmentedControl } from "@/components/ui/Chips";
+import { Button } from "@/components/ui/Button";
+import { FilterChip, SegmentedControl } from "@/components/ui/Chips";
 import { EmptyState, useToast } from "@/components/ui/Feedback";
-import { CurrencyInput, SelectInput } from "@/components/ui/Form";
-import { Sheet } from "@/components/ui/Sheet";
 import { cx } from "@/components/ui/cx";
-import { HEADER_ACTION } from "@/components/shell/Shells";
-import { PageColumns } from "@/components/shell/PageColumns";
+import { BudgetSheet, MerchantSheet, TransactionSheet, type SheetState } from "./sheets";
+import { InsightSheetBody } from "@/components/domain/Insight";
+import { SupportOptions } from "@/components/domain/SupportOptions";
+import { Sheet } from "@/components/ui/Sheet";
+import { gamblingSupport } from "@/content/support";
+import { factorCopy } from "@/content/en-AU";
+import { FACTOR_SLUGS } from "@/lib/ui/factorSlugs";
+import { ButtonLink } from "@/components/ui/Button";
 
-export interface SpendingParams { tab?: string; period?: string; month?: string; category?: string; direction?: string; q?: string }
-type Tab = "overview" | "categories" | "budgets";
-type Sort = "amount" | "change" | "az";
-type SheetState =
-  | null
-  | { kind: "insight"; id: string }
-  | { kind: "support"; id: string }
-  | { kind: "merchant"; merchant: string }
-  | { kind: "tx"; id: string; fromMerchant?: string }
-  | { kind: "budget"; category: SpendCategory; suggest?: number }
-  | { kind: "due" };
+export interface SpendingParams { period?: string; month?: string; category?: string; direction?: string; q?: string }
 
-const TABS: Tab[] = ["overview", "categories", "budgets"];
+const t = sp.v5;
 const isSpendCat = (v: unknown): v is SpendCategory => typeof v === "string" && v in categoryTypes;
-const SEARCH_EVENT = "tippla:spending-search";
+const PREVIEW = 10;
 const PAGE = 30;
 
-/** Header search button: jumps to the transaction search on the Overview tab. */
-export function SpendingSearchButton() {
-  return (
-    <button type="button" aria-label={t.search} onClick={() => window.dispatchEvent(new Event(SEARCH_EVENT))}
-      className={HEADER_ACTION}>
-      <Search aria-hidden size={20} strokeWidth={1.8} />
-    </button>
-  );
-}
-
-function vsLabel(p: Period): string {
-  if (p.id === "this_cycle") return t.vsLabel.this_cycle;
-  if (p.id === "last_cycle") return t.vsLabel.last_cycle;
-  if (p.id === "month") return t.vsLabel.month;
-  return t.vsLabel.rolling;
-}
-
-export function SpendingView({ persona, data, initialEdits, payCycle, gambling, accounts, params, asOf, corrections = null, ask = null, doubles = {} }: {
+export function SpendingView({ persona, data, initialEdits, payCycle, params, asOf, corrections = null, doubles = {}, hideGambling = false, gambling = null }: {
+  /** For the gambling insight (how it affects the SmartScore, and support), opened from the lenders card. */
+  gambling?: GamblingFacts | null;
+  persona: PersonaId; data: SpendData; initialEdits: CategoryOverrides; payCycle: PayCycleSummary; params: SpendingParams; asOf: string;
+  corrections?: { oneOff: string[]; regular: string[] } | null;
   /** Transaction id → Needs a look item id, for transactions flagged as a possible double charge. */
   doubles?: Record<string, string>;
-  /** Spec 08: "Ask about this" question (null when the assistant is off). */
-  ask?: string | null;
-  /** Spec 05: corrections on (with the payers the member has marked one-off or regular). */
-  asOf?: string; corrections?: { oneOff: string[]; regular: string[] } | null;
-  persona: PersonaId; present: boolean; data: SpendData; initialEdits: CategoryOverrides; payCycle: PayCycleSummary;
-  gambling: GamblingFacts | null; accounts: { id: number; label: string }[]; params: SpendingParams;
+  hideGambling?: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
   const original = useMemo(() => Object.fromEntries(data.transactions.map((x) => [x.id, x.category])) as Record<string, CategoryId>, [data]);
   const { edits, setCategory, restore } = useCategoryEdits(persona, initialEdits, original);
   const { budgets, save: saveBudgets } = useBudgets(persona);
-
-  const [tab, setTab] = useState<Tab>(TABS.includes(params.tab as Tab) ? (params.tab as Tab) : "overview");
   const [periodKey, setPeriodKey] = useState<{ period?: string; month?: string }>({ period: params.period, month: params.month });
   const [selected, setSelected] = useState<SpendCategory | null>(isSpendCat(params.category) ? params.category : null);
-  const [filter, setFilter] = useState<SpendFilter>("all");
-  const [sort, setSort] = useState<Sort>("amount");
-  const [account, setAccount] = useState("all");
   const [direction, setDirection] = useState<FeedDirection>(params.direction === "out" || params.direction === "in" ? params.direction : "all");
   const [q, setQ] = useState(params.q ?? "");
-  const [shown, setShown] = useState(PAGE);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(isSpendCat(params.category) ? [params.category] : []));
+  const [shown, setShown] = useState(params.category || params.direction || params.q ? PAGE : PREVIEW);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [sheet, setSheet] = useState<SheetState>(null);
-  const feedRef = useRef<HTMLElement>(null);
+  const [gamblingSheet, setGamblingSheet] = useState<"insight" | "support" | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Filters live in the URL (shareable, survives reload) without a server round trip.
   useEffect(() => {
     const u = new URL(window.location.href);
     const set = (k: string, v: string | null | undefined) => (v ? u.searchParams.set(k, v) : u.searchParams.delete(k));
-    set("tab", tab === "overview" ? null : tab);
+    u.searchParams.delete("tab");
     set("period", periodKey.month ? null : periodKey.period && periodKey.period !== "this_cycle" ? periodKey.period : null);
     set("month", periodKey.month);
     set("category", selected);
     set("direction", direction === "all" ? null : direction);
     set("q", q.trim() || null);
     window.history.replaceState(window.history.state, "", u.toString());
-  }, [tab, periodKey, selected, direction, q]);
+  }, [periodKey, selected, direction, q]);
+  // Links into Activity (a category, a direction or a search) land on it.
+  useEffect(() => { if (params.category || params.direction || params.q) document.getElementById("activity")?.scrollIntoView({ block: "start" }); }, [params.category, params.direction, params.q]);
 
-  const scrollToFeed = useCallback((focusSearch = false) => {
-    requestAnimationFrame(() => {
-      feedRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
-      if (focusSearch) searchRef.current?.focus({ preventScroll: true });
-    });
-  }, []);
-  useEffect(() => {
-    const onSearch = () => { setTab("overview"); scrollToFeed(true); };
-    window.addEventListener(SEARCH_EVENT, onSearch);
-    return () => window.removeEventListener(SEARCH_EVENT, onSearch);
-  }, [scrollToFeed]);
-  useEffect(() => { if (params.direction || params.q) scrollToFeed(); }, [params.direction, params.q, scrollToFeed]);
-  useEffect(() => setShown(PAGE), [periodKey, selected, direction, q, filter]);
-
-  // ---- Numbers: every one through the selectors -------------------------------------------------
-  const scoped = useMemo<SpendData>(() => (account === "all" ? data : { ...data, transactions: data.transactions.filter((x) => String(x.account_id) === account) }), [data, account]);
+  // ---- Numbers: every one through the selectors ---------------------------------------------------------
   const p = useMemo(() => resolvePeriod(data, periodKey), [data, periodKey]);
-  const cycle = useMemo(() => currentCycle(data), [data]);
-  const allRows = useMemo(() => categoryTotals(scoped, p, edits), [scoped, p, edits]);
-  const total = useMemo(() => totalSpent(scoped, p, edits), [scoped, p, edits]);
-  const prev = useMemo(() => previousOf(data, p), [data, p]);
-  const comparable = prev.basedOnDays > 0 && !prev.limitedByHistory;
-  const insights = useMemo(() => spendingInsights(scoped, p, edits, gambling), [scoped, p, edits, gambling]);
-  const insightItems: InsightItem[] = insights.map((i) => ({ id: i.id, context: i.context, title: i.title, summary: i.summary, happening: i.happening, wouldChange: i.wouldChange, ifYouWant: i.ifYouWant }));
-  const showBudgets = p.id === "this_cycle";
-  const feedFilter = tab === "categories" ? filter : "all";
-  const feed = useMemo(() => spendingFeed(scoped, p, edits, { category: selected, filter: feedFilter, direction, q }), [scoped, p, edits, selected, feedFilter, direction, q]);
+  const v = useMemo(() => spendingView(data, p, edits, { budgets, hideGambling }), [data, p, edits, budgets, hideGambling]);
+  const lenders = useMemo(() => lenderFacts(data, p, edits, { hideGambling }), [data, p, edits, hideGambling]);
+  const ideas = useMemo(() => budgetSuggestions(data, budgets, edits).filter((x) => !dismissed.has(x.category)), [data, budgets, edits, dismissed]);
+  const feed = useMemo(() => spendingFeed(data, p, edits, { category: selected, direction, q }), [data, p, edits, selected, direction, q]);
+  const allInPeriod = useMemo(() => spendingFeed(data, p, edits, {}), [data, p, edits]);
   const txById = useMemo(() => new Map(data.transactions.map((x) => [x.id, { ...x, category: edits[x.id] ?? x.category }])), [data, edits]);
-  const cycleSpent = useMemo(() => totalSpent(data, cycle, edits), [data, cycle, edits]);
-  const hero: PayCycleSummary = { ...payCycle, spent: cycleSpent };
+  const cycle = v.kind === "cycle";
+  const gamblingInsight = useMemo(() => (gambling ? spendingInsights(data, p, edits, gambling).find((i) => i.id === "gambling") ?? null : null), [data, p, edits, gambling]);
+  const double = Object.keys(doubles).map((id) => txById.get(id)).filter((x): x is Transaction => !!x && x.date >= p.start && x.date <= p.end);
 
-  const listRows = useMemo(() => {
-    const change = (r: Row) => Math.abs(r.change);
-    const rows = categoryTotals(scoped, p, edits, tab === "categories" ? filter : "all");
-    return [...rows].sort(sort === "amount" ? (a, b) => b.total - a.total : sort === "change" ? (a, b) => change(b) - change(a) || b.total - a.total : (a, b) => a.name.localeCompare(b.name));
-  }, [scoped, p, edits, tab, filter, sort]);
-
-  const changeText = (r: Row) => {
-    if (!comparable) return undefined;
-    if (Math.round(r.change) === 0) return t.categories.noChange(vsLabel(p));
-    return t.categories.change(formatWhole(Math.abs(r.change)), r.change > 0, vsLabel(p));
-  };
-
-  // ---- Actions ------------------------------------------------------------------------------------
   const recategorise = (id: string, category: CategoryId) => {
     const before = edits;
     setCategory(id, category);
-    toast({ kind: "confirm", message: t.tx.moved(categoryNames[category]), onUndo: () => restore(before) });
+    toast({ kind: "confirm", message: sp.tx.moved(categoryNames[category]), onUndo: () => restore(before) });
   };
-  /** Filters the Transactions card to a category (the card shows it as a chip); direction goes back to All. */
-  const selectCategory = (c: SpendCategory | null) => {
-    setSelected(c);
-    if (c) { setDirection("all"); setExpanded((s) => new Set(s).add(c)); }
-  };
-  const choosePeriod = (id: PeriodId) => setPeriodKey({ period: id });
-  const viewAll = (c: SpendCategory) => { setTab("overview"); selectCategory(c); scrollToFeed(); };
-  const gamblingInsight = insights.find((i) => i.id === "gambling");
-
-  const rowFor = (r: Row) => {
-    const ins = insights.find((i) => i.category === r.category);
-    return (
-      <li key={r.category}>
-        <CategoryRow
-          row={r}
-          merchants={merchantsIn(scoped, p, r.category, edits)}
-          budget={showBudgets && (budgetable(r.category) || budgets[r.category] !== undefined) ? budgets[r.category] ?? null : undefined}
-          insightLabel={ins?.chip}
-          onInsight={ins ? () => setSheet({ kind: "insight", id: ins.id }) : undefined}
-          onMerchant={(m) => setSheet({ kind: "merchant", merchant: m.merchant })}
-          onViewAll={() => viewAll(r.category)}
-          onEditBudget={showBudgets && (budgetable(r.category) || budgets[r.category] !== undefined) ? () => setSheet({ kind: "budget", category: r.category }) : undefined}
-          changeText={changeText(r)}
-          sparkline={categorySparkline(scoped, r.category, 6, edits)}
-          expanded={expanded.has(r.category)}
-          onToggle={(open) => setExpanded((s) => { const n = new Set(s); if (open) n.add(r.category); else n.delete(r.category); return n; })}
-        />
-      </li>
-    );
+  const toActivity = (focus = false) => requestAnimationFrame(() => {
+    document.getElementById("activity")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    if (focus) searchRef.current?.focus({ preventScroll: true });
+  });
+  const setBudget = (c: SpendCategory, amount: number) => {
+    saveBudgets({ ...budgets, [c]: amount });
+    toast({ kind: "confirm", message: sp.budgets.saved(categoryNames[c]), onUndo: () => saveBudgets(budgets) });
+    router.refresh();
   };
 
-  const periodChips = (
-    <div className="mt-t4">
-      <ChipGroup label={t.periodsLabel}>
-        {PERIOD_IDS.map((id) => <Chip key={id} selected={p.id === id} onClick={() => choosePeriod(id)}>{periodLabels[id]}</Chip>)}
-        {p.id === "month" && <Chip selected>{p.label}</Chip>}
-      </ChipGroup>
-      {p.limitedByHistory && <p className="mt-t2 text-caption text-text-muted">{t.limitedHistory(p.basedOnDays)}</p>}
-      {p.id === "month" && p.end > data.asOf && <p className="mt-t2 text-caption text-text-muted">{t.partialMonth(formatDayMonth(data.asOf))}</p>}
-    </div>
-  );
-
-  const categoryList = (
-    <section aria-labelledby="cats-h" className="mt-t4">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-t3 px-t1 pb-t2 pt-t4">
-        <h2 id="cats-h" className="text-card text-text sm:text-card-l">{t.categories.heading}</h2>
-        <span className="text-meta text-text-muted">{t.categories.count(listRows.length)}</span>
-      </div>
-      {listRows.length ? <ul className="flex flex-col gap-t3">{listRows.map(rowFor)}</ul> : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.categories.empty}</p>}
-    </section>
-  );
-
-  // Categories and Budgets tabs: the transactions, filtered to the selected category, in the rail (UX round 2, 4.1).
-  const feedRail = <div className="desktop:-mt-t4"><Feed ref={feedRef} searchRef={searchRef} feed={feed} shown={shown} onMore={() => setShown((n) => n + PAGE)} q={q} setQ={setQ}
-              direction={direction} setDirection={setDirection} selected={selected} onClearCategory={() => setSelected(null)}
-              edits={edits} doubles={doubles} onOpen={(id) => setSheet({ kind: "tx", id })}
-              onClear={() => { setQ(""); setDirection("all"); setSelected(null); }} /></div>;
+  const sections = [
+    { id: "s-cycle", label: t.sections.cycle.chip },
+    { id: "s-plan", label: t.sections.plan.chip },
+    { id: "s-lenders", label: t.sections.lenders.chip },
+    { id: "activity", label: t.sections.activity.chip },
+  ];
 
   return (
-    <div className="pb-t6">
-      {ask && <div className="mb-t2"><AskAboutThis question={ask} /></div>}
-      <div className="desktop:max-w-[560px]">
-        <SegmentedControl label={t.tabsLabel} value={tab} onChange={setTab}
-          options={TABS.map((v) => ({ value: v, label: t.tabs[v] }))} />
+    <div className="mx-auto w-full max-w-[660px] pb-t6">
+      {/* Period: one control instead of four chips, with the dates (and payday) beside it. */}
+      <div className="flex items-center justify-between gap-t3">
+        <label className="relative inline-flex min-h-tap shrink-0 items-center rounded-pill border border-line bg-surface pl-[14px] pr-t6 font-bold text-text focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--color-focus)]">
+          <span className="sr-only">{t.periodLabel}</span>
+          <select value={p.id === "month" ? `month:${p.month}` : p.id} onChange={(e) => setPeriodKey(e.target.value.startsWith("month:") ? { month: e.target.value.slice(6) } : { period: e.target.value as PeriodId })}
+            className="appearance-none bg-transparent py-t2 text-body14 font-bold outline-none">
+            {PERIOD_IDS.map((id) => <option key={id} value={id}>{periodLabels[id]}</option>)}
+            {p.id === "month" && <option value={`month:${p.month}`}>{p.label}</option>}
+          </select>
+          <ChevronDown aria-hidden size={14} strokeWidth={2.5} className="pointer-events-none absolute right-[12px]" />
+        </label>
+        <p className="tnum min-w-0 text-right text-meta text-text-muted">
+          {cycle ? t.cycleMeta(formatDayMonth(p.start), formatDayMonth(p.end), formatShortDay(payCycle.nextPayday)) : t.periodMeta(formatDayMonth(p.start), formatDayMonth(p.end > asOf ? asOf : p.end))}
+        </p>
+      </div>
+      {p.limitedByHistory && <p className="mt-t2 text-caption text-text-muted">{sp.limitedHistory(p.basedOnDays)}</p>}
+
+      <div className="mt-t3"><SectionChips items={sections} label={t.sectionsLabel} /></div>
+
+      <div className={cx("mt-t4 flex flex-col", GROUP_GAP)}>
+        <Section id="s-cycle" n={1} title={cycle ? t.sections.cycle.title : t.sections.cycle.titlePeriod} desc={cycle ? t.sections.cycle.desc : t.sections.cycle.descPeriod}>
+          {/* The shortfall lives on Today; here it's one line that links to Coming up. Only the figure is red. */}
+          {cycle && payCycle.isShort && (
+            <Link href="/#coming-up" className="flex min-h-tap items-center justify-between gap-t3 rounded-[14px] bg-surface px-t4 py-t3 text-body14 font-semibold text-text shadow-card">
+              <span className="tnum"><span className="text-negative">{t.short(formatWhole(-payCycle.leftAfterBills))}</span>{t.shortRest}</span>
+              <span className="shrink-0 text-accent">{t.seeComingUp} <span aria-hidden>→</span></span>
+            </Link>
+          )}
+          <section aria-labelledby="sum-h" className="rounded-card-s bg-surface p-t4 shadow-card sm:rounded-card sm:p-t5">
+            <div className="flex items-baseline justify-between gap-t3">
+              <h3 id="sum-h" className="text-card text-text sm:text-card-l">{cycle ? t.summary.heading : t.summary.headingPeriod(p.label)}</h3>
+              <Link href="/spending/compare" className="inline-flex min-h-tap items-center text-body14 font-semibold text-accent">{t.summary.compare}</Link>
+            </div>
+            <div className="mt-t1"><SpendSummary v={v} size="large" /></div>
+          </section>
+          <WhereItWent v={v} budgets={budgets}
+            onTransaction={(id) => setSheet({ kind: "tx", id })}
+            onWrongCategory={(merchant) => setSheet({ kind: "merchant", merchant })}
+            onSeeAll={(c) => { setSelected(c); setDirection("all"); setShown(PAGE); toActivity(); }}
+            onBudget={(c, amount) => setSheet({ kind: "budget", category: c, suggest: amount })} />
+        </Section>
+
+        <Section id="s-plan" n={2} title={t.sections.plan.title} desc={t.sections.plan.desc}>
+          <section aria-labelledby="ideas-h" className="rounded-card-s bg-surface p-t4 shadow-card sm:rounded-card sm:p-t5">
+            <div className="flex items-baseline justify-between gap-t3">
+              <h3 id="ideas-h" className="text-card text-text sm:text-card-l">{t.budgets.heading}</h3>
+              <Link href="/spending/budgets" className="inline-flex min-h-tap items-center text-body14 font-semibold text-accent">{t.budgets.all}</Link>
+            </div>
+            {ideas.length ? (
+              <>
+                <p className="mt-t1 text-meta text-text-muted">{t.budgets.intro}</p>
+                <ul className="mt-t2">
+                  {ideas.map((x) => (
+                    <li key={x.category} className="flex flex-col gap-t2 border-t border-divider py-t3 first:border-t-0 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="tnum text-body14 text-text"><strong className="font-bold">{x.name}:</strong> {t.budgets.idea(formatWhole(x.average), formatWhole(x.suggested))}</p>
+                      <div className="flex shrink-0 gap-t1">
+                        <Button onClick={() => setBudget(x.category, x.suggested)} aria-label={t.budgets.setSr(formatWhole(x.suggested), x.name)}>{t.budgets.set}</Button>
+                        <Button variant="secondary" onClick={() => setSheet({ kind: "budget", category: x.category, suggest: x.suggested })} aria-label={`${t.budgets.adjust}: ${x.name}`}>{t.budgets.adjust}</Button>
+                        <Button variant="tertiary" onClick={() => setDismissed((d) => new Set(d).add(x.category))} aria-label={`${t.budgets.notNow}: ${x.name}`}>{t.budgets.notNow}</Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : <p className="mt-t2 text-body14 text-text-muted">{t.budgets.none}</p>}
+          </section>
+        </Section>
+
+        <Section id="s-lenders" n={3} title={t.sections.lenders.title} desc={t.sections.lenders.desc}>
+          <section aria-labelledby="lenders-h" className="rounded-card-s bg-accent-soft p-t4 sm:rounded-card sm:p-t5">
+            <div className="flex items-baseline justify-between gap-t3">
+              <h3 id="lenders-h" className="text-card text-text sm:text-card-l">{t.lenders.heading}</h3>
+              <Link href="/loans" className="inline-flex min-h-tap items-center text-body14 font-semibold text-accent-strong">{t.lenders.details}<span className="sr-only">{t.lenders.detailsSr}</span></Link>
+            </div>
+            <p className="mt-t1 text-body14 text-text-secondary">{t.lenders.body}</p>
+            <dl className={cx("tnum mt-t3 grid gap-t2", lenders.gamblingDeposits === null ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3")}>
+              <Fact label={t.lenders.loans} value={t.lenders.lendersN(lenders.lenders)} />
+              <Fact label={t.lenders.payAdvances} value={t.lenders.advancesN(lenders.payAdvances)} />
+              {lenders.gamblingDeposits !== null && (gamblingInsight
+                ? <Fact label={t.lenders.gambling} value={t.lenders.depositsN(lenders.gamblingDeposits)} className="col-span-2 sm:col-span-1" onOpen={() => setGamblingSheet("insight")} />
+                : <Fact label={t.lenders.gambling} value={t.lenders.depositsN(lenders.gamblingDeposits)} className="col-span-2 sm:col-span-1" />)}
+            </dl>
+            <Link href="/score" className="mt-t3 flex min-h-tap items-center justify-between gap-t3 rounded-inset bg-surface px-t4 py-t2 text-body14 text-text">
+              <span>{t.lenders.scoreLine}</span><span className="shrink-0 font-semibold text-accent">{t.lenders.seeHow}</span>
+            </Link>
+          </section>
+        </Section>
+
+        {/* Activity: a flat list on the page background (not a card), white row groups, sticky day headers. */}
+        <Section id="activity" n={4} title={t.sections.activity.title} desc={t.sections.activity.desc(allInPeriod.length)}>
+          <label className="flex min-h-[48px] items-center gap-t2 rounded-pill border border-line bg-surface px-t4 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
+            <Search aria-hidden size={18} className="text-text-muted" />
+            <span className="sr-only">{sp.feed.searchLabel}</span>
+            <input id="spending-search" ref={searchRef} type="search" value={q} onChange={(e) => { setQ(e.target.value); setShown(PAGE); }} placeholder={sp.feed.searchLabel}
+              className="min-w-0 flex-1 self-stretch bg-transparent text-body text-text outline-none placeholder:text-text-muted" />
+          </label>
+          <SegmentedControl label={sp.feed.directionLabel} value={selected ? null : direction}
+            onChange={(d) => { if (selected) setSelected(null); setDirection(d); setShown(PAGE); }}
+            options={(["all", "out", "in"] as FeedDirection[]).map((d) => ({ value: d, label: sp.feed.direction[d] }))} />
+          {selected && (
+            <div className="flex flex-wrap items-center gap-t2">
+              <FilterChip label={categoryNames[selected]} onRemove={() => setSelected(null)} />
+              <span role="status" className="text-meta text-text-muted">{sp.feed.count(feed.length)}</span>
+            </div>
+          )}
+          {double.length > 1 && (
+            <div className="flex min-h-tap items-center justify-between gap-t3 rounded-inset bg-caution-soft px-t4 py-t2 text-meta font-semibold text-caution">
+              <span className="inline-flex items-center gap-t1"><TriangleAlert aria-hidden size={14} />{t.activity.double(double[0]!.merchant, formatCents(-double[0]!.amount))}</span>
+              <button type="button" onClick={() => setSheet({ kind: "tx", id: double[0]!.id })} className="min-h-tap shrink-0 underline underline-offset-2">{t.activity.review}</button>
+            </div>
+          )}
+          {feed.length === 0
+            ? <EmptyState variant={q ? "noSearchResults" : "noTransactions"} query={q} onAction={() => { setQ(""); setDirection("all"); setSelected(null); }} />
+            : <DayGroups feed={feed.slice(0, shown)} edits={edits} doubles={doubles} onOpen={(id) => setSheet({ kind: "tx", id })} />}
+          {feed.length > shown && (
+            shown === PREVIEW
+              ? <button type="button" onClick={() => setShown(PAGE)} className="flex min-h-tap items-center justify-center text-body14 font-semibold text-accent">{t.activity.seeAll(feed.length)}</button>
+              : <Button full variant="secondary" onClick={() => setShown((n) => n + PAGE)}>{sp.feed.showMore(Math.min(PAGE, feed.length - shown))}</Button>
+          )}
+        </Section>
+
+        <Section id="s-house">
+          <div className="flex items-center justify-between gap-t3 rounded-card-s border border-line px-t4 py-t3 sm:rounded-card sm:px-t5">
+            <div className="min-w-0">
+              <h2 className="text-body14 font-bold text-text">{t.housekeeping.heading}</h2>
+              <p className="text-meta text-text-muted">{t.housekeeping.body}</p>
+            </div>
+            <button type="button" onClick={() => toActivity(true)} className="inline-flex min-h-tap shrink-0 items-center px-t2 text-body14 font-semibold text-accent">{t.housekeeping.fix}</button>
+          </div>
+        </Section>
       </div>
 
-      {tab !== "budgets" && periodChips}
-
-      {tab === "overview" && (
-        // Desktop: two columns (summary and categories | links and transactions). Phones: one column, same order.
-        <div className="desktop:flex desktop:items-start desktop:gap-t6">
-          <div className="desktop:min-w-0 desktop:flex-[3_1_0]">
-            <div className="mt-t4">
-              <SpendingHero p={p} asOf={data.asOf} summary={hero} total={total} paidIn={paidInFor(scoped, p)}
-                onSpent={() => { setDirection("out"); scrollToFeed(); }}
-                onPaidIn={() => { setDirection("in"); setSelected(null); scrollToFeed(); }}
-                onDue={() => setSheet({ kind: "due" })} />
-            </div>
-            {insightItems.length > 0 && (
-              <div className="mt-t4">
-                <InsightCard key={`${p.id}-${p.month ?? ""}`} items={insightItems} onOpen={(id) => setSheet({ kind: "insight", id })} />
-              </div>
-            )}
-            <div className="mt-t4">
-              <CategoryBreakdown key={`${p.id}-${p.month ?? ""}`} rows={allRows} total={total} periodLabel={p.label} vsLabel={vsLabel(p)} comparable={comparable}
-                transactionsFor={(c) => spendingFeed(scoped, p, edits, { category: c })}
-                onTransaction={(id) => setSheet({ kind: "tx", id })}
-                onSeeAll={(c) => { selectCategory(c); scrollToFeed(); }}
-                lenderLink={(c) => c === "gambling"
-                  ? gamblingInsight ? { onClick: () => setSheet({ kind: "insight", id: gamblingInsight.id }) } : { href: `/score/${FACTOR_SLUGS.ADVERSE_SPEND}` }
-                  : { href: `/score/${FACTOR_SLUGS.LOAN_AMOUNT_AND_TYPE}` }}
-                initialOpen={isSpendCat(params.category) ? params.category : null} />
-            </div>
-          </div>
-          <div className="desktop:min-w-0 desktop:flex-[2_1_0]">
-            <nav aria-label={t.title} className="mt-t4 flex flex-col overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
-              {[{ href: "/spending/compare", label: t.compareLink }, { href: "/calendar", label: t.calendarLink }, { href: "/subscriptions", label: t.subscriptionsLink }].map((l) => (
-                <Link key={l.href} href={l.href} className="flex min-h-[56px] items-center justify-between border-b border-divider px-t5 text-body14 font-semibold text-accent last:border-b-0 hover:bg-surface2">
-                  {l.label}<ChevronRight aria-hidden size={20} />
-                </Link>
-              ))}
-            </nav>
-            <Feed ref={feedRef} searchRef={searchRef} feed={feed} shown={shown} onMore={() => setShown((n) => n + PAGE)} q={q} setQ={setQ}
-              direction={direction} setDirection={setDirection} selected={selected} onClearCategory={() => setSelected(null)}
-              edits={edits} doubles={doubles} onOpen={(id) => setSheet({ kind: "tx", id })}
-              onClear={() => { setQ(""); setDirection("all"); setSelected(null); }} />
-          </div>
-        </div>
-      )}
-
-      {tab === "categories" && (
-        <PageColumns railLabel={t.feed.heading} rail={feedRail} main={<div>
-          <div className="mt-t4 flex flex-col gap-t3">
-            <SegmentedControl label={t.categories.filterLabel} value={filter} onChange={(v) => { setFilter(v); setSelected(null); }}
-              options={(["all", "essentials", "lifestyle"] as SpendFilter[]).map((v) => ({ value: v, label: t.categories.filters[v] }))} />
-            <div className={cx("grid gap-t3", accounts.length > 1 && "grid-cols-2")}>
-              <SelectInput label={t.categories.sortLabel} value={sort} onChange={setSort}
-                options={(["amount", "change", "az"] as Sort[]).map((v) => ({ value: v, label: t.categories.sorts[v] }))} />
-              {accounts.length > 1 && (
-                <SelectInput label={t.categories.accountLabel} value={account} onChange={setAccount}
-                  options={[{ value: "all", label: t.categories.allAccounts }, ...accounts.map((a) => ({ value: String(a.id), label: a.label }))]} />
-              )}
-            </div>
-          </div>
-          {categoryList}
-        </div>} />
-      )}
-
-      {tab === "budgets" && (
-        <PageColumns railLabel={t.feed.heading} rail={feedRail} main={<BudgetsTab data={data} cycle={cycle} budgets={budgets} edits={edits}
-          onEdit={(c, suggest) => setSheet({ kind: "budget", category: c, suggest })}
-          onSet={(c, v) => {
-            saveBudgets({ ...budgets, [c]: v });
-            toast({ kind: "confirm", message: t.budgets.saved(categoryNames[c]), onUndo: () => saveBudgets(budgets) });
-            router.refresh();
-          }}
-          onMerchant={(m) => setSheet({ kind: "merchant", merchant: m })} />} />
-      )}
-
       {/* ---- Sheets (one at a time; follow-ons replace content with Back) ---- */}
-      <DueSheet open={sheet?.kind === "due"} onClose={() => setSheet(null)} payCycle={payCycle} persona={corrections ? persona : undefined} asOf={asOf} />
-      <InsightSheets sheet={sheet} setSheet={setSheet} items={insightItems} insights={insights} budgets={budgets} onBudget={(c) => setSheet({ kind: "budget", category: c })} />
-      <MerchantSheet sheet={sheet} setSheet={setSheet} data={scoped} p={p} edits={edits} original={original} onRecategorise={recategorise} />
+      {gamblingInsight && (
+        <Sheet open={!!gamblingSheet} onClose={() => setGamblingSheet(null)}
+          title={gamblingSheet === "support" ? gamblingSupport.title : gamblingInsight.title}
+          subtitle={gamblingSheet === "support" ? undefined : `${categoryNames.gambling} · ${factorCopy.ADVERSE_SPEND.name}`}
+          onBack={gamblingSheet === "support" ? () => setGamblingSheet("insight") : undefined}
+          footer={gamblingSheet === "insight" ? <>
+            <ButtonLink full variant="secondary" href={`/score/${FACTOR_SLUGS.ADVERSE_SPEND}`}>{sp.insights.scoreMethod}</ButtonLink>
+            <Button full variant="secondary" onClick={() => setGamblingSheet("support")}>{sp.insights.support}</Button>
+            <Button full variant="tertiary" onClick={() => setGamblingSheet(null)}>{sp.insights.notNow}</Button>
+          </> : undefined}>
+          {gamblingSheet === "support" ? <SupportOptions /> : <InsightSheetBody item={{ id: gamblingInsight.id, context: gamblingInsight.context, title: gamblingInsight.title, summary: gamblingInsight.summary, happening: gamblingInsight.happening, wouldChange: gamblingInsight.wouldChange, ifYouWant: gamblingInsight.ifYouWant }} />}
+        </Sheet>
+      )}
+      <MerchantSheet sheet={sheet} setSheet={setSheet} data={data} p={p} edits={edits} original={original} onRecategorise={recategorise} />
       <TransactionSheet sheet={sheet} setSheet={setSheet} tx={sheet?.kind === "tx" ? txById.get(sheet.id) ?? null : null} original={original} edits={edits} onRecategorise={recategorise}
-        double={sheet?.kind === "tx" && !!doubles[sheet.id]}
-        persona={persona} corrections={corrections}
+        double={sheet?.kind === "tx" && !!doubles[sheet.id]} persona={persona} corrections={corrections}
         onReset={(id) => recategorise(id, original[id]!)} />
       <BudgetSheet sheet={sheet} setSheet={setSheet} data={data} budgets={budgets} edits={edits}
-        onSave={(c, v) => {
+        onSave={(c, value) => {
           const next = { ...budgets };
-          if (v === null) delete next[c]; else next[c] = v;
+          if (value === null) delete next[c]; else next[c] = value;
           saveBudgets(next);
-          toast({ kind: "confirm", message: v === null ? t.budgets.removed(categoryNames[c]) : t.budgets.saved(categoryNames[c]), onUndo: () => saveBudgets(budgets) });
+          toast({ kind: "confirm", message: value === null ? sp.budgets.removed(categoryNames[c]) : sp.budgets.saved(categoryNames[c]), onUndo: () => saveBudgets(budgets) });
           setSheet(null);
           router.refresh();
         }} />
@@ -326,361 +280,37 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
   );
 }
 
-// ---- Hero ------------------------------------------------------------------------------------------
-// The same gradient hero as Today. This pay cycle: what's left after bills (or the shortfall, with what's due one
-// tap away). Other periods: the total spent and the pay-cycle average. Spent and Paid in filter the feed below.
-function SpendingHero({ p, asOf, summary: s, total, paidIn, onSpent, onPaidIn, onDue }: {
-  p: Period; asOf: string; summary: PayCycleSummary; total: number; paidIn: number; onSpent: () => void; onPaidIn: () => void; onDue: () => void;
-}) {
-  const isCycle = p.id === "this_cycle";
-  const cycles = Math.max(1, p.basedOnDays / 14);
-  const perCycle = Math.round(total / cycles);
-  const range = isCycle ? copy.payCycle.range(formatDayMonth(s.cycle.start), formatDayMonth(s.cycle.end)) : `${p.label} · ${formatDayMonth(p.start)} – ${formatDayMonth(p.end > asOf ? asOf : p.end)}`;
+function Fact({ label, value, className, onOpen }: { label: string; value: string; className?: string; onOpen?: () => void }) {
   return (
-    <section aria-label={isCycle ? range : p.label} className="on-brand flex flex-col gap-t4 rounded-hero-s bg-hero p-t5 text-hero-on shadow-hero sm:gap-t5 sm:p-t6 desktop:rounded-hero desktop:px-t7">
-      <div className="flex flex-wrap items-center gap-x-t3 gap-y-t2">
-        <span className="text-body14 text-hero-on-muted">{range}</span>
-        {isCycle && (
-          <span className="inline-flex items-center gap-t2 rounded-pill bg-hero-glass px-t3 py-[5px] text-meta font-semibold">
-            <span aria-hidden className={cx("h-[8px] w-[8px] rounded-pill", s.isShort ? "bg-hero-negative-mark" : "bg-hero-positive-mark")} />
-            {copy.payCycle.daysToPayday(s.daysToPayday, formatShortDay(s.nextPayday))}
-          </span>
-        )}
-      </div>
-      {isCycle ? (
-        <div>
-          <p className="tnum text-[1.625rem] font-bold leading-8 tracking-[-0.01em] sm:text-[2rem] sm:leading-10">
-            {s.isShort ? copy.payCycle.short(formatWhole(-s.leftAfterBills)) : copy.payCycle.left(formatWhole(s.leftAfterBills))}
-          </p>
-          {/* The same working as Today's hero, so the headline never seems to contradict Spent and Paid in (1.3). */}
-          <dl className="tnum mt-t3 grid grid-cols-3 gap-t2 text-body14 text-hero-on-muted">
-            <div><dt>{todayCopy.hero.balance}</dt><dd className="font-bold text-hero-on">{formatWhole(s.balance)}</dd></div>
-            <div><dt>{todayCopy.hero.due}</dt><dd className="font-bold text-hero-on">{formatWhole(s.dueTotal)}</dd></div>
-            <div><dt>{s.isShort ? t.hero.shortBy : t.hero.leftOver}</dt><dd className="font-bold text-hero-on">{formatWhole(Math.abs(s.leftAfterBills))}</dd></div>
-          </dl>
-        </div>
-      ) : (
-        <div>
-          <p className="tnum text-hero-num desktop:text-hero-num-l">{t.hero.total(formatWhole(total))}</p>
-          {p.id !== "last_cycle" && <p className="mt-t2 text-[0.9375rem] text-hero-on-muted">{t.hero.perCycle(formatWhole(perCycle))}</p>}
-        </div>
-      )}
-      <div className="grid grid-cols-2 gap-t2 rounded-inset bg-hero-inset p-t2">
-        <HeroStat icon={<ArrowUp size={16} strokeWidth={2} />} onClick={onSpent} text={copy.payCycle.spent(formatWhole(isCycle ? s.spent : total))} />
-        <HeroStat icon={<ArrowDown size={16} strokeWidth={2} />} onClick={onPaidIn} text={copy.payCycle.paidIn(formatWhole(isCycle ? s.paidIn : paidIn))} />
-      </div>
-      {isCycle ? (
-        <button type="button" onClick={onDue} className="pressable flex h-[48px] items-center justify-center gap-t2 rounded-pill bg-hero-on px-t5 text-[0.9375rem] font-bold text-hero-from sm:self-start">
-          {t.hero.seeDue}<ChevronRight aria-hidden size={18} />
-        </button>
-      ) : (
-        <p className="text-meta text-hero-on-muted">{t.hero.switchHint}</p>
-      )}
-    </section>
-  );
-}
-
-function HeroStat({ icon, text, onClick }: { icon: React.ReactNode; text: string; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className="flex min-h-[52px] items-center gap-t2 rounded-[14px] px-t3 text-left hover:bg-hero-glass">
-      <span aria-hidden className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-pill bg-hero-glass">{icon}</span>
-      <span className="tnum text-[0.9375rem] font-bold">{text}</span>
-    </button>
-  );
-}
-
-// ---- Feed --------------------------------------------------------------------------------------------
-
-const Feed = forwardRef<HTMLElement, {
-  searchRef: RefObject<HTMLInputElement>; feed: Transaction[]; shown: number; onMore: () => void; q: string; setQ: (v: string) => void;
-  direction: FeedDirection; setDirection: (v: FeedDirection) => void; selected: SpendCategory | null; onClearCategory: () => void;
-  edits: CategoryOverrides; doubles: Record<string, string>; onOpen: (id: string) => void; onClear: () => void;
-}>(function Feed({ searchRef, feed, shown, onMore, q, setQ, direction, setDirection, selected, onClearCategory, edits, doubles, onOpen, onClear }, ref) {
-  const visible = feed.slice(0, shown);
-  const groups: { date: string; items: Transaction[] }[] = [];
-  for (const x of visible) {
-    const g = groups.at(-1);
-    if (g && g.date === x.date) g.items.push(x); else groups.push({ date: x.date, items: [x] });
-  }
-  return (
-    <section ref={ref} aria-labelledby="feed-h" className="mt-t4 scroll-mt-t6 overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
-      <div className="flex flex-wrap items-center justify-between gap-x-t3 gap-y-t2 p-t5 pb-t3">
-        <h2 id="feed-h" className="text-card text-text sm:text-card-l">{t.feed.heading}</h2>
-        <span role="status" className="text-caption text-text-muted">{t.feed.count(feed.length)}{selected ? ` · ${categoryNames[selected]}` : ""}</span>
-        {/* A category filter is always visible here, with a way to clear it (never a silent filter). */}
-        {selected && <div className="w-full"><FilterChip label={categoryNames[selected]} onRemove={onClearCategory} /></div>}
-      </div>
-      <div className="flex flex-col gap-t3 px-t5 pb-t4">
-        <label className="flex min-h-[52px] items-center gap-t2 rounded-pill border border-neutral bg-surface px-t4 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
-          <Search aria-hidden size={20} className="text-text-muted" />
-          <span className="sr-only">{t.feed.searchLabel}</span>
-          <input id="spending-search" ref={searchRef} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.feed.searchLabel}
-            className="min-w-0 flex-1 bg-transparent text-body text-text outline-none placeholder:text-text-muted" />
-        </label>
-        {/* With a category filter on, the list is that category's money out: no direction is selected until you pick one (which clears the category). */}
-        <SegmentedControl label={t.feed.directionLabel} value={selected ? null : direction} onChange={(v) => { if (selected) onClearCategory(); setDirection(v); }}
-          options={(["all", "out", "in"] as FeedDirection[]).map((v) => ({ value: v, label: t.feed.direction[v] }))} />
-      </div>
-      {feed.length === 0 ? (
-        <div className="px-t4 pb-t4"><EmptyState variant={q ? "noSearchResults" : "noTransactions"} query={q} onAction={onClear} /></div>
-      ) : (
-        <>
-          {groups.map((g) => (
-            <div key={g.date}>
-              <h3 className="bg-surface2 px-t5 py-t2 text-meta font-semibold text-text-muted">{formatShortDay(g.date)}/{g.date.slice(0, 4)}</h3>
-              <ul>{g.items.map((x) => <li key={x.id} className="border-b border-divider px-t1 last:border-b-0"><TransactionRow tx={{ ...x, category: edits[x.id] ?? x.category }} edited={!!edits[x.id]} showDate={false} flag={doubles[x.id] ? txCopy.possibleDouble : null} onOpen={() => onOpen(x.id)} /></li>)}</ul>
-            </div>
-          ))}
-          {feed.length > shown && (
-            <div className="p-t4"><Button full variant="secondary" onClick={onMore}>{t.feed.showMore(Math.min(PAGE, feed.length - shown))}</Button></div>
-          )}
-        </>
-      )}
-    </section>
-  );
-});
-
-// ---- Insight + support -----------------------------------------------------------------------------
-function InsightSheets({ sheet, setSheet, items, insights, budgets, onBudget }: {
-  sheet: SheetState; setSheet: (s: SheetState) => void; items: InsightItem[]; insights: ReturnType<typeof spendingInsights>;
-  budgets: Partial<Record<SpendCategory, number>>; onBudget: (c: SpendCategory) => void;
-}) {
-  const open = sheet?.kind === "insight" || sheet?.kind === "support";
-  const id = open ? sheet.id : null;
-  const item = items.find((i) => i.id === id);
-  const ins = insights.find((i) => i.id === id);
-  const support = sheet?.kind === "support";
-  const close = () => setSheet(null);
-  let footer = null;
-  if (item && ins && !support) {
-    footer = ins.id === "gambling" ? (
-      <>
-        <ButtonLink full variant="secondary" href={`/score/${FACTOR_SLUGS.ADVERSE_SPEND}`}>{t.insights.scoreMethod}</ButtonLink>
-        <Button full variant="secondary" onClick={() => setSheet({ kind: "support", id: ins.id })}>{t.insights.support}</Button>
-        <Button full variant="tertiary" onClick={close}>{t.insights.notNow}</Button>
-      </>
-    ) : ins.id === "food" ? (
-      <>
-        <Button full variant="secondary" onClick={() => onBudget("food")}>{budgets.food !== undefined ? t.insights.adjustBudget(categoryNames.food) : t.insights.setBudget(categoryNames.food)}</Button>
-        <Button full variant="tertiary" onClick={close}>{t.insights.notNow}</Button>
-      </>
-    ) : (
-      <>
-        <ButtonLink full variant="secondary" href="/subscriptions">{t.insights.reviewSubscriptions}</ButtonLink>
-        <Button full variant="tertiary" onClick={close}>{t.insights.notNow}</Button>
-      </>
-    );
-  }
-  return (
-    <Sheet open={open && !!item} onClose={close} title={support ? gamblingSupport.title : item?.title ?? ""}
-      subtitle={support ? undefined : ins ? `${categoryNames[ins.category]}${ins.id === "gambling" ? ` · ${factorCopy.ADVERSE_SPEND.name}` : ""}` : undefined}
-      onBack={support ? () => setSheet({ kind: "insight", id: id! }) : undefined} footer={footer}>
-      {support ? (
-        <SupportOptions />
-      ) : item ? <InsightSheetBody item={item} /> : null}
-    </Sheet>
-  );
-}
-
-// ---- Merchant sheet ----------------------------------------------------------------------------------
-const categoryOptions = EDITABLE_CATEGORIES.map((c) => ({ value: c, label: categoryNames[c] }));
-
-function MerchantSheet({ sheet, setSheet, data, p, edits, original, onRecategorise }: {
-  sheet: SheetState; setSheet: (s: SheetState) => void; data: SpendData; p: Period; edits: CategoryOverrides;
-  original: Record<string, CategoryId>; onRecategorise: (id: string, c: CategoryId) => void;
-}) {
-  const merchant = sheet?.kind === "merchant" ? sheet.merchant : null;
-  const list = merchant ? spendingFeed(data, p, edits, {}).filter((x) => x.merchant === merchant && x.amount < 0) : [];
-  const totalAmt = sumMoney(list.filter((x) => x.status === "posted").map((x) => -x.amount));
-  return (
-    <Sheet open={!!merchant} onClose={() => setSheet(null)} title={merchant ?? ""}
-      subtitle={merchant ? t.merchant.lead(list.length, formatCents(totalAmt), p.label) : undefined}>
-      <ul className="flex flex-col">
-        {list.map((x) => (
-          <li key={x.id} className="grid grid-cols-[1fr_auto] items-center gap-x-t3 gap-y-t2 border-t border-divider py-t3">
-            <button type="button" onClick={() => setSheet({ kind: "tx", id: x.id, fromMerchant: merchant! })} className="min-h-tap rounded-xs text-left text-small text-text hover:bg-surface2">
-              {formatShortDay(x.date)}{x.status === "pending" ? ` · ${txCopy.pending}` : ""}
-            </button>
-            <span className="tnum text-body-strong text-text">−{formatCents(-x.amount)}</span>
-            <div className="col-span-2">
-              <SelectInput hideLabel label={t.merchant.categoryFor(x.merchant, formatDate(x.date))} value={x.category}
-                options={categoryOptions} onChange={(v) => onRecategorise(x.id, v)} />
-              {edits[x.id] && <p className="mt-t1 text-caption text-text-muted">{t.tx.original(categoryNames[original[x.id]!])}</p>}
-            </div>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-t4 text-small text-text-muted">{t.tx.hint}</p>
-    </Sheet>
-  );
-}
-
-// ---- Transaction sheet -------------------------------------------------------------------------------
-function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise, onReset, persona, corrections, double }: {
-  double: boolean;
-  persona: PersonaId; corrections: { oneOff: string[]; regular: string[] } | null;
-  sheet: SheetState; setSheet: (s: SheetState) => void; tx: Transaction | null; original: Record<string, CategoryId>;
-  edits: CategoryOverrides; onRecategorise: (id: string, c: CategoryId) => void; onReset: (id: string) => void;
-}) {
-  const from = sheet?.kind === "tx" ? sheet.fromMerchant : undefined;
-  const Icon = tx ? categoryIcons[tx.subcategory === "centrelink" ? "centrelink" : tx.category] : null;
-  const debit = !!tx && tx.amount < 0;
-  const { addRule } = useCorrections(persona);
-  const c = correctionCopy.transaction;
-  const kind = tx && corrections ? (corrections.oneOff.includes(tx.merchant) ? "one_off" : corrections.regular.includes(tx.merchant) ? "regular" : null) : null;
-  return (
-    <Sheet open={!!tx} onClose={() => setSheet(null)} title={tx?.merchant ?? ""}
-      subtitle={tx ? `${formatShortDay(tx.date)} · ${tx.amount < 0 ? "−" : "+"}${formatCents(Math.abs(tx.amount))}` : undefined}
-      onBack={from ? () => setSheet({ kind: "merchant", merchant: from }) : undefined}
-      footer={tx && debit && !from ? <Button full variant="secondary" onClick={() => setSheet({ kind: "merchant", merchant: tx.merchant })}>{t.tx.allFrom(tx.merchant)}</Button> : undefined}>
-      {tx && (
-        <div className="flex flex-col gap-t4">
-          <div className="flex items-center gap-t3">
-            {Icon && <span aria-hidden className="inline-flex h-[40px] w-[40px] items-center justify-center rounded-sm bg-surface2" style={{ color: catVar(tx.category) }}><Icon size={24} /></span>}
-            <p className="text-small text-text-muted">{tx.description}</p>
-          </div>
-          {tx.status === "pending" && <p className="text-small text-text-muted">{t.tx.pending}</p>}
-          {double && (
-            <Link href="/#needs-a-look" className="flex min-h-tap items-center justify-between gap-t2 rounded-inset bg-caution-soft px-t4 text-body14 font-semibold text-caution">
-              <span>{txCopy.possibleDouble}: {txCopy.seeInNeeds}</span><ChevronRight aria-hidden size={18} />
-            </Link>
-          )}
-          {debit ? (
-            <>
-              <SelectInput label={t.tx.category} value={tx.category} options={categoryOptions} onChange={(v) => onRecategorise(tx.id, v)} />
-              {edits[tx.id] && (
-                <div className="flex flex-wrap items-center justify-between gap-t2">
-                  <p className="text-caption text-text-muted">{t.tx.original(categoryNames[original[tx.id]!])}</p>
-                  <Button variant="tertiary" onClick={() => onReset(tx.id)}>{t.tx.reset}</Button>
-                </div>
-              )}
-              {tx.category === "transfer" && <p className="text-small text-text-muted">{t.tx.transferNote}</p>}
-              {/* Spec 05: make it a member rule, so future payments from this merchant follow it. */}
-              {corrections && <Button variant="secondary" full onClick={() => addRule({ kind: "category", merchant: tx.merchant, category: tx.category }, { from: original[tx.id] })}>{c.allFrom(tx.merchant)}</Button>}
-              <p className="text-small text-text-muted">{t.tx.hint}</p>
-            </>
-          ) : (
-            <>
-              <p className="text-small text-text">{categoryNames[tx.category]}</p>
-              {corrections && tx.category === "income" && (
-                <fieldset>
-                  <legend className="text-body-strong text-text">{c.income}</legend>
-                  <div className="mt-t2 flex flex-wrap gap-t2">
-                    <Button variant={kind === "one_off" ? "primary" : "secondary"} aria-pressed={kind === "one_off"} onClick={() => addRule({ kind: "income_one_off", merchant: tx.merchant })}>{c.oneOff}</Button>
-                    <Button variant={kind === "regular" ? "primary" : "secondary"} aria-pressed={kind === "regular"} onClick={() => addRule({ kind: "income_regular", merchant: tx.merchant })}>{c.regular}</Button>
-                  </div>
-                  <p className="mt-t2 text-caption text-text-muted">{c.incomeNote}</p>
-                </fieldset>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </Sheet>
-  );
-}
-
-// ---- Budgets -----------------------------------------------------------------------------------------
-function BudgetsTab({ data, cycle, budgets, edits, onEdit, onSet, onMerchant }: {
-  data: SpendData; cycle: Period; budgets: Partial<Record<SpendCategory, number>>; edits: CategoryOverrides;
-  onEdit: (c: SpendCategory, suggest?: number) => void; onSet: (c: SpendCategory, v: number) => void; onMerchant: (m: string) => void;
-}) {
-  // Suggested budgets when none are set (UX round 2, 6.4); dismissed ones stay hidden for the session.
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const suggestions = budgetSuggestions(data, budgets, edits).filter((x) => !dismissed.has(x.category));
-  const v = budgetView(data, cycle, budgets, edits);
-  const rows = new Map(categoryTotals(data, cycle, edits).map((r) => [r.category, r]));
-  const rowOf = (c: SpendCategory): Row => rows.get(c) ?? { category: c, name: categoryNames[c], type: categoryTypes[c], total: 0, count: 0, share: 0, previousTotal: 0, change: 0 };
-  const frac = v.totalBudget ? Math.min(v.totalSpent / v.totalBudget, 1) : 0;
-  return (
-    <div className="mt-t4 flex flex-col gap-t3">
-      <section aria-labelledby="bud-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card sm:p-t6">
-        <h2 id="bud-h" className="text-card text-text sm:text-card-l">{t.budgets.heading}</h2>
-        <p className="mt-t1 text-small text-text-muted">{copy.payCycle.range(formatDayMonth(cycle.start), formatDayMonth(cycle.end))}</p>
-        {v.budgeted.length ? (
-          <>
-            <p className="tnum mt-t4 text-h2 font-display text-text">{t.budgets.summary(formatWhole(v.totalSpent), formatWhole(v.totalBudget))}</p>
-            <div aria-hidden className="mt-t3 h-t2 overflow-hidden rounded-pill" style={{ background: "var(--chart-ring-track)" }}>
-              <div className="h-full bg-accent" style={{ width: `${frac * 100}%` }} />
-            </div>
-            <p className="mt-t2 text-caption text-text-muted">{t.budgets.summaryNote(v.budgeted.length)}</p>
-          </>
-        ) : suggestions.length ? (
-          <div className="mt-t4">
-            <p className="text-body14 text-text-secondary">{t.budgets.suggestIntro}</p>
-            <ul className="mt-t3 flex flex-col gap-t3">
-              {suggestions.map((x) => (
-                <li key={x.category} className="rounded-inset bg-surface2 p-t4">
-                  <p className="tnum text-body14 text-text"><strong className="font-bold">{x.name}:</strong> {t.budgets.suggest(formatWhole(x.average), formatWhole(x.suggested))}</p>
-                  <div className="mt-t2 flex flex-wrap gap-t2">
-                    <Button variant="secondary" onClick={() => onSet(x.category, x.suggested)} aria-label={t.budgets.setSr(formatWhole(x.suggested), x.name)}>{t.budgets.set}</Button>
-                    <Button variant="tertiary" onClick={() => onEdit(x.category, x.suggested)} aria-label={`${t.budgets.adjust}: ${x.name}`}>{t.budgets.adjust}</Button>
-                    <Button variant="tertiary" onClick={() => setDismissed((d) => new Set(d).add(x.category))} aria-label={`${t.budgets.dismiss}: ${x.name}`}>{t.budgets.dismiss}</Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : <p className="mt-t4 text-small text-text">{t.budgets.none}</p>}
-        <p className="mt-t3 text-caption text-text-muted">{t.budgets.intro}</p>
-      </section>
-      {v.budgeted.length > 0 && (
-        <ul className="flex flex-col gap-t3">
-          {v.budgeted.map((b) => (
-            <li key={b.category}>
-              <CategoryRow row={rowOf(b.category)} budget={b.budget} onEditBudget={() => onEdit(b.category)}
-                merchants={merchantsIn(data, cycle, b.category, edits)} onMerchant={(m) => onMerchant(m.merchant)} />
-            </li>
-          ))}
-        </ul>
-      )}
-      {v.other.length > 0 && (
-        <section aria-labelledby="bud-other" className="rounded-card-s bg-surface shadow-card sm:rounded-card">
-          <h2 id="bud-other" className="p-t5 pb-t2 text-card text-text sm:text-card-l">{t.budgets.otherCategories}</h2>
-          <ul>
-            {v.other.map((r) => {
-              const Icon = categoryIcons[r.category];
-              return (
-                <li key={r.category} className="flex min-h-[64px] items-center gap-t3 border-t border-divider px-t4 py-t2">
-                  <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-surface2" style={{ color: catVar(r.category) }}><Icon size={24} /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-body-strong text-text">{r.name}</span>
-                    <span className="tnum block text-caption text-text-muted">{copy.payCycle.spent(formatWhole(r.spent))}</span>
-                  </span>
-                  <button type="button" onClick={() => onEdit(r.category)} aria-label={`${t.budgets.editTitle(r.name)}: ${catCopy.setBudget}`}
-                    className="min-h-tap shrink-0 rounded-sm px-t2 text-small text-accent hover:bg-surface2">{catCopy.setBudget}</button>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
+    <div className={cx("relative rounded-[12px] bg-surface px-t3 py-t2", className)}>
+      <dt className="text-meta-s font-semibold text-text-muted">{label}</dt>
+      <dd className="text-body14 font-extrabold text-text">
+        {onOpen ? <button type="button" onClick={onOpen} className="text-left after:absolute after:inset-0 after:content-['']">{value}<span className="sr-only">{t.lenders.gamblingSr}</span></button> : value}
+      </dd>
     </div>
   );
 }
 
-function BudgetSheet({ sheet, setSheet, data, budgets, edits, onSave }: {
-  sheet: SheetState; setSheet: (s: SheetState) => void; data: SpendData; budgets: Partial<Record<SpendCategory, number>>;
-  edits: CategoryOverrides; onSave: (c: SpendCategory, v: number | null) => void;
-}) {
-  const c = sheet?.kind === "budget" ? sheet.category : null;
-  const [cents, setCents] = useState<number | null>(null);
-  const suggest = sheet?.kind === "budget" ? sheet.suggest : undefined;
-  useEffect(() => { if (c) setCents(budgets[c] !== undefined ? Math.round(budgets[c]! * 100) : suggest !== undefined ? suggest * 100 : null); }, [c, budgets, suggest]);
-  const avg = c ? averagePerCycle(data, c, 3, edits) : null;
+function DayGroups({ feed, edits, doubles, onOpen }: { feed: Transaction[]; edits: CategoryOverrides; doubles: Record<string, string>; onOpen: (id: string) => void }) {
+  const groups: { date: string; items: Transaction[] }[] = [];
+  for (const x of feed) {
+    const g = groups.at(-1);
+    if (g && g.date === x.date) g.items.push(x); else groups.push({ date: x.date, items: [x] });
+  }
   return (
-    <Sheet open={!!c} onClose={() => setSheet(null)} title={c ? t.budgets.editTitle(categoryNames[c]) : ""}
-      footer={c ? (
-        <>
-          <Button full disabled={cents === null} onClick={() => onSave(c, cents! / 100)}>{t.budgets.save}</Button>
-          {budgets[c] !== undefined && <Button full variant="tertiary" onClick={() => onSave(c, null)}>{t.budgets.remove}</Button>}
-        </>
-      ) : undefined}>
-      {c && (
-        <CurrencyInput key={c} label={t.budgets.amountLabel} valueCents={cents} onChangeCents={setCents}
-          helper={avg ? t.budgets.amountHint(formatWhole(avg)) : t.budgets.amountHintNone}
-          errorText={{ format: t.budgets.invalid, precision: t.budgets.invalid, negative: t.budgets.invalid }} />
-      )}
-    </Sheet>
+    <div>
+      {groups.map((g) => (
+        <div key={g.date}>
+          <h3 className="sticky top-[56px] z-[5] bg-bg px-[2px] pb-t1 pt-t3 text-meta font-bold text-text-muted">{formatShortDay(g.date)}/{g.date.slice(0, 4)}</h3>
+          <ul className="overflow-hidden rounded-[14px] bg-surface">
+            {g.items.map((x) => (
+              <li key={x.id} className="border-b border-divider last:border-b-0">
+                <TransactionRow tx={{ ...x, category: edits[x.id] ?? x.category }} edited={!!edits[x.id]} showDate={false} flag={doubles[x.id] ? txCopy.possibleDouble : null} onOpen={() => onOpen(x.id)} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
 }

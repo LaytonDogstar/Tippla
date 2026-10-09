@@ -57,9 +57,9 @@ test.describe("dynamic type 200%", () => {
 test("reduced motion: transitions are effectively off and sheets appear without animating", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(url("/spending", "jess"));
-  const d = await page.getByRole("button", { name: "This pay cycle", exact: true }).first().evaluate((el) => getComputedStyle(el).transitionDuration);
+  const d = await page.getByRole("button", { name: /^Set a \$150 budget for Food/ }).evaluate((el) => getComputedStyle(el).transitionDuration);
   expect(parseFloat(d)).toBeLessThan(0.001);
-  await page.getByRole("button", { name: "See how" }).first().click();
+  await page.getByRole("region", { name: "How lenders see your spending" }).getByRole("button", { name: /^2 deposits/ }).click();
   const panel = page.getByRole("dialog");
   await expect(panel).toBeVisible();
   // Framer applies the zero-length transition on the next frame; the normal slide takes 250 ms, so a
@@ -124,11 +124,10 @@ test.describe("states (docs/09)", () => {
     await expect(page.getByRole("dialog").getByText("We've left out a one-off $4,000 deposit on 12/09")).toBeVisible();
   });
 
-  test("second account: the Spending account filter appears", async ({ page }) => {
-    await page.goto(url("/spending", "jess", "&state=two_accounts&tab=categories"));
-    await expect(page.getByLabel("Account")).toBeVisible();
-    await page.getByLabel("Account").selectOption({ label: "Savings ··7731" });
-    await expect(page.getByRole("button", { name: /^Groceries/ }).first()).toContainText("$64");
+  test("second account: Spending counts both accounts (v5 has no account filter)", async ({ page }) => {
+    await page.goto(url("/spending", "jess", "&state=two_accounts"));
+    await expect(page.getByLabel("Account")).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Where it went" }).getByRole("button", { name: /^Groceries/ })).toBeVisible();
   });
 
   test("in hardship (self-selected): the gentle banner appears on Home", async ({ page }) => {

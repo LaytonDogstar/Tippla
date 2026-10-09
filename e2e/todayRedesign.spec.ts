@@ -42,10 +42,11 @@ test("single column (09/10/2026): the sections in order, no quick actions, one c
     await expect(page.getByRole("navigation", { name: "Quick actions" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "See what's due" })).toHaveCount(0);
   }
-  // The hero's two actions: options (primary) and Ask Tippla.
+  // The hero's one action: options if money's tight (Ask Tippla is the header bar; what's due is Coming up).
   const hero = page.getByRole("region", { name: "This pay cycle" });
   await expect(hero.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
-  await expect(hero.getByRole("link", { name: "Ask Tippla" })).toHaveAttribute("href", "/assistant?entry=home");
+  await expect(hero.getByRole("link", { name: "Ask Tippla" })).toHaveCount(0);
+  await expect(page.getByRole("search").getByRole("button", { name: "Ask Tippla" })).toBeVisible();
 });
 
 test("Coming up: running balances to payday match the Calendar; the payment that takes Jess below $0 says so", async ({ page }) => {
@@ -72,12 +73,16 @@ test("Coming up: running balances to payday match the Calendar; the payment that
 test("Spending: this cycle against the same point of the last one, with fixed costs on their own line", async ({ page }) => {
   await page.goto("/?persona=jess&present=1&state=none");
   const s = page.getByRole("region", { name: "Spending" });
-  await expect(s).toContainText("$1,832by day 9 of 14");
-  await expect(s).toContainText("$39 less than at this point last cycle");
-  await expect(s).toContainText("Your full cycle is usually about $2,569");
+  await expect(s).toContainText("$1,832spent by day 9 of 14");
+  await expect(s).toContainText("$39 less on everyday spending than at this point last cycle");
+  await expect(s).toContainText("Your full cycle is usually about $2,601");
   await expect(s).toContainText("Fixed costs");
+  await expect(s).toContainText("Repayments");
   await expect(s).toContainText("Everyday spending");
   await expect(s.getByRole("link", { name: /^Transport \$115\s?, up \$115 since this point last cycle/ })).toBeVisible();
+  // The same numbers as the Spending page (one component, one selector).
+  await page.goto("/spending?persona=jess&present=1");
+  await expect(page.getByRole("region", { name: "This pay cycle" })).toContainText("$39 less on everyday spending than at this point last cycle");
 });
 
 test("no sideways page scroll at 320px", async ({ page }) => {
