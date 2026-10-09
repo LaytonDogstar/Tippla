@@ -1,6 +1,7 @@
 "use client";
 // Dev-only component library (Phase 1). Headings here are dev labels, not customer copy.
 import { useState, type ReactNode } from "react";
+import { X } from "lucide-react";
 import type { Offer, Transaction } from "@/lib/api/types";
 import type { CalendarDay } from "@/lib/selectors/calendar";
 import type { Loan, loanTotals as LT, payAdvanceRun as PAR } from "@/lib/selectors/loans";
@@ -261,7 +262,7 @@ export function Showcase({ data }: { data: ShowcaseData }) {
         {() => (
           <>
             <div className="flex flex-wrap gap-t2">
-              <Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="tertiary">Tertiary</Button><Button variant="destructive">Disconnect</Button>
+              <Button>Primary</Button><Button variant="secondary">Secondary</Button><Button variant="link">Text link</Button><Button variant="tertiary">Not now</Button><Button variant="tertiary" icon={X} aria-label="Not now" className="px-0" /><Button variant="destructive">Disconnect</Button>
             </div>
             <div className="flex flex-wrap items-center gap-t2">
               <Button size="compact">Compact</Button><Button size="standard">Standard</Button><Button size="large">Large</Button>
@@ -286,7 +287,7 @@ export function Showcase({ data }: { data: ShowcaseData }) {
           <>
             <div className="flex flex-wrap gap-t2">
               <Button variant="secondary" onClick={() => toast({ kind: "confirm", message: "Moved to Groceries. Totals updated", onUndo: () => {} })}>Show confirmation toast</Button>
-              <Button variant="tertiary" onClick={() => toast({ kind: "info", message: "Updated Fri 25/09, 9:14am" })}>Show info toast</Button>
+              <Button variant="link" onClick={() => toast({ kind: "info", message: "Updated Fri 25/09, 9:14am" })}>Show info toast</Button>
             </div>
             <InlineAlert title="Predicted bills">These are based on your recent payments, so dates and amounts may change.</InlineAlert>
             <InlineAlert tone="caution" title={copy.payCycle.short(formatWhole(-jess.payCycle.leftAfterBills))} action={{ label: "Options if money's tight", onClick: () => {} }}>

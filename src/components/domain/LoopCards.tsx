@@ -45,7 +45,7 @@ export function SafeToSpendCard({ safe, onHow, movement }: { safe: SafeToSpend; 
       )}
       {safe.paydayEstimated && <p className="mt-t1 text-caption text-text-muted">{s.estimated}</p>}
       <div className="mt-t2 flex flex-col">
-        <Button variant="tertiary" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }} className="self-start">{s.how}</Button>
+        <Button variant="link" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }} className="self-start">{s.how}</Button>
         {safe.nothingSpare && <LinkRow href="/hardship">{s.hardship}</LinkRow>}
       </div>
     </section>
@@ -132,8 +132,8 @@ export function CheckInCard({ checkIn, onHow, onAdjust, focus, goal = null, firs
       {goal && <p className="mt-t3 text-small text-text-muted">{goalLines.checkIn(goal)}</p>}
       {focus && <p className={goal ? "text-small text-text" : "mt-t3 text-small text-text"}>{c.focus(focus)}</p>}
       <div className="mt-t1 flex flex-wrap gap-x-t2">
-        <Button variant="tertiary" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }}>{s.how}</Button>
-        {onAdjust && <Button variant="tertiary" onClick={onAdjust}>{c.adjust}</Button>}
+        <Button variant="link" onClick={() => { track("sts_breakdown_opened", {}); onHow(); }}>{s.how}</Button>
+        {onAdjust && <Button variant="link" onClick={onAdjust}>{c.adjust}</Button>}
       </div>
       <LinkRow href="/calendar">{c.seeBills}</LinkRow>
     </section>
@@ -186,8 +186,8 @@ export function RecapCard({ recap, feesAvoided, next, lead = null, plan = null, 
           <h3 className="text-body-strong text-text">{bufferCopy.surplusTitle(formatWhole(surplus.amount))}</h3>
           <p className="mt-t1 text-small text-text-muted">{bufferCopy.surplusBody}</p>
           <div className="mt-t2 flex flex-wrap gap-t2">
-            <Button variant="secondary" onClick={surplus.onProtect}>{bufferCopy.setTo(formatWhole(surplus.amount))}</Button>
-            <Button variant="tertiary" onClick={() => setHow(true)}>{bufferCopy.how}</Button>
+            <Button variant="outline" onClick={surplus.onProtect}>{bufferCopy.setTo(formatWhole(surplus.amount))}</Button>
+            <Button variant="link" onClick={() => setHow(true)}>{bufferCopy.how}</Button>
           </div>
           <Sheet open={how} onClose={() => setHow(false)} title={bufferCopy.howTitle}>
             <ol className="flex list-decimal flex-col gap-t2 pl-t5 text-body text-text">{bufferCopy.howSteps.map((x) => <li key={x}>{x}</li>)}</ol>
@@ -233,7 +233,7 @@ export function TallyCard({ tally, onOpen }: { tally: Tally; onOpen: () => void 
           <p className="text-small text-text-muted">{tally.items.length ? v.since : tally.pending.length ? pendingText(tally.pending[0]!) : v.none}</p>
         </div>
       </div>
-      <Button variant="tertiary" className="mt-t1" onClick={onOpen}>{v.sheetTitle}</Button>
+      <Button variant="link" className="mt-t1" onClick={onOpen}>{v.sheetTitle}</Button>
     </section>
   );
 }
@@ -339,7 +339,7 @@ export function CheckInAdjustSheet({ open, onClose, bills, oneOffs, dates, onPai
           <ul className="mt-t1 flex flex-col">{oneOffs.map((o) => (
             <li key={o.id} className="flex items-center justify-between gap-t3 border-t border-divider py-t1 text-small text-text">
               <span>{formatShortDay(o.date)} · {o.label} · <span className="tnum">{formatCents(o.amount)}</span></span>
-              <Button variant="tertiary" aria-label={c.oneOffRemove(o.label)} onClick={() => onRemoveOneOff(o.id)}>×</Button>
+              <Button variant="link" aria-label={c.oneOffRemove(o.label)} onClick={() => onRemoveOneOff(o.id)}>×</Button>
             </li>
           ))}</ul>
         )}
@@ -347,7 +347,7 @@ export function CheckInAdjustSheet({ open, onClose, bills, oneOffs, dates, onPai
           <TextInput label={c.oneOffLabel} value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} />
           <TextInput label={c.oneOffAmount} inputMode="decimal" value={amount} error={error} onChange={(e) => { setAmount(e.target.value); setError(undefined); }} />
           <SelectInput label={c.oneOffDate} value={date} options={dates.map((x) => ({ value: x, label: formatShortDay(x) }))} onChange={setDate} />
-          <Button variant="secondary" onClick={add}>{c.oneOffAdd}</Button>
+          <Button variant="outline" onClick={add}>{c.oneOffAdd}</Button>
         </div>
       </fieldset>
     </Sheet>

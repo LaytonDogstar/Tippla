@@ -43,11 +43,11 @@ export function BillCorrect({ persona, bill, asOf, onDone }: { persona: PersonaI
   return (
     <div className="flex flex-col gap-t2">
       <p className="text-body text-text-muted">{t.bill.intro}</p>
-      <Button full variant="secondary" onClick={() => finish(() => adjustBill(key, { paid: true }))}>{t.bill.paid}</Button>
-      <Button full variant="secondary" onClick={() => { setMode("amount"); setValue(String(bill.expected_amount)); }}>{t.bill.amount}</Button>
-      <Button full variant="secondary" onClick={() => { setMode("moved"); setValue(addDays(bill.date, 1)); }}>{t.bill.moved}</Button>
-      <Button full variant="tertiary" onClick={() => finish(() => addRule({ kind: "not_bill", merchant: bill.merchant }))}>{t.bill.notBill}</Button>
-      <Button full variant="tertiary" onClick={() => finish(() => addRule({ kind: "bill_ended", merchant: bill.merchant }))}>{t.bill.ended}</Button>
+      <Button full variant="outline" onClick={() => finish(() => adjustBill(key, { paid: true }))}>{t.bill.paid}</Button>
+      <Button full variant="outline" onClick={() => { setMode("amount"); setValue(String(bill.expected_amount)); }}>{t.bill.amount}</Button>
+      <Button full variant="outline" onClick={() => { setMode("moved"); setValue(addDays(bill.date, 1)); }}>{t.bill.moved}</Button>
+      <Button full variant="link" onClick={() => finish(() => addRule({ kind: "not_bill", merchant: bill.merchant }))}>{t.bill.notBill}</Button>
+      <Button full variant="link" onClick={() => finish(() => addRule({ kind: "bill_ended", merchant: bill.merchant }))}>{t.bill.ended}</Button>
     </div>
   );
 }

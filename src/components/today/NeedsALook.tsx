@@ -92,11 +92,11 @@ export function NeedsALook({ persona, account: initial, items, asOf, payday, che
           <div className="flex flex-col gap-t3">
             <p className="text-body14 text-text-secondary">{menu.body}</p>
             <ButtonLink href={menu.action.href} full onClick={() => { track("feed_item_actioned", { rule_id: menu.type, position: position(menu) }); setMenu(null); }}>{menu.action.label}</ButtonLink>
-            {menu.hardship && <ButtonLink href={menu.hardship.href} full variant="secondary" onClick={() => setMenu(null)}>{menu.hardship.label}</ButtonLink>}
+            {menu.hardship && <ButtonLink href={menu.hardship.href} full variant="outline" onClick={() => setMenu(null)}>{menu.hardship.label}</ButtonLink>}
             <div className="grid grid-cols-3 gap-t2 border-t border-divider pt-t3">
-              <Button variant="tertiary" onClick={() => { const it = menu; setMenu(null); done(it); }}>{f.done}</Button>
-              <Button variant="tertiary" onClick={() => { const it = menu; setMenu(null); setSnoozing(it); }}>{f.snooze}</Button>
-              <Button variant="tertiary" onClick={() => { const it = menu; setMenu(null); dismiss(it); }}>{f.dismiss}</Button>
+              <Button variant="link" onClick={() => { const it = menu; setMenu(null); done(it); }}>{f.done}</Button>
+              <Button variant="link" onClick={() => { const it = menu; setMenu(null); setSnoozing(it); }}>{f.snooze}</Button>
+              <Button variant="link" onClick={() => { const it = menu; setMenu(null); dismiss(it); }}>{f.dismiss}</Button>
             </div>
           </div>
         )}
@@ -105,7 +105,7 @@ export function NeedsALook({ persona, account: initial, items, asOf, payday, che
         {snoozing && (
           <div className="flex flex-col gap-t2">
             {snoozeOptions.map((o) => (
-              <Button key={o.until} full variant="secondary" onClick={() => { const it = snoozing; setSnoozing(null); set(it, { status: "snoozed", until: o.until, at: asOf }, f.toast.snoozed(formatShortDay(o.until))); }}>{o.label}</Button>
+              <Button key={o.until} full variant="outline" onClick={() => { const it = snoozing; setSnoozing(null); set(it, { status: "snoozed", until: o.until, at: asOf }, f.toast.snoozed(formatShortDay(o.until))); }}>{o.label}</Button>
             ))}
           </div>
         )}

@@ -61,12 +61,12 @@ export function PushSetup({ persona }: { persona: PersonaId }) {
       {state === "unsupported" && <p className="mt-t1 text-small text-text-muted">{t.unsupported}</p>}
       {state === "ios" && <p className="mt-t1 text-small text-text-muted">{t.ios}</p>}
       {state === "denied" && <p className="mt-t1 text-small text-text-muted">{t.denied}</p>}
-      {state === "off" && <Button className="mt-t2" variant="secondary" disabled={busy} onClick={turnOn}>{busy ? t.working : t.off}</Button>}
+      {state === "off" && <Button className="mt-t2" variant="outline" disabled={busy} onClick={turnOn}>{busy ? t.working : t.off}</Button>}
       {state === "on" && (
         <div className="mt-t2 flex flex-wrap items-center gap-t2">
           <span className="text-small text-text">{t.on}</span>
-          <Button variant="secondary" disabled={busy} onClick={test}>{t.test}</Button>
-          <Button variant="tertiary" disabled={busy} onClick={turnOff}>{t.turnOff}</Button>
+          <Button variant="outline" disabled={busy} onClick={test}>{t.test}</Button>
+          <Button variant="link" disabled={busy} onClick={turnOff}>{t.turnOff}</Button>
         </div>
       )}
       <p role="status" className="mt-t1 text-small text-text-muted">{message}</p>

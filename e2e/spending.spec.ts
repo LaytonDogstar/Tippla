@@ -38,8 +38,26 @@ test("journey 2: dashboard → spending → category → merchant → recategori
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByRole("heading", { name: "McDonald's" })).toBeVisible();
   await expectNoAxe(page);
+  // Buttons brief: no buttons before a change; the hint stays.
+  await expect(sheet.getByRole("button", { name: /Do this for every/ })).toHaveCount(0);
+  await expect(sheet.getByText("Wrong category? Change it here and every total updates.")).toBeVisible();
   await sheet.getByRole("combobox", { name: "Category" }).selectOption({ label: "Groceries" });
-  await expect(page.getByRole("status").filter({ hasText: "Moved to Groceries. Totals updated" })).toBeVisible();
+  // Saved straight away, with every McDonald's payment moved too (ticked by default)...
+  const all = sheet.getByRole("checkbox", { name: "Also move all McDonald's payments to Groceries, including future ones" });
+  await expect(all).toBeChecked();
+  await expect(sheet.getByRole("status")).toContainText("Moved to Groceries, including future McDonald's payments");
+  await expect(row(page, /^Food & dining/)).toContainText("$51");
+  // ...untick for this payment only: the rule goes, the strip says so, and the totals follow without a reload.
+  await all.uncheck({ force: true });
+  await expect(sheet.getByRole("status")).toHaveText(/^Moved to Groceries\s*Undo/);
+  await expect(row(page, /^Food & dining/)).toContainText("$105");
+  // Undo returns to the before state; then make the change again, this payment only.
+  await sheet.getByRole("button", { name: /^Undo/ }).click();
+  await expect(sheet.getByRole("combobox", { name: "Category" })).toHaveValue("food");
+  await expect(row(page, /^Food & dining/)).toContainText("$112");
+  await sheet.getByRole("combobox", { name: "Category" }).selectOption({ label: "Groceries" });
+  await sheet.getByRole("checkbox").uncheck({ force: true });
+  await expect(sheet.getByRole("status")).toHaveText(/^Moved to Groceries\s*Undo/);
   await page.keyboard.press("Escape");
   await expect(row(page, /^Food & dining/)).toContainText("$105");
   await expect(row(page, /^Groceries/)).toContainText("$90");
@@ -230,3 +248,29 @@ for (const persona of ["jess", "marcus", "priya"]) {
     });
   }
 }
+
+test("Budget ideas: edit the amount inline, Set confirms with Undo, the panel keeps matching (Jess)", async ({ page }) => {
+  await page.goto("/spending?persona=jess&present=1");
+  const card = page.getByRole("region", { name: "Budget ideas" });
+  await expect(card).toContainText("Based on your last three pay cycles. Tap an amount to change it.");
+  await expect(card.getByRole("link", { name: "All budgets" })).toHaveAttribute("href", "/spending/budgets");
+  // The amount is a button that opens an inline editor; the Set pill and the panel follow the typed amount.
+  await card.getByRole("button", { name: "Change the Food & dining amount, now $150" }).click();
+  const input = card.getByRole("textbox", { name: "Food & dining budget a cycle, in dollars" });
+  await input.fill("120");
+  await expect(card.getByRole("button", { name: /^Set \$120 budget for Food/ })).toBeVisible();
+  await input.press("Enter");
+  await row(page, /^Food & dining/).click();
+  await expect(where(page).getByRole("button", { name: "Set a budget of $120" })).toBeVisible();
+  // Set saves straight away and confirms in the row, with Undo.
+  await card.getByRole("button", { name: /^Set \$120 budget for Food/ }).click();
+  await expect(card.getByRole("status")).toContainText("Budget set: $120 a cycle");
+  await expect(where(page).getByRole("button", { name: "Budget: $120" })).toBeVisible();
+  await card.getByRole("button", { name: /^Undo/ }).click();
+  await expect(card.getByRole("button", { name: /^Set \$120 budget for Food/ })).toBeVisible();
+  await expect(where(page).getByRole("button", { name: "Set a budget of $120" })).toBeVisible();
+  // ✕ is Not now (for this session); with every idea gone, the card and its section go too.
+  for (const name of ["Food & dining", "Shopping", "Cash withdrawals"]) await card.getByRole("button", { name: `Not now for ${name}` }).click();
+  await expect(page.getByRole("region", { name: "Budget ideas" })).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: /sections/i }).getByRole("link", { name: "Plan ahead" })).toHaveCount(0);
+});

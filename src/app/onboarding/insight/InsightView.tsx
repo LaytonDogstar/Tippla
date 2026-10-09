@@ -43,7 +43,7 @@ export function InsightView({ aha, present }: { aha: Aha; present: boolean }) {
       <section aria-labelledby="aha" className={aha.type === "shortfall" ? "mt-t4 rounded-lg bg-caution-soft p-t5" : "mt-t4 rounded-lg bg-accent-soft p-t5"}>
         <h2 id="aha" className="text-card text-text sm:text-card-l">{c.title}</h2>
         <p className="mt-t3 text-body text-text">{c.body}</p>
-        <Button variant="secondary" full className="mt-t5" onClick={() => { track("aha_actioned", { type: aha.type }); setOpen(true); }}>{c.show}</Button>
+        <Button variant="outline" full className="mt-t5" onClick={() => { track("aha_actioned", { type: aha.type }); setOpen(true); }}>{c.show}</Button>
       </section>
       <SampleTag q="Q29" present={present} className="mt-t3" />
       <Sheet open={open} onClose={() => setOpen(false)} title={c.sheetTitle}><Detail a={aha} /></Sheet>

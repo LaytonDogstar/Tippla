@@ -71,13 +71,13 @@ export function PlanCard({ persona, account, asOf, plan, options, suggested }: {
                     {plan.type === "gambling_less" && i === 0 && (
                       <form noValidate className="flex items-end gap-t2" onSubmit={(e) => { e.preventDefault(); saveLimit(); }}>
                         <div className="flex-1"><TextInput label={t.limitLabel} inputMode="decimal" value={limit} onChange={(e) => setLimit(e.target.value)} /></div>
-                        <Button type="submit" variant="secondary">{t.setLimit}</Button>
+                        <Button type="submit" variant="outline">{t.setLimit}</Button>
                       </form>
                     )}
                     {s.kind === "manual" && (
                       <div className="flex flex-wrap gap-t2">
                         {s.link && <Link href={s.link} className="inline-flex min-h-tap items-center text-small text-accent underline-offset-2 hover:underline">{plan.type === "gambling_less" ? t.blockLink : s.label}</Link>}
-                        <Button variant="secondary" onClick={() => markDone(i)}>{t.manual}</Button>
+                        <Button variant="outline" onClick={() => markDone(i)}>{t.manual}</Button>
                       </div>
                     )}
                   </div>
@@ -88,7 +88,7 @@ export function PlanCard({ persona, account, asOf, plan, options, suggested }: {
         })}
       </ol>
       {plan.completed && <p role="status" className="mt-t3 text-small text-text">{t.completed}</p>}
-      <Button variant="tertiary" className="mt-t3" onClick={() => setSwitching(true)}>{t.switch}</Button>
+      <Button variant="link" className="mt-t3" onClick={() => setSwitching(true)}>{t.switch}</Button>
       <Sheet open={switching} onClose={() => setSwitching(false)} title={t.switchTitle} subtitle={t.switchIntro}>
         <ul className="flex flex-col gap-t2">
           {options.map((type) => (

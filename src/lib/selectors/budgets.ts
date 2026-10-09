@@ -70,3 +70,28 @@ export function budgetSuggestions(d: SpendData, budgets: Budgets, overrides?: Ca
     .slice(0, max)
     .map(({ c, avg }) => ({ category: c, name: categoryNames[c], average: Math.round(avg), suggested: suggestedBudget(avg) }));
 }
+
+/**
+ * Budget ideas on Spending (buttons brief, 09/10/2026): the suggestions, with any amount the member typed in place
+ * of the suggested one and the ones they said "Not now" to left out. `justSet` keeps a row in place (as its "Budget
+ * set" confirmation) for the few seconds after Set, although the category now has a budget. Empty = hide the card.
+ */
+export interface BudgetIdea extends BudgetSuggestion { justSet: boolean }
+export function budgetIdeas(d: SpendData, budgets: Budgets, overrides: CategoryOverrides | undefined, opts: {
+  amounts?: Partial<Record<SpendCategory, number>>; dismissed?: Iterable<string>; justSet?: Iterable<SpendCategory>;
+} = {}): BudgetIdea[] {
+  const dismissed = new Set(opts.dismissed ?? []);
+  const justSet = new Set(opts.justSet ?? []);
+  const without = Object.fromEntries(Object.entries(budgets).filter(([c]) => !justSet.has(c as SpendCategory))) as Budgets;
+  return budgetSuggestions(d, without, overrides)
+    .filter((x) => !dismissed.has(x.category))
+    .map((x) => ({ ...x, suggested: justSet.has(x.category) ? budgets[x.category] ?? x.suggested : opts.amounts?.[x.category] ?? x.suggested, justSet: justSet.has(x.category) }));
+}
+
+/** A typed budget amount: whole dollars, $1 to $99,999 ("$60", "60", "1,200"). null when it isn't one. */
+export function parseBudgetAmount(raw: string): number | null {
+  const s = raw.replace(/[$,\s]/g, "");
+  if (!/^\d{1,5}$/.test(s)) return null;
+  const n = Number(s);
+  return n >= 1 ? n : null;
+}

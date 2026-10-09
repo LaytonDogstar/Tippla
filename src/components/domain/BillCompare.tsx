@@ -50,10 +50,10 @@ export function BillCompare({ persona, account, asOf, bills, state }: { persona:
               {b.category === "energy"
                 ? <a href={state === "VIC" ? ENERGY_COMPARE_VIC : PROGRAMS.energy_compare.url} target="_blank" rel="noopener noreferrer" onClick={() => track("bill_switch_link_opened", {})}
                     className="inline-flex min-h-tap items-center gap-t2 text-body-strong text-accent underline-offset-2 hover:underline">{t.compare}<ExternalLink aria-hidden size={16} /></a>
-                : <Button variant="secondary" onClick={() => { track("bill_switch_link_opened", {}); setTips(b); }}>{t.tipsTitle(b.merchant)}</Button>}
+                : <Button variant="outline" onClick={() => { track("bill_switch_link_opened", {}); setTips(b); }}>{t.tipsTitle(b.merchant)}</Button>}
               {reported
                 ? <p role="status" className="text-small text-text">{t.reported(formatDollars(reported.monthly))}</p>
-                : <Button variant="tertiary" onClick={() => { setReport(b); setValue(""); setError(null); }}>{t.switched}</Button>}
+                : <Button variant="link" onClick={() => { setReport(b); setValue(""); setError(null); }}>{t.switched}</Button>}
             </div>
           </article>
         );

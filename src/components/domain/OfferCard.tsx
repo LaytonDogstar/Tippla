@@ -44,8 +44,8 @@ export function OfferCard({ offer: o, onDetails, onNotInterested }: { offer: Off
         <p className="mt-t3 text-small text-text-muted">{t.notApproval}</p>
       </div>
       <div className="mt-t4 flex flex-col gap-t2">
-        <Button variant="secondary" full onClick={onDetails}>{t.viewDetails}</Button>
-        <Button variant="tertiary" full onClick={onNotInterested}>{t.notInterested}</Button>
+        <Button variant="outline" full onClick={onDetails}>{t.viewDetails}</Button>
+        <Button variant="link" full onClick={onNotInterested}>{t.notInterested}</Button>
       </div>
     </article>
   );

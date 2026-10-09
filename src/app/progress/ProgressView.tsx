@@ -82,8 +82,8 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
                   : t.goal.noneYet(formatShortDay(nextPayday))}</li>
               </ul>
               <div className="mt-t2 flex flex-wrap gap-x-t2">
-                <Button variant="tertiary" onClick={() => setEditing(true)}>{t.goal.edit}</Button>
-                <Button variant="tertiary" onClick={removeGoal}>{t.goal.remove}</Button>
+                <Button variant="link" onClick={() => setEditing(true)}>{t.goal.edit}</Button>
+                <Button variant="link" onClick={removeGoal}>{t.goal.remove}</Button>
               </div>
             </>
           )}
@@ -109,7 +109,7 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
           <div className="min-w-0 flex-1">
             <h2 id="ptally-h" className="text-caption text-text-muted">{t.tally.heading}</h2>
             <p className="tnum text-h2 font-display text-text">{formatDollars(p.tally.total)}</p>
-            <Button variant="tertiary" onClick={() => setTally(true)}>{t.tally.see}</Button>
+            <Button variant="link" onClick={() => setTally(true)}>{t.tally.see}</Button>
           </div>
         </section>}
       </div>

@@ -63,7 +63,7 @@ export function HelpView({ initialQ, initialOpen, entitlements = false }: { init
       </>} rail={<>
         {/* Rail (UX round 2, 4.1): ways to get help and account links, beside the questions. */}
         <section className="flex flex-col gap-t2 rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
-          <Button variant="secondary" full onClick={() => setContact(true)}>{t.contact}</Button>
+          <Button variant="outline" full onClick={() => setContact(true)}>{t.contact}</Button>
           <Link href="/hardship" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-body14 font-semibold text-accent hover:bg-surface2">{t.hardshipLink}<ChevronRight aria-hidden size={20} /></Link>
           {entitlements && <Link href="/help/entitlements" className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-body14 font-semibold text-accent hover:bg-surface2">{entitlementsCopy.title}<ChevronRight aria-hidden size={20} /></Link>}
         </section>

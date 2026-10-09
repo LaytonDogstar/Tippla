@@ -180,7 +180,7 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
             {action.id === "pay-advance" && (trying
               ? <p role="status" className="text-small text-text-muted">{tallyCopy.tryingNote}</p>
               : <Button full onClick={tryThis}>{tallyCopy.tryThis}</Button>)}
-            {action.ifYouWant && <><Button full variant={action.id === "pay-advance" ? "secondary" : "primary"} onClick={() => setSheet("due")}>{t.dueTitle}</Button><Button full variant="tertiary" onClick={() => router.push("/hardship")}>{todayCopy.hero.moneyTight}</Button></>}
+            {action.ifYouWant && <><Button full variant={action.id === "pay-advance" ? "secondary" : "primary"} onClick={() => setSheet("due")}>{t.dueTitle}</Button><Button full variant="link" onClick={() => router.push("/hardship")}>{todayCopy.hero.moneyTight}</Button></>}
           </> : undefined}>
           <InsightSheetBody item={{ id: action.id, context: action.factor, title: action.title, summary: action.summary, happening: action.happening, wouldChange: action.wouldChange, ifYouWant: action.ifYouWant }} />
           {/* Goal setting lives here (and on Details) since the progress card has one button (09/10/2026). */}

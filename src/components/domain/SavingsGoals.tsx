@@ -47,11 +47,11 @@ export function SavingsGoals({ persona, account, asOf, goals, limit, savingsAcco
                 <p className="text-body-strong text-text">{t.line(g.goal.name, formatWhole(g.goal.target), formatDayMonth(g.goal.by))}</p>
                 <p className="text-small text-text">{g.reached ? t.reached : g.saved !== null ? t.saved(formatWhole(g.saved), g.percent!) : t.notTracked}</p>
                 {!g.reached && <p className="text-small text-text-muted">{t.perCycle(formatWhole(g.perCycle))}</p>}
-                <Button variant="tertiary" onClick={() => update((l) => ({ ...l, savingsGoals: (l.savingsGoals ?? []).filter((x) => x.id !== g.goal.id) }))}>{t.remove(g.goal.name)}</Button>
+                <Button variant="link" onClick={() => update((l) => ({ ...l, savingsGoals: (l.savingsGoals ?? []).filter((x) => x.id !== g.goal.id) }))}>{t.remove(g.goal.name)}</Button>
               </li>
             ))}
           </ul>
-          {goals.length < limit && <Button variant="secondary" className="mt-t3" onClick={() => { setError(null); setOpen(true); }}>{t.add}</Button>}
+          {goals.length < limit && <Button variant="outline" className="mt-t3" onClick={() => { setError(null); setOpen(true); }}>{t.add}</Button>}
         </>
       )}
       <Sheet open={open} onClose={() => setOpen(false)} title={t.addTitle} footer={<Button full onClick={save}>{t.save}</Button>}>

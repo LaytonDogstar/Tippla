@@ -141,7 +141,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
           {!outcome ? (
             <div className="flex flex-col gap-t2">
               <p className="text-body text-text-muted">{lc.followup.body}</p>
-              {(["agreed", "declined", "not_yet"] as const).map((o) => <Button key={o} full variant="secondary" onClick={() => answer(o)}>{lc.followup.answers[o]}</Button>)}
+              {(["agreed", "declined", "not_yet"] as const).map((o) => <Button key={o} full variant="outline" onClick={() => answer(o)}>{lc.followup.answers[o]}</Button>)}
             </div>
           ) : (
             <div role="status" className="flex flex-col gap-t3">
@@ -154,7 +154,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       <Sheet open={!letter && sheet === "template"} onClose={() => setSheet(null)} title={t.template.title}
         footer={<>
           <Button full onClick={copyMessage}>{t.template.copy}</Button>
-          <Button full variant="tertiary" onClick={() => { setDraft(t.template.body); setCopyFailed(false); setSheet(null); }}>{t.template.cancel}</Button>
+          <Button full variant="link" onClick={() => { setDraft(t.template.body); setCopyFailed(false); setSheet(null); }}>{t.template.cancel}</Button>
         </>}>
         <p className="text-body text-text-muted">{t.template.intro}</p>
         {lenders.length > 0 && <p className="mt-t2 text-small text-text-muted">{t.template.yourLenders(lenders.join(", "))}</p>}
@@ -165,7 +165,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       </Sheet>
 
       <Sheet open={sheet === "counselling"} onClose={() => setSheet(null)} title={t.ndh.title}
-        footer={<Button full variant="tertiary" onClick={() => setSheet(null)}>{t.ndh.notNow}</Button>}>
+        footer={<Button full variant="link" onClick={() => setSheet(null)}>{t.ndh.notNow}</Button>}>
         <h3 className="text-h3 text-text">{NDH.name}</h3>
         <p className="mt-t2 text-body text-text-muted">{t.ndh.body}</p>
         <a href={NDH.tel} className="mt-t5 flex min-h-[48px] w-full items-center py-t2 text-center justify-center rounded-sm bg-accent text-body-strong text-on-accent hover:opacity-90">{t.ndh.call(NDH.phoneDisplay)}</a>
@@ -177,7 +177,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       </Sheet>
 
       <Sheet open={sheet === "gambling"} onClose={() => setSheet(null)} title={t.gambling.title}
-        footer={<Button full variant="tertiary" onClick={() => setSheet(null)}>{t.notNow}</Button>}>
+        footer={<Button full variant="link" onClick={() => setSheet(null)}>{t.notNow}</Button>}>
         <SupportOptions />
       </Sheet>
     </div>

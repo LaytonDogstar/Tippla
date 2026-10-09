@@ -36,8 +36,8 @@ function Answer({ r, onRate, rated }: { r: Reply; onRate: (helpful: boolean) => 
         rated ? <p role="status" className="mt-t2 text-caption text-text-muted">{t.thanks}</p> : (
           <div className="mt-t2 flex items-center gap-t2 text-caption text-text-muted">
             <span>{t.helpful}</span>
-            <Button variant="tertiary" onClick={() => onRate(true)} aria-label={`${t.yes}: ${t.helpful}`}>{t.yes}</Button>
-            <Button variant="tertiary" onClick={() => onRate(false)} aria-label={`${t.no}: ${t.helpful}`}>{t.no}</Button>
+            <Button variant="link" onClick={() => onRate(true)} aria-label={`${t.yes}: ${t.helpful}`}>{t.yes}</Button>
+            <Button variant="link" onClick={() => onRate(false)} aria-label={`${t.no}: ${t.helpful}`}>{t.no}</Button>
           </div>
         )
       )}

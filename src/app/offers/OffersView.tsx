@@ -42,7 +42,7 @@ export function OffersView({ persona, account: initial, matching, offers, guard,
     <section aria-labelledby="match-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
       <h2 id="match-h" className="text-card text-text sm:text-card-l">{t.info}</h2>
       <div className="mt-t2 flex flex-col gap-t2">{t.infoBody.map((p) => <p key={p} className="text-body14 text-text-secondary">{p}</p>)}</div>
-      <ButtonLink variant="secondary" className="mt-t4" href="/account/consents">{t.off.action}</ButtonLink>
+      <ButtonLink variant="outline" className="mt-t4" href="/account/consents">{t.off.action}</ButtonLink>
     </section>
   );
 
@@ -54,14 +54,14 @@ export function OffersView({ persona, account: initial, matching, offers, guard,
         <section aria-labelledby="off-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
           <h2 id="off-h" className="text-card text-text sm:text-card-l">{t.off.title}</h2>
           <p className="mt-t3 text-body text-text-muted">{t.off.body}</p>
-          <ButtonLink variant="secondary" className="mt-t5" href="/account/consents">{t.off.action}</ButtonLink>
+          <ButtonLink variant="outline" className="mt-t5" href="/account/consents">{t.off.action}</ButtonLink>
         </section>
       ) : paused ? (
         <section aria-labelledby="paused-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
           <h2 id="paused-h" className="text-card text-text sm:text-card-l">{t.paused.title}</h2>
           <p className="mt-t3 text-body text-text">{t.paused.why[paused]}</p>
           <p className="mt-t2 text-body text-text-muted">{t.paused.body}</p>
-          <ButtonLink variant="secondary" className="mt-t5" href="/hardship">{t.paused.action}</ButtonLink>
+          <ButtonLink variant="outline" className="mt-t5" href="/hardship">{t.paused.action}</ButtonLink>
         </section>
       ) : shown.length === 0 ? (
         <div className="mt-t2"><EmptyState variant="noOffers" /></div>
@@ -82,7 +82,7 @@ export function OffersView({ persona, account: initial, matching, offers, guard,
       </>} />
 
       <Sheet open={!!details} onClose={() => setDetails(null)} title={details ? t.detailsTitle(details.lender) : ""}
-        footer={<Button full variant="tertiary" onClick={() => setDetails(null)}>{t.close}</Button>}>
+        footer={<Button full variant="link" onClick={() => setDetails(null)}>{t.close}</Button>}>
         {details && (
           <div className="flex flex-col gap-t4">
             <dl className="grid grid-cols-2 gap-t3">
@@ -105,7 +105,7 @@ export function OffersView({ persona, account: initial, matching, offers, guard,
         )}
       </Sheet>
       <Sheet open={info} onClose={() => setInfo(false)} title={t.info}
-        footer={<ButtonLink full variant="secondary" href="/account/consents">{t.off.action}</ButtonLink>}>
+        footer={<ButtonLink full variant="outline" href="/account/consents">{t.off.action}</ButtonLink>}>
         <div className="flex flex-col gap-t3">{t.infoBody.map((p) => <p key={p} className="text-body text-text-muted">{p}</p>)}</div>
       </Sheet>
     </div>

@@ -2,8 +2,8 @@
 // Spending's sheets and the full budgets list, shared by the Spending page (v5, 09/10/2026) and /spending/budgets:
 // the merchant sheet (recategorise each transaction), the transaction sheet, the budget list and the budget sheet.
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import type { CategoryId, PersonaId, Transaction } from "@/lib/api/types";
 import { categoryNames, categoryTypes, copy } from "@/content/en-AU";
 import { spending as t } from "@/content/spending";
@@ -19,7 +19,9 @@ import {
 import { CategoryRow } from "@/components/domain/CategoryRow";
 import { categoryIcons, catVar } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
-import { CurrencyInput, SelectInput } from "@/components/ui/Form";
+import { Checkbox, CurrencyInput, SelectInput } from "@/components/ui/Form";
+import type { MemberRule } from "@/lib/account/corrections";
+import type { Move } from "@/lib/account/recategorise";
 import { Sheet } from "@/components/ui/Sheet";
 
 export type SheetState =
@@ -62,12 +64,24 @@ export function MerchantSheet({ sheet, setSheet, data, p, edits, original, onRec
   );
 }
 
-// ---- Transaction sheet -------------------------------------------------------------------------------
-export function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecategorise, onReset, persona, corrections, double }: {
+// ---- Transaction sheet (the change-category drawer) ------------------------------------------------------
+/** What the drawer needs from the page to recategorise (buttons brief, 09/10/2026). */
+export interface Recat {
+  /** Saves straight away; `prev` = an earlier change in this drawer, which this one replaces. */
+  move: (tx: Transaction, to: CategoryId, prev: Move | null) => Move;
+  toggle: (m: Move, on: boolean) => Move;
+  undo: (m: Move) => void;
+  /** The merchant's category rule, if any. */
+  ruleFor: (merchant: string) => MemberRule | undefined;
+  /** Merchant rules are on (corrections); without them a change is this transaction only. */
+  rules: boolean;
+}
+
+export function TransactionSheet({ sheet, setSheet, tx, original, edits, recat, onReset, persona, corrections, double }: {
   double: boolean;
   persona: PersonaId; corrections: { oneOff: string[]; regular: string[] } | null;
   sheet: SheetState; setSheet: (s: SheetState) => void; tx: Transaction | null; original: Record<string, CategoryId>;
-  edits: CategoryOverrides; onRecategorise: (id: string, c: CategoryId) => void; onReset: (id: string) => void;
+  edits: CategoryOverrides; recat: Recat; onReset: (id: string) => void;
 }) {
   const from = sheet?.kind === "tx" ? sheet.fromMerchant : undefined;
   const Icon = tx ? categoryIcons[tx.subcategory === "centrelink" ? "centrelink" : tx.category] : null;
@@ -75,11 +89,16 @@ export function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecat
   const { addRule } = useCorrections(persona);
   const c = correctionCopy.transaction;
   const kind = tx && corrections ? (corrections.oneOff.includes(tx.merchant) ? "one_off" : corrections.regular.includes(tx.merchant) ? "regular" : null) : null;
+  // The change made in this drawer (after state), cleared when it opens on another transaction.
+  const [moved, setMoved] = useState<Move | null>(null);
+  const select = useRef<HTMLDivElement>(null);
+  useEffect(() => setMoved(null), [tx?.id]);
+  const rule = tx && !moved ? recat.ruleFor(tx.merchant) : undefined;
+  const to = moved ? categoryNames[moved.to] : "";
   return (
     <Sheet open={!!tx} onClose={() => setSheet(null)} title={tx?.merchant ?? ""}
       subtitle={tx ? `${formatShortDay(tx.date)} · ${tx.amount < 0 ? "−" : "+"}${formatCents(Math.abs(tx.amount))}` : undefined}
-      onBack={from ? () => setSheet({ kind: "merchant", merchant: from }) : undefined}
-      footer={tx && debit && !from ? <Button full variant="secondary" onClick={() => setSheet({ kind: "merchant", merchant: tx.merchant })}>{t.tx.allFrom(tx.merchant)}</Button> : undefined}>
+      onBack={from ? () => setSheet({ kind: "merchant", merchant: from }) : undefined}>
       {tx && (
         <div className="flex flex-col gap-t4">
           <div className="flex items-center gap-t3">
@@ -94,17 +113,48 @@ export function TransactionSheet({ sheet, setSheet, tx, original, edits, onRecat
           )}
           {debit ? (
             <>
-              <SelectInput label={t.tx.category} value={tx.category} options={categoryOptions} onChange={(v) => onRecategorise(tx.id, v)} />
-              {edits[tx.id] && (
-                <div className="flex flex-wrap items-center justify-between gap-t2">
-                  <p className="text-caption text-text-muted">{t.tx.original(categoryNames[original[tx.id]!])}</p>
-                  <Button variant="tertiary" onClick={() => onReset(tx.id)}>{t.tx.reset}</Button>
-                </div>
+              <div ref={select}>
+                <SelectInput label={t.tx.category} value={tx.category} options={categoryOptions}
+                  onChange={(v) => { if (v !== tx.category) setMoved(recat.move(tx, v, moved)); }} />
+              </div>
+              {moved ? (
+                <>
+                  {recat.rules && (
+                    <div className="rounded-inset bg-surface2 px-t2 py-t1">
+                      <Checkbox checked={moved.rule} onChange={(on) => setMoved(recat.toggle(moved, on))} label={t.tx.alsoAll(tx.merchant, to)} />
+                    </div>
+                  )}
+                  <div role="status" className="flex min-h-tap items-center justify-between gap-x-t2 rounded-inset bg-positive-soft pl-t3">
+                    <p className="flex min-w-0 items-center gap-t2 py-t2 text-body14 font-semibold text-positive">
+                      <Check aria-hidden size={18} strokeWidth={2.5} className="shrink-0" />{moved.rule ? t.tx.movedToAll(to, tx.merchant) : t.tx.movedTo(to)}
+                    </p>
+                    <Button variant="link" className="shrink-0" onClick={() => { recat.undo(moved); setMoved(null); }}>{t.tx.undo}<span className="sr-only"> {t.tx.undoSr}</span></Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {rule?.category && (
+                    <p className="flex flex-wrap items-center gap-x-t2 text-small text-text-muted">
+                      <span>{t.tx.ruleExists(tx.merchant, categoryNames[rule.category])}</span>
+                      <Button variant="link" className="px-t1" onClick={() => select.current?.querySelector("select")?.focus()}>{t.tx.change}<span className="sr-only"> {t.tx.changeSr(tx.merchant)}</span></Button>
+                    </p>
+                  )}
+                  {edits[tx.id] && (
+                    <div className="flex flex-wrap items-center justify-between gap-t2">
+                      <p className="text-caption text-text-muted">{t.tx.original(categoryNames[original[tx.id]!])}</p>
+                      <Button variant="link" onClick={() => onReset(tx.id)}>{t.tx.reset}</Button>
+                    </div>
+                  )}
+                  {tx.category === "transfer" && <p className="text-small text-text-muted">{t.tx.transferNote}</p>}
+                  <p className="text-small text-text-muted">{t.tx.hint}</p>
+                </>
               )}
-              {tx.category === "transfer" && <p className="text-small text-text-muted">{t.tx.transferNote}</p>}
-              {/* Spec 05: make it a member rule, so future payments from this merchant follow it. */}
-              {corrections && <Button variant="secondary" full onClick={() => addRule({ kind: "category", merchant: tx.merchant, category: tx.category }, { from: original[tx.id] })}>{c.allFrom(tx.merchant)}</Button>}
-              <p className="text-small text-text-muted">{t.tx.hint}</p>
+              {!from && (
+                <button type="button" onClick={() => setSheet({ kind: "merchant", merchant: tx.merchant })}
+                  className="inline-flex min-h-tap items-center gap-t1 self-start rounded-xs text-body14 font-semibold text-accent hover:text-accent-strong">
+                  {t.tx.allFrom(tx.merchant)}<ChevronRight aria-hidden size={16} />
+                </button>
+              )}
             </>
           ) : (
             <>
@@ -161,7 +211,7 @@ export function BudgetsTab({ data, cycle, budgets, edits, onEdit, onSet, onMerch
                   <p className="tnum text-body14 text-text"><strong className="font-bold">{x.name}:</strong> {t.budgets.suggest(formatWhole(x.average), formatWhole(x.suggested))}</p>
                   <div className="mt-t2 flex flex-wrap gap-t2">
                     <Button variant="secondary" onClick={() => onSet(x.category, x.suggested)} aria-label={t.budgets.setSr(formatWhole(x.suggested), x.name)}>{t.budgets.set}</Button>
-                    <Button variant="tertiary" onClick={() => onEdit(x.category, x.suggested)} aria-label={`${t.budgets.adjust}: ${x.name}`}>{t.budgets.adjust}</Button>
+                    <Button variant="link" onClick={() => onEdit(x.category, x.suggested)} aria-label={`${t.budgets.adjust}: ${x.name}`}>{t.budgets.adjust}</Button>
                     <Button variant="tertiary" onClick={() => setDismissed((d) => new Set(d).add(x.category))} aria-label={`${t.budgets.dismiss}: ${x.name}`}>{t.budgets.dismiss}</Button>
                   </div>
                 </li>

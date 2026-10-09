@@ -57,7 +57,7 @@ test.describe("dynamic type 200%", () => {
 test("reduced motion: transitions are effectively off and sheets appear without animating", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(url("/spending", "jess"));
-  const d = await page.getByRole("button", { name: /^Set a \$150 budget for Food/ }).evaluate((el) => getComputedStyle(el).transitionDuration);
+  const d = await page.getByRole("button", { name: /^Set \$150 budget for Food/ }).evaluate((el) => getComputedStyle(el).transitionDuration);
   expect(parseFloat(d)).toBeLessThan(0.001);
   await page.getByRole("region", { name: "How lenders see your spending" }).getByRole("button", { name: /^2 deposits/ }).click();
   const panel = page.getByRole("dialog");

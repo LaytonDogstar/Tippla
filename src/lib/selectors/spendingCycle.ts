@@ -137,7 +137,7 @@ export interface SpendingView {
 
 const isEveryday = (c: SpendCategory) => !FIXED_COSTS.includes(c) && !REPAYMENTS.includes(c);
 
-export function spendingView(d: SpendData, p: Period, overrides: CategoryOverrides = {}, opts: { budgets?: Budgets; hideGambling?: boolean } = {}): SpendingView {
+export function spendingView(d: SpendData, p: Period, overrides: CategoryOverrides = {}, opts: { budgets?: Budgets; hideGambling?: boolean; ideaAmounts?: Partial<Record<SpendCategory, number>> } = {}): SpendingView {
   const cur = lastCycles(d, 1)[0]!;
   const isCycle = p.start === cur.start && p.end === cur.end;
   const end = p.end > d.asOf ? d.asOf : p.end;
@@ -157,7 +157,8 @@ export function spendingView(d: SpendData, p: Period, overrides: CategoryOverrid
   const everydayNow = sumMoney(rowsNow.filter((r) => isEveryday(r.category)).map((r) => r.total));
   const everydayPrev = prevMap ? sumMoney([...prevMap.entries()].filter(([c]) => isEveryday(c)).map(([, v]) => v)) : null;
   const usual = usualSpend(d, overrides);
-  const suggestions = budgetSuggestions(d, opts.budgets ?? {}, overrides);
+  // Amounts the member has typed into Budget ideas, so the panel's "Set a budget of $X" keeps matching the card.
+  const suggestions = budgetSuggestions(d, opts.budgets ?? {}, overrides).map((x) => ({ ...x, suggested: opts.ideaAmounts?.[x.category] ?? x.suggested }));
   const tx = inPeriod(applyOverrides(d.transactions, overrides), now);
   const feedFor = (c: SpendCategory) => spendingFeed(d, now, overrides, { category: c });
 

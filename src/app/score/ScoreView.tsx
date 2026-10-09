@@ -101,7 +101,7 @@ export function ScoreView({ state, attribution, projection, trend, top, others, 
             </button>
           </>
         ) : related && panel?.related ? (
-          <Button full variant="secondary" onClick={() => router.push(panel.related!.action.href)}>{panel.related.action.label}</Button>
+          <Button full variant="outline" onClick={() => router.push(panel.related!.action.href)}>{panel.related.action.label}</Button>
         ) : undefined}>
         {panel && !related && (
           <div className="flex flex-col gap-t6">

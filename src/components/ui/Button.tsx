@@ -1,12 +1,15 @@
 "use client";
 // Component 15a. Sizes: compact 44, standard 48, large 56. No opacity fades; disabled uses neutral tokens.
+// Four levels (buttons brief, 09/10/2026): primary (solid, at most one per screen, sheet or drawer), secondary (soft
+// accent pill, no border; may repeat in lists), link (accent text) and tertiary (grey text, or a grey ✕ with
+// `iconOnly`). "outline" is the old secondary, kept only until every page has moved to the four levels.
 import Link from "next/link";
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { LoaderCircle, type LucideIcon } from "lucide-react";
 import { buttons } from "@/content/components";
 import { cx } from "./cx";
 
-export type ButtonVariant = "primary" | "secondary" | "tertiary" | "destructive";
+export type ButtonVariant = "primary" | "secondary" | "link" | "tertiary" | "destructive" | "outline";
 export type ButtonSize = "compact" | "standard" | "large";
 
 const base =
@@ -20,10 +23,13 @@ const sizes: Record<ButtonSize, string> = {
 const variants: Record<ButtonVariant, string> = {
   primary:
     "bg-accent text-on-accent hover:shadow-[inset_0_0_0_2px_var(--color-on-accent)] active:shadow-[inset_0_0_0_2px_var(--color-on-accent),inset_0_-2px_0_0_var(--color-on-accent)]",
-  // Outline: secondary actions never compete with the one solid main action on a screen (UX round 2, 3.3).
-  secondary:
+  // Soft: repeated actions in lists never compete with the one solid main action.
+  secondary: "bg-accent-soft text-accent-strong hover:bg-accent-tint2 active:bg-accent-tint2",
+  link: "bg-transparent text-accent hover:bg-surface2 active:bg-surface2 active:shadow-[inset_0_-2px_0_0_var(--color-accent)]",
+  tertiary: "bg-transparent text-text-muted hover:bg-surface2 hover:text-text-secondary active:bg-surface2",
+  /** @deprecated The old outline secondary; pages move to secondary or link. */
+  outline:
     "bg-surface text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft active:shadow-[inset_0_0_0_2px_var(--color-accent)]",
-  tertiary: "bg-transparent text-accent hover:bg-surface2 active:bg-surface2 active:shadow-[inset_0_-2px_0_0_var(--color-accent)]",
   destructive:
     "bg-destructive text-text-inverse hover:shadow-[inset_0_0_0_2px_var(--color-text-inverse)] active:shadow-[inset_0_0_0_2px_var(--color-text-inverse),inset_0_-2px_0_0_var(--color-text-inverse)]",
 };

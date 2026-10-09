@@ -39,7 +39,7 @@ export function RevealView({ state, topFactor, loansOpen, action, cycle, pattern
             <p className="text-caption text-text-muted">{t.firstThing}</p>
             <h2 id="ft" className="mt-t2 text-h2 font-display text-text">{action.title}</h2>
             <p className="mt-t3 text-small text-text-muted">{action.summary}</p>
-            <Button variant="secondary" full className="mt-t4" onClick={() => setSheet("action")}>{t.seeHow}</Button>
+            <Button variant="outline" full className="mt-t4" onClick={() => setSheet("action")}>{t.seeHow}</Button>
           </section>
         )}
         {topFactor && (

@@ -30,7 +30,7 @@ export function AlertsStep({ persona, account, asOf }: { persona: PersonaId; acc
     <OnboardingShell step="notifications" backHref="/onboarding/goal" title={t.title}
       footer={note
         ? <Button size="standard" full onClick={finish}>{t.done}</Button>
-        : <><Button size="standard" full disabled={busy} onClick={yes}>{t.yes}</Button><Button size="standard" variant="tertiary" full disabled={busy} onClick={no}>{t.no}</Button></>}>
+        : <><Button size="standard" full disabled={busy} onClick={yes}>{t.yes}</Button><Button size="standard" variant="link" full disabled={busy} onClick={no}>{t.no}</Button></>}>
       <p className="mt-t2 text-body text-text">{t.body}</p>
       <p className="mt-t4 text-small text-text-muted">{t.later}</p>
       {note && <p role="status" className="mt-t4 rounded-md bg-info-soft p-t4 text-small text-text">{note}</p>}
