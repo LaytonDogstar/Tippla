@@ -49,19 +49,13 @@ test("segmented control: arrow keys move the selection (radio group)", async ({ 
   await expect(page.getByRole("radio", { name: "Money out" }).first()).toBeChecked();
 });
 
-test("calendar: roving focus with arrows, Enter opens the day", async ({ page }) => {
+test("calendar: each day is a button named with its balance and items; Enter selects", async ({ page }) => {
   await page.goto("/dev/components");
-  const grid = page.getByRole("grid").first();
-  const today = grid.getByRole("button", { name: /^Fri 25\/09/ });
-  await today.focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(grid.getByRole("button", { name: /^Sat 26\/09/ })).toBeFocused();
-  await expect(grid.getByRole("button", { name: /^Sat 26\/09/ })).toHaveAccessibleName(/Telstra \$52 predicted/);
-  await page.keyboard.press("ArrowDown"); // can't go below the last row: stays put
-  await page.keyboard.press("End");
-  const wed = grid.getByRole("button", { name: /^Wed 30\/09/ });
-  await expect(wed).toBeFocused();
-  await expect(wed).toHaveAccessibleName(/Balance forecast −\$53/);
+  const cal = page.getByRole("group", { name: /^September 2026/ }).first();
+  await expect(cal.getByRole("button", { name: /^Fri 25\/09, end-of-day balance \$314, Today/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(cal.getByRole("button", { name: /^Sat 26\/09, forecast balance \$262, Forecast, Telstra \$52/ })).toBeVisible();
+  const wed = cal.getByRole("button", { name: /^Wed 30\/09, forecast balance −\$53, Lowest/ });
+  await wed.focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog", { name: "Day 30/09" })).toBeVisible();
 });

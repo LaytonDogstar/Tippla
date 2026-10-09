@@ -1,61 +1,47 @@
-// P5 Expense calendar: payday to payday at a glance. Navigation is in the URL (?view, ?offset, ?month,
-// ?day) so links from Home ("next bill" → ?day=) land on the right fortnight with that day's sheet open.
+// Calendar, month first (09/10/2026). The server builds every day once (calendarDays: actual end-of-day balances up
+// to today, the forecast after, pending listed but never counted) and the client moves between months and selections
+// without a round trip. Links: ?month=YYYY-MM, ?day=YYYY-MM-DD (Home's "next bill" opens that day selected). Older
+// links (?view=, ?offset=) land on the right month.
 import { loadCustomer } from "@/lib/customer";
 import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
-import { currentCycle, dayTransactions, fortnight, fortnightBounds, isMonthKey, monthCalendar, payCycleSummary } from "@/lib/selectors";
-import { daysBetween, formatShortDay, formatUpdated } from "@/lib/format";
-import { calendarPage as t, monthLabel } from "@/content/spending";
+import { calendarDays, calendarNow, connectionHealth, currentCycle, isMonthKey, lastRefresh, monthKey, monthRange, payCycleRanges } from "@/lib/selectors";
+import { addDays, formatUpdated } from "@/lib/format";
+import { calendarPage as t } from "@/content/spending";
 import { PageHeader } from "@/components/shell/Shells";
 import { PortalShell } from "@/components/shell/Portal";
-import { CalendarInfoButton, CalendarView } from "./CalendarView";
+import { CalendarView } from "./CalendarView";
 
 export const dynamic = "force-dynamic";
 
-type Search = { persona?: string; present?: string; view?: string; offset?: string; month?: string; day?: string; focus?: string };
+type Search = { persona?: string; present?: string; view?: string; offset?: string; month?: string; day?: string };
 const isDay = (v?: string): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
+/** Calendar's "Updated" line warns once the bank data is more than a day old (the app-wide banner waits 48 hours). */
+const STALE_AFTER_HOURS = 24;
 
 export default async function Calendar({ searchParams }: { searchParams: Search }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
-  const { data } = await loadCustomer(persona);
-  const edits = categoryEdits(persona);
-  const view = searchParams.view === "month" ? "month" : "fortnight";
-  const day = isDay(searchParams.day) ? searchParams.day : null;
+  const { data, account, states } = await loadCustomer(persona);
+  const days = calendarDays(data, categoryEdits(persona));
+  const range = monthRange(days);
+  const clamp = (m: string) => (m < range.min ? range.min : m > range.max ? range.max : m);
 
-  const cycleStart = currentCycle(data).start;
-  const offsetFromDay = day ? Math.floor(daysBetween(cycleStart, day) / 14) : null;
-  const f = fortnight(data, offsetFromDay ?? Number(searchParams.offset ?? 0), edits);
-  const m = monthCalendar(data, isMonthKey(searchParams.month) ? searchParams.month : (day ?? data.asOf).slice(0, 7), edits);
-  const days = view === "month" ? m.days : f.days;
-  const { min, max } = fortnightBounds(data);
-  const nav = view === "month"
-    ? { label: monthLabel(m.month), prev: m.prev && `?view=month&month=${m.prev}`, next: m.next && `?view=month&month=${m.next}`, prevLabel: t.prevMonth, nextLabel: t.nextMonth }
-    : {
-        label: t.range(formatShortDay(f.start), formatShortDay(f.end)),
-        prev: f.offset > min ? `?offset=${f.offset - 1}` : null, next: f.offset < max ? `?offset=${f.offset + 1}` : null,
-        prevLabel: t.prevFortnight, nextLabel: t.nextFortnight,
-      };
-  const txByDay = Object.fromEntries(days.map((d) => [d.date, dayTransactions(data, d.date, edits).map((x) => ({ id: x.id, merchant: x.merchant, amount: x.amount, category: x.category, status: x.status, subcategory: x.subcategory }))]));
-  const selectedDay = day && days.some((d) => d.date === day) ? day : null;
+  // Which month and selection to open on.
+  const day = isDay(searchParams.day) && days.some((d) => d.date === searchParams.day) ? searchParams.day : null;
+  const legacyOffset = !day && !isMonthKey(searchParams.month) && searchParams.offset ? addDays(currentCycle(data).start, 14 * (Number(searchParams.offset) || 0)) : null;
+  const month = clamp(day ? monthKey(day) : isMonthKey(searchParams.month) ? searchParams.month : legacyOffset ? monthKey(legacyOffset) : monthKey(data.asOf));
+  const inMonth = days.filter((d) => monthKey(d.date) === month);
+  const initial = day ? { month, start: day, end: day }
+    : monthKey(data.asOf) === month ? { month, start: data.asOf, end: data.asOf }
+    : { month, start: inMonth[0]?.date ?? data.asOf, end: inMonth.at(-1)?.date ?? data.asOf };
+
+  const refreshed = lastRefresh(data).at;
+  const health = connectionHealth(data, account, states);
+  const stale = health.hoursOld > STALE_AFTER_HOURS ? { when: formatUpdated(refreshed).replace(/^Updated /, "") } : null;
   return (
     <PortalShell path="/calendar" persona={persona} present={present} wide
-      header={<PageHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : undefined} action={<CalendarInfoButton />} />}>
-      <CalendarView
-        key={`${view}-${days[0]?.date}-${selectedDay ?? ""}`}
-        view={view}
-        days={days}
-        asOf={data.asOf}
-        nav={nav}
-        monthHref={`?view=month&month=${(selectedDay ?? (f.start <= data.asOf && f.end >= data.asOf ? data.asOf : f.start)).slice(0, 7)}`}
-        fortnightHref={`?offset=${Math.floor(daysBetween(cycleStart, days.find((d) => d.isToday && !d.outside)?.date ?? days.find((d) => !d.outside)!.date) / 14)}`}
-        nextPayday={view === "fortnight" ? f.nextPayday : null}
-        nextPaydayHref={view === "fortnight" && f.offset < max ? `?offset=${f.offset + 1}` : null}
-        nextIncome={view === "fortnight" && f.nextIncome.some((i) => i.date === f.nextPayday) ? Math.round(f.nextIncome.filter((i) => i.date === f.nextPayday).reduce((n, i) => n + i.amount, 0)) : null}
-        focus={isDay(searchParams.focus) ? searchParams.focus : null}
-        txByDay={txByDay}
-        openDay={selectedDay}
-        isShort={payCycleSummary(data, edits).isShort}
-      />
+      header={<PageHeader title={t.title} sub={formatUpdated(refreshed)} />}>
+      <CalendarView days={days} now={calendarNow(data, days)} asOf={data.asOf} cycles={payCycleRanges(data)} initial={initial} range={range} stale={stale} />
     </PortalShell>
   );
 }

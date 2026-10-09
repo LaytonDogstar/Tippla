@@ -162,62 +162,96 @@ test("dashboard month bar opens that month on Spending", async ({ page }) => {
   await expect(page.getByRole("region", { name: "May 2026" })).toContainText("spent");
 });
 
-test("calendar: Home's next bill opens its day; range totals in the calendar view; month switch", async ({ page }) => {
-  await page.goto("/calendar?persona=jess&present=1&day=2026-09-30");
-  const sheet = page.getByRole("dialog");
-  await expect(sheet.getByRole("heading", { name: "Wed 30/09/2026" })).toBeVisible();
-  await expect(sheet.getByText("$262 − $315 = −$53")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await page.locator("label").filter({ hasText: /^Calendar$/ }).click();
-  await page.getByRole("button", { name: "Select a range" }).click();
-  await page.getByRole("gridcell").getByRole("button", { name: /^Thu 17\/09\/2026/ }).click();
-  await page.getByRole("gridcell").getByRole("button", { name: /^Wed 30\/09\/2026/ }).click();
-  await expect(page.locator("#range-h")).toHaveText("Thu 17/09 – Wed 30/09");
-  await expect(page.getByText("$1,832").first()).toBeVisible();
-  await page.getByText("Month", { exact: true }).click();
-  await expect(page.getByRole("heading", { name: "September 2026" })).toBeVisible();
-});
-
-test("calendar: the answer comes first, the timeline is the default, nothing repeats", async ({ page }) => {
+test("calendar: month first, as the mockup (Jess, September 2026)", async ({ page }) => {
   await page.goto("/calendar?persona=jess&present=1");
   const main = page.locator("main");
-  // The first thing after the controls is the headline.
-  await expect(main.getByText("You'll be about $53 short on Wed 30/09, the day before payday.")).toBeVisible();
-  await expect(main.getByText("$367 in bills before payday · 2 bills")).toBeVisible();
-  await expect(main.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
-  // Timeline by default, with a running balance; the grid is one tap away.
-  const tl = page.getByRole("list", { name: /^Money in and out/ });
-  await expect(tl).toBeVisible();
-  await expect(page.getByRole("grid")).toHaveCount(0);
-  await expect(tl.getByRole("button", { name: /^Wed 30\/09\/2026/ })).toContainText("Below $0");
-  await expect(page.getByText("Bills coming up")).toHaveCount(0);
-  // Tapping a row opens the day drawer, and only the drawer.
-  await tl.getByRole("button", { name: /^Wed 30\/09\/2026/ }).click();
-  await expect(page.getByRole("dialog").getByText("$262 − $315 = −$53")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("button", { name: "View day" })).toHaveCount(0);
-
-  // Next fortnight: covered, with the lowest point labelled on the chart and in the list.
-  await page.goto("/calendar?persona=jess&present=1&offset=1");
-  // Tippla's $9.99 membership charge (Fri 02/10) is in the forecast (09/10/2026), as on Today's Coming up.
-  await expect(main.getByText("Lowest point $1,051 on Tue 13/10 — you're covered until payday Thu 15/10.")).toBeVisible();
-  await expect(main.getByText("$1,236 in bills before payday · 9 bills")).toBeVisible();
-  await expect(main.getByText("Lowest $1,051 · Tue 13/10")).toBeVisible();
-  await expect(main.getByText("Below $0")).toHaveCount(0); // no legend item for what isn't there
+  await expect(main.getByRole("heading", { name: "September 2026" })).toBeVisible();
+  // No old toggles or chart.
+  await expect(page.getByRole("radio", { name: "Fortnight" })).toHaveCount(0);
+  await expect(page.getByText("Show as")).toHaveCount(0);
+  // The banner: amount and date, bills to come, excludes everyday spending (with the month's average), a way forward.
+  const banner = main.getByRole("region", { name: "You're forecast to be $53 short on Wed 30/09" });
+  await expect(banner).toContainText("That's after $367 of bills still to come, but before everyday spending. You've averaged about $70 a day on that this month.");
+  await expect(banner.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  // Four stats about now.
+  const stats = main.getByRole("region", { name: "Your money now" });
+  await expect(stats).toContainText("Balance today$314Fri 25/09");
+  await expect(stats).toContainText("Lowest forecast−$53Wed 30/09 · day before payday");
+  await expect(stats).toContainText("Bills still to come$367Telstra, Beforepay");
+  await expect(stats).toContainText("Days below $010of 25 so far this month");
+  // Monday-first weeks; 31/08 is a muted, non-interactive cell.
+  const cal = main.getByRole("group", { name: /^September 2026/ });
+  await expect(cal.getByRole("button")).toHaveCount(30);
+  await expect(cal.getByRole("button").first()).toHaveAccessibleName(/^Tue 01\/09/);
+  // Today is selected by default: pending listed separately, never in Money out.
+  const panel = main.getByRole("region", { name: "Fri 25/09 · Today" });
+  await expect(panel).toContainText("$212.40 pending, not yet in balance");
+  await expect(panel).toContainText("Money out−$114");
+  await expect(panel).toContainText("JB Hi-FiShopping · Pending");
 });
 
-test("calendar: month view explains where the forecast ends; the view switch answers on any part of the button", async ({ page }) => {
+test("calendar: selecting days: click, drag, Shift-click, Select range, quick ranges", async ({ page }) => {
   await page.goto("/calendar?persona=jess&present=1");
-  // The very edge of the control, outside the visible pill: still picks Month.
-  const track = page.getByRole("group", { name: "Calendar view" }).locator("div").first();
-  const box = (await track.boundingBox())!;
-  await page.mouse.click(box.x + box.width - 3, box.y + box.height / 2);
-  await expect(page.getByRole("radio", { name: "Month" })).toBeChecked();
-  await expect(page.getByRole("heading", { name: "September 2026" })).toBeVisible();
-  await page.goto("/calendar?persona=jess&present=1&view=month&month=2026-10");
-  await expect(page.getByText("From Thu 15/10: forecast not available yet.", { exact: false })).toBeVisible();
-  await page.locator("label").filter({ hasText: /^Calendar$/ }).click();
-  await expect(page.getByText("From Thu 15/10 there's no forecast yet, so those days are blank.")).toBeVisible();
+  const cal = page.getByRole("group", { name: /^September 2026/ });
+  const dayBtn = (d: string) => cal.getByRole("button", { name: new RegExp(`^\\w{3} ${d}/09,`) });
+  const title = page.locator("#sel-h");
+  // Click.
+  await dayBtn("10").click();
+  await expect(title).toHaveText("Thu 10/09");
+  await expect(dayBtn("10")).toHaveAttribute("aria-pressed", "true");
+  // Drag (mouse).
+  const box = async (d: string) => (await dayBtn(d).boundingBox())!;
+  const a = await box("14"), b = await box("16");
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(title).toHaveText("Mon 14/09 – Wed 16/09");
+  // Shift-click extends from the anchor.
+  await dayBtn("18").click({ modifiers: ["Shift"] });
+  await expect(title).toHaveText("Mon 14/09 – Fri 18/09");
+  // Select range: tap a start, then an end; the button says what to do.
+  await page.getByRole("button", { name: "Select range" }).click();
+  await expect(page.getByRole("button", { name: "Tap a start date" })).toBeVisible();
+  await dayBtn("24").click();
+  await expect(page.getByRole("button", { name: "Now tap an end date" })).toBeVisible();
+  await dayBtn("30").click();
+  const range = page.getByRole("region", { name: "Thu 24/09 – Wed 30/09" });
+  await expect(range).toContainText("7 days · Includes forecast from Sat 26/09 · $212.40 pending, not yet in balance");
+  await expect(range).toContainText("Opening balance$149");
+  await expect(range).toContainText("Forecast closing−$53");
+  await expect(range).toContainText("Lowest point−$53Wed 30/09");
+  await expect(range.getByText("Nothing predicted. Everyday spending isn't forecast.").first()).toBeVisible();
+  // Keyboard: Enter selects.
+  await dayBtn("03").focus();
+  await page.keyboard.press("Enter");
+  await expect(title).toHaveText("Thu 03/09");
+  // Quick ranges from the detected paydays.
+  await page.getByRole("button", { name: "Last pay cycle" }).click();
+  await expect(title).toHaveText("Thu 03/09 – Wed 16/09");
+  await expect(page.getByRole("button", { name: "Last pay cycle" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "This pay cycle" }).click();
+  await expect(title).toHaveText("Thu 17/09 – Wed 30/09");
+  await page.getByRole("button", { name: "Whole month" }).click();
+  await expect(title).toHaveText("Tue 01/09 – Wed 30/09");
+  await page.getByRole("button", { name: "Today", exact: true }).click();
+  await expect(title).toHaveText("Fri 25/09 · Today");
+});
+
+test("calendar: months, links in, and where the forecast ends", async ({ page }) => {
+  await page.goto("/calendar?persona=jess&present=1&day=2026-09-30");
+  await expect(page.locator("#sel-h")).toHaveText("Wed 30/09");
+  await page.getByRole("button", { name: "Next month" }).click();
+  await expect(page.getByRole("heading", { name: "October 2026" })).toBeVisible();
+  await expect(page).toHaveURL(/month=2026-10/);
+  // Another month opens on the whole month; Tippla's charge is a predicted item.
+  await expect(page.locator("#sel-h")).toHaveText("Thu 01/10 – Wed 14/10");
+  await expect(page.getByRole("button", { name: /^Fri 02\/10, forecast balance .*Tippla/ })).toBeVisible();
+  await expect(page.getByText("From Thu 15/10 there's no forecast yet.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Next month" })).toBeDisabled();
+  // An older fortnight link lands on the right month.
+  await page.goto("/calendar?persona=jess&present=1&offset=1");
+  await expect(page.getByRole("heading", { name: "October 2026" })).toBeVisible();
 });
 
 test("subscriptions: still using? Yes keeps it with an optional reminder; how to cancel from the menu", async ({ page }) => {
@@ -235,7 +269,7 @@ test("subscriptions: still using? Yes keeps it with an optional reminder; how to
   await expect(page.getByRole("dialog").getByRole("heading", { name: "How to cancel Netflix" })).toBeVisible();
 });
 
-const SCREENS = ["/spending", "/spending?tab=categories", "/spending?tab=budgets", "/spending/compare", "/spending/compare?tab=cohort", "/calendar", "/calendar?view=month", "/subscriptions"];
+const SCREENS = ["/spending", "/spending?tab=categories", "/spending?tab=budgets", "/spending/compare", "/spending/compare?tab=cohort", "/calendar", "/calendar?month=2026-10", "/subscriptions"];
 for (const persona of ["jess", "marcus", "priya"]) {
   for (const scheme of ["light", "dark"] as const) {
     test(`axe: Phase 4 screens, ${persona}, ${scheme}`, async ({ page }) => {
