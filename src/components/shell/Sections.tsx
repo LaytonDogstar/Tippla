@@ -14,7 +14,7 @@ export function Section({ id, n, title, desc, children, className }: { id: strin
     <section aria-labelledby={title ? `${id}-h` : undefined} data-section={id} className={cx("flex flex-col", IN_GROUP_GAP, className)}>
       {title && (
         <div id={id} className="flex scroll-mt-[72px] items-center gap-t3 px-[2px] pb-t1">
-          {n !== undefined && <span aria-hidden className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[8px] bg-accent-tint2 text-meta font-extrabold text-accent-strong">{n}</span>}
+          {n !== undefined && <span aria-hidden className="flex min-h-[26px] min-w-[26px] shrink-0 items-center justify-center rounded-[8px] px-[4px] bg-accent-tint2 text-meta font-extrabold text-accent-strong">{n}</span>}
           <div className="min-w-0">
             <h2 id={`${id}-h`} className="text-[1.25rem] font-extrabold leading-7 tracking-[-0.015em] text-text">{title}</h2>
             {desc && <p className="text-meta text-text-muted">{desc}</p>}

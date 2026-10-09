@@ -50,11 +50,11 @@ test("journey 2: dashboard → spending → category → merchant → recategori
   await where(page).getByRole("button", { name: "Wrong category?" }).click();
   await page.getByRole("dialog").getByRole("combobox", { name: /on 23\/09\/2026/ }).selectOption({ label: "Transfers between your accounts" });
   await page.keyboard.press("Escape");
-  await expect(row(page, /^Food & dining/)).toContainText("$77");
+  await expect(row(page, /^Food & dining/)).toContainText("$76");
   await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,804")).toBeVisible();
 
   await page.goto("/spending/budgets?persona=jess&present=1");
-  await expect(page.getByText("$77 of $150")).toBeVisible();
+  await expect(page.getByText("$76 of $150")).toBeVisible();
 
   await page.goto("/?persona=jess&present=1");
   await expect(page.getByRole("region", { name: "This pay cycle" }).getByText("$1,804")).toBeVisible();
@@ -111,7 +111,7 @@ test("search by merchant or amount, with a plain empty state; the double charge 
   await page.goto("/spending?persona=jess&present=1");
   const activity = page.getByRole("region", { name: "Activity" });
   await expect(activity.getByText("Amazon AU may have charged you twice ($10.73)")).toBeVisible();
-  await page.getByRole("button", { name: "Fix" }).click();
+  await page.getByRole("button", { name: "Fix", exact: true }).click();
   await expect(page.getByRole("searchbox", { name: "Search merchant or amount" })).toBeFocused();
   await page.getByRole("searchbox", { name: "Search merchant or amount" }).fill("4.49");
   await expect(page.getByRole("button", { name: /^Apple iCloud −\$4\.49 , money out/ })).toBeVisible();

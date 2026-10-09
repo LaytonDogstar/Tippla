@@ -60,8 +60,9 @@ export function ProgressCard({ state, change, attribution, plan, action, project
       {(plan || action) && (
         <div className="flex flex-col gap-t3 border-t border-accent-tint2 pt-t4">
           {plan && current !== null
-            ? <Link href="/savings" aria-label={`${pl.planName(plan.title)} · ${pl.step(current + 1, steps.length).replace(/^Your plan · /, "")}: ${step?.label ?? ""}`}
-                className="inline-flex min-h-tap items-center self-start text-meta-s font-semibold text-accent-strong underline-offset-2 hover:underline">{pl.step(current + 1, steps.length)}</Link>
+            ? <Link href="/savings" className="inline-flex min-h-tap items-center self-start text-meta-s font-semibold text-accent-strong underline-offset-2 hover:underline">
+                {pl.step(current + 1, steps.length)}<span className="sr-only">: {plan.title}. {step?.label ?? ""}</span>
+              </Link>
             : <p className="text-meta-s font-semibold text-accent-strong">{pl.nextStep}</p>}
           {plan && steps.length > 0 && (
             <div aria-hidden className="grid gap-[6px]" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
