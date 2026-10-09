@@ -1,9 +1,11 @@
 "use client";
-// Today (redesign 07/10/2026; reference/today-desktop-mockup.html). The pay-cycle figure appears once, in the hero,
-// first at every width. One tree of cards, reordered by breakpoint (no card is rendered twice):
-//   phones   hero · quick actions · [payday cards] · needs a look · SmartScore · coming up · plan · spending · unusual day
-//   tablet   the same, with SmartScore | coming up and plan | unusual day side by side
-//   desktop  left: hero, quick actions, [payday cards], needs a look, spending · right: SmartScore, plan, coming up, unusual day
+// Today (single column, 09/10/2026): one centred column (about 660px) at every width, in the order people think:
+// where am I now → why → what to do → how am I tracking → housekeeping. Four groups, with small gaps inside a group
+// and larger ones between, and cards styled by what they're for:
+//   [hero (urgent, brand gradient) · payday cards when they apply · Coming up · Needs a look]   white "act on it"
+//   [Spending]                                                                                 white
+//   [Your progress (score + plan, soft brand tint) · value tally]                              longer term
+//   [forecast feedback · add to home screen]                                                   outlined, housekeeping
 // Every figure comes from the selectors (page.tsx); this file only arranges them and keeps the existing sheets.
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -25,7 +27,7 @@ import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 import type { CycleRecap, PaydayCheckIn } from "@/lib/selectors/payCycleLoop";
 import type { SafeToSpend } from "@/lib/selectors/safeToSpend";
 import type { valueTally } from "@/lib/selectors/tally";
-import type { ComingUpItem, CycleBar, TopCategories } from "@/lib/selectors/today";
+import type { ComingUpBlocks, SpendingSoFar } from "@/lib/selectors/today";
 import { CheckInAdjustSheet, CheckInCard, PayPendingCard, RecapCard, SafeToSpendSheet, TallyCard, TallySheet } from "@/components/domain/LoopCards";
 import { checkInCopy, safeCopy, tallyCopy } from "@/content/loop";
 import { track } from "@/lib/analytics/client";
@@ -40,24 +42,22 @@ import type { Streak } from "@/lib/selectors/progress";
 import type { PlanProgress } from "@/lib/selectors/plans";
 import type { ForecastPoint } from "@/lib/selectors/forecastAccuracy";
 import { PayCycleHero } from "@/components/today/PayCycleHero";
-import { QuickActions } from "@/components/today/QuickActions";
 import { NeedsALook } from "@/components/today/NeedsALook";
 import { SmartScoreCard } from "@/components/today/SmartScoreCard";
 import { ComingUp } from "@/components/today/ComingUp";
-import { PlanCard } from "@/components/today/PlanCard";
+import { ProgressCard } from "@/components/today/ProgressCard";
 import { SpendingSummary } from "@/components/today/SpendingSummary";
-import { cx } from "@/components/ui/cx";
 import { GoalRow } from "@/components/domain/GoalRow";
 import type { GoalOption } from "@/components/domain/GoalPicker";
 import { todayCopy } from "@/content/today";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null;
 
-export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, bars, groups, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, notice, plan, focusGoal, progressText, bufferSteps, milestones, surplus, moment, savingsLines, flags }: {
+export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, spending, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, notice, plan, focusGoal, progressText, bufferSteps, milestones, surplus, moment, savingsLines, flags }: {
   persona: PersonaId; account: AccountState; checked: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; score: ScoreState; change: { delta: number; since: string } | null; trend: { date: string; score: number }[];
-  action: FirstAction | null; projection: ScoreProjection | null; payCycle: PayCycleSummary; bars: CycleBar[];
-  groups: TopCategories; coming: ComingUpItem[];
+  action: FirstAction | null; projection: ScoreProjection | null; payCycle: PayCycleSummary;
+  spending: SpendingSoFar; coming: ComingUpBlocks;
   safe: SafeToSpend; checkIn: PaydayCheckIn | null; recap: CycleRecap | null; feesAvoided: number; tally: ReturnType<typeof valueTally>; present: boolean;
   movement?: { up: number; since: string } | null; adjustBills?: { id: string; merchant: string; amount: number; date: string; paid: boolean }[];
   oneOffDates?: string[]; focus?: string | null; payPending?: boolean;
@@ -126,7 +126,7 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
     );
   }
 
-  // Payday and moment cards, shown only when they apply (under the quick actions).
+  // Payday and moment cards, shown only when they apply (straight after the hero).
   const loop = [
     moment && <StageMomentCard key="moment" persona={persona} account={account} moment={moment} />,
     checkIn ? <CheckInCard key="checkin" checkIn={checkIn} onHow={() => setSheet("safe")} onAdjust={() => setSheet("adjust")} focus={focus} goal={goalLabel ?? null} firstPayday={firstPayday} extra={savingsLines} />
@@ -134,41 +134,27 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
     recap && <RecapCard key="recap" recap={recap} feesAvoided={feesAvoided} next={focus} lead={recapLead} milestones={milestones}
       surplus={surplus ? { amount: surplus, onProtect: () => setBuffer((acct.buffer ?? 0) + surplus) } : null} />,
   ].filter(Boolean);
-  const item = "min-w-0";
+  const group = "flex flex-col gap-[10px] empty:hidden";
 
   return (
-    <div className="flex flex-col gap-t4 sm:grid sm:grid-cols-2 sm:gap-t6 desktop:flex desktop:flex-row desktop:flex-wrap desktop:items-start">
-      {/* Left column on desktop; on smaller screens its cards join the single ordered stack. */}
-      <div className="contents desktop:flex desktop:min-w-0 desktop:flex-[2_1_560px] desktop:flex-col desktop:gap-t6">
-        <div className={cx(item, "order-1 sm:col-span-2")}>
-          <PayCycleHero pc={payCycle} safe={safe} asOf={asOf} stsPaused={!!stsPaused} notice={notice} trackSafe={flags.safe && !checkIn}
-            movement={movement ? safeCopy.up(formatWhole(movement.up), movement.since) : null}
-            onDue={() => setSheet("due")} onSafe={() => setSheet("safe")} onAdvance={() => setSheet("advance")} />
-        </div>
-        <div className={cx(item, "order-2 sm:col-span-2")}><QuickActions /></div>
-        {loop.length > 0 && <div className={cx(item, "order-3 flex flex-col gap-t4 sm:col-span-2 sm:gap-t6")}>{loop}</div>}
-        {flags.feed && (
-          <div className={cx(item, "order-4 sm:col-span-2")}>
-            <NeedsALook persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} />
-          </div>
-        )}
-        <div className={cx(item, "order-8 sm:order-9 sm:col-span-2")}><SpendingSummary bars={bars} asOf={asOf} groups={groups} /></div>
-        {/* Under Spending in the left column, so the columns end level and the feedback card is easy to see (4.2). */}
-        {miss && <div className={cx(item, "order-9 sm:order-8")}><ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} /></div>}
-        <div className={cx(item, "order-11 sm:col-span-2 desktop:col-span-1 empty:hidden")}>
-          <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
-        </div>
+    <div className="mx-auto flex w-full max-w-[660px] flex-col gap-[32px]">
+      <div className={group}>
+        <PayCycleHero pc={payCycle} safe={safe} asOf={asOf} stsPaused={!!stsPaused} notice={notice} trackSafe={flags.safe && !checkIn} ask={flags.assistant}
+          movement={movement ? safeCopy.up(formatWhole(movement.up), movement.since) : null}
+          onSafe={() => setSheet("safe")} onAdvance={() => setSheet("advance")} />
+        {loop}
+        <ComingUp blocks={coming} onBill={() => setSheet("due")} />
+        {flags.feed && <NeedsALook persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} max={2} />}
       </div>
-      {/* Right column on desktop. */}
-      <div className="contents desktop:flex desktop:min-w-0 desktop:flex-[1_1_320px] desktop:flex-col desktop:gap-t6">
-        <div className={cx(item, "order-5")}><SmartScoreCard state={score} change={change} attribution={attribution} trend={trend} /></div>
-        <div className={cx(item, "order-7 desktop:order-6")}>
-          <PlanCard plan={plan ?? null} action={action ? { title: action.title, summary: action.wouldChange ?? action.summary } : null} projection={projection}
-            goalSlot={focusGoal ? <GoalRow inline persona={persona} account={account} asOf={asOf} goal={focusGoal.current} options={focusGoal.options} /> : undefined}
-            progress={progressText} onSeeHow={() => setSheet("action")} />
-        </div>
-        <div className={cx(item, "order-6 desktop:order-7")}><ComingUp items={coming} /></div>
-        {showTally && <div className={cx(item, "order-10 sm:col-span-2 desktop:col-span-1")}><TallyCard tally={tally} onOpen={() => setSheet("tally")} /></div>}
+      <div className={group}><SpendingSummary s={spending} /></div>
+      <div className={group}>
+        <ProgressCard state={score} change={change} attribution={attribution} plan={plan ?? null}
+          action={action ? { title: action.title, summary: action.wouldChange ?? action.summary } : null} projection={projection} onSeeHow={() => setSheet("action")} />
+        {showTally && <TallyCard tally={tally} onOpen={() => setSheet("tally")} />}
+      </div>
+      <div className={group}>
+        {miss && <ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} />}
+        <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
       </div>
 
       <SafeToSpendSheet safe={shownSafe} open={sheet === "safe"} onClose={() => setSheet(null)} present={present} onBuffer={flags.buffer ? setBuffer : undefined} accuracy={accuracyLine} bufferSteps={bufferSteps} />
@@ -192,6 +178,8 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
             {action.ifYouWant && <><Button full variant={action.id === "pay-advance" ? "secondary" : "primary"} onClick={() => setSheet("due")}>{t.dueTitle}</Button><Button full variant="tertiary" onClick={() => router.push("/hardship")}>{todayCopy.hero.moneyTight}</Button></>}
           </> : undefined}>
           <InsightSheetBody item={{ id: action.id, context: action.factor, title: action.title, summary: action.summary, happening: action.happening, wouldChange: action.wouldChange, ifYouWant: action.ifYouWant }} />
+          {/* Goal setting lives here (and on Details) since the progress card has one button (09/10/2026). */}
+          {focusGoal && <div className="mt-t4"><GoalRow inline persona={persona} account={account} asOf={asOf} goal={focusGoal.current} options={focusGoal.options} /></div>}
         </Sheet>
       )}
     </div>

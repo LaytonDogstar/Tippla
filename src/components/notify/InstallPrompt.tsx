@@ -48,16 +48,17 @@ export function InstallPrompt({ hadValue }: { hadValue: boolean }) {
   };
 
   return (
-    <section aria-labelledby="install-h" className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
-      <div className="flex items-start gap-t3">
-        <span aria-hidden className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-sm bg-accent-soft text-accent"><Smartphone size={24} /></span>
-        <div className="min-w-0 flex-1">
-          <h2 id="install-h" className="text-body-strong text-text">{t.title}</h2>
-          <p className="mt-t1 text-small text-text-muted">{t.body}</p>
-          <div className="mt-t2 flex flex-wrap gap-t2">
-            <Button variant="secondary" onClick={add}>{ios ? t.how : t.add}</Button>
-            <Button variant="tertiary" onClick={notNow}>{t.notNow}</Button>
-          </div>
+    // Today (09/10/2026): housekeeping, an outlined strip with the actions on the right.
+    <section aria-labelledby="install-h" className="rounded-card-s border border-line px-t4 py-t3 sm:rounded-card sm:px-t5">
+      <div className="flex flex-wrap items-center gap-x-t3 gap-y-t2">
+        <span aria-hidden className="inline-flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-sm bg-accent-soft text-accent"><Smartphone size={20} /></span>
+        <div className="min-w-0 flex-[1_1_180px]">
+          <h2 id="install-h" className="text-body14 font-bold text-text">{t.title}</h2>
+          <p className="text-meta text-text-muted">{t.body}</p>
+        </div>
+        <div className="flex shrink-0 gap-t1">
+          <Button variant="secondary" onClick={add}>{ios ? t.how : t.add}</Button>
+          <Button variant="tertiary" onClick={notNow}>{t.notNow}</Button>
         </div>
       </div>
       <Sheet open={steps} onClose={() => setSteps(false)} title={t.iosTitle}>

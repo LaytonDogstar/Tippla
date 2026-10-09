@@ -1,5 +1,5 @@
 "use client";
-// "Needs a look" on Today (redesign 07/10/2026): up to 3 ranked rows (the existing feed order), each with a tinted
+// "Needs a look" on Today (redesign 07/10/2026; 09/10: the top two, then "{n} more to look at"): ranked rows (the existing feed order), each with a tinted
 // status icon, title, one-line meta, timing chip (hidden on phones), amount and a ⋯ menu. Done / Snooze /
 // Not relevant live in the ⋯ menu and, on phones, behind a swipe left (Snooze and Done). Same handlers,
 // analytics and Undo as before; choices persist in the account cookie.
@@ -33,8 +33,10 @@ const ICON: Record<FeedType, LucideIcon> = {
 };
 const SWIPE = 152; // width of the Snooze + Done actions revealed by a swipe
 
-export function NeedsALook({ persona, account: initial, items, asOf, payday, checked = "" }: {
+export function NeedsALook({ persona, account: initial, items, asOf, payday, checked = "", max = FEED_MAX }: {
   persona: PersonaId; account: AccountState; items: FeedItem[]; asOf: string; payday: string; checked?: string;
+  /** Rows shown before "{n} more to look at" (single-column Today: 2). */
+  max?: number;
 }) {
   const toast = useToast();
   const { account, update } = useAccount(persona, initial);
@@ -43,7 +45,7 @@ export function NeedsALook({ persona, account: initial, items, asOf, payday, che
   const [snoozing, setSnoozing] = useState<FeedItem | null>(null);
   const state = account.feed ?? {};
   const open = items.filter((i) => isOpen(i, state, asOf));
-  const shown = all ? open : open.slice(0, FEED_MAX);
+  const shown = all ? open : open.slice(0, max);
   const position = (item: FeedItem) => open.indexOf(item) + 1;
   const shownKey = shown.map((i) => i.type).join(",");
   useEffect(() => { track("feed_viewed", { item_count: shown.length, rule_ids: shownKey }); }, [shownKey, shown.length]);
@@ -67,11 +69,7 @@ export function NeedsALook({ persona, account: initial, items, asOf, payday, che
 
   return (
     <Card id="needs-a-look" title={t.heading}
-      count={open.length > 0 ? <span className="rounded-pill bg-chip px-[10px] py-[2px] text-meta font-semibold text-text-secondary" aria-label={t.count(open.length)}>{open.length}</span> : undefined}
-      action={open.length > FEED_MAX ? (
-        <button type="button" onClick={() => { if (!all) track("feed_see_all_opened", { item_count: open.length }); setAll((v) => !v); }}
-          className="inline-flex min-h-tap items-center rounded-md px-t1 text-body14 font-semibold text-accent hover:text-accent-strong">{all ? t.showFewer : t.seeAll}</button>
-      ) : undefined}>
+      count={open.length > 0 ? <span className="rounded-pill bg-chip px-[10px] py-[2px] text-meta font-semibold text-text-secondary" aria-label={t.count(open.length)}>{open.length}</span> : undefined}>
       {open.length === 0 ? (
         <p className="flex items-center gap-t3 text-body14 text-text-secondary"><IconBubble icon={CircleCheck} tone="positive" />{t.allClear(checked)}</p>
       ) : (
@@ -81,6 +79,12 @@ export function NeedsALook({ persona, account: initial, items, asOf, payday, che
               onOpen={() => track("feed_item_actioned", { rule_id: item.type, position: position(item) })} />
           ))}
         </ol>
+      )}
+      {open.length > max && (
+        <button type="button" aria-expanded={all} onClick={() => { if (!all) track("feed_see_all_opened", { item_count: open.length }); setAll((v) => !v); }}
+          className="mt-t2 flex min-h-tap w-full items-center justify-center rounded-pill bg-chip text-body14 font-semibold text-accent hover:text-accent-strong">
+          {all ? t.showFewer : t.moreToLook(open.length - max)}
+        </button>
       )}
 
       <Sheet open={!!menu} onClose={() => setMenu(null)} title={menu?.title ?? ""}>

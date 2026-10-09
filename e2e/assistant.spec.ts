@@ -13,7 +13,7 @@ async function expectNoAxe(page: Page) {
 
 test("acceptance: from Today, 'Can I afford $80 on Saturday?' → about $53 short becomes about $133, with options", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  await page.getByRole("navigation", { name: "Quick actions" }).getByRole("link", { name: "Ask Tippla" }).click();
+  await page.getByRole("region", { name: "This pay cycle" }).getByRole("link", { name: "Ask Tippla" }).click();
   await expect(page.getByRole("heading", { name: "Ask Tippla" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Can I afford $50 on Saturday?" })).toBeVisible(); // suggested from the feed
   await expectNoAxe(page);

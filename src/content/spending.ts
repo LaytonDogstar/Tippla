@@ -223,7 +223,7 @@ export const calendarPage = {
   infoBody: [
     "The list shows each payday, bill and day of spending in date order, with your balance at the end of each day.",
     "After today, balances are forecasts. They include predicted bills and expected pay, not everyday spending.",
-    "In the calendar, a solid dot is spending that's gone through. A hollow dot is a bill we expect, based on past payments; bills of $100 or more show their amount.",
+    "In the calendar, a hollow dot is a bill we expect, based on past payments; bills of $100 or more show their amount (−$315). An up arrow marks a day you spent well above a usual day. The number at the bottom is what's left at the end of the day.",
   ],
   viewLabel: "Calendar view",
   views: { fortnight: "Fortnight", month: "Month" },
@@ -235,8 +235,8 @@ export const calendarPage = {
   nextMonth: "Next month",
   range: (a: string, b: string) => `${a} – ${b}`,
   legend: {
-    spend: "Spending", bill: "Predicted bill", bigBill: "Bill of $100 or more", below: "Below $0", close: "Close to $0", lowest: "Lowest point", payday: "Payday",
-    note: "Numbers are end-of-day balances. After today they're forecasts.",
+    spend: "Spent well above a usual day", bill: "Predicted bill", bigBill: "Bill of $100 or more", below: "Below $0", close: "Close to $0", lowest: "Lowest point", payday: "Payday",
+    note: "The number at the bottom of each day is what's left at the end of it (after any bill). After today it's a forecast.",
   },
   today: (day: string) => `Today · ${day}`,
   confirmed: "confirmed",

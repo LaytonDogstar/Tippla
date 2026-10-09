@@ -178,9 +178,10 @@ test("calendar: the answer comes first, the timeline is the default, nothing rep
 
   // Next fortnight: covered, with the lowest point labelled on the chart and in the list.
   await page.goto("/calendar?persona=jess&present=1&offset=1");
-  await expect(main.getByText("Lowest point $1,061 on Tue 13/10 — you're covered until payday Thu 15/10.")).toBeVisible();
-  await expect(main.getByText("$1,226 in bills before payday · 8 bills")).toBeVisible();
-  await expect(main.getByText("Lowest $1,061 · Tue 13/10")).toBeVisible();
+  // Tippla's $9.99 membership charge (Fri 02/10) is in the forecast (09/10/2026), as on Today's Coming up.
+  await expect(main.getByText("Lowest point $1,051 on Tue 13/10 — you're covered until payday Thu 15/10.")).toBeVisible();
+  await expect(main.getByText("$1,236 in bills before payday · 9 bills")).toBeVisible();
+  await expect(main.getByText("Lowest $1,051 · Tue 13/10")).toBeVisible();
   await expect(main.getByText("Below $0")).toHaveCount(0); // no legend item for what isn't there
 });
 

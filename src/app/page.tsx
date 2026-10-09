@@ -1,9 +1,10 @@
-// Today (Home, redesign 07/10/2026): the pay-cycle figure first, then what needs a look (ranked, max 3), the
-// SmartScore, what's coming up, the plan and spending. Every figure comes from the selectors below.
+// Today (Home; single column 09/10/2026): the pay-cycle figure first, what's coming up around payday, what needs a
+// look, spending against the same point of the last cycle, then progress (score and plan) and housekeeping.
+// Every figure comes from the selectors below.
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { goalOptions, goalPlan, dashboardBanner, categoryTotals, comingUp, scoreTrend, cycleSpending, topCategories, currentCycle, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState } from "@/lib/selectors";
+import { goalOptions, goalPlan, dashboardBanner, comingUp, comingUpBlocks, currentBalance, spendingSoFar, FIXED_COMMITMENTS, scoreTrend, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState } from "@/lib/selectors";
 import { addDays, daysBetween, formatDate, formatDayMonth, formatShortDay, formatUpdated, formatWhole, toAESTDate } from "@/lib/format";
 import { safeCopy } from "@/content/loop";
 import { flagsFor } from "@/config/featureFlags";
@@ -48,7 +49,7 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
   const health = on.connection_health_v1 ? connectionHealth(data, account, states) : null;
   const renewed = !!account.bank?.renewedOn && account.bank.renewedOn >= data.asOf;
   const staleSince = account.bank?.disconnected ? data.asOf : expired && !renewed ? expired : health?.status === "stale" ? health.dataFrom : null;
-  const status = refreshStatus(data, f.open.length, { staleSince, expiringOn: health?.status === "expiring" ? health.consentEndsOn : null });
+  const status = refreshStatus(data, f.shown.length, { staleSince, expiringOn: health?.status === "expiring" ? health.consentEndsOn : null });
   // Banners become a notice at the top of the hero (same copy): the bank connection stopped, or money's tight.
   // A score drop is covered by the SmartScore card.
   const banner = dashboardBanner(data, { bankExpiredSince: account.bank?.disconnected ? data.asOf : renewed ? null : expired, hardshipSelfSelected: account.hardshipSelfSelected });
@@ -89,9 +90,8 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
   const accuracyLine = acc?.show ? accuracyCopy.line(formatWhole(acc.within), acc.hits, acc.of) : null;
   const miss = acc?.miss && !account.forecastAnswers?.[acc.miss.forDate] ? acc.miss : null;
   const multiPlan = on.plans_v1 ? activePlan(data, account, goal) : null;
-  // Spending: pay cycles and the one category list, as on the Spending page (UX round 2, 1.1).
-  const bars = cycleSpending(data, edits);
-  const groups = topCategories(categoryTotals(data, currentCycle(data), edits), { hideGambling: account.hideGambling });
+  // Spending: this pay cycle against the same point of the last one; fixed costs are the budgets' FIXED_COMMITMENTS.
+  const spending = spendingSoFar(data, edits, { fixed: FIXED_COMMITMENTS, hideGambling: account.hideGambling });
   // Spec 01 status line under the greeting (what Tippla checked, what needs a look, or stale data); wider
   // screens add when the data was updated before it.
   const updated = data.score?.scoredAt ? formatUpdated(lastRefresh(data).at) : null;
@@ -105,7 +105,7 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
         account={account}
         flags={{ feed: on.feed_v1, safe: on.safe_to_spend_v1, tally: on.value_tally_v1, buffer: on.buffer_v1, corrections: on.corrections_v1, assistant: on.assistant_v1 }}
         checked={status.checked}
-        feedItems={f.open}
+        feedItems={f.shown}
         attribution={on.score_attribution_v1 ? scoreAttribution(data, { hideGambling: account.hideGambling }) : null}
         asOf={data.asOf}
         score={scoreState(data)}
@@ -114,9 +114,8 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
         action={next}
         projection={projectScore(data, isOn("score_projection_v1", persona), goal)}
         payCycle={payCycleSummary(data, edits)}
-        bars={bars}
-        groups={groups}
-        coming={comingUp(data, account)}
+        spending={spending}
+        coming={comingUpBlocks(data, comingUp(data, account), currentBalance(data))}
         lapsed={states.includes("lapsed")}
         safe={safe}
         movement={movement}

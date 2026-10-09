@@ -14,8 +14,9 @@ async function expectNoAxe(page: Page) {
 
 test("acceptance: Jess marks Telstra as already paid; the shortfall and safe to spend update", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByRole("button", { name: /About \$53 short before payday/ }).first()).toBeVisible();
-  await page.getByRole("button", { name: "See what's due" }).first().click();
+  await expect(page.getByTestId("hero-amount")).toContainText("About $53 short");
+  // A bill's name in Coming up opens what's due, with "Not right?" (09/10/2026: no "See what's due" button).
+  await page.getByRole("region", { name: "Coming up" }).getByRole("button", { name: "Telstra" }).click();
   const sheet = page.getByRole("dialog");
   await sheet.getByRole("button", { name: "Not right? Telstra" }).click();
   await expect(sheet.getByRole("heading", { name: "Telstra: what's changed?" })).toBeVisible();
@@ -24,7 +25,7 @@ test("acceptance: Jess marks Telstra as already paid; the shortfall and safe to 
   await expect(page.getByRole("status").filter({ hasText: "Got it. Your forecast is updated" })).toBeVisible();
   await expect(sheet.getByText("Telstra")).toHaveCount(0);
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("button", { name: /About \$1 short before payday/ }).first()).toBeVisible();
+  await expect(page.getByTestId("hero-amount")).toContainText("About $1 short");
 
   // Listed under Account › Your corrections, and removable.
   await page.goto("/account/corrections?persona=jess&present=1");
@@ -33,7 +34,7 @@ test("acceptance: Jess marks Telstra as already paid; the shortfall and safe to 
   await page.getByRole("button", { name: "Remove: Telstra due 26/09: already paid" }).click();
   await expect(page.getByText("Nothing yet.", { exact: false })).toBeVisible();
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByRole("button", { name: /About \$53 short before payday/ }).first()).toBeVisible();
+  await expect(page.getByTestId("hero-amount")).toContainText("About $53 short");
 });
 
 test("subscription: This has ended takes it out; the rule is listed", async ({ page }) => {
@@ -51,7 +52,7 @@ test("subscription: This has ended takes it out; the rule is listed", async ({ p
 test("acceptance: consent ending in 10 days: feed card, status line, reminder schedule; renew returns you", async ({ page }) => {
   await page.goto("/?persona=jess&present=1&state=consent_expiring");
   await expect(page.getByRole("link", { name: "Your bank connection ends Mon 05/10 · Renew it to keep your forecast up to date" })).toBeVisible();
-  await page.getByRole("button", { name: /See all/ }).click().catch(() => {});
+  await page.getByRole("button", { name: /more to look at$/ }).click().catch(() => {});
   await expect(page.getByText("Your bank connection ends in 10 days").first()).toBeVisible();
   await page.goto("/account/bank?persona=jess&present=1");
   await expect(page.getByText("Ending soon", { exact: false })).toBeVisible();
@@ -82,10 +83,10 @@ test("stale data: safe to spend pauses, every page says which day it's from, rec
 
 test("forecast miss: ask once what happened", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  const card = page.getByRole("region", { name: "We got this one wrong. Was there something unusual?" });
+  const card = page.getByRole("region", { name: /^We got .+ wrong$/ });
   await expect(card).toContainText("For Thu 24/09 we expected about $70 in your account. It ended the day at $428.");
   await card.getByRole("button", { name: "Nothing unusual" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Thanks. That helps us get your forecast right" })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("region", { name: "We got this one wrong. Was there something unusual?" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: /^We got .+ wrong$/ })).toHaveCount(0);
 });

@@ -133,6 +133,8 @@ export const calendar = {
   inRange: "in selected range",
   predicted: "predicted",
   lowestPoint: "lowest point",
+  highSpend: "spent well above a usual day",
+  leftLabel: "left",
   closeToZero: "close to $0",
 };
 

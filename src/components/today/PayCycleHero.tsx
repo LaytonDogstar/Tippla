@@ -19,7 +19,9 @@ import { cycleDays, dueCoverage, heroState, type HeroState } from "@/lib/selecto
 const t = todayCopy.hero;
 const DOT: Record<HeroState, string> = { short: "bg-hero-negative-mark", tight: "bg-hero-caution-mark", onTrack: "bg-hero-positive-mark" };
 
-export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trackSafe = true, onDue, onSafe, onAdvance }: {
+export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trackSafe = true, ask = true, onSafe, onAdvance }: {
+  /** Ask Tippla as the second action (off when the assistant is). */
+  ask?: boolean;
   pc: PayCycleSummary; safe: SafeToSpend; asOf: string;
   /** Data too old for safe to spend: show what's left after bills instead (spec 05). */
   stsPaused?: boolean;
@@ -29,7 +31,8 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
   notice?: { kind: "bank" | "hardship"; text: string; href: string; action?: string } | null;
   /** Report the safe-to-spend view (spec 09), unless the payday check-in already does. */
   trackSafe?: boolean;
-  onDue: () => void; onSafe: () => void; onAdvance: () => void;
+  /** Unused since 09/10/2026 (Coming up sits under the hero); kept so callers needn't change. */
+  onDue?: () => void; onSafe: () => void; onAdvance: () => void;
 }) {
   const state = heroState(pc, safe);
   useEffect(() => {
@@ -74,7 +77,7 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
             <span aria-hidden className="mt-t2 block text-[0.9375rem] leading-[1.375rem] text-hero-on-muted sm:text-[1rem] sm:leading-6">{line} <strong className="font-bold text-hero-on">{payday}</strong></span>
             <span className="sr-only">{sr}</span>
           </p>
-          {/* Short: the headline is balance minus what's due, explained by "See what's due". */}
+          {/* Short: the headline is balance minus what's due, itemised in Coming up below. */}
           {state !== "short" && (
             <div className="mt-t2 flex flex-wrap items-center gap-t2">
               {(movement || (state === "onTrack" && !showLeft)) && <span className="rounded-pill bg-hero-glass px-t2 py-[2px] text-meta-s font-semibold">{movement ?? t.estimate}</span>}
@@ -133,9 +136,10 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
         )}
       </ul>
 
+      {/* What's due is Coming up, right under the hero (09/10/2026), so the hero offers options and a question. */}
       <div className="flex flex-col items-stretch gap-t2 sm:flex-row sm:gap-t3">
-        <button type="button" onClick={onDue} className="pressable flex h-[48px] items-center justify-center rounded-pill bg-hero-on px-t5 text-[0.9375rem] font-bold text-hero-from sm:flex-1">{t.seeWhatsDue}</button>
-        <Link href="/hardship" className="flex min-h-[48px] items-center justify-center rounded-pill px-t5 text-[0.9375rem] font-semibold text-hero-on underline underline-offset-2 sm:flex-1 sm:border sm:border-hero-outline sm:no-underline">{t.moneyTight}</Link>
+        <Link href="/hardship" className="pressable flex min-h-[48px] items-center justify-center rounded-pill bg-hero-on px-t5 py-t2 text-center text-[0.9375rem] font-bold text-hero-from sm:flex-1">{t.moneyTight}</Link>
+        {ask && <Link href="/assistant?entry=home" className="flex min-h-[48px] items-center justify-center rounded-pill border border-hero-outline px-t5 text-[0.9375rem] font-semibold text-hero-on sm:flex-1">{t.ask}</Link>}
       </div>
     </section>
   );

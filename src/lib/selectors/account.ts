@@ -81,7 +81,7 @@ function lowestBefore(d: PersonaData, from: ISODate): number | null {
   const nextPay = paydaysFrom(d, addDays(from, 1), 1)[0];
   if (!nextPay) return null;
   const until = addDays(nextPay, -1);
-  const pts = projectedBalances(d, until).filter((p) => p.date >= from);
+  const pts = projectedBalances(d, until, { membership: false }).filter((p) => p.date >= from);
   return pts.length ? Math.min(...pts.map((p) => p.balance)) : null;
 }
 
@@ -178,4 +178,17 @@ function alignedResume(d: PersonaData, a: AccountState, skipped: ISODate): ISODa
   const pays = paydaysFrom(d, addDays(target, -14), 6);
   const best = pays.sort((x, y) => Math.abs(daysBetween(target, addDays(x, 1))) - Math.abs(daysBetween(target, addDays(y, 1))) || y.localeCompare(x))[0];
   return best ? addDays(best, 1) : target;
+}
+
+/**
+ * Adds Tippla's next membership charge to the forecast (08/10/2026), so the Calendar, Coming up and every running
+ * balance count it the same way. Applied once at load, after the member's own changes; paused or cancelled
+ * memberships add nothing.
+ */
+export function withMembershipCharge(d: PersonaData, a: AccountState = {}): PersonaData {
+  if (d.derived.upcoming_bills.some((x) => x.membership)) return d;
+  const b = billing(d, a);
+  if (b.status !== "active" || !b.nextCharge || b.nextCharge <= d.asOf) return d;
+  const fee = { date: b.nextCharge, merchant: "Tippla", expected_amount: b.price, category: "subscriptions" as const, confidence: "confirmed" as const, cadence_days: 30, membership: true };
+  return { ...d, derived: { ...d.derived, upcoming_bills: [...d.derived.upcoming_bills, fee].sort((x, y) => x.date.localeCompare(y.date)) } };
 }

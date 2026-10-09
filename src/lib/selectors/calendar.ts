@@ -5,6 +5,9 @@ import { dailyBalances, projectedBalances } from "./balance";
 import { currentCycle } from "./periods";
 import { upcomingIncome, type ExpectedIncome } from "./income";
 import { applyOverrides, isCredit, isDebit, isIncome, posted, type CategoryOverrides } from "./transactions";
+import { FIXED_COMMITMENTS } from "./budgets";
+import { changeTone } from "./today";
+import type { SpendCategory } from "./spending";
 
 export interface CalendarDay {
   date: ISODate;
@@ -16,6 +19,10 @@ export interface CalendarDay {
   outside?: boolean;
   confirmedSpend: number;
   confirmedCount: number;
+  /** Everyday spending that day (fixed commitments left out), and whether it was well above a typical day's
+   * (the same CHANGE_THRESHOLD as Spending: over 20% and over $50 more). Only those days get a mark (09/10/2026). */
+  everydaySpend: number;
+  highSpend: boolean;
   /** Income received that day (wages, Centrelink). Pay advances are not income. */
   paidIn: number;
   /** The same income, by payer (the timeline names it). */
@@ -31,6 +38,14 @@ export interface CalendarDay {
   belowZero: boolean;
 }
 
+/** A typical day's everyday spending: the last 90 days of posted debits (fixed commitments left out), per day. */
+export function typicalDailySpend(d: PersonaData, overrides?: CategoryOverrides): number {
+  const from = addDays(d.asOf, -89) < d.profile.data_from ? d.profile.data_from : addDays(d.asOf, -89);
+  const days = daysBetween(from, d.asOf) + 1;
+  const tx = posted(applyOverrides(d.transactions, overrides)).filter((t) => t.date >= from && t.date <= d.asOf && isDebit(t) && !FIXED_COMMITMENTS.includes(t.category as SpendCategory));
+  return days > 0 ? sumMoney(tx.map((t) => -t.amount)) / days : 0;
+}
+
 /** Forecasts stop at the end of the next pay cycle: further out there are no predicted bills to show. */
 export const forecastHorizon = (d: PersonaData): ISODate => addDays(d.derived.pay_cycle.next_payday, 13);
 
@@ -41,18 +56,22 @@ function buildDays(d: PersonaData, dates: ISODate[], overrides?: CategoryOverrid
   const predicted = new Map(projectedBalances(d, horizon).map((p) => [p.date, p.balance]));
   const paydays = new Set(tx.filter(isIncome).map((t) => t.date));
   const expected = upcomingIncome(d, horizon);
+  const typical = typicalDailySpend(d, overrides);
   return dates.map((date) => {
     const spend = tx.filter((t) => t.date === date && isDebit(t));
     const income = tx.filter((t) => t.date === date && isIncome(t));
     const isFuture = date > d.asOf;
     const balance = isFuture ? predicted.get(date) ?? null : actual.get(date) ?? null;
     const predictedIncome = expected.filter((i) => i.date === date);
+    const everyday = sumMoney(spend.filter((t) => !FIXED_COMMITMENTS.includes(t.category as SpendCategory)).map((t) => -t.amount));
     return {
       date, weekday: weekday(date), isToday: date === d.asOf, isFuture,
       isPayday: paydays.has(date) || predictedIncome.length > 0,
       outside: outside?.(date) || undefined,
       confirmedSpend: sumMoney(spend.map((t) => -t.amount)),
       confirmedCount: spend.length,
+      everydaySpend: everyday,
+      highSpend: everyday > 0 && changeTone(everyday - typical, typical) === "up",
       paidIn: sumMoney(income.map((t) => t.amount)),
       income: income.map((t) => ({ payer: t.merchant, amount: t.amount })),
       otherIn: tx.filter((t) => t.date === date && isCredit(t) && !isIncome(t)).map((t) => ({ payer: t.merchant, amount: t.amount })),

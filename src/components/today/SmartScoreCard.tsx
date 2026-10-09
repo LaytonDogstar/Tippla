@@ -106,19 +106,7 @@ export function SmartScoreCard({ state, change, attribution, trend }: {
             <Gauge score={score} band={stage.name} size="full" />
             <p className={cx("mt-t1 text-meta font-semibold", bandTone(band.id))}>{stage.name}</p>
           </div>
-          <ol aria-label={t.bandsLabel} className="grid grid-cols-4 gap-[4px]">
-            {BANDS.map((b) => {
-              const here = b.id === band.id;
-              const at = here ? Math.round(((score - b.min) / (b.max - b.min + 1)) * 100) : null;
-              return (
-                <li key={b.id} aria-current={here ? "step" : undefined} className="relative flex flex-col gap-[6px]">
-                  <span aria-hidden className="h-[5px] rounded-pill" style={{ background: `var(--band-${b.id})` }} />
-                  {at !== null && <span aria-hidden className="absolute -top-[4px] h-[13px] w-[13px] rounded-pill border-[3px] border-accent bg-surface" style={{ left: `calc(${at}% - 6px)` }} />}
-                  <span className={cx("text-meta-s", here ? "font-bold text-text" : "text-text-muted")}>{b.name}</span>
-                </li>
-              );
-            })}
-          </ol>
+          <BandBar score={score} bandId={band.id} />
           {deltaText && (
             <div className="flex items-center gap-t3 rounded-inset bg-surface2 px-[14px] py-t3">
               <div className="min-w-0 flex-1">
@@ -133,4 +121,32 @@ export function SmartScoreCard({ state, change, attribution, trend }: {
       </Card>
     </>
   );
+}
+
+/** The four bands with a marker at the score (Today's SmartScore and Your progress cards). */
+export function BandBar({ score, bandId }: { score: number; bandId: string }) {
+  return (
+    <ol aria-label={t.bandsLabel} className="grid grid-cols-4 gap-[4px]">
+      {BANDS.map((b) => {
+        const here = b.id === bandId;
+        const at = here ? Math.round(((score - b.min) / (b.max - b.min + 1)) * 100) : null;
+        return (
+          <li key={b.id} aria-current={here ? "step" : undefined} className="relative flex flex-col gap-[6px]">
+            <span aria-hidden className="h-[5px] rounded-pill" style={{ background: `var(--band-${b.id})` }} />
+            {at !== null && <span aria-hidden className="absolute -top-[4px] h-[13px] w-[13px] rounded-pill border-[3px] border-accent bg-surface" style={{ left: `calc(${at}% - 6px)` }} />}
+            <span className={cx("text-meta-s", here ? "font-bold text-text" : "text-text-muted")}>{b.name}</span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/** "−17 since 11/09" and what moved it ("New pay advance −9 · …"), from the attribution when there is one. */
+export function scoreChangeText(change: { delta: number; since: string } | null, attribution: ScoreAttribution | null) {
+  const delta = attribution?.delta ?? change?.delta ?? null;
+  const since = attribution ? attribution.from.date : change?.since ?? null;
+  const text = delta === null || since === null ? null : delta === 0 ? t.steady(formatDayMonth(since)) : t.since(`${delta > 0 ? "+" : "–"}${Math.abs(delta)}`, formatDayMonth(since));
+  const parts = attribution?.parts.filter((p) => p.points !== 0).map((p) => `${p.short ? p.short[0]!.toUpperCase() + p.short.slice(1) : p.name} ${p.points > 0 ? "+" : "–"}${Math.abs(p.points)}`) ?? [];
+  return { delta, text, parts };
 }

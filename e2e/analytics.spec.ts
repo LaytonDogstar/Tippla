@@ -22,7 +22,7 @@ test("Today reports session, page view, feed and safe-to-spend events; nothing s
   const all = batches.flat();
   const names = all.map((e) => e.event);
   expect(names).toEqual(expect.arrayContaining(["session_started", "page_viewed", "feed_viewed", "sts_viewed"]));
-  expect(all.find((e) => e.event === "feed_viewed")!.props).toEqual({ item_count: 3, rule_ids: "shortfall,duplicate_charge,tippla_billing_relief" });
+  expect(all.find((e) => e.event === "feed_viewed")!.props).toEqual({ item_count: 2, rule_ids: "duplicate_charge,tippla_billing_relief" });
   expect(JSON.stringify(all)).not.toMatch(/gambl|Jess|Taylor|@/i);
 
   // Acting on a card and opening a section are recorded too.
