@@ -25,12 +25,14 @@ export const lowestBalance90 = (d: PersonaData): number =>
  * Forecast end-of-day balance from the day after the data date to `until`: predicted bills out, expected
  * income in (typical amounts). No guess at everyday spending. Label these "predicted".
  */
-export function projectedBalances(d: PersonaData, until: ISODate): BalancePoint[] {
+export function projectedBalances(d: PersonaData, until: ISODate, opts: { membership?: boolean } = {}): BalancePoint[] {
   const incomes = upcomingIncome(d, until);
+  // Billing alignment leaves out Tippla's own charge (it's deciding when that charge goes).
+  const withFee = opts.membership ?? true;
   const out: BalancePoint[] = [];
   let bal = currentBalance(d);
   for (let day = addDays(d.asOf, 1); day <= until; day = addDays(day, 1)) {
-    const bills = d.derived.upcoming_bills.filter((b) => b.date === day).map((b) => -b.expected_amount);
+    const bills = d.derived.upcoming_bills.filter((b) => b.date === day && (withFee || !b.membership)).map((b) => -b.expected_amount);
     const pay = incomes.filter((i) => i.date === day).map((i) => i.amount);
     bal = sumMoney([bal, ...bills, ...pay]);
     out.push({ date: day, balance: bal, predicted: true });

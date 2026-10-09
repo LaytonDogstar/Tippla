@@ -67,7 +67,7 @@ export const correctionCopy = {
 
 export const accuracyCopy = {
   line: (within: string, hits: number, of: number) => `Our forecasts for you have been within ${within} on ${hits} of the last ${of} days.`,
-  missTitle: "We got this one wrong. Was there something unusual?",
+  missTitle: (day: string) => `We got ${day} wrong`,
   missBody: (date: string, predicted: string, actual: string) => `For ${date} we expected about ${predicted} in your account. It ended the day at ${actual}.`,
   answers: {
     one_off: "A one-off cost",

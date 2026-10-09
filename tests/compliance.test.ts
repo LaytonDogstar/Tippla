@@ -7,7 +7,7 @@
 import { describe, expect, it } from "vitest";
 import type { PersonaData } from "@/lib/api/types";
 import { applyDevStates } from "@/lib/dev/states";
-import { feed } from "@/lib/feed";
+import { IN_HERO, feed } from "@/lib/feed";
 import { cycleRecap, notificationEvents, offerPause, paydayCheckIn, payCycleSummary, toCandidate, visibleOffers, weeklySummary } from "@/lib/selectors";
 import { decide, DEFAULT_PREFS, GENERIC } from "@/lib/notify/policy";
 import { emailCopy } from "@/content/notify";
@@ -112,8 +112,9 @@ describe("rule 3: hardship is one tap away when a shortfall is forecast", async 
       seen++;
       const card = feed({ d, edits: {}, account: {} }, {}).open.find((i) => i.type === "shortfall");
       expect(card?.hardship?.href, d.id).toBe("/hardship");
-      // It ranks in the top 3 on Today (shown without "See all").
-      expect(feed({ d, edits: {}, account: {} }, {}).top.some((i) => i.type === "shortfall"), d.id).toBe(true);
+      // Today shows it in the hero (with "Options if money's tight"), not again in Needs a look (09/10/2026).
+      expect(IN_HERO).toContain("shortfall");
+      expect(feed({ d, edits: {}, account: {} }, {}).shown.some((i) => i.type === "shortfall"), d.id).toBe(false);
     }
     expect(seen).toBeGreaterThan(0);
   });

@@ -127,6 +127,8 @@ export interface UpcomingBill {
   cadence_days: number;
   /** The predicted bill's original id (merchant:date) when a member correction changed it (spec 05). */
   origin?: string;
+  /** Tippla's own membership charge, added to the forecast at load (08/10/2026) so every page counts it. */
+  membership?: boolean;
 }
 
 export interface Derived {

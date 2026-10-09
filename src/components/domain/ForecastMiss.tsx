@@ -24,9 +24,9 @@ export function ForecastMissCard({ persona, account, miss, onFixBill }: { person
     else toast({ kind: "confirm", message: t.thanks });
   };
   return (
-    // Today redesign: a small, low-emphasis card with neutral chip buttons, at the bottom of the page.
-    <section aria-labelledby="miss" className="flex flex-col gap-t3 rounded-tile bg-surface px-t5 py-[18px] shadow-card">
-      <h2 id="miss" className="text-body14 font-bold text-text">{t.missTitle}</h2>
+    // Today (09/10/2026): housekeeping, so an outlined strip with no fill and a smaller heading, at the bottom.
+    <section aria-labelledby="miss" className="flex flex-col gap-t2 rounded-card-s border border-line px-t4 py-t3 sm:rounded-card sm:px-t5">
+      <h2 id="miss" className="text-body14 font-bold text-text">{t.missTitle(formatShortDay(miss.forDate))}</h2>
       <p className="text-meta text-text-muted">{t.missBody(formatShortDay(miss.forDate), money(miss.predicted), money(miss.actual))}</p>
       <div className="flex flex-wrap gap-t2">
         {Object.entries(t.answers).map(([k, label]) => (

@@ -16,11 +16,8 @@ test("rule 2: Marcus opens Hardship support, and Offers pause for this pay cycle
 
 test("rule 3: Jess is short before payday, and hardship is one tap from Today", async ({ page }) => {
   await page.goto("/?persona=jess&present=1&state=none");
-  // Today redesign: next to the shortfall in the hero, and in the shortfall row's menu.
-  const row = page.getByRole("region", { name: "Needs a look" }).getByRole("listitem").filter({ hasText: "About $53 short before payday" });
-  await row.getByRole("button", { name: /^More actions:/ }).click();
-  await expect(page.getByRole("dialog").getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
-  await page.keyboard.press("Escape");
+  // Single-column Today: next to the shortfall in the hero, and on the payment that takes her below $0.
+  await expect(page.getByRole("region", { name: "Coming up" }).getByRole("link", { name: "This takes you below $0 · See your options" })).toHaveAttribute("href", "/hardship");
   await page.getByRole("region", { name: "This pay cycle" }).getByRole("link", { name: "Options if money's tight" }).click();
   await expect(page.getByRole("heading", { name: "Hardship support" })).toBeVisible();
 });

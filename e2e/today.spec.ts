@@ -20,16 +20,18 @@ async function rowAction(page: Page, title: RegExp, action: "Done" | "Snooze" | 
 }
 const dock = (page: Page) => page.getByRole("navigation", { name: "Main" }).first();
 
-test("Jess: status line, three ranked cards, section badges", async ({ page }) => {
+test("Jess: status line, two ranked cards then more, section badges", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByText("Checked 32 new transactions this morning · 8 things to look at")).toBeVisible();
-  await expect(feedCards(page)).toHaveCount(3);
+  // The shortfall is the hero's (09/10/2026), so it isn't counted or listed again in Needs a look.
+  await expect(page.getByText("Checked 32 new transactions this morning · 7 things to look at")).toBeVisible();
+  await expect(feedCards(page)).toHaveCount(2);
   // Spec 01 ranking (urgency × 10 + log10(amount) × 5). The Beforepay repayment (Wed 30/09) is 5 days out,
   // so it isn't flagged until it's within 3 days (see the bill_due state).
-  await expect(feedCards(page).nth(0)).toContainText("About $53 short before payday");
-  await expect(feedCards(page).nth(1)).toContainText("Possible double charge: Amazon AU $10.73 twice on 24/09");
-  await expect(feedCards(page).nth(2)).toContainText("You can pause your $9.99 Tippla payment");
-  // Hardship is one tap away: in the hero next to the shortfall, and in the shortfall row's menu.
+  await expect(feedCards(page).nth(0)).toContainText("Possible double charge: Amazon AU $10.73 twice on 24/09");
+  await expect(feedCards(page).nth(1)).toContainText("You can pause your $9.99 Tippla payment");
+  await expect(page.getByRole("region", { name: "Needs a look" }).getByRole("button", { name: "5 more to look at" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Needs a look" })).not.toContainText("short before payday");
+  // Hardship is one tap away: in the hero next to the shortfall.
   await expect(page.getByRole("region", { name: "This pay cycle" }).getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
   await expect(dock(page).getByRole("link", { name: "Money 4 things to look at" })).toBeVisible();
   // Spec 03: short before payday, so "pause your Tippla payment" sits under Help; spec 06 adds the entitlements check.
@@ -40,19 +42,19 @@ test("Jess: status line, three ranked cards, section badges", async ({ page }) =
 
 test("Done, with Undo; Not relevant sticks after a reload; badges follow", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  await rowAction(page, /About \$53 short/, "Done");
+  await rowAction(page, /Possible double charge/, "Done");
   await expect(page.getByRole("status").filter({ hasText: "Marked as done" })).toBeVisible();
-  await expect(feedCards(page).nth(0)).toContainText("Possible double charge");
+  await expect(feedCards(page).nth(0)).toContainText("You can pause your $9.99 Tippla payment");
   await page.getByRole("button", { name: "Undo" }).click();
-  await expect(feedCards(page).nth(0)).toContainText("About $53 short before payday");
+  await expect(feedCards(page).nth(0)).toContainText("Possible double charge");
 
-  await page.getByRole("region", { name: "Needs a look" }).getByRole("button", { name: "See all" }).click();
-  await expect(feedCards(page)).toHaveCount(8);
+  await page.getByRole("region", { name: "Needs a look" }).getByRole("button", { name: "5 more to look at" }).click();
+  await expect(feedCards(page)).toHaveCount(7);
   await rowAction(page, /Possible double charge/, "Not relevant");
   await expect(page.getByRole("status").filter({ hasText: "Got it. We won't show this again unless it changes" })).toBeVisible();
-  await expect(feedCards(page)).toHaveCount(7);
+  await expect(feedCards(page)).toHaveCount(6);
   await page.reload();
-  await expect(page.getByText("7 things to look at")).toBeVisible();
+  await expect(page.getByText("6 things to look at")).toBeVisible();
   await expect(dock(page).getByRole("link", { name: "Money 3 things to look at" })).toBeVisible();
 });
 
@@ -67,12 +69,11 @@ test("Snooze until tomorrow hides the card", async ({ page }) => {
 });
 
 test("score explanation on Today and /score", async ({ page }) => {
-  // Phones: the compact SmartScore card says how much it moved; desktop also says what moved it (estimated).
+  // Your progress (09/10/2026): the score opens the SmartScore page; how much it moved and what moved it (estimated).
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByRole("link", { name: /Open SmartScore: SmartScore 472 out of 1,000, Steadying\. –17 since 11\/09/ })).toBeVisible();
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.reload();
-  await expect(page.getByText("New pay advance –9 · Gambling deposits –6 · Money left over –2")).toBeVisible();
+  const progress = page.getByRole("region", { name: "Your progress" });
+  await expect(progress.getByRole("link", { name: /^Open SmartScore: SmartScore 472 out of 1,000, Steadying/ })).toHaveAttribute("href", "/score");
+  await expect(progress).toContainText("–17 since 11/09 · New pay advance –9 · Gambling deposits –6 · Money left over –2 (estimated)");
   await page.goto("/score?persona=jess&present=1");
   const box = page.getByRole("region", { name: "What changed" });
   await expect(box).toContainText("Current borrowing 3.4 → 2.9");

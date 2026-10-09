@@ -114,22 +114,23 @@ test("journey 1 — Jess: onboarding to score reveal, then her goal (spec 04: sh
   await expectNoAxe(page);
   await page.getByRole("button", { name: "Not now" }).click();
 
-  // Today: the feed is there and the goal is shown; the goal leads the plan.
+  // Today: the feed is there; the goal leads the plan, and "See how" shows it (with Change).
   await page.waitForURL((u) => u.pathname === "/");
-  await expect(page.getByRole("region", { name: "Your goal" })).toContainText("Your goal: Stop relying on pay advances");
   await expect(page.getByRole("heading", { name: "Needs a look" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^See how: Skip the next pay advance/ })).toBeVisible();
+  await page.getByRole("button", { name: /^See how: Skip the next pay advance/ }).click();
+  await expect(page.getByRole("dialog").getByRole("region", { name: "Your goal" })).toContainText("Your goal: Stop relying on pay advances");
 });
 
 test("Today: change the goal in a sheet; the plan follows it", async ({ page }) => {
   await page.goto("/?persona=jess&present=1");
-  const row = page.getByRole("region", { name: "Your goal" });
+  // Goal setting sits behind "See how" in Your progress (09/10/2026: no separate "Pick a goal" button on the card).
+  await page.getByRole("button", { name: /^See how:/ }).click();
+  const row = page.getByRole("dialog").getByRole("region", { name: "Your goal" });
   await row.getByRole("button", { name: "Pick a goal" }).click();
   const sheet = page.getByRole("dialog", { name: "Change your goal" });
   await sheet.getByText("Cut my bills and subscriptions").click();
   await sheet.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Goal saved" })).toBeVisible();
-  await expect(row).toContainText("Your goal: Cut my bills and subscriptions");
   await expect(page.getByRole("button", { name: /^See how: Check your subscriptions/ })).toBeVisible();
   await page.goto("/savings?persona=jess&present=1");
   await expect(page.getByRole("main").getByRole("article").first().getByRole("heading", { level: 2 })).toHaveText("Check your subscriptions");

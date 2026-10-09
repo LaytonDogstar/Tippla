@@ -108,7 +108,7 @@ test.describe("states (docs/09)", () => {
   test("offline / API error: cached data with a plain notice", async ({ page }) => {
     await page.goto(url("/", "jess", "&state=offline"));
     await expect(page.getByText("Couldn't refresh. Showing data from Fri 25/09, 9:14am.")).toBeVisible();
-    await expect(page.getByText("About $53 short before payday").first()).toBeVisible();
+    await expect(page.getByTestId("hero-amount")).toContainText("About $53 short of what's due before payday");
   });
 
   test("bank connection expired: banner with the date numbers stopped, and a way to reconnect", async ({ page }) => {

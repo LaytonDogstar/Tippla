@@ -4,7 +4,7 @@
 // 08/10/2026: the answer first (a headline: covered until payday, or how short and when), a slim balance chart,
 // then the timeline of money events as the main view, with the grid one tap away. No rail: nothing repeats, and
 // a selected day shows in the drawer only.
-import { ArrowDownToLine, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, Info, TriangleAlert } from "lucide-react";
+import { ArrowDownToLine, CalendarDays, TrendingUp, ChevronLeft, ChevronRight, CircleCheck, Info, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -83,7 +83,7 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
   const close = closeToZero(days);
   const tints = new Set(inView.map((d) => tintFor(d, close, lowest)));
   const has = {
-    spend: inView.some((d) => !d.isPayday && d.confirmedCount > 0 && !d.predictedBills.some((b) => b.expected_amount >= BIG_BILL)),
+    spend: inView.some((d) => !d.isPayday && d.highSpend && !d.predictedBills.some((b) => b.expected_amount >= BIG_BILL)),
     bill: inView.some((d) => !d.isPayday && d.predictedBills.some((b) => b.expected_amount < BIG_BILL) && !d.predictedBills.some((b) => b.expected_amount >= BIG_BILL)),
     bigBill: inView.some((d) => !d.isPayday && d.predictedBills.some((b) => b.expected_amount >= BIG_BILL)),
     payday: inView.some((d) => d.isPayday),
@@ -130,9 +130,9 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
               </div>
               {timeline.forecastEnds && <p className="mt-t2 text-meta text-text-muted">{t.gridForecastEnds(formatShortDay(timeline.forecastEnds))}</p>}
               <ul className="mt-t3 flex flex-wrap items-center gap-x-t5 gap-y-t2 text-meta text-text-secondary">
-                {has.spend && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[6px] w-[6px] rounded-pill bg-neutral" />{t.legend.spend}</li>}
+                {has.spend && <li className="inline-flex items-center gap-t2"><TrendingUp aria-hidden size={14} strokeWidth={2.4} className="text-text-secondary" />{t.legend.spend}</li>}
                 {has.bill && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[8px] w-[8px] rounded-pill border-2" style={{ borderColor: "var(--chart-predicted)" }} />{t.legend.bill}</li>}
-                {has.bigBill && <li className="inline-flex items-center gap-t2"><span aria-hidden className="tnum rounded-[4px] border border-dashed px-[3px] text-caption" style={{ borderColor: "var(--chart-predicted)" }}>$</span>{t.legend.bigBill}</li>}
+                {has.bigBill && <li className="inline-flex items-center gap-t2"><span aria-hidden className="tnum rounded-[4px] border border-dashed px-[3px] text-caption" style={{ borderColor: "var(--chart-predicted)" }}>−$</span>{t.legend.bigBill}</li>}
                 {has.payday && <li className="inline-flex items-center gap-t2"><ArrowDownToLine aria-hidden size={14} className="text-accent" />{t.legend.payday}</li>}
                 {tints.has("negative") && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-negative-soft shadow-[inset_0_0_0_2px_var(--color-negative)]" />{t.legend.below}</li>}
                 {tints.has("caution") && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-caution-soft" />{t.legend.close}</li>}

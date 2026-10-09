@@ -2,13 +2,16 @@
 // Component 11: a labelled grid with roving focus. Each date is one control; markers and balance are layers
 // inside it (never separate tiny buttons). Lanes, top to bottom: date · markers · end-of-day balance.
 // 08/10/2026 (the timeline is now the main view; this grid is the secondary one):
-// - markers: confirmed spend = a small solid dot; a predicted bill of $100 or more shows its amount in a dashed
-//   chip (and its name on wide screens); smaller bills are hollow dots; payday takes the lane on its own day.
+// - markers (09/10/2026): no dot for routine spending; a small "up" mark only on days everyday spending was well
+//   above a typical day's (Spending's CHANGE_THRESHOLD). A predicted bill of $100 or more shows its amount, signed
+//   (−$315), in a dashed chip (and its name on wide screens); smaller bills are hollow dots; payday takes the lane.
+// - the number at the bottom is what's left at the end of the day (labelled "left" on wide screens).
+// - below $0 gets the same treatment on past and forecast days.
 // - tints say how close the balance gets, relative to this view, never a fixed cutoff: below $0 is the soft
 //   negative tint with an outline (rule 6); "close to $0" (under a fifth of the view's highest forecast balance)
 //   is soft caution; the lowest point gets a dashed outline. Everything else stays plain.
 // - no balance strips: the number is the balance. After the forecast ends a day shows a dash, and says why.
-import { ArrowDownToLine, ChevronRight, TriangleAlert } from "lucide-react";
+import { ArrowDownToLine, ChevronRight, TrendingUp, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { calendar as t } from "@/content/components";
 import { formatDate, formatShortDay, formatWhole } from "@/lib/format";
@@ -27,8 +30,10 @@ export function closeToZero(days: CalendarDay[]): number {
 
 export type DayTint = "negative" | "caution" | "lowest";
 export function tintFor(d: CalendarDay, close: number, lowest: string | null | undefined): DayTint | null {
-  if (d.balance === null || d.outside || (!d.isToday && !d.isFuture)) return null;
+  if (d.balance === null || d.outside) return null;
+  // Below $0 looks the same whether it happened or is forecast; "close to $0" and the lowest point are forecasts.
   if (d.belowZero) return "negative";
+  if (!d.isToday && !d.isFuture) return null;
   if (d.date === lowest) return "lowest";
   return d.balance < close ? "caution" : null;
 }
@@ -95,6 +100,7 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
                 const parts = [
                   d.isToday && t.today,
                   d.confirmedCount ? `${t.spendCount(d.confirmedCount)} ${formatWhole(d.confirmedSpend)}` : null,
+                  d.highSpend ? t.highSpend : null,
                   ...d.predictedBills.map((x) => t.billPredicted(x.merchant, formatWhole(x.expected_amount))),
                   ...d.predictedIncome.map((p) => t.incomeExpected(p.payer)),
                   d.isPayday && !d.predictedIncome.length ? t.pay : null,
@@ -130,20 +136,23 @@ export function CalendarGrid({ days, label, nextPayday, selected, rangeFrom, ran
                           <>
                             <span className="hidden w-full truncate text-center text-caption text-text-muted desktop:block">{big[0]!.merchant}</span>
                             <span className="tnum rounded-[4px] border border-dashed px-[3px] text-caption font-semibold text-text" style={{ borderColor: "var(--chart-predicted)" }}>
-                              {cellAmount(big.reduce((n, x) => n + x.expected_amount, 0))}{big.length > 1 ? "+" : ""}
+                              {cellAmount(-big.reduce((n, x) => n + x.expected_amount, 0))}{big.length > 1 ? "+" : ""}
                             </span>
                           </>
                         ) : (
                           <span className="flex items-center gap-[3px] pt-[4px]">
-                            {d.confirmedCount > 0 && <span className="h-[6px] w-[6px] rounded-pill bg-neutral" />}
+                            {d.highSpend && <TrendingUp size={13} strokeWidth={2.4} className="text-text-secondary" />}
                             {small.slice(0, 2).map((x) => <span key={x.merchant} className="h-[8px] w-[8px] rounded-pill border-2 bg-surface" style={{ borderColor: "var(--chart-predicted)" }} />)}
                           </span>
                         )}
                       </span>
-                      <span aria-hidden className={cx("tnum mt-auto inline-flex items-center gap-[2px] text-meta",
+                      <span aria-hidden className={cx("tnum mt-auto inline-flex items-center gap-[2px] whitespace-nowrap text-meta",
                         d.balance === null ? "text-text-muted" : tint === "negative" ? "font-semibold text-negative" : tint === "lowest" ? "font-bold text-text" : "font-semibold text-text")}>
-                        {d.balance === null ? "–" : <>{tint === "negative" && <TriangleAlert size={11} strokeWidth={2.4} />}{cellAmount(d.balance)}</>}
+                        {d.balance === null ? "–" : cellAmount(d.balance)}
                       </span>
+                      {/* Below $0: the icon sits in the corner, so the amount always fits a phone-width cell. */}
+                      {tint === "negative" && <TriangleAlert aria-hidden size={12} strokeWidth={2.4} className="absolute right-[4px] top-[4px] text-negative" />}
+                      {d.balance !== null && <span aria-hidden className="hidden text-caption text-text-muted desktop:block">{t.leftLabel}</span>}
                     </button>
                   </td>
                 );

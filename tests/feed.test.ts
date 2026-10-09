@@ -42,9 +42,11 @@ describe("feed rules", async () => {
 
   it("Jess's top three (spec 01 ranking: urgency × 10 + log10(amount) × 5)", () => {
     const f = feed(ctx(jess));
-    expect(types(f.top)).toEqual(["shortfall", "duplicate_charge", "tippla_billing_relief"]);
+    // The shortfall ranks first, but Today's hero says it (09/10/2026), so Needs a look starts after it.
+    expect(types(f.open)[0]).toBe("shortfall");
+    expect(types(f.top).slice(0, 2)).toEqual(["duplicate_charge", "tippla_billing_relief"]);
     expect(f.top).toHaveLength(3);
-    expect(Object.values(f.bySection).reduce((a, b) => a + b, 0)).toBe(f.open.length);
+    expect(Object.values(f.bySection).reduce((a, b) => a + b, 0)).toBe(f.shown.length);
   });
 
   it("cards about money being tight always carry the hardship option", () => {

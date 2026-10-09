@@ -5,6 +5,7 @@ import { loadPersona, type ClientOptions } from "@/lib/api/client";
 import type { PersonaId } from "@/lib/api/types";
 import { ACCOUNT_COOKIE, applyAccount, parseAccount } from "@/lib/account/state";
 import { categoryEdits } from "@/lib/persona";
+import { withMembershipCharge } from "@/lib/selectors/account";
 import { isOn } from "@/config/featureFlags";
 import { applyDevStates, DEV_COOKIE, parseDevStates } from "@/lib/dev/states";
 
@@ -27,5 +28,6 @@ async function loadCustomerUncached(persona: PersonaId, opts: ClientOptions) {
   const account = parseAccount(cookies().get(ACCOUNT_COOKIE)?.value, persona);
   // Spec 04: the member's goal shapes the plan, check-in and recap only while goals_v1 is on.
   const goal = isOn("goals_v1", persona) ? account.focusGoal : undefined;
-  return { data: applyAccount(data, account), raw: data, account, goal, edits: categoryEdits(persona), scoreError, states };
+  // Tippla's own charge goes into the forecast, so every page that shows a future balance counts it.
+  return { data: withMembershipCharge(applyAccount(data, account), account), raw: data, account, goal, edits: categoryEdits(persona), scoreError, states };
 }

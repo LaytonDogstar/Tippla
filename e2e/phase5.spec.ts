@@ -65,11 +65,9 @@ test("Pause instead is the single optional alternative, with its effect shown be
 const ROUTES = ["/", "/score", "/savings", "/spending", "/calendar", "/subscriptions", "/loans", "/loans/repayment", "/offers", "/help", "/hardship", "/notifications", "/account", "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/spending/compare"];
 
 test("Hardship support is always reachable: one tap from Today and the desktop rail, two taps from anywhere on phones", async ({ page, browser }) => {
-  // Today redesign (07/10/2026): phones have Hardship help as a quick action on Today and under More everywhere.
+  // Single-column Today (09/10/2026): "Options if money's tight" in the hero; Hardship support under More everywhere.
   await page.goto("/?persona=jess&present=1");
-  // The fifth tile sits at the screen edge of the quick-actions row (the hint that it scrolls); still one tap.
-  await expect(page.getByRole("navigation", { name: "Quick actions" })).toBeInViewport();
-  await expect(page.getByRole("navigation", { name: "Quick actions" }).getByRole("link", { name: "Hardship help" })).toHaveAttribute("href", "/hardship");
+  await expect(page.getByRole("region", { name: "This pay cycle" }).getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
   for (const r of ROUTES) {
     await page.goto(`${r}?persona=jess&present=1`);
     await expect(page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: /^More/ }), r).toBeInViewport();
