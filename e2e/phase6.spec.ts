@@ -3,7 +3,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const ROUTES = ["/", "/score", "/score/current-borrowing", "/savings", "/spending", "/spending?tab=categories", "/spending?tab=budgets",
-  "/spending/compare", "/spending/compare?tab=cohort", "/calendar", "/calendar?view=month", "/subscriptions", "/loans", "/loans?tab=upcoming",
+  "/spending/compare", "/spending/compare?tab=cohort", "/calendar", "/calendar?month=2026-10", "/subscriptions", "/loans", "/loans?tab=upcoming",
   "/loans?tab=history", "/loans?tab=other", "/loans/repayment", "/offers", "/hardship", "/help", "/notifications", "/account",
   "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/onboarding", "/onboarding/consents", "/onboarding/score-reveal", "/progress", "/notifications/summary"];
 const url = (r: string, persona: string, extra = "") => `${r}${r.includes("?") ? "&" : "?"}persona=${persona}&present=1${extra}`;
@@ -46,11 +46,11 @@ test.describe("dynamic type 200%", () => {
       expect(problems, problems.join("\n")).toEqual([]);
     });
   }
-  test("calendar: the timeline (the default view) works at large text", async ({ page }) => {
+  test("calendar: picking a day works at large text", async ({ page }) => {
     await page.goto(url("/calendar", "jess"));
-    await expect(page.getByRole("list", { name: /^Money in and out/ })).toBeVisible();
-    await page.getByRole("button", { name: /^Wed 30\/09\/2026/ }).click();
-    await expect(page.getByRole("dialog").getByText("$262 − $315 = −$53")).toBeVisible();
+    await page.getByRole("button", { name: /^Wed 30\/09, forecast balance/ }).click();
+    const panel = page.getByRole("region", { name: "Wed 30/09" });
+    await expect(panel.getByText("Forecast end of day −$53")).toBeVisible();
   });
 });
 

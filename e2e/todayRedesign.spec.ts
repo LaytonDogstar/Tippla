@@ -67,7 +67,7 @@ test("Coming up: running balances to payday match the Calendar; the payment that
   await expect(c.getByRole("listitem").filter({ hasText: "Tippla membership" }).getByRole("link", { name: "Pause this month" })).toBeVisible();
   // Every "left" is the Calendar's end-of-day forecast: Wed 30/09 is −$53 there too.
   await page.goto("/calendar?persona=jess&present=1&day=2026-09-30");
-  await expect(page.getByRole("dialog").getByText("$262 − $315 = −$53")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Wed 30/09" }).getByText("Forecast end of day −$53")).toBeVisible();
 });
 
 test("Spending: this cycle against the same point of the last one, with fixed costs on their own line", async ({ page }) => {

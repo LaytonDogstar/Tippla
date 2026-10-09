@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import type { Offer, Transaction } from "@/lib/api/types";
-import type { CalendarDay } from "@/lib/selectors/calendar";
+import { monthGrid, type CalDay } from "@/lib/selectors/calendarMonth";
 import type { Loan, loanTotals as LT, payAdvanceRun as PAR } from "@/lib/selectors/loans";
 import type { gamblingInsight as GI } from "@/lib/selectors/gambling";
 import type { PayCycleSummary } from "@/lib/selectors/payCycle";
@@ -22,7 +22,7 @@ import { InsightCard, InsightSheetBody, type InsightItem } from "@/components/do
 import { CategoryRow } from "@/components/domain/CategoryRow";
 import { Donut } from "@/components/domain/Donut";
 import { TransactionRow } from "@/components/domain/TransactionRow";
-import { CalendarGrid, DayDetail } from "@/components/domain/Calendar";
+import { MonthCalendar } from "@/components/domain/MonthCalendar";
 import { LoanCard } from "@/components/domain/LoanCard";
 import { OfferCard } from "@/components/domain/OfferCard";
 import { RecommendationCard } from "@/components/domain/RecommendationCard";
@@ -39,7 +39,7 @@ export interface ShowcaseData {
   jess: {
     score: ScoreState; factors: Factor[]; top: Factor[]; strongest: Factor | null; payCycle: PayCycleSummary;
     rows: Row[]; cycleLabel: string; merchants: Record<string, MerchantRow[]>;
-    calendar: { days: CalendarDay[]; nextPayday: string; nextIncome: ExpectedIncome[] }; spendCats: Record<string, string[]>;
+    calendar: CalDay[]; spendCats: Record<string, string[]>;
     loans: Loan[]; loanTotals: ReturnType<typeof LT>; advance: ReturnType<typeof PAR>; gambling: ReturnType<typeof GI>;
     tx: { posted: Transaction; pending: Transaction };
   };
@@ -219,15 +219,12 @@ export function Showcase({ data }: { data: ShowcaseData }) {
         )}
       </Section>
 
-      <Section id="calendar" title="11 CalendarCell" note="Jess's fortnight. Arrow keys move; Enter opens the day. 30/09 is the only (forecast) below-$0 day.">
+      <Section id="calendar" title="11 CalendarCell" note="Jess's September. 30/09 is the lowest forecast day (−$53); pending items are listed but never counted.">
         {() => (
           <div className="rounded-md bg-surface p-t2">
-            <CalendarGrid
-              days={jess.calendar.days}
-              label={`Pay cycle ${formatDayMonth(jess.calendar.days[0]!.date)} – ${formatDayMonth(jess.calendar.days[13]!.date)}`}
-              nextPayday={jess.calendar.nextPayday}
-              onDay={(d) => setSheet({ title: `Day ${formatDayMonth(d.date)}`, body: <DayDetail day={d} /> })}
-            />
+            <MonthCalendar cells={monthGrid(jess.calendar.find((d) => d.isToday)!.date.slice(0, 7))} byDate={new Map(jess.calendar.map((d) => [d.date, d]))}
+              label="September 2026" lowest="2026-09-30" isSelected={(d) => d === data.asOf}
+              handlers={{ onPress: (d) => setSheet({ title: `Day ${formatDayMonth(d)}`, body: <p className="text-body text-text-muted">The Calendar page shows this day in its detail panel.</p> }), onEnter: () => {} }} />
           </div>
         )}
       </Section>

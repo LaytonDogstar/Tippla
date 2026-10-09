@@ -1,7 +1,7 @@
 // Dev-only: every Phase 1 component in every state, light and dark side by side, fed by real selector output.
 import { loadPersona } from "@/lib/api/client";
 import {
-  activeLoans, categoryTotals, currentCycle, factors, fortnight, gamblingInsight, loanTotals, merchantsIn, payAdvanceRun,
+  activeLoans, categoryTotals, currentCycle, factors, calendarDays, gamblingInsight, loanTotals, merchantsIn, payAdvanceRun,
   payCycleSummary, scoreState, strongestFactor, topThreeFactors, visibleOffers,
 } from "@/lib/selectors";
 import { Showcase, type ShowcaseData } from "./Showcase";
@@ -13,7 +13,7 @@ export default async function ComponentsPage() {
   const [{ data: jess }, { data: marcus }, { data: priya }] = await Promise.all([loadPersona("jess", opts), loadPersona("marcus", opts), loadPersona("priya", opts)]);
   const cycle = currentCycle(jess);
   const rows = categoryTotals(jess, cycle);
-  const cal = fortnight(jess);
+  const cal = calendarDays(jess);
   const spendCats: Record<string, string[]> = {};
   for (const t of jess.transactions)
     if (t.status === "posted" && t.amount < 0 && t.date >= cycle.start && t.date <= cycle.end) (spendCats[t.date] ??= []).push(t.category);
