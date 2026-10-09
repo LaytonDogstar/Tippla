@@ -25,7 +25,7 @@ import {
 } from "@/lib/selectors";
 import { FACTOR_SLUGS } from "@/lib/ui/factorSlugs";
 import { CategoryRow } from "@/components/domain/CategoryRow";
-import { Donut } from "@/components/domain/Donut";
+import { CategoryBreakdown } from "@/components/domain/CategoryBreakdown";
 import { DueSheet } from "@/components/domain/DueSheet";
 import { InsightCard, InsightSheetBody, type InsightItem } from "@/components/domain/Insight";
 import { SupportOptions } from "@/components/domain/SupportOptions";
@@ -150,9 +150,9 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
 
   const listRows = useMemo(() => {
     const change = (r: Row) => Math.abs(r.change);
-    const rows = categoryTotals(scoped, p, edits, tab === "categories" ? filter : "all").filter((r) => !selected || r.category === selected);
+    const rows = categoryTotals(scoped, p, edits, tab === "categories" ? filter : "all");
     return [...rows].sort(sort === "amount" ? (a, b) => b.total - a.total : sort === "change" ? (a, b) => change(b) - change(a) || b.total - a.total : (a, b) => a.name.localeCompare(b.name));
-  }, [scoped, p, edits, tab, filter, selected, sort]);
+  }, [scoped, p, edits, tab, filter, sort]);
 
   const changeText = (r: Row) => {
     if (!comparable) return undefined;
@@ -166,12 +166,14 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
     setCategory(id, category);
     toast({ kind: "confirm", message: t.tx.moved(categoryNames[category]), onUndo: () => restore(before) });
   };
+  /** Filters the Transactions card to a category (the card shows it as a chip); direction goes back to All. */
   const selectCategory = (c: SpendCategory | null) => {
     setSelected(c);
-    if (c) setExpanded((s) => new Set(s).add(c));
+    if (c) { setDirection("all"); setExpanded((s) => new Set(s).add(c)); }
   };
   const choosePeriod = (id: PeriodId) => setPeriodKey({ period: id });
   const viewAll = (c: SpendCategory) => { setTab("overview"); selectCategory(c); scrollToFeed(); };
+  const gamblingInsight = insights.find((i) => i.id === "gambling");
 
   const rowFor = (r: Row) => {
     const ins = insights.find((i) => i.category === r.category);
@@ -206,20 +208,13 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
     </div>
   );
 
-  const overviewRows = listRows.slice(0, 5).concat(selected && !listRows.slice(0, 5).some((r) => r.category === selected) ? listRows.filter((r) => r.category === selected) : []);
   const categoryList = (
     <section aria-labelledby="cats-h" className="mt-t4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-t3 px-t1 pb-t2 pt-t4">
         <h2 id="cats-h" className="text-card text-text sm:text-card-l">{t.categories.heading}</h2>
-        <span className="text-meta text-text-muted">{t.categories.count(tab === "overview" ? overviewRows.length : listRows.length)}</span>
+        <span className="text-meta text-text-muted">{t.categories.count(listRows.length)}</span>
       </div>
-      {listRows.length ? <ul className="flex flex-col gap-t3">{(tab === "overview" ? overviewRows : listRows).map(rowFor)}</ul> : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.categories.empty}</p>}
-      {/* Overview shows the top five; the full list, filter and sort are on the Categories tab (UX round 2, 6.3). */}
-      {tab === "overview" && listRows.length > overviewRows.length && (
-        <button type="button" onClick={() => setTab("categories")} className="mt-t3 flex min-h-[52px] w-full items-center justify-between rounded-card-s bg-surface px-t5 text-body14 font-semibold text-accent shadow-card hover:bg-surface2 sm:rounded-card">
-          {t.categories.seeAll(listRows.length)}<ChevronRight aria-hidden size={20} />
-        </button>
-      )}
+      {listRows.length ? <ul className="flex flex-col gap-t3">{listRows.map(rowFor)}</ul> : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.categories.empty}</p>}
     </section>
   );
 
@@ -239,17 +234,6 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
 
       {tab !== "budgets" && periodChips}
 
-      {/* One filter bar for everything on the page (UX round 2, 6.1): category, direction and search. */}
-      {(selected || direction !== "all" || q.trim()) && (
-        <div role="group" aria-label={t.filters.label} className="mt-t3 flex flex-wrap items-center gap-t2">
-          <span className="text-meta font-semibold text-text-muted">{t.filters.label}</span>
-          {selected && <FilterChip label={categoryNames[selected]} onRemove={() => setSelected(null)} />}
-          {direction !== "all" && <FilterChip label={t.feed.direction[direction]} onRemove={() => setDirection("all")} />}
-          {q.trim() && <FilterChip label={t.filters.search(q.trim())} onRemove={() => setQ("")} />}
-          <button type="button" onClick={() => { setSelected(null); setDirection("all"); setQ(""); }} className="inline-flex min-h-tap items-center px-t2 text-body14 font-semibold text-accent">{t.filters.clearAll}</button>
-        </div>
-      )}
-
       {tab === "overview" && (
         // Desktop: two columns (summary and categories | links and transactions). Phones: one column, same order.
         <div className="desktop:flex desktop:items-start desktop:gap-t6">
@@ -266,9 +250,15 @@ export function SpendingView({ persona, data, initialEdits, payCycle, gambling, 
               </div>
             )}
             <div className="mt-t4">
-              <Donut rows={allRows} total={total} periodLabel={p.label} selected={selected} onSelect={selectCategory} onOther={() => setTab("categories")} />
+              <CategoryBreakdown key={`${p.id}-${p.month ?? ""}`} rows={allRows} total={total} periodLabel={p.label} vsLabel={vsLabel(p)} comparable={comparable}
+                transactionsFor={(c) => spendingFeed(scoped, p, edits, { category: c })}
+                onTransaction={(id) => setSheet({ kind: "tx", id })}
+                onSeeAll={(c) => { selectCategory(c); scrollToFeed(); }}
+                lenderLink={(c) => c === "gambling"
+                  ? gamblingInsight ? { onClick: () => setSheet({ kind: "insight", id: gamblingInsight.id }) } : { href: `/score/${FACTOR_SLUGS.ADVERSE_SPEND}` }
+                  : { href: `/score/${FACTOR_SLUGS.LOAN_AMOUNT_AND_TYPE}` }}
+                initialOpen={isSpendCat(params.category) ? params.category : null} />
             </div>
-            {categoryList}
           </div>
           <div className="desktop:min-w-0 desktop:flex-[2_1_0]">
             <nav aria-label={t.title} className="mt-t4 flex flex-col overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
@@ -363,13 +353,11 @@ function SpendingHero({ p, asOf, summary: s, total, paidIn, onSpent, onPaidIn, o
             {s.isShort ? copy.payCycle.short(formatWhole(-s.leftAfterBills)) : copy.payCycle.left(formatWhole(s.leftAfterBills))}
           </p>
           {/* The same working as Today's hero, so the headline never seems to contradict Spent and Paid in (1.3). */}
-          <p className="tnum mt-t2 flex flex-wrap gap-x-t3 gap-y-t1 text-body14 text-hero-on-muted">
-            <span>{todayCopy.hero.balance} <strong className="font-bold text-hero-on">{formatWhole(s.balance)}</strong></span>
-            <span aria-hidden>·</span>
-            <span>{todayCopy.hero.due} <strong className="font-bold text-hero-on">{formatWhole(s.dueTotal)}</strong></span>
-            <span aria-hidden>·</span>
-            <span>{s.isShort ? t.hero.shortBy : t.hero.leftOver} <strong className="font-bold text-hero-on">{formatWhole(Math.abs(s.leftAfterBills))}</strong></span>
-          </p>
+          <dl className="tnum mt-t3 grid grid-cols-3 gap-t2 text-body14 text-hero-on-muted">
+            <div><dt>{todayCopy.hero.balance}</dt><dd className="font-bold text-hero-on">{formatWhole(s.balance)}</dd></div>
+            <div><dt>{todayCopy.hero.due}</dt><dd className="font-bold text-hero-on">{formatWhole(s.dueTotal)}</dd></div>
+            <div><dt>{s.isShort ? t.hero.shortBy : t.hero.leftOver}</dt><dd className="font-bold text-hero-on">{formatWhole(Math.abs(s.leftAfterBills))}</dd></div>
+          </dl>
         </div>
       ) : (
         <div>
@@ -416,9 +404,11 @@ const Feed = forwardRef<HTMLElement, {
   }
   return (
     <section ref={ref} aria-labelledby="feed-h" className="mt-t4 scroll-mt-t6 overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-t3 p-t5 pb-t3">
+      <div className="flex flex-wrap items-center justify-between gap-x-t3 gap-y-t2 p-t5 pb-t3">
         <h2 id="feed-h" className="text-card text-text sm:text-card-l">{t.feed.heading}</h2>
-        <span role="status" className="text-caption text-text-muted">{t.feed.count(feed.length)}</span>
+        <span role="status" className="text-caption text-text-muted">{t.feed.count(feed.length)}{selected ? ` · ${categoryNames[selected]}` : ""}</span>
+        {/* A category filter is always visible here, with a way to clear it (never a silent filter). */}
+        {selected && <div className="w-full"><FilterChip label={categoryNames[selected]} onRemove={onClearCategory} /></div>}
       </div>
       <div className="flex flex-col gap-t3 px-t5 pb-t4">
         <label className="flex min-h-[52px] items-center gap-t2 rounded-pill border border-neutral bg-surface px-t4 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
@@ -427,7 +417,8 @@ const Feed = forwardRef<HTMLElement, {
           <input id="spending-search" ref={searchRef} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.feed.searchLabel}
             className="min-w-0 flex-1 bg-transparent text-body text-text outline-none placeholder:text-text-muted" />
         </label>
-        <SegmentedControl label={t.feed.directionLabel} value={direction} onChange={setDirection}
+        {/* With a category filter on, the list is that category's money out: no direction is selected until you pick one (which clears the category). */}
+        <SegmentedControl label={t.feed.directionLabel} value={selected ? null : direction} onChange={(v) => { if (selected) onClearCategory(); setDirection(v); }}
           options={(["all", "out", "in"] as FeedDirection[]).map((v) => ({ value: v, label: t.feed.direction[v] }))} />
       </div>
       {feed.length === 0 ? (

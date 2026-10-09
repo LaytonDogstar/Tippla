@@ -5,6 +5,10 @@ import { lastCycles, previousOf, type Period, type SpendData } from "./periods";
 import { applyOverrides, debitsIn, inPeriod, isDebit, isIncome, searchTransactions, type CategoryOverrides } from "./transactions";
 
 export type SpendCategory = Exclude<CategoryId, "income" | "transfer">;
+/** Categories lenders look at when they review bank statements (flagged on the Spending list). */
+export const LENDER_CATEGORIES: readonly SpendCategory[] = ["gambling", "loan_repayment"];
+export const isLenderCategory = (c: SpendCategory) => LENDER_CATEGORIES.includes(c);
+
 export type SpendFilter = "all" | "essentials" | "lifestyle";
 
 export interface CategoryRow {

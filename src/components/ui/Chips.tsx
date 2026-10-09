@@ -52,35 +52,39 @@ export function FilterChip({ label, onRemove, disabled }: { label: string; onRem
 export interface SegmentOption<T extends string> { value: T; label: string; disabled?: boolean }
 
 export function SegmentedControl<T extends string>({ label, options, value, onChange, disabled }: {
-  label: string; options: SegmentOption<T>[]; value: T; onChange: (v: T) => void; disabled?: boolean;
+  /** null: no option selected (e.g. a filter that the options don't describe is applied). */
+  label: string; options: SegmentOption<T>[]; value: T | null; onChange: (v: T) => void; disabled?: boolean;
 }) {
   const name = useId();
   return (
     <fieldset className="min-w-0" disabled={disabled}>
       <legend className="sr-only">{label}</legend>
-      <div className="flex min-h-[52px] gap-t1 rounded-pill bg-chip p-t1">
+      {/* Each option's label fills its share of the track, padding included, so a tap anywhere on the control picks
+          the nearest option (no dead gaps or edges). The visible pill is the inner span. */}
+      <div className="flex min-h-[52px] rounded-pill bg-chip">
         {options.map((o) => {
           const checked = o.value === value;
           return (
-            <label
-              key={o.value}
-              className={cx(
-                "relative flex min-w-tap flex-1 cursor-pointer items-center justify-center rounded-pill px-t2 text-body14 font-semibold transition-colors duration-fast ease-tippla",
-                "has-[:focus-visible]:outline has-[:focus-visible]:outline-[length:var(--focus-width)] has-[:focus-visible]:outline-offset-[var(--focus-offset)] has-[:focus-visible]:outline-focus",
-                checked ? "bg-surface font-bold text-accent-strong shadow-[0_1px_3px_rgba(20,22,60,0.12),inset_0_0_0_1.5px_var(--color-accent)]" : "text-text-secondary hover:text-text",
-                disabled && (checked ? "bg-neutral-soft text-text-muted shadow-[inset_0_0_0_2px_var(--color-neutral)]" : "text-text-muted"),
-              )}
-            >
+            <label key={o.value} className={cx("flex min-w-tap flex-auto p-t1", disabled || o.disabled ? "cursor-default" : "cursor-pointer")}>
               <input
                 type="radio"
-                className="sr-only"
+                className="peer sr-only"
                 name={name}
                 value={o.value}
                 checked={checked}
                 disabled={o.disabled}
                 onChange={() => onChange(o.value)}
               />
-              {o.label}
+              <span
+                className={cx(
+                  "flex w-full items-center justify-center rounded-pill px-t2 text-center text-body14 font-semibold transition-colors duration-fast ease-tippla",
+                  "peer-focus-visible:outline peer-focus-visible:outline-[length:var(--focus-width)] peer-focus-visible:outline-offset-[var(--focus-offset)] peer-focus-visible:outline-focus",
+                  checked ? "bg-surface font-bold text-accent-strong shadow-[0_1px_3px_rgba(20,22,60,0.12),inset_0_0_0_1.5px_var(--color-accent)]" : "text-text-secondary hover:text-text",
+                  disabled && (checked ? "bg-neutral-soft text-text-muted shadow-[inset_0_0_0_2px_var(--color-neutral)]" : "text-text-muted"),
+                )}
+              >
+                {o.label}
+              </span>
             </label>
           );
         })}

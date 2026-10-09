@@ -132,6 +132,8 @@ export const calendar = {
   today: "today",
   inRange: "in selected range",
   predicted: "predicted",
+  lowestPoint: "lowest point",
+  closeToZero: "close to $0",
 };
 
 export const loan = {

@@ -5,7 +5,7 @@ The September review found the Figma screens read as **reports, not products**: 
 ## Principles
 
 1. **Summary, then detail.** Each screen answers "so what?" in its first card; detail sits one tap down (progressive disclosure).
-2. **Charts are controls.** Tapping a donut slice, bar or day filters the content below. Tap again clears. Filter state shows as a dismissible chip.
+2. **Charts are controls.** Tapping a bar or day opens its detail where you tapped (08/10/2026: the Spending category list expands in place; it never silently filters another card). Any filter that is applied shows as a dismissible chip on the list it filters.
 3. **Insights live where the data is.** One insight at a time at the top ("1 of n"), and each insight also appears as a chip on the category/loan/factor it concerns. No full-height insight rails.
 4. **Every tap goes somewhere.** No dead ends. Detail opens in a bottom sheet (mobile) / right drawer (desktop) with: what's happening → what it would change → a choice (including "Not relevant to me").
 5. **Transactions are the ground truth.** A searchable feed is always reachable; any transaction can be recategorised and totals update everywhere, with a toast.
@@ -26,7 +26,7 @@ The September review found the Figma screens read as **reports, not products**: 
 | **CategoryRow** | Icon in category colour, name, type tag (lifestyle), amount, change vs last period, 6-cycle sparkline, budget bar + note; expands to merchants; insight chip if relevant |
 | **MerchantSheet** | Transactions for the merchant in the period, each with a category select (recategorise) |
 | **TransactionRow** | Icon, merchant, category, amount; pending state (italic + "Pending"); tap → TransactionSheet |
-| **Donut** | Slices in category colours, 2° gaps, tap/keyboard to select; centre shows total or selected category |
+| **Category list** *(replaced the donut on Spending, 08/10/2026)* | Ranked, bars scaled to the largest category, change vs the previous period, top 5 + "Show N more", rows expand in place |
 | **SegmentedControl** | All / Essentials / Lifestyle; Overview / Categories / Budgets |
 | **CalendarCell** | Day, solid dots (confirmed), outlined dots (predicted), payday marker, neutral balance bar (hatched below $0) |
 | **LoanCard** | Provider, type in plain words, estimated balance, repayment + cadence, next due; expands |
@@ -39,6 +39,6 @@ The September review found the Figma screens read as **reports, not products**: 
 ## Colour semantics
 
 - Accent: brand primary from Astra tokens.
-- Category identity colours: one per category, used on icons, donut and sparklines only. **Gambling uses the neutral slate category colour.**
+- Category identity colours: one per category, used on icons, bars and sparklines only. Gambling has its own (orchid) colour, never a warning hue.
 - Semantic: `positive`, `caution`, `info`, `neutral`. **No "danger/red" token is used for customer financial states.** A red-family token may exist only for destructive actions (e.g. "Disconnect bank") and form errors.
 - Spending increases use `caution` or neutral, never `positive`.

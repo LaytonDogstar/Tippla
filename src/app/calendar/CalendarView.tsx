@@ -1,22 +1,26 @@
 "use client";
 // P5 Calendar: fortnight (default) or month, a day sheet, and tap-tap range totals. Confirmed and predicted
 // figures are never mixed: predicted bills and forecast balances are labelled as such everywhere.
-import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+// 08/10/2026: the answer first (a headline: covered until payday, or how short and when), a slim balance chart,
+// then the timeline of money events as the main view, with the grid one tap away. No rail: nothing repeats, and
+// a selected day shows in the drawer only.
+import { ArrowDownToLine, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, Info, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { CategoryId } from "@/lib/api/types";
 import { calendarPage as t } from "@/content/spending";
 import { calendar as cal, transaction as txCopy } from "@/content/components";
 import { categoryNames } from "@/content/en-AU";
 import { formatCents, formatShortDay, formatWhole } from "@/lib/format";
-import { rangeTotals, type CalendarDay } from "@/lib/selectors/calendar";
-import { BalanceStrip, CalendarGrid, LOW_BALANCE } from "@/components/domain/Calendar";
+import { calendarHeadline, calendarTimeline, rangeTotals, type CalendarDay, type CalendarHeadline } from "@/lib/selectors/calendar";
+import { BIG_BILL, CalendarGrid, closeToZero, tintFor } from "@/components/domain/Calendar";
+import { MoneyTimeline } from "@/components/domain/MoneyTimeline";
+import { cx } from "@/components/ui/cx";
 import { BalanceChart } from "@/components/domain/BalanceChart";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SegmentedControl } from "@/components/ui/Chips";
 import { Sheet } from "@/components/ui/Sheet";
-import { PageColumns } from "@/components/shell/PageColumns";
 
 export interface DayTx { id: string; merchant: string; amount: number; category: CategoryId; status: "posted" | "pending"; subcategory: string | null }
 interface Nav { label: string; prev: string | null; next: string | null; prevLabel: string; nextLabel: string }
@@ -39,153 +43,154 @@ export function CalendarInfoButton() {
   );
 }
 
-export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, nextPayday, nextPaydayHref, focus, txByDay, openDay, isShort }: {
+export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, nextPayday, nextPaydayHref, nextIncome = null, focus, txByDay, openDay, isShort }: {
   view: "fortnight" | "month"; days: CalendarDay[]; asOf: string; nav: Nav; monthHref: string; fortnightHref: string;
-  nextPayday: string | null; nextPaydayHref: string | null; focus: string | null; txByDay: Record<string, DayTx[]>; openDay: string | null; isShort: boolean;
+  nextPayday: string | null; nextPaydayHref: string | null; nextIncome?: number | null; focus: string | null; txByDay: Record<string, DayTx[]>; openDay: string | null; isShort: boolean;
 }) {
   const router = useRouter();
-  const [selected, setSelected] = useState<string | null>(openDay ?? days.find((d) => d.isToday)?.date ?? null);
+  const [pending, startTransition] = useTransition();
+  // The view switch answers at once (the new view loads behind it), so a tap never seems to do nothing.
+  const [shownView, setShownView] = useState(view);
   const [sheetDay, setSheetDay] = useState<string | null>(openDay);
+  const [mode, setMode] = useState<"list" | "calendar">(focus ? "calendar" : "list");
   const [rangeMode, setRangeMode] = useState(false);
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
   const rangeCard = useRef<HTMLElement>(null);
-  // At large text sizes seven columns can't fit: default to the list (Astra: a labelled list alternative).
-  const [list, setList] = useState(false);
-  useEffect(() => { if (parseFloat(getComputedStyle(document.documentElement).fontSize) >= 24) setList(true); }, []);
   const totals = from && to ? rangeTotals(days, from, to) : null;
-  const sel = days.find((d) => d.date === selected) ?? null;
   const sheet = days.find((d) => d.date === sheetDay) ?? null;
   useEffect(() => { if (totals) rangeCard.current?.focus(); }, [totals?.from, totals?.to]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // One set of numbers for the headline, chart, timeline and grid.
+  const inView = useMemo(() => days.filter((d) => !d.outside), [days]);
+  const headline = useMemo(() => calendarHeadline(days, asOf, nextPayday), [days, asOf, nextPayday]);
+  const lowest = headline.kind === "none" ? null : headline.date;
+  const timeline = useMemo(() => calendarTimeline(days, asOf, lowest), [days, asOf, lowest]);
+
   const onDay = (d: CalendarDay) => {
-    if (!rangeMode) { setSelected(d.date); setSheetDay(d.date); return; }
+    if (!rangeMode) { setSheetDay(d.date); return; }
     if (!from || to) { setFrom(d.date); setTo(null); return; }
     setTo(d.date);
     setRangeMode(false);
   };
   const clearRange = () => { setFrom(null); setTo(null); setRangeMode(false); };
+  const switchView = (v: "fortnight" | "month") => {
+    setShownView(v);
+    startTransition(() => router.push(v === "month" ? monthHref : fortnightHref));
+  };
 
-  const upcoming = days.filter((d) => d.date > asOf && !d.outside).flatMap((d) => d.predictedBills.map((b) => ({ ...b, date: d.date })));
-  const main = (
-    <div>
-      <SegmentedControl label={t.viewLabel} value={view} onChange={(v) => router.push(v === "month" ? monthHref : fortnightHref)}
-        options={[{ value: "fortnight", label: t.views.fortnight }, { value: "month", label: t.views.month }]} />
-
-      <div className="mt-t4 flex items-center justify-between gap-t2">
-        {nav.prev ? (
-          <Link href={nav.prev} aria-label={nav.prevLabel} className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent hover:bg-surface2"><ChevronLeft aria-hidden size={20} strokeWidth={1.8} /></Link>
-        ) : <span className="h-tap w-tap" />}
-        <h2 className="text-card text-text sm:text-card-l">{nav.label}</h2>
-        {nav.next ? (
-          <Link href={nav.next} aria-label={nav.nextLabel} className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent hover:bg-surface2"><ChevronRight aria-hidden size={20} strokeWidth={1.8} /></Link>
-        ) : <span className="h-tap w-tap" />}
-      </div>
-
-      {view === "fortnight" && <BalanceChart days={days.filter((d) => !d.outside)} />}
-
-      <div className="mt-t2 flex justify-end">
-        <Button variant="tertiary" aria-pressed={list} onClick={() => setList((v) => !v)}>{list ? t.showGrid : t.showList}</Button>
-      </div>
-      {list ? (
-        <ul aria-label={`${t.listLabel}, ${nav.label}`} className="mt-t1 overflow-hidden rounded-card-s bg-surface shadow-card sm:rounded-card">
-          {days.filter((d) => !d.outside).map((d) => (
-            <li key={d.date} className="border-b border-divider last:border-b-0">
-              <button type="button" onClick={() => onDay(d)} aria-current={d.isToday ? "date" : undefined}
-                className={`flex min-h-[64px] w-full flex-col items-start gap-t1 p-t4 text-left hover:bg-surface2 ${from && to && d.date >= (from < to ? from : to) && d.date <= (from < to ? to : from) ? "bg-accent-soft" : ""}`}>
-                <span className="text-body-strong text-text">{withYear(d.date)}{d.isToday ? ` · ${cal.today}` : ""}{d.isPayday ? ` · ${cal.pay}` : ""}</span>
-                {d.confirmedCount > 0 && <span className="tnum text-small text-text">{t.listSpent(formatWhole(d.confirmedSpend))}</span>}
-                {d.predictedBills.length > 0 && <span className="tnum text-small text-text-muted">{t.listBills(d.predictedBills.length, money(d.predictedBills.reduce((a, b) => a + b.expected_amount, 0)))}</span>}
-                {d.balance !== null && <span className="tnum flex items-center gap-t2 text-small text-text-muted"><BalanceStrip day={d} />{t.listBalance(formatWhole(d.balance), d.balancePredicted)}</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="mt-t1 rounded-card-s bg-surface shadow-card sm:rounded-card py-t3">
-          <CalendarGrid days={days} label={nav.label} selected={rangeMode || totals ? null : selected} rangeFrom={from} rangeTo={to ?? from}
-            initialFocus={focus ?? openDay} nextPayday={null} onDay={onDay} />
-        </div>
-      )}
-
-      {nextPayday && (
-        <button type="button" disabled={!nextPaydayHref} onClick={() => nextPaydayHref && router.push(nextPaydayHref)}
-          className="mt-t3 flex min-h-tap w-full items-center gap-t2 rounded-sm bg-accent-soft py-t1 px-t3 text-small text-accent disabled:text-text-muted">
-          <span className="flex-1 text-left">{cal.nextPayday(formatShortDay(nextPayday))}</span>
-          {nextPaydayHref && <ChevronRight aria-hidden size={20} />}
-        </button>
-      )}
-
-      <div className="mt-t4 flex flex-wrap items-center gap-x-t5 gap-y-t2 text-meta text-text-secondary">
-        <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[6px] w-[6px] rounded-pill bg-neutral" />{t.legend.confirmed}</span>
-        <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[8px] w-[8px] rounded-pill border-2" style={{ borderColor: "var(--chart-predicted)" }} />{t.legend.predicted}</span>
-        {/* Day tints: forecast balance, soft tints only (UX round 2, 5.1). */}
-        <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-positive-soft" />{t.legend.ok(formatWhole(LOW_BALANCE))}</span>
-        <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-caution-soft" />{t.legend.low(formatWhole(LOW_BALANCE))}</span>
-        <span className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-negative-soft shadow-[inset_0_0_0_2px_var(--color-negative)]" />{t.legend.below}</span>
-        <span className="w-full text-text-muted">{t.legend.note}</span>
-      </div>
-
-      <div className="mt-t4 flex flex-wrap items-center gap-t3">
-        <Button variant="secondary" aria-pressed={rangeMode} onClick={() => (rangeMode ? clearRange() : (setRangeMode(true), setFrom(null), setTo(null)))}>
-          {rangeMode ? t.cancelRange : t.selectRange}
-        </Button>
-        <p role="status" className="text-small text-text-muted">{rangeMode ? (from ? t.rangeHintEnd : t.rangeHint) : ""}</p>
-      </div>
-
-    </div>
-  );
-  const rail = (
-    <>
-      {totals ? (
-        <section ref={rangeCard} tabIndex={-1} aria-labelledby="range-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
-          <h2 id="range-h" className="text-card text-text sm:text-card-l">{t.rangeTitle(formatShortDay(totals.from), formatShortDay(totals.to))}</h2>
-          <p className="text-caption text-text-muted">{t.rangeDays(totals.days)}</p>
-          <dl className="mt-t3 grid grid-cols-2 gap-t3">
-            <Fig label={t.rangeSpent} value={formatWhole(totals.spent)} />
-            <Fig label={t.rangeIncome} value={formatWhole(totals.paidIn)} />
-            {totals.bills > 0 && <Fig label={t.rangeBills} value={formatWhole(totals.bills)} predicted />}
-            {totals.expectedIncome > 0 && <Fig label={t.rangeExpected} value={formatWhole(totals.expectedIncome)} predicted />}
-          </dl>
-          <Button variant="tertiary" className="mt-t3" onClick={clearRange}>{t.clearRange}</Button>
-        </section>
-      ) : sel && (
-        <section aria-label={t.selected(withYear(sel.date))} className="flex min-h-[88px] items-center gap-t3 rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
-          <div className="min-w-0 flex-1">
-            <p className="text-caption text-text-muted">{sel.isToday ? t.today(formatShortDay(sel.date)) : formatShortDay(sel.date)}</p>
-            <p className="mt-t1 text-small text-text">
-              {sel.balance === null ? t.noBalance : <><span className="tnum text-h2 font-display">{formatWhole(sel.balance)}</span> <span className="text-text-muted">{sel.balancePredicted ? t.forecast : t.confirmed}</span></>}
-            </p>
-          </div>
-          <Button variant="secondary" onClick={() => setSheetDay(sel.date)}>{t.viewDay}</Button>
-        </section>
-      )}
-
-      {/* Rail: what's coming out of the account in this view (UX round 2, 4.1). */}
-      <section aria-labelledby="cal-bills-h" className="rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
-        <h2 id="cal-bills-h" className="text-card text-text sm:text-card-l">{t.upcomingBills}</h2>
-        {upcoming.length ? (
-          <ul className="mt-t2 flex flex-col">
-            {upcoming.map((b) => (
-              <li key={`${b.merchant}-${b.date}`} className="flex min-h-[52px] items-center justify-between gap-t3 border-t border-divider first:border-t-0">
-                <span className="min-w-0">
-                  <span className="block text-body14 font-semibold text-text">{b.merchant}</span>
-                  <span className="block text-meta text-text-muted">{formatShortDay(b.date)} · {cal.predicted}</span>
-                </span>
-                <span className="tnum text-row text-text">{money(b.expected_amount)}</span>
-              </li>
-            ))}
-          </ul>
-        ) : <p className="mt-t2 text-body14 text-text-muted">{t.noUpcomingBills}</p>}
-      </section>
-    </>
-  );
+  // Legend for the grid: only what this view shows.
+  const close = closeToZero(days);
+  const tints = new Set(inView.map((d) => tintFor(d, close, lowest)));
+  const has = {
+    spend: inView.some((d) => !d.isPayday && d.confirmedCount > 0 && !d.predictedBills.some((b) => b.expected_amount >= BIG_BILL)),
+    bill: inView.some((d) => !d.isPayday && d.predictedBills.some((b) => b.expected_amount < BIG_BILL) && !d.predictedBills.some((b) => b.expected_amount >= BIG_BILL)),
+    bigBill: inView.some((d) => !d.isPayday && d.predictedBills.some((b) => b.expected_amount >= BIG_BILL)),
+    payday: inView.some((d) => d.isPayday),
+  };
 
   return (
-    <div className="pb-t6">
-      <PageColumns main={main} rail={rail} railLabel={t.railLabel} />
+    <div className="pb-t6 desktop:max-w-[760px]">
+      <SegmentedControl label={t.viewLabel} value={shownView} onChange={switchView}
+        options={[{ value: "fortnight", label: t.views.fortnight }, { value: "month", label: t.views.month }]} />
+
+      <div aria-busy={pending} className={cx("transition-opacity duration-fast", pending && "opacity-60")}>
+        <div className="mt-t4 flex items-center justify-between gap-t2">
+          {nav.prev ? (
+            <Link href={nav.prev} aria-label={nav.prevLabel} className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent hover:bg-surface2"><ChevronLeft aria-hidden size={20} strokeWidth={1.8} /></Link>
+          ) : <span className="h-tap w-tap" />}
+          <h2 className="text-card text-text sm:text-card-l">{nav.label}</h2>
+          {nav.next ? (
+            <Link href={nav.next} aria-label={nav.nextLabel} className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-accent hover:bg-surface2"><ChevronRight aria-hidden size={20} strokeWidth={1.8} /></Link>
+          ) : <span className="h-tap w-tap" />}
+        </div>
+
+        <Headline h={headline} />
+
+        <div className="mt-t3"><BalanceChart days={inView.filter((d) => d.balance !== null)} lowest={lowest} /></div>
+
+        <div className="mt-t4 flex items-center justify-between gap-t3">
+          <span className="text-body14 font-semibold text-text-secondary" aria-hidden>{t.showAs}</span>
+          <div className="w-[220px]">
+            <SegmentedControl label={t.showAs} value={mode} onChange={setMode}
+              options={[{ value: "list", label: t.showAsOptions.list }, { value: "calendar", label: t.showAsOptions.calendar }]} />
+          </div>
+        </div>
+
+        <div className="mt-t3">
+          {mode === "list" ? (
+            <MoneyTimeline days={timeline.days} forecastEnds={timeline.forecastEnds} label={`${t.timeline.heading}, ${nav.label}`}
+              onDay={(date) => setSheetDay(date)}
+              next={nextPayday ? { date: nextPayday, amount: nextIncome, onOpen: nextPaydayHref ? () => router.push(nextPaydayHref) : null } : null} />
+          ) : (
+            <>
+              <div className="rounded-card-s bg-surface py-t3 shadow-card sm:rounded-card">
+                <CalendarGrid days={days} label={nav.label} selected={rangeMode || totals ? null : sheetDay} rangeFrom={from} rangeTo={to ?? from}
+                  initialFocus={focus ?? openDay} nextPayday={null} onDay={onDay} lowest={lowest} />
+              </div>
+              {timeline.forecastEnds && <p className="mt-t2 text-meta text-text-muted">{t.gridForecastEnds(formatShortDay(timeline.forecastEnds))}</p>}
+              <ul className="mt-t3 flex flex-wrap items-center gap-x-t5 gap-y-t2 text-meta text-text-secondary">
+                {has.spend && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[6px] w-[6px] rounded-pill bg-neutral" />{t.legend.spend}</li>}
+                {has.bill && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[8px] w-[8px] rounded-pill border-2" style={{ borderColor: "var(--chart-predicted)" }} />{t.legend.bill}</li>}
+                {has.bigBill && <li className="inline-flex items-center gap-t2"><span aria-hidden className="tnum rounded-[4px] border border-dashed px-[3px] text-caption" style={{ borderColor: "var(--chart-predicted)" }}>$</span>{t.legend.bigBill}</li>}
+                {has.payday && <li className="inline-flex items-center gap-t2"><ArrowDownToLine aria-hidden size={14} className="text-accent" />{t.legend.payday}</li>}
+                {tints.has("negative") && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-negative-soft shadow-[inset_0_0_0_2px_var(--color-negative)]" />{t.legend.below}</li>}
+                {tints.has("caution") && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] bg-caution-soft" />{t.legend.close}</li>}
+                {tints.has("lowest") && <li className="inline-flex items-center gap-t2"><span aria-hidden className="h-[14px] w-[18px] rounded-[4px] [outline:2px_dashed_var(--color-text-secondary)] [outline-offset:-2px]" />{t.legend.lowest}</li>}
+                <li className="w-full text-text-muted">{t.legend.note}</li>
+              </ul>
+              <div className="mt-t4 flex flex-wrap items-center gap-t3">
+                <Button variant="secondary" aria-pressed={rangeMode} onClick={() => (rangeMode ? clearRange() : (setRangeMode(true), setFrom(null), setTo(null)))}>
+                  {rangeMode ? t.cancelRange : t.selectRange}
+                </Button>
+                <p role="status" className="text-small text-text-muted">{rangeMode ? (from ? t.rangeHintEnd : t.rangeHint) : ""}</p>
+              </div>
+              {totals && (
+                <section ref={rangeCard} tabIndex={-1} aria-labelledby="range-h" className="mt-t3 rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card">
+                  <h3 id="range-h" className="text-card text-text sm:text-card-l">{t.rangeTitle(formatShortDay(totals.from), formatShortDay(totals.to))}</h3>
+                  <p className="text-caption text-text-muted">{t.rangeDays(totals.days)}</p>
+                  <dl className="mt-t3 grid grid-cols-2 gap-t3">
+                    <Fig label={t.rangeSpent} value={formatWhole(totals.spent)} />
+                    <Fig label={t.rangeIncome} value={formatWhole(totals.paidIn)} />
+                    {totals.bills > 0 && <Fig label={t.rangeBills} value={formatWhole(totals.bills)} predicted />}
+                    {totals.expectedIncome > 0 && <Fig label={t.rangeExpected} value={formatWhole(totals.expectedIncome)} predicted />}
+                  </dl>
+                  <Button variant="tertiary" className="mt-t3" onClick={clearRange}>{t.clearRange}</Button>
+                </section>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
       <DaySheet day={sheet} days={days} asOf={asOf} tx={sheet ? txByDay[sheet.date] ?? [] : []} isShort={isShort} onClose={() => setSheetDay(null)} />
     </div>
+  );
+}
+
+/** The answer, first: covered until payday (and the lowest point) or how short and when, with a way forward. */
+function Headline({ h }: { h: CalendarHeadline }) {
+  const hl = t.headline;
+  if (h.kind === "none") return <p className="mt-t3 rounded-card-s bg-surface p-t4 text-body14 text-text-muted shadow-card sm:rounded-card">{hl.none}</p>;
+  const short = h.kind === "short";
+  const text = h.kind === "short" ? hl.short(formatWhole(h.amount), formatShortDay(h.date), h.daysBefore)
+    : h.kind === "covered" ? hl.covered(formatWhole(h.balance), formatShortDay(h.date), h.payday ? formatShortDay(h.payday) : null)
+    : hl.past(formatWhole(h.balance), formatShortDay(h.date), formatWhole(h.closing));
+  const sub = h.kind === "past" ? hl.spent(formatWhole(h.spent), h.count)
+    : h.billCount ? hl.bills(formatWhole(h.bills), h.billCount, !!h.payday) : hl.noBills(!!h.payday);
+  const Icon = short ? TriangleAlert : h.kind === "covered" ? CircleCheck : CalendarDays;
+  return (
+    <section aria-label={text} className={cx("mt-t3 rounded-card-s p-t4 shadow-card sm:rounded-card sm:p-t5", short ? "bg-negative-soft" : "bg-surface")}>
+      <div className="flex items-start gap-t3">
+        <Icon aria-hidden size={22} strokeWidth={2} className={cx("mt-[2px] shrink-0", short ? "text-negative" : "text-accent")} />
+        <div className="min-w-0 flex-1">
+          <p className="tnum text-[1.0625rem] font-bold leading-6 text-text">{text}</p>
+          <p className="tnum mt-t1 text-body14 text-text-secondary">{sub}</p>
+          {h.kind !== "past" && <p className="mt-t1 text-meta text-text-muted">{hl.estimate}</p>}
+        </div>
+      </div>
+      {short && <ButtonLink href="/hardship" variant="secondary" className="mt-t3">{hl.options}</ButtonLink>}
+    </section>
   );
 }
 
@@ -269,7 +274,6 @@ function DaySheet({ day, days, asOf, tx, isShort, onClose }: { day: CalendarDay 
             <h3 className="text-h3 text-text">{t.day.balance}</h3>
             {day.balance === null ? <p className="mt-t1 text-small text-text-muted">{t.noBalance}</p> : (
               <p className="mt-t1 flex items-center gap-t3">
-                <BalanceStrip day={day} />
                 <span className="tnum text-h2 font-display text-text">{formatWhole(day.balance)}</span>
                 <span className="text-small text-text-muted">{day.balancePredicted ? t.forecast : t.confirmed}</span>
               </p>

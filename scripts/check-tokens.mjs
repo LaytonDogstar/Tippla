@@ -119,9 +119,12 @@ for (const mode of ["light", "dark"]) {
     if (!mono) fail(`Stages (${mode}): should get steadily ${mode === "light" ? "darker" : "lighter"} from Building to Thriving`);
   }
 
-  // Gambling is neutral slate.
+  // Gambling is a real category colour (08/10/2026), but never red, orange or amber: it must not read as a warning.
   const gam = get("category", mode, "gambling");
-  if (gam && hsl(gam).s > 0.22) fail(`Gambling (${mode}): saturation ${(hsl(gam).s * 100).toFixed(0)}% — must be a neutral slate/grey (≤ 22%)`);
+  if (gam && hsl(gam).s > 0.22) {
+    const h = hsl(gam).h;
+    if (h < 60 || h > 330) fail(`Gambling (${mode}): hue ${h.toFixed(0)}° reads as a warning colour (red, orange or amber)`);
+  }
 
   // Income and Centrelink look like equals.
   const inc = get("category", mode, "income"), cen = get("category", mode, "centrelink");

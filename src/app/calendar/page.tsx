@@ -49,7 +49,8 @@ export default async function Calendar({ searchParams }: { searchParams: Search 
         monthHref={`?view=month&month=${(selectedDay ?? (f.start <= data.asOf && f.end >= data.asOf ? data.asOf : f.start)).slice(0, 7)}`}
         fortnightHref={`?offset=${Math.floor(daysBetween(cycleStart, days.find((d) => d.isToday && !d.outside)?.date ?? days.find((d) => !d.outside)!.date) / 14)}`}
         nextPayday={view === "fortnight" ? f.nextPayday : null}
-        nextPaydayHref={view === "fortnight" && f.offset < max ? `?offset=${f.offset + 1}&focus=${f.nextPayday}` : null}
+        nextPaydayHref={view === "fortnight" && f.offset < max ? `?offset=${f.offset + 1}` : null}
+        nextIncome={view === "fortnight" && f.nextIncome.some((i) => i.date === f.nextPayday) ? Math.round(f.nextIncome.filter((i) => i.date === f.nextPayday).reduce((n, i) => n + i.amount, 0)) : null}
         focus={isDay(searchParams.focus) ? searchParams.focus : null}
         txByDay={txByDay}
         openDay={selectedDay}

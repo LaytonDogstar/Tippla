@@ -1,5 +1,5 @@
 // Lighthouse mobile accessibility on every screen, every persona (definition of done: ≥ 95).
-// Usage: npm run build && npm start (port 3000) in one shell, then: npm run lighthouse [-- --base http://localhost:3000]
+// Usage: npm run build && npm start (port 3000) in one shell, then: npm run lighthouse [-- --base http://localhost:3000] [--only /spending,/calendar]
 // Chrome: uses CHROME_PATH, or Playwright's Chromium when PLAYWRIGHT_BROWSERS_PATH is set.
 import fs from "node:fs";
 import path from "node:path";
@@ -27,7 +27,7 @@ function chromePath() {
 const chrome = await chromeLauncher.launch({ chromePath: chromePath(), chromeFlags: ["--headless=new", "--no-sandbox"] });
 let worst = 100, failed = 0;
 for (const persona of ["jess", "marcus", "priya"]) {
-  for (const r of ROUTES) {
+  for (const r of args.includes("--only") ? args[args.indexOf("--only") + 1].split(",") : ROUTES) {
     // Dev states stick in a cookie, so every other route clears them.
     const url = `${base}${r}${r.includes("?") ? "&" : "?"}persona=${persona}&present=1${r.includes("state=") ? "" : "&state=none"}`;
     const { lhr } = await lighthouse(url, { port: chrome.port, onlyCategories: ["accessibility"], formFactor: "mobile", screenEmulation: { mobile: true, width: 390, height: 844, deviceScaleFactor: 3 }, logLevel: "error" });

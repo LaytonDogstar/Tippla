@@ -71,7 +71,7 @@ Block "If you want them":
 
 Actions: "See how your score is worked out" · "View support options" · "Not now".
 
-Rules: gambling uses a **neutral slate category colour**, a neutral stacked-layers icon, never highlighted rows, never warning icons, never in peer comparisons, never "inferred gambling" (AM2015) in the UI. Amounts are **deposits** (gross) — label them "gambling deposits" until TaleFin confirms a net metric (Q5).
+Rules *(changed 08/10/2026 at the product owner's request)*: gambling has its **own category colour** (orchid, never a red, orange or amber hue) and the ordinary stacked-layers icon. On the Spending list, Gambling and Loan repayments carry a neutral "Lenders look at this" link, and only an increase in either uses the soft caution tint; no warning icons, no saturated colour. Never in peer comparisons, never "inferred gambling" (AM2015) in the UI. Amounts are **deposits** (gross) — label them "gambling deposits" until TaleFin confirms a net metric (Q5).
 
 ## Factor copy
 

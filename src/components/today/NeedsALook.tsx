@@ -140,6 +140,8 @@ function Row({ item, first, onMenu, onDone, onSnooze, onOpen }: {
   };
   // Wraps rather than truncating, so nothing is clipped at 200% text size.
   const meta = <span className="block text-meta text-text-muted">{item.body}</span>;
+  const amount = money ? (money.negative ? `–${formatDollars(Math.round(money.amount))}` : formatDollars(money.amount)) : null;
+  const amountTone = money?.negative ? "text-negative" : "text-text";
   return (
     <li className={cx("relative overflow-hidden", !first && "border-t border-divider")}>
       {/* Revealed by a swipe left (phones). Hidden from the tab order unless open; the ⋯ menu is the accessible route. */}
@@ -154,14 +156,12 @@ function Row({ item, first, onMenu, onDone, onSnooze, onOpen }: {
         <Link href={item.action.href} onClick={(e) => { if (moved.current || dx !== 0) { e.preventDefault(); setDx(0); return; } onOpen(); }}
           className="min-w-0 flex-1 rounded-md py-t1">
           <span className="block text-row text-text">{item.title}</span>
+          {/* Phones: the amount goes under the title, so the title has the row's full width. */}
+          {amount && <span className={cx("block text-row sm:hidden", amountTone)}>{amount}</span>}
           {meta}
         </Link>
         <Chip tone={tone} className="hidden sm:inline-flex">{f.urgency[item.urgency]}</Chip>
-        {money && (
-          <span className={cx("min-w-[56px] text-right text-row", money.negative ? "text-negative" : "text-text")}>
-            {money.negative ? `–${formatDollars(Math.round(money.amount))}` : formatDollars(money.amount)}
-          </span>
-        )}
+        {amount && <span className={cx("hidden min-w-[56px] text-right text-row sm:block", amountTone)}>{amount}</span>}
         <button type="button" onClick={onMenu} aria-label={t.more(item.title)} aria-haspopup="dialog"
           className="flex h-tap w-tap shrink-0 items-center justify-center rounded-pill text-icon-muted hover:bg-surface2">
           <Ellipsis aria-hidden size={20} strokeWidth={1.8} />
