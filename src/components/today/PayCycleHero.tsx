@@ -20,7 +20,7 @@ const t = todayCopy.hero;
 const DOT: Record<HeroState, string> = { short: "bg-hero-negative-mark", tight: "bg-hero-caution-mark", onTrack: "bg-hero-positive-mark" };
 
 export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trackSafe = true, ask = true, onSafe, onAdvance }: {
-  /** Ask Tippla as the second action (off when the assistant is). */
+  /** Unused since 09/10/2026 (Ask Tippla is the header bar). */
   ask?: boolean;
   pc: PayCycleSummary; safe: SafeToSpend; asOf: string;
   /** Data too old for safe to spend: show what's left after bills instead (spec 05). */
@@ -136,10 +136,9 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
         )}
       </ul>
 
-      {/* What's due is Coming up, right under the hero (09/10/2026), so the hero offers options and a question. */}
+      {/* One action (09/10/2026): Ask Tippla is the header bar and what's due is Coming up, right under the hero. */}
       <div className="flex flex-col items-stretch gap-t2 sm:flex-row sm:gap-t3">
         <Link href="/hardship" className="pressable flex min-h-[48px] items-center justify-center rounded-pill bg-hero-on px-t5 py-t2 text-center text-[0.9375rem] font-bold text-hero-from sm:flex-1">{t.moneyTight}</Link>
-        {ask && <Link href="/assistant?entry=home" className="flex min-h-[48px] items-center justify-center rounded-pill border border-hero-outline px-t5 text-[0.9375rem] font-semibold text-hero-on sm:flex-1">{t.ask}</Link>}
       </div>
     </section>
   );

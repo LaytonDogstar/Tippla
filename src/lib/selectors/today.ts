@@ -189,66 +189,6 @@ export function changeTone(change: number, previous: number): ChangeTone {
   return !big ? "neutral" : change > 0 ? "up" : "down";
 }
 
-export interface SoFarRow { category: SpendCategory; total: number; previous: number | null; change: number | null; tone: ChangeTone }
-export interface SpendingSoFar {
-  /** Day of the pay cycle (1-based) and its length. */
-  day: number; of: number;
-  total: number;
-  /** Spent by the same day of the last pay cycle; null when there's no full previous cycle to compare. */
-  previous: number | null;
-  change: number | null;
-  /** The usual full cycle (average of complete cycles), when there is one. */
-  usual: number | null;
-  fixed: { categories: SpendCategory[]; total: number; change: number | null };
-  /** Everyday spending, highest first (never sorted by change), the top `n` then Other. */
-  everyday: SoFarRow[];
-  other: { count: number; total: number; change: number | null; tone: ChangeTone } | null;
-}
-
-/**
- * This pay cycle up to today against the same number of days into the last one (day 9 against day 9, never the
- * whole previous cycle). Fixed commitments (the budgets' FIXED_COMMITMENTS) are one line; everyday categories
- * are listed by amount spent.
- */
-export function spendingSoFar(d: SpendData, overrides: CategoryOverrides = {}, opts: { fixed: readonly SpendCategory[]; n?: number; hideGambling?: boolean }): SpendingSoFar {
-  const cur = lastCycles(d, 1)[0]!;
-  const end = d.asOf < cur.end ? d.asOf : cur.end;
-  const day = daysBetween(cur.start, end) + 1;
-  const of = daysBetween(cur.start, cur.end) + 1;
-  const now: Period = { ...cur, end };
-  const prevStart = addDays(cur.start, -of);
-  const prev: Period | null = prevStart >= d.profile.data_from
-    ? { id: "cycle", label: "Same point last pay cycle", start: prevStart, end: addDays(prevStart, day - 1), basedOnDays: day, limitedByHistory: false } : null;
-  const rowsNow = categoryTotals(d, now, overrides);
-  const rowsPrev = prev ? new Map(categoryTotals(d, prev, overrides).map((r) => [r.category, r.total])) : null;
-  const before = (c: SpendCategory) => (rowsPrev ? rowsPrev.get(c) ?? 0 : null);
-  const total = totalSpent(d, now, overrides);
-  const previous = prev ? totalSpent(d, prev, overrides) : null;
-  const isFixed = (c: SpendCategory) => opts.fixed.includes(c);
-  const fixedRows = rowsNow.filter((r) => isFixed(r.category));
-  const fixedPrev = rowsPrev ? sumMoney([...rowsPrev.entries()].filter(([c]) => isFixed(c)).map(([, v]) => v)) : null;
-  const fixedTotal = sumMoney(fixedRows.map((r) => r.total));
-  const row = (c: SpendCategory, t: number): SoFarRow => {
-    const p = before(c);
-    const change = p === null ? null : sumMoney([t, -p]);
-    return { category: c, total: t, previous: p, change, tone: change === null ? "neutral" : changeTone(change, p!) };
-  };
-  // Everyday: highest spend first; with gambling insights off (spec 01) gambling is never named, it counts in Other.
-  const everydayAll = rowsNow.filter((r) => !isFixed(r.category)).sort((a, b) => b.total - a.total);
-  const named = everydayAll.filter((r) => !(opts.hideGambling && r.category === "gambling")).slice(0, opts.n ?? 5);
-  const rest = everydayAll.filter((r) => !named.includes(r));
-  const restTotal = sumMoney(rest.map((r) => r.total));
-  const restPrev = rowsPrev ? sumMoney(rest.map((r) => rowsPrev.get(r.category) ?? 0)) : null;
-  const restChange = restPrev === null ? null : sumMoney([restTotal, -restPrev]);
-  return {
-    day, of, total, previous, change: previous === null ? null : sumMoney([total, -previous]),
-    usual: cycleAverage(cycleSpending(d, overrides))?.average ?? null,
-    fixed: { categories: fixedRows.map((r) => r.category), total: fixedTotal, change: fixedPrev === null ? null : sumMoney([fixedTotal, -fixedPrev]) },
-    everyday: named.map((r) => row(r.category, r.total)),
-    other: rest.length ? { count: rest.length, total: restTotal, change: restChange, tone: restChange === null ? "neutral" : changeTone(restChange, restPrev!) } : null,
-  };
-}
-
 export interface TopCategories {
   items: { category: SpendCategory; total: number; share: number }[];
   /** Everything after the top `n`, with the categories in it (tappable: opens the full list). */

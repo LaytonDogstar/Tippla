@@ -4,7 +4,7 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { goalOptions, goalPlan, dashboardBanner, comingUp, comingUpBlocks, currentBalance, spendingSoFar, FIXED_COMMITMENTS, scoreTrend, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState } from "@/lib/selectors";
+import { goalOptions, goalPlan, dashboardBanner, comingUp, comingUpBlocks, currentBalance, spendingView, currentCycle, scoreTrend, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState } from "@/lib/selectors";
 import { addDays, daysBetween, formatDate, formatDayMonth, formatShortDay, formatUpdated, formatWhole, toAESTDate } from "@/lib/format";
 import { safeCopy } from "@/content/loop";
 import { flagsFor } from "@/config/featureFlags";
@@ -27,7 +27,7 @@ import { TodayHeaderSkeleton, TodaySkeleton } from "@/components/today/TodaySkel
 export const dynamic = "force-dynamic";
 
 /** The page shell streams straight away with card-shaped placeholders; the figures replace them when loaded. */
-export default function Home({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
+export default function Home({ searchParams }: { searchParams: { persona?: string; present?: string; chips?: string } }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
   return (
@@ -37,7 +37,7 @@ export default function Home({ searchParams }: { searchParams: { persona?: strin
   );
 }
 
-async function TodayContent({ searchParams }: { searchParams: { persona?: string; present?: string } }) {
+async function TodayContent({ searchParams }: { searchParams: { persona?: string; present?: string; chips?: string } }) {
   const persona = currentPersona(searchParams.persona);
   const { data, raw, account, goal, edits, states } = await loadCustomer(persona);
   // Disconnected by the customer, or (dev state) the connection expired: numbers stopped at the last refresh.
@@ -90,8 +90,8 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
   const accuracyLine = acc?.show ? accuracyCopy.line(formatWhole(acc.within), acc.hits, acc.of) : null;
   const miss = acc?.miss && !account.forecastAnswers?.[acc.miss.forDate] ? acc.miss : null;
   const multiPlan = on.plans_v1 ? activePlan(data, account, goal) : null;
-  // Spending: this pay cycle against the same point of the last one; fixed costs are the budgets' FIXED_COMMITMENTS.
-  const spending = spendingSoFar(data, edits, { fixed: FIXED_COMMITMENTS, hideGambling: account.hideGambling });
+  // Spending: the same selector as the Spending page (this cycle against the same point of the last one).
+  const spending = spendingView(data, currentCycle(data), edits, { hideGambling: account.hideGambling });
   // Spec 01 status line under the greeting (what Tippla checked, what needs a look, or stale data); wider
   // screens add when the data was updated before it.
   const updated = data.score?.scoredAt ? formatUpdated(lastRefresh(data).at) : null;
@@ -143,6 +143,7 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
         feesAvoided={feesAvoided}
         tally={tally}
         present={presentationMode(searchParams.present)}
+        chips={searchParams.chips === "1"}
       />
     </PortalShell>
   );

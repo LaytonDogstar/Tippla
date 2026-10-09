@@ -27,7 +27,9 @@ import type { ScoreAttribution } from "@/lib/selectors/scoreAttribution";
 import type { CycleRecap, PaydayCheckIn } from "@/lib/selectors/payCycleLoop";
 import type { SafeToSpend } from "@/lib/selectors/safeToSpend";
 import type { valueTally } from "@/lib/selectors/tally";
-import type { ComingUpBlocks, SpendingSoFar } from "@/lib/selectors/today";
+import type { ComingUpBlocks } from "@/lib/selectors/today";
+import type { SpendingView } from "@/lib/selectors/spendingCycle";
+import { GROUP_GAP, IN_GROUP_GAP, Section, SectionChips } from "@/components/shell/Sections";
 import { CheckInAdjustSheet, CheckInCard, PayPendingCard, RecapCard, SafeToSpendSheet, TallyCard, TallySheet } from "@/components/domain/LoopCards";
 import { checkInCopy, safeCopy, tallyCopy } from "@/content/loop";
 import { track } from "@/lib/analytics/client";
@@ -53,11 +55,13 @@ import { todayCopy } from "@/content/today";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null;
 
-export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, spending, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, notice, plan, focusGoal, progressText, bufferSteps, milestones, surplus, moment, savingsLines, flags }: {
+export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, spending, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, chips = false, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, notice, plan, focusGoal, progressText, bufferSteps, milestones, surplus, moment, savingsLines, flags }: {
   persona: PersonaId; account: AccountState; checked: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; score: ScoreState; change: { delta: number; since: string } | null; trend: { date: string; score: number }[];
   action: FirstAction | null; projection: ScoreProjection | null; payCycle: PayCycleSummary;
-  spending: SpendingSoFar; coming: ComingUpBlocks;
+  spending: SpendingView; coming: ComingUpBlocks;
+  /** Sticky section chips (optional on Today: off by default, ?chips=1 to preview). */
+  chips?: boolean;
   safe: SafeToSpend; checkIn: PaydayCheckIn | null; recap: CycleRecap | null; feesAvoided: number; tally: ReturnType<typeof valueTally>; present: boolean;
   movement?: { up: number; since: string } | null; adjustBills?: { id: string; merchant: string; amount: number; date: string; paid: boolean }[];
   oneOffDates?: string[]; focus?: string | null; payPending?: boolean;
@@ -134,25 +138,26 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
     recap && <RecapCard key="recap" recap={recap} feesAvoided={feesAvoided} next={focus} lead={recapLead} milestones={milestones}
       surplus={surplus ? { amount: surplus, onProtect: () => setBuffer((acct.buffer ?? 0) + surplus) } : null} />,
   ].filter(Boolean);
-  const group = "flex flex-col gap-[10px] empty:hidden";
+  const sec = todayCopy.sections;
 
   return (
-    <div className="mx-auto flex w-full max-w-[660px] flex-col gap-[32px]">
-      <div className={group}>
-        <PayCycleHero pc={payCycle} safe={safe} asOf={asOf} stsPaused={!!stsPaused} notice={notice} trackSafe={flags.safe && !checkIn} ask={flags.assistant}
+    <div className={`mx-auto flex w-full max-w-[660px] flex-col ${GROUP_GAP}`}>
+      {chips && <SectionChips label={sec.label} items={[{ id: "t-now", label: sec.chips.now }, { id: "t-cycle", label: sec.chips.cycle }, { id: "t-longer", label: sec.chips.longer }]} />}
+      <Section id="t-now" n={1} title={sec.now.title} desc={sec.now.desc}>
+        <PayCycleHero pc={payCycle} safe={safe} asOf={asOf} stsPaused={!!stsPaused} notice={notice} trackSafe={flags.safe && !checkIn}
           movement={movement ? safeCopy.up(formatWhole(movement.up), movement.since) : null}
           onSafe={() => setSheet("safe")} onAdvance={() => setSheet("advance")} />
         {loop}
         <ComingUp blocks={coming} onBill={() => setSheet("due")} />
         {flags.feed && <NeedsALook persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} max={2} />}
-      </div>
-      <div className={group}><SpendingSummary s={spending} /></div>
-      <div className={group}>
+      </Section>
+      <Section id="t-cycle" n={2} title={sec.cycle.title} desc={sec.cycle.desc}><SpendingSummary v={spending} /></Section>
+      <Section id="t-longer" n={3} title={sec.longer.title} desc={sec.longer.desc}>
         <ProgressCard state={score} change={change} attribution={attribution} plan={plan ?? null}
           action={action ? { title: action.title, summary: action.wouldChange ?? action.summary } : null} projection={projection} onSeeHow={() => setSheet("action")} />
         {showTally && <TallyCard tally={tally} onOpen={() => setSheet("tally")} />}
-      </div>
-      <div className={group}>
+      </Section>
+      <div className={`flex flex-col ${IN_GROUP_GAP} empty:hidden`}>
         {miss && <ForecastMissCard persona={persona} account={account} miss={miss} onFixBill={() => setSheet("due")} />}
         <InstallPrompt hadValue={Object.values(acct.feed ?? {}).some((f) => f.status === "done") || (acct.actions ?? []).length > 0 || !!acct.goal} />
       </div>

@@ -50,6 +50,13 @@ export function ProgressCard({ state, change, attribution, plan, action, project
         </div>
       )}
 
+      {/* No plan and nothing suggested: a way in, now there's no "Pick a goal" button on the card. */}
+      {!plan && !action && (
+        <Link href="/savings" className="flex min-h-tap items-center justify-between gap-t3 rounded-inset bg-surface px-t4 py-t3">
+          <span className="min-w-0"><strong className="block text-body14 font-bold text-text">{pr.choosePlan}</strong><span className="block text-meta text-text-muted">{pr.choosePlanBody}</span></span>
+          <span aria-hidden className="text-accent">›</span>
+        </Link>
+      )}
       {(plan || action) && (
         <div className="flex flex-col gap-t3 border-t border-accent-tint2 pt-t4">
           {plan && current !== null
