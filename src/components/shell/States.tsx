@@ -31,7 +31,7 @@ export function LapsedSheet() {
     <Sheet open onClose={() => router.push("/")} title={t.lapsed.title}
       footer={<>
         <Button full onClick={() => router.push("/account/subscription")}>{t.lapsed.reactivate}</Button>
-        <Button full variant="tertiary" onClick={() => router.push("/")}>{t.lapsed.home}</Button>
+        <Button full variant="link" onClick={() => router.push("/")}>{t.lapsed.home}</Button>
       </>}>
       <p className="text-body text-text-muted">{t.lapsed.body}</p>
     </Sheet>

@@ -28,7 +28,7 @@ export function NotificationsView({ persona, account: initial, asOf, items }: { 
       <h1 className="sr-only">{t.title}</h1>
       <div className="mt-t2 flex flex-wrap items-center justify-between gap-t2">
         <p role="status" className="text-small text-text-muted">{unread.length ? t.badge(unread.length) : ""}</p>
-        {unread.length > 0 && <Button variant="tertiary" onClick={() => markRead(unread.map((n) => n.id))}>{t.markAll}</Button>}
+        {unread.length > 0 && <Button variant="link" onClick={() => markRead(unread.map((n) => n.id))}>{t.markAll}</Button>}
       </div>
       {(["today", "week", "earlier"] as const).map((g) => groups[g].length > 0 && (
         <section key={g} aria-labelledby={`g-${g}`} className="mt-t4">

@@ -15,7 +15,7 @@ import { transaction as txCopy } from "@/content/components";
 import { formatCents, formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
 import { useBudgets, useCategoryEdits } from "@/lib/edits/client";
 import {
-  budgetSuggestions, lenderFacts, PERIOD_IDS, resolvePeriod, spendingFeed, spendingInsights, spendingView,
+  budgetIdeas, lenderFacts, PERIOD_IDS, resolvePeriod, spendingFeed, spendingInsights, spendingView,
   type CategoryOverrides, type GamblingFacts, type FeedDirection, type PayCycleSummary, type PeriodId, type SpendCategory, type SpendData,
 } from "@/lib/selectors";
 import { SpendSummary } from "@/components/money/SpendSummary";
@@ -26,7 +26,11 @@ import { Button } from "@/components/ui/Button";
 import { FilterChip, SegmentedControl } from "@/components/ui/Chips";
 import { EmptyState, useToast } from "@/components/ui/Feedback";
 import { cx } from "@/components/ui/cx";
-import { BudgetSheet, MerchantSheet, TransactionSheet, type SheetState } from "./sheets";
+import { BudgetIdeas } from "./BudgetIdeas";
+import { BudgetSheet, MerchantSheet, TransactionSheet, type Recat, type SheetState } from "./sheets";
+import { useCorrections } from "@/lib/account/useCorrections";
+import type { MemberRule } from "@/lib/account/corrections";
+import { merchantRule, move, overlayFor, rulesAfter, toggleRule, undoMove, withRuleOverlay, type Move } from "@/lib/account/recategorise";
 import { InsightSheetBody } from "@/components/domain/Insight";
 import { SupportOptions } from "@/components/domain/SupportOptions";
 import { Sheet } from "@/components/ui/Sheet";
@@ -41,10 +45,14 @@ const t = sp.v5;
 const isSpendCat = (v: unknown): v is SpendCategory => typeof v === "string" && v in categoryTypes;
 const PREVIEW = 10;
 const PAGE = 30;
+/** How long a Budget ideas row shows "Budget set" (with Undo) before it leaves. */
+const IDEA_CONFIRM_MS = 6000;
 
-export function SpendingView({ persona, data, initialEdits, payCycle, params, asOf, corrections = null, doubles = {}, hideGambling = false, gambling = null }: {
+export function SpendingView({ persona, data: loaded, initialEdits, rules: initialRules = [], payCycle, params, asOf, corrections = null, doubles = {}, hideGambling = false, gambling = null }: {
   /** For the gambling insight (how it affects the SmartScore, and support), opened from the lenders card. */
   gambling?: GamblingFacts | null;
+  /** The member's saved rules (the drawer shows a merchant's category rule and adds or removes one). */
+  rules?: MemberRule[];
   persona: PersonaId; data: SpendData; initialEdits: CategoryOverrides; payCycle: PayCycleSummary; params: SpendingParams; asOf: string;
   corrections?: { oneOff: string[]; regular: string[] } | null;
   /** Transaction id → Needs a look item id, for transactions flagged as a possible double charge. */
@@ -53,7 +61,11 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
 }) {
   const router = useRouter();
   const toast = useToast();
-  const original = useMemo(() => Object.fromEntries(data.transactions.map((x) => [x.id, x.category])) as Record<string, CategoryId>, [data]);
+  // A merchant rule made in the drawer shows straight away, before the refreshed (rule-applied) data arrives.
+  const [overlay, setOverlay] = useState<Record<string, CategoryId>>({});
+  const data = useMemo(() => ({ ...loaded, transactions: withRuleOverlay(loaded.transactions, overlay) }), [loaded, overlay]);
+  const original = useMemo(() => Object.fromEntries(loaded.transactions.map((x) => [x.id, x.category])) as Record<string, CategoryId>, [loaded]);
+  const corr = useCorrections(persona, { rules: initialRules });
   const { edits, setCategory, restore } = useCategoryEdits(persona, initialEdits, original);
   const { budgets, save: saveBudgets } = useBudgets(persona);
   const [periodKey, setPeriodKey] = useState<{ period?: string; month?: string }>({ period: params.period, month: params.month });
@@ -62,6 +74,10 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
   const [q, setQ] = useState(params.q ?? "");
   const [shown, setShown] = useState(params.category || params.direction || params.q ? PAGE : PREVIEW);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  // Budget ideas: amounts typed in (the panel follows them) and rows showing "Budget set" for a few seconds.
+  const [ideaAmounts, setIdeaAmounts] = useState<Partial<Record<SpendCategory, number>>>({});
+  const [justSet, setJustSet] = useState<SpendCategory[]>([]);
+  const ideaTimers = useRef<Partial<Record<string, number>>>({});
   const [sheet, setSheet] = useState<SheetState>(null);
   const [gamblingSheet, setGamblingSheet] = useState<"insight" | "support" | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -83,9 +99,9 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
 
   // ---- Numbers: every one through the selectors ---------------------------------------------------------
   const p = useMemo(() => resolvePeriod(data, periodKey), [data, periodKey]);
-  const v = useMemo(() => spendingView(data, p, edits, { budgets, hideGambling }), [data, p, edits, budgets, hideGambling]);
+  const v = useMemo(() => spendingView(data, p, edits, { budgets, hideGambling, ideaAmounts }), [data, p, edits, budgets, hideGambling, ideaAmounts]);
   const lenders = useMemo(() => lenderFacts(data, p, edits, { hideGambling }), [data, p, edits, hideGambling]);
-  const ideas = useMemo(() => budgetSuggestions(data, budgets, edits).filter((x) => !dismissed.has(x.category)), [data, budgets, edits, dismissed]);
+  const ideas = useMemo(() => budgetIdeas(data, budgets, edits, { amounts: ideaAmounts, dismissed, justSet }), [data, budgets, edits, ideaAmounts, dismissed, justSet]);
   const feed = useMemo(() => spendingFeed(data, p, edits, { category: selected, direction, q }), [data, p, edits, selected, direction, q]);
   const allInPeriod = useMemo(() => spendingFeed(data, p, edits, {}), [data, p, edits]);
   const txById = useMemo(() => new Map(data.transactions.map((x) => [x.id, { ...x, category: edits[x.id] ?? x.category }])), [data, edits]);
@@ -98,6 +114,36 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
     setCategory(id, category);
     toast({ kind: "confirm", message: sp.tx.moved(categoryNames[category]), onUndo: () => restore(before) });
   };
+  // The change-category drawer: saves on pick; the merchant rule (on by default) and Undo (buttons brief).
+  const showRule = (m: Move, undone = false) => setOverlay((o) => {
+    const c = overlayFor(m, undone), next = { ...o };
+    if (c) next[m.merchant] = c; else delete next[m.merchant];
+    return next;
+  });
+  const recat: Recat = {
+    rules: !!corrections,
+    ruleFor: (merchant) => merchantRule(corr.account.rules, merchant),
+    move: (tx, to, prev) => {
+      const base = prev ? undoMove({ edits, rules: corr.account.rules ?? [] }, prev) : { edits, rules: corr.account.rules ?? [] };
+      const r = move(base, { id: tx.id, merchant: tx.merchant, category: original[tx.id] ?? tx.category }, to, { rule: prev ? prev.rule : !!corrections });
+      restore(r.store.edits);
+      if (corrections) corr.setRules((latest) => rulesAfter(prev ? rulesAfter(latest, prev, true) : latest, r.move), r.move.rule ? { merchant: tx.merchant, category: to, from: original[tx.id] } : undefined);
+      showRule(r.move);
+      return r.move;
+    },
+    toggle: (m, on) => {
+      const r = toggleRule({ edits, rules: corr.account.rules ?? [] }, m, on);
+      restore(r.store.edits);
+      corr.setRules((latest) => rulesAfter(latest, r.move), on ? { merchant: m.merchant, category: m.to, from: m.loaded } : undefined);
+      showRule(r.move);
+      return r.move;
+    },
+    undo: (m) => {
+      restore(undoMove({ edits, rules: [] }, m).edits);
+      if (corrections) corr.setRules((latest) => rulesAfter(latest, m, true));
+      showRule(m, true);
+    },
+  };
   const toActivity = (focus = false) => requestAnimationFrame(() => {
     document.getElementById("activity")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
     if (focus) searchRef.current?.focus({ preventScroll: true });
@@ -108,9 +154,24 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
     router.refresh();
   };
 
+  // Nothing to suggest: no card, and no "Plan ahead" section or chip either.
+  const hasIdeas = ideas.length > 0;
+  // Set from Budget ideas: saves straight away; the row confirms in place (with Undo), then leaves.
+  const setIdea = (c: SpendCategory, amount: number) => {
+    saveBudgets({ ...budgets, [c]: amount });
+    setJustSet((j) => [...j.filter((x) => x !== c), c]);
+    window.clearTimeout(ideaTimers.current[c]);
+    ideaTimers.current[c] = window.setTimeout(() => setJustSet((j) => j.filter((x) => x !== c)), IDEA_CONFIRM_MS);
+  };
+  const undoIdea = (c: SpendCategory) => {
+    window.clearTimeout(ideaTimers.current[c]);
+    saveBudgets(Object.fromEntries(Object.entries(budgets).filter(([k]) => k !== c)));
+    setJustSet((j) => j.filter((x) => x !== c));
+  };
+
   const sections = [
     { id: "s-cycle", label: t.sections.cycle.chip },
-    { id: "s-plan", label: t.sections.plan.chip },
+    ...(hasIdeas ? [{ id: "s-plan", label: t.sections.plan.chip }] : []),
     { id: "s-lenders", label: t.sections.lenders.chip },
     { id: "activity", label: t.sections.activity.chip },
   ];
@@ -159,33 +220,13 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
             onBudget={(c, amount) => setSheet({ kind: "budget", category: c, suggest: amount })} />
         </Section>
 
-        <Section id="s-plan" n={2} title={t.sections.plan.title} desc={t.sections.plan.desc}>
-          <section aria-labelledby="ideas-h" className="rounded-card-s bg-surface p-t4 shadow-card sm:rounded-card sm:p-t5">
-            <div className="flex items-baseline justify-between gap-t3">
-              <h3 id="ideas-h" className="text-card text-text sm:text-card-l">{t.budgets.heading}</h3>
-              <Link href="/spending/budgets" className="inline-flex min-h-tap items-center text-body14 font-semibold text-accent">{t.budgets.all}</Link>
-            </div>
-            {ideas.length ? (
-              <>
-                <p className="mt-t1 text-meta text-text-muted">{t.budgets.intro}</p>
-                <ul className="mt-t2">
-                  {ideas.map((x) => (
-                    <li key={x.category} className="flex flex-col gap-t2 border-t border-divider py-t3 first:border-t-0 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="tnum text-body14 text-text"><strong className="font-bold">{x.name}:</strong> {t.budgets.idea(formatWhole(x.average), formatWhole(x.suggested))}</p>
-                      <div className="flex shrink-0 gap-t1">
-                        <Button onClick={() => setBudget(x.category, x.suggested)} aria-label={t.budgets.setSr(formatWhole(x.suggested), x.name)}>{t.budgets.set}</Button>
-                        <Button variant="secondary" onClick={() => setSheet({ kind: "budget", category: x.category, suggest: x.suggested })} aria-label={`${t.budgets.adjust}: ${x.name}`}>{t.budgets.adjust}</Button>
-                        <Button variant="tertiary" onClick={() => setDismissed((d) => new Set(d).add(x.category))} aria-label={`${t.budgets.notNow}: ${x.name}`}>{t.budgets.notNow}</Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : <p className="mt-t2 text-body14 text-text-muted">{t.budgets.none}</p>}
-          </section>
-        </Section>
+        {hasIdeas && <Section id="s-plan" n={2} title={t.sections.plan.title} desc={t.sections.plan.desc}>
+          <BudgetIdeas ideas={ideas} onSet={setIdea} onDismiss={(c) => setDismissed((d) => new Set(d).add(c))}
+            onAmount={(c, a) => setIdeaAmounts((m) => ({ ...m, [c]: a }))}
+            onUndo={undoIdea} />
+        </Section>}
 
-        <Section id="s-lenders" n={3} title={t.sections.lenders.title} desc={t.sections.lenders.desc}>
+        <Section id="s-lenders" n={hasIdeas ? 3 : 2} title={t.sections.lenders.title} desc={t.sections.lenders.desc}>
           <section aria-labelledby="lenders-h" className="rounded-card-s bg-accent-soft p-t4 sm:rounded-card sm:p-t5">
             <div className="flex items-baseline justify-between gap-t3">
               <h3 id="lenders-h" className="text-card text-text sm:text-card-l">{t.lenders.heading}</h3>
@@ -206,7 +247,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
         </Section>
 
         {/* Activity: a flat list on the page background (not a card), white row groups, sticky day headers. */}
-        <Section id="activity" n={4} title={t.sections.activity.title} desc={t.sections.activity.desc(allInPeriod.length)}>
+        <Section id="activity" n={hasIdeas ? 4 : 3} title={t.sections.activity.title} desc={t.sections.activity.desc(allInPeriod.length)}>
           <label className="flex min-h-[48px] items-center gap-t2 rounded-pill border border-line bg-surface px-t4 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
             <Search aria-hidden size={18} className="text-text-muted" />
             <span className="sr-only">{sp.feed.searchLabel}</span>
@@ -256,7 +297,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
           subtitle={gamblingSheet === "support" ? undefined : `${categoryNames.gambling} · ${factorCopy.ADVERSE_SPEND.name}`}
           onBack={gamblingSheet === "support" ? () => setGamblingSheet("insight") : undefined}
           footer={gamblingSheet === "insight" ? <>
-            <ButtonLink full variant="secondary" href={`/score/${FACTOR_SLUGS.ADVERSE_SPEND}`}>{sp.insights.scoreMethod}</ButtonLink>
+            <ButtonLink full variant="link" href={`/score/${FACTOR_SLUGS.ADVERSE_SPEND}`}>{sp.insights.scoreMethod}</ButtonLink>
             <Button full variant="secondary" onClick={() => setGamblingSheet("support")}>{sp.insights.support}</Button>
             <Button full variant="tertiary" onClick={() => setGamblingSheet(null)}>{sp.insights.notNow}</Button>
           </> : undefined}>
@@ -264,7 +305,7 @@ export function SpendingView({ persona, data, initialEdits, payCycle, params, as
         </Sheet>
       )}
       <MerchantSheet sheet={sheet} setSheet={setSheet} data={data} p={p} edits={edits} original={original} onRecategorise={recategorise} />
-      <TransactionSheet sheet={sheet} setSheet={setSheet} tx={sheet?.kind === "tx" ? txById.get(sheet.id) ?? null : null} original={original} edits={edits} onRecategorise={recategorise}
+      <TransactionSheet sheet={sheet} setSheet={setSheet} tx={sheet?.kind === "tx" ? txById.get(sheet.id) ?? null : null} original={original} edits={edits} recat={recat}
         double={sheet?.kind === "tx" && !!doubles[sheet.id]} persona={persona} corrections={corrections}
         onReset={(id) => recategorise(id, original[id]!)} />
       <BudgetSheet sheet={sheet} setSheet={setSheet} data={data} budgets={budgets} edits={edits}

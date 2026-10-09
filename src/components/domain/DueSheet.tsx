@@ -32,7 +32,7 @@ export function DueSheet({ open, onClose, payCycle, persona, asOf }: { open: boo
       subtitle={copy.payCycle.range(formatDayMonth(payCycle.cycle.start), formatDayMonth(payCycle.cycle.end))}
       footer={<>
         <Button full variant="secondary" onClick={() => router.push("/calendar")}>{t.openCalendar}</Button>
-        <Button full variant="tertiary" onClick={() => router.push("/hardship")}>{payCycleHero.moneyTight}</Button>
+        <Button full variant="link" onClick={() => router.push("/hardship")}>{payCycleHero.moneyTight}</Button>
       </>}>
       <p className="tnum text-h1 font-display text-text">{t.dueTotal(formatWhole(payCycle.dueTotal))}</p>
       <ul className="mt-t4 flex flex-col gap-t3">
@@ -41,7 +41,7 @@ export function DueSheet({ open, onClose, payCycle, persona, asOf }: { open: boo
             <div className="flex justify-between gap-t3"><span className="text-h3 text-text">{b.merchant}</span><span className="tnum text-h3 text-text">{Number.isInteger(b.expected_amount) ? formatWhole(b.expected_amount) : formatCents(b.expected_amount)}</span></div>
             <div className="mt-t1 flex items-center justify-between gap-t3">
               <p className="text-small text-text-muted">{formatShortDay(b.date)} · {b.confidence === "confirmed" ? t.confirmed : t.predicted}</p>
-              {persona && <Button variant="tertiary" onClick={() => setFixing(b)} aria-label={c.notRightFor(b.merchant)}>{c.notRight}</Button>}
+              {persona && <Button variant="link" onClick={() => setFixing(b)} aria-label={c.notRightFor(b.merchant)}>{c.notRight}</Button>}
             </div>
           </li>
         ))}

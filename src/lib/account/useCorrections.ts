@@ -30,6 +30,16 @@ export function useCorrections(persona: PersonaId, initial: AccountState = {}) {
     done(() => before && save(before));
   }, [update, save, done]);
 
+  /** Change the rules in one step without a toast (the change-category drawer confirms inline). `made` records a new
+   *  category rule the way addRule does. */
+  const setRules = useCallback((fn: (rules: MemberRule[]) => MemberRule[], made?: { merchant: string; category: string; from?: string }) => {
+    if (made) {
+      track("correction_made", { entity_type: RULE_ENTITY.category, correction_type: "category" });
+      report({ entity: RULE_ENTITY.category, correction: "category", merchant: made.merchant, to: made.category, ...(made.from ? { from: made.from } : {}) });
+    }
+    update((l) => ({ ...l, rules: fn(l.rules ?? []) }));
+  }, [update]);
+
   const removeRule = useCallback((id: string) => {
     update((l) => ({ ...l, rules: (l.rules ?? []).filter((x) => x.id !== id) }));
   }, [update]);
@@ -56,5 +66,5 @@ export function useCorrections(persona: PersonaId, initial: AccountState = {}) {
     });
   }, [update]);
 
-  return { account, addRule, removeRule, adjustBill, clearBill };
+  return { account, addRule, setRules, removeRule, adjustBill, clearBill };
 }

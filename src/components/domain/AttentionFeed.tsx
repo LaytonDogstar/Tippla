@@ -77,9 +77,9 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday, 
                   )}
                 </div>
                 <div className="mt-t1 flex flex-wrap gap-x-t2 border-t border-divider pt-t1">
-                  <Button variant="tertiary" aria-label={`${t.done}: ${item.title}`} onClick={() => set(item, { status: "done", at: asOf, amount: item.amountAtStake }, t.toast.done)}>{t.done}</Button>
+                  <Button variant="link" aria-label={`${t.done}: ${item.title}`} onClick={() => set(item, { status: "done", at: asOf, amount: item.amountAtStake }, t.toast.done)}>{t.done}</Button>
                   <Button variant="tertiary" aria-label={`${t.snooze}: ${item.title}`} onClick={() => setSnoozing(item)}>{t.snooze}</Button>
-                  <Button variant="tertiary" aria-label={`${t.dismiss}: ${item.title}`} onClick={() => set(item, { status: "dismissed", at: asOf, amount: item.amountAtStake }, t.toast.dismissed)}>{t.dismiss}</Button>
+                  <Button variant="link" aria-label={`${t.dismiss}: ${item.title}`} onClick={() => set(item, { status: "dismissed", at: asOf, amount: item.amountAtStake }, t.toast.dismissed)}>{t.dismiss}</Button>
                 </div>
               </article>
             </li>

@@ -54,14 +54,14 @@ export function OffersView({ persona, account: initial, matching, offers, guard,
         <section aria-labelledby="off-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
           <h2 id="off-h" className="text-card text-text sm:text-card-l">{t.off.title}</h2>
           <p className="mt-t3 text-body text-text-muted">{t.off.body}</p>
-          <ButtonLink variant="secondary" className="mt-t5" href="/account/consents">{t.off.action}</ButtonLink>
+          <ButtonLink variant="primary" className="mt-t5" href="/account/consents">{t.off.action}</ButtonLink>
         </section>
       ) : paused ? (
         <section aria-labelledby="paused-h" className="mt-t2 rounded-card-s bg-surface shadow-card sm:rounded-card p-t5">
           <h2 id="paused-h" className="text-card text-text sm:text-card-l">{t.paused.title}</h2>
           <p className="mt-t3 text-body text-text">{t.paused.why[paused]}</p>
           <p className="mt-t2 text-body text-text-muted">{t.paused.body}</p>
-          <ButtonLink variant="secondary" className="mt-t5" href="/hardship">{t.paused.action}</ButtonLink>
+          <ButtonLink variant="primary" className="mt-t5" href="/hardship">{t.paused.action}</ButtonLink>
         </section>
       ) : shown.length === 0 ? (
         <div className="mt-t2"><EmptyState variant="noOffers" /></div>

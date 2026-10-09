@@ -44,7 +44,7 @@ export function RecommendationCard({ item, snoozed, dismissed, onSeeHow, onSnooz
       )}
       <div className="mt-t1 flex flex-wrap gap-t2">
         {onSnooze && <Button variant="tertiary" onClick={onSnooze} className="text-small">{recs.snooze}</Button>}
-        {onDismiss && <Button variant="tertiary" onClick={onDismiss} className="text-small">{recs.notRelevant}</Button>}
+        {onDismiss && <Button variant="link" onClick={onDismiss} className="text-small">{recs.notRelevant}</Button>}
       </div>
     </article>
   );

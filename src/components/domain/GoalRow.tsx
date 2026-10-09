@@ -56,7 +56,7 @@ export function GoalRow({ persona, account, asOf, goal, options, inline }: { per
     <section aria-label={g.heading} className="flex min-h-tap items-center gap-t3 rounded-card-s bg-surface shadow-card sm:rounded-card px-t4 py-t2">
       <Target aria-hidden size={20} className="shrink-0 text-accent" />
       <p className="min-w-0 flex-1 text-small text-text">{goal ? g.home(goal.label) : g.none}</p>
-      <Button variant="tertiary" onClick={openSheet} aria-label={goal ? `${g.change}: ${g.heading}` : g.none}>{goal ? g.change : g.none}</Button>
+      <Button variant="link" onClick={openSheet} aria-label={goal ? `${g.change}: ${g.heading}` : g.none}>{goal ? g.change : g.none}</Button>
       {sheet}
     </section>
   );

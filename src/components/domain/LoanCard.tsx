@@ -34,6 +34,6 @@ export function LoanCard({ loan, combinedBalance, onViewRepayments, onNotRight }
         ...(loan.cadenceDays ? [{ label: t.frequencyShort, value: t.everyDays(loan.cadenceDays) }] : []),
       ]}
       note={combinedBalance ?? copy.loans.repaid(loan.provider, formatWhole(loan.activity.repaid90), loan.activity.repayments90)}
-      action={onNotRight ? <Button variant="tertiary" onClick={onNotRight} aria-label={correctionCopy.notRightFor(loan.provider)}>{correctionCopy.notRight}</Button> : undefined} />
+      action={onNotRight ? <Button variant="link" onClick={onNotRight} aria-label={correctionCopy.notRightFor(loan.provider)}>{correctionCopy.notRight}</Button> : undefined} />
   );
 }

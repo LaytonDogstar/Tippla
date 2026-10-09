@@ -67,7 +67,7 @@ function Inputs({ loan, asOf, pro, present }: { loan: CalcLoan; asOf: string; pr
         {!result ? <p className="mt-t2 text-small text-text">{t.balanceHint}</p> : result.base.weeks === null ? (
           <>
             <p className="mt-t2 text-body text-text">{t.never}</p>
-            <ButtonLink variant="secondary" className="mt-t3" href="/hardship">{t.hardship}</ButtonLink>
+            <ButtonLink variant="link" className="mt-t3" href="/hardship">{t.hardship}</ButtonLink>
           </>
         ) : (
           <>

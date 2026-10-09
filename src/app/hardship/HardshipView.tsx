@@ -89,7 +89,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
         <p className="tnum mt-t3 text-section-num text-text">{NDH.phoneDisplay}</p>
         <p className="text-meta text-text-muted">{NDH.hours}</p>
         <div className="mt-t3 flex flex-wrap gap-t2">
-          <a href={NDH.tel} className="inline-flex min-h-tap items-center gap-t2 rounded-pill bg-surface px-t4 text-body14 font-bold text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft"><Phone aria-hidden size={16} />{t.rail.call(NDH.phoneDisplay)}</a>
+          <a href={NDH.tel} className="inline-flex min-h-tap items-center gap-t2 rounded-pill bg-accent-soft px-t4 text-body14 font-bold text-accent-strong hover:bg-accent-tint2"><Phone aria-hidden size={16} />{t.rail.call(NDH.phoneDisplay)}</a>
           <a href={NDH.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-tap items-center gap-t1 px-t2 text-body14 font-semibold text-accent">{t.rail.website}<ExternalLink aria-hidden size={14} /></a>
         </div>
       </section>
@@ -154,7 +154,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       <Sheet open={!letter && sheet === "template"} onClose={() => setSheet(null)} title={t.template.title}
         footer={<>
           <Button full onClick={copyMessage}>{t.template.copy}</Button>
-          <Button full variant="tertiary" onClick={() => { setDraft(t.template.body); setCopyFailed(false); setSheet(null); }}>{t.template.cancel}</Button>
+          <Button full variant="link" onClick={() => { setDraft(t.template.body); setCopyFailed(false); setSheet(null); }}>{t.template.cancel}</Button>
         </>}>
         <p className="text-body text-text-muted">{t.template.intro}</p>
         {lenders.length > 0 && <p className="mt-t2 text-small text-text-muted">{t.template.yourLenders(lenders.join(", "))}</p>}

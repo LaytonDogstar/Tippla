@@ -82,7 +82,7 @@ export function ProfileView({ persona, profile, account: initial, present }: { p
             <div key={f} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-t3 border-t border-divider px-t4 py-t2">
               <dt className="col-start-1 row-start-1 text-caption text-text-muted">{t.profile[f]}</dt>
               <dd className="col-start-1 row-start-2 break-words text-body text-text">{details[f]}</dd>
-              <dd className="col-start-2 row-span-2 row-start-1"><Button variant="tertiary" aria-label={t.profile.editTitle(t.profile[f])} onClick={() => { setEditing(f); setDraft(details[f]); setError(undefined); }}>{t.profile.edit}</Button></dd>
+              <dd className="col-start-2 row-span-2 row-start-1"><Button variant="link" aria-label={t.profile.editTitle(t.profile[f])} onClick={() => { setEditing(f); setDraft(details[f]); setError(undefined); }}>{t.profile.edit}</Button></dd>
             </div>
           ))}
         </dl>
@@ -228,8 +228,8 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
             </>
           )}
           {b.status === "active" && <Button full variant="tertiary" onClick={() => setSheet("cancel")}>{t.subscription.cancel}</Button>}
-          {b.status === "cancelled" && <Button full variant="secondary" onClick={() => set("active", b.plan, t.subscription.reactivated, asOf)}>{t.subscription.reactivate}</Button>}
-          {b.status === "paused" && <Button full variant="secondary" onClick={() => set("active", b.plan, t.subscription.resumed, asOf)}>{t.subscription.resume}</Button>}
+          {b.status === "cancelled" && <Button full variant="primary" onClick={() => set("active", b.plan, t.subscription.reactivated, asOf)}>{t.subscription.reactivate}</Button>}
+          {b.status === "paused" && <Button full variant="primary" onClick={() => set("active", b.plan, t.subscription.resumed, asOf)}>{t.subscription.resume}</Button>}
         </div>
       </section>
 
@@ -274,7 +274,7 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
         footer={<>
           <Button full onClick={() => set("cancelled", b.plan, t.subscription.cancelled, b.effects.cancelAccessUntil)}>{t.subscription.cancelConfirm}</Button>
           <Button full variant="secondary" onClick={() => setSheet("pause")}>{t.subscription.pauseInstead}</Button>
-          <Button full variant="tertiary" onClick={() => setSheet(null)}>{t.subscription.back}</Button>
+          <Button full variant="link" onClick={() => setSheet(null)}>{t.subscription.back}</Button>
         </>}>
         <p className="text-body text-text-muted">{t.subscription.cancelBody(formatShortDay(b.effects.cancelAccessUntil))}</p>
       </Sheet>
@@ -375,7 +375,7 @@ export function BankView({ persona, account: initial, accounts, refreshedAt, hea
                   </Link>
                 )}
                 <Button full variant="secondary" loading={refreshing} loadingLabel={t.bank.refreshing} onClick={refresh}>{t.bank.refresh}</Button>
-                <Button full variant="tertiary" onClick={() => setSheet("disconnect")}>{t.bank.disconnect}</Button>
+                <Button full variant="link" onClick={() => setSheet("disconnect")}>{t.bank.disconnect}</Button>
               </>
             )}
           </div>

@@ -66,7 +66,7 @@ export function PushSetup({ persona }: { persona: PersonaId }) {
         <div className="mt-t2 flex flex-wrap items-center gap-t2">
           <span className="text-small text-text">{t.on}</span>
           <Button variant="secondary" disabled={busy} onClick={test}>{t.test}</Button>
-          <Button variant="tertiary" disabled={busy} onClick={turnOff}>{t.turnOff}</Button>
+          <Button variant="link" disabled={busy} onClick={turnOff}>{t.turnOff}</Button>
         </div>
       )}
       <p role="status" className="mt-t1 text-small text-text-muted">{message}</p>

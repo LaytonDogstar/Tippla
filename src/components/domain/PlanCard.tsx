@@ -88,7 +88,7 @@ export function PlanCard({ persona, account, asOf, plan, options, suggested }: {
         })}
       </ol>
       {plan.completed && <p role="status" className="mt-t3 text-small text-text">{t.completed}</p>}
-      <Button variant="tertiary" className="mt-t3" onClick={() => setSwitching(true)}>{t.switch}</Button>
+      <Button variant="link" className="mt-t3" onClick={() => setSwitching(true)}>{t.switch}</Button>
       <Sheet open={switching} onClose={() => setSwitching(false)} title={t.switchTitle} subtitle={t.switchIntro}>
         <ul className="flex flex-col gap-t2">
           {options.map((type) => (

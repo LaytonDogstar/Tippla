@@ -17,7 +17,7 @@ export function CorrectionsList({ persona, account, rows }: { persona: PersonaId
       {rows.map((r) => (
         <li key={`${r.type}:${r.id}:${r.label}`} className="flex min-h-[56px] items-center gap-t3 border-b border-divider px-t4 py-t2 last:border-b-0">
           <span className="min-w-0 flex-1 text-body text-text">{r.label}</span>
-          <Button variant="tertiary" aria-label={t.page.remove(r.label)} onClick={() => { if (r.type === "rule") removeRule(r.id); else clearBill(r.id); toast({ kind: "confirm", message: t.page.removed }); }}>{t.page.removeButton}</Button>
+          <Button variant="link" aria-label={t.page.remove(r.label)} onClick={() => { if (r.type === "rule") removeRule(r.id); else clearBill(r.id); toast({ kind: "confirm", message: t.page.removed }); }}>{t.page.removeButton}</Button>
         </li>
       ))}
     </ul>

@@ -94,7 +94,7 @@ export function HardshipLetter({ prefill, name, onDone }: { prefill: LetterPrefi
       <TextInput label={t.contactLabel} value={contact} onChange={(e) => setContact(e.target.value)} />
       <div className="flex flex-col gap-t2">
         <Button full onClick={assemble}>{t.next}</Button>
-        <Button full variant="tertiary" onClick={() => setStep(1)}>{t.back}</Button>
+        <Button full variant="link" onClick={() => setStep(1)}>{t.back}</Button>
       </div>
     </div>
   );
@@ -113,7 +113,7 @@ export function HardshipLetter({ prefill, name, onDone }: { prefill: LetterPrefi
           <input type="hidden" name="text" value={letter} />
           <Button type="submit" full variant="secondary">{t.pdf}</Button>
         </form>
-        <Button full variant="tertiary" onClick={() => setStep(2)}>{t.back}</Button>
+        <Button full variant="link" onClick={() => setStep(2)}>{t.back}</Button>
       </div>
       <p className="text-caption text-text-muted">{t.law}</p>
     </div>

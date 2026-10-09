@@ -53,7 +53,7 @@ export function BillCompare({ persona, account, asOf, bills, state }: { persona:
                 : <Button variant="secondary" onClick={() => { track("bill_switch_link_opened", {}); setTips(b); }}>{t.tipsTitle(b.merchant)}</Button>}
               {reported
                 ? <p role="status" className="text-small text-text">{t.reported(formatDollars(reported.monthly))}</p>
-                : <Button variant="tertiary" onClick={() => { setReport(b); setValue(""); setError(null); }}>{t.switched}</Button>}
+                : <Button variant="link" onClick={() => { setReport(b); setValue(""); setError(null); }}>{t.switched}</Button>}
             </div>
           </article>
         );

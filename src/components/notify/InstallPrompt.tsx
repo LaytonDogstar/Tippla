@@ -58,7 +58,7 @@ export function InstallPrompt({ hadValue }: { hadValue: boolean }) {
         </div>
         <div className="flex shrink-0 gap-t1">
           <Button variant="secondary" onClick={add}>{ios ? t.how : t.add}</Button>
-          <Button variant="tertiary" onClick={notNow}>{t.notNow}</Button>
+          <Button variant="link" onClick={notNow}>{t.notNow}</Button>
         </div>
       </div>
       <Sheet open={steps} onClose={() => setSteps(false)} title={t.iosTitle}>

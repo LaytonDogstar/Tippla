@@ -23,7 +23,7 @@ export default function Password() {
   const submit = () => { setTouched(true); if (isValidPassword(pw)) next(); };
   return (
     <OnboardingShell backHref="/onboarding/create-account" title={t.title}
-      footer={<><Button size="standard" full onClick={submit}>{t.continue}</Button><Button variant="tertiary" full onClick={() => setPasskey(true)}>{t.passkey}</Button></>}>
+      footer={<><Button size="standard" full onClick={submit}>{t.continue}</Button><Button variant="link" full onClick={() => setPasskey(true)}>{t.passkey}</Button></>}>
       <p className="mt-t2 text-body text-text-muted">{t.intro}</p>
       <form className="mt-t6" noValidate onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <TextInput label={t.password} type={show ? "text" : "password"} autoComplete="new-password" value={pw} helper={t.passwordHelp}

@@ -32,6 +32,7 @@ export default async function Spending({ searchParams }: { searchParams: Search 
         persona={persona}
         data={lite}
         initialEdits={categoryEdits(persona)}
+        rules={account.rules ?? []}
         payCycle={payCycleSummary(data)}
         params={params}
         doubles={doubles}

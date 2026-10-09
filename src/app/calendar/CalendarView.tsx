@@ -189,7 +189,7 @@ function Headline({ h }: { h: CalendarHeadline }) {
           {h.kind !== "past" && <p className="mt-t1 text-meta text-text-muted">{hl.estimate}</p>}
         </div>
       </div>
-      {short && <ButtonLink href="/hardship" variant="secondary" className="mt-t3">{hl.options}</ButtonLink>}
+      {short && <ButtonLink href="/hardship" variant="link" className="mt-t3">{hl.options}</ButtonLink>}
     </section>
   );
 }
@@ -219,7 +219,7 @@ function DaySheet({ day, days, asOf, tx, isShort, onClose }: { day: CalendarDay 
       footer={day ? (
         <>
           <ButtonLink full variant="secondary" href="/spending">{t.day.seeSpending}</ButtonLink>
-          {(day.belowZero || isShort) && <ButtonLink full variant="tertiary" href="/hardship">{t.day.hardship}</ButtonLink>}
+          {(day.belowZero || isShort) && <ButtonLink full variant="link" href="/hardship">{t.day.hardship}</ButtonLink>}
         </>
       ) : undefined}>
       {day && (
