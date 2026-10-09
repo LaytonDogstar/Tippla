@@ -186,7 +186,7 @@ export function RecapCard({ recap, feesAvoided, next, lead = null, plan = null, 
           <h3 className="text-body-strong text-text">{bufferCopy.surplusTitle(formatWhole(surplus.amount))}</h3>
           <p className="mt-t1 text-small text-text-muted">{bufferCopy.surplusBody}</p>
           <div className="mt-t2 flex flex-wrap gap-t2">
-            <Button variant="outline" onClick={surplus.onProtect}>{bufferCopy.setTo(formatWhole(surplus.amount))}</Button>
+            <Button variant="secondary" onClick={surplus.onProtect}>{bufferCopy.setTo(formatWhole(surplus.amount))}</Button>
             <Button variant="link" onClick={() => setHow(true)}>{bufferCopy.how}</Button>
           </div>
           <Sheet open={how} onClose={() => setHow(false)} title={bufferCopy.howTitle}>
@@ -339,7 +339,7 @@ export function CheckInAdjustSheet({ open, onClose, bills, oneOffs, dates, onPai
           <ul className="mt-t1 flex flex-col">{oneOffs.map((o) => (
             <li key={o.id} className="flex items-center justify-between gap-t3 border-t border-divider py-t1 text-small text-text">
               <span>{formatShortDay(o.date)} · {o.label} · <span className="tnum">{formatCents(o.amount)}</span></span>
-              <Button variant="link" aria-label={c.oneOffRemove(o.label)} onClick={() => onRemoveOneOff(o.id)}>×</Button>
+              <Button variant="tertiary" aria-label={c.oneOffRemove(o.label)} onClick={() => onRemoveOneOff(o.id)}>×</Button>
             </li>
           ))}</ul>
         )}
@@ -347,7 +347,7 @@ export function CheckInAdjustSheet({ open, onClose, bills, oneOffs, dates, onPai
           <TextInput label={c.oneOffLabel} value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} />
           <TextInput label={c.oneOffAmount} inputMode="decimal" value={amount} error={error} onChange={(e) => { setAmount(e.target.value); setError(undefined); }} />
           <SelectInput label={c.oneOffDate} value={date} options={dates.map((x) => ({ value: x, label: formatShortDay(x) }))} onChange={setDate} />
-          <Button variant="outline" onClick={add}>{c.oneOffAdd}</Button>
+          <Button variant="secondary" onClick={add}>{c.oneOffAdd}</Button>
         </div>
       </fieldset>
     </Sheet>

@@ -2,14 +2,14 @@
 // Component 15a. Sizes: compact 44, standard 48, large 56. No opacity fades; disabled uses neutral tokens.
 // Four levels (buttons brief, 09/10/2026): primary (solid, at most one per screen, sheet or drawer), secondary (soft
 // accent pill, no border; may repeat in lists), link (accent text) and tertiary (grey text, or a grey ✕ with
-// `iconOnly`). "outline" is the old secondary, kept only until every page has moved to the four levels.
+// `icon` and no text). No purple outlines in content; the white outline on the dark hero is the hero's own.
 import Link from "next/link";
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { LoaderCircle, type LucideIcon } from "lucide-react";
 import { buttons } from "@/content/components";
 import { cx } from "./cx";
 
-export type ButtonVariant = "primary" | "secondary" | "link" | "tertiary" | "destructive" | "outline";
+export type ButtonVariant = "primary" | "secondary" | "link" | "tertiary" | "destructive";
 export type ButtonSize = "compact" | "standard" | "large";
 
 const base =
@@ -27,12 +27,10 @@ const variants: Record<ButtonVariant, string> = {
   secondary: "bg-accent-soft text-accent-strong hover:bg-accent-tint2 active:bg-accent-tint2",
   link: "bg-transparent text-accent hover:bg-surface2 active:bg-surface2 active:shadow-[inset_0_-2px_0_0_var(--color-accent)]",
   tertiary: "bg-transparent text-text-muted hover:bg-surface2 hover:text-text-secondary active:bg-surface2",
-  /** @deprecated The old outline secondary; pages move to secondary or link. */
-  outline:
-    "bg-surface text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft active:shadow-[inset_0_0_0_2px_var(--color-accent)]",
   destructive:
     "bg-destructive text-text-inverse hover:shadow-[inset_0_0_0_2px_var(--color-text-inverse)] active:shadow-[inset_0_0_0_2px_var(--color-text-inverse),inset_0_-2px_0_0_var(--color-text-inverse)]",
 };
+const secondaryOnTint = "bg-surface text-accent-strong hover:bg-accent-tint2 active:bg-accent-tint2";
 const disabledCls = "disabled:bg-neutral-soft disabled:text-text-muted disabled:shadow-none disabled:cursor-not-allowed";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -42,10 +40,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   loadingLabel?: string;
   full?: boolean;
+  /** Secondary on a tinted card: a white pill, since the soft pill would vanish into the card's own tint. */
+  onTint?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "primary", size = "compact", icon: Icon, loading, loadingLabel, full, className, children, disabled, ...rest },
+  { variant = "primary", size = "compact", icon: Icon, loading, loadingLabel, full, onTint, className, children, disabled, ...rest },
   ref,
 ) {
   return (
@@ -57,7 +57,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       aria-disabled={loading || undefined}
       onClick={loading ? undefined : rest.onClick}
-      className={cx(base, sizes[size], variants[variant], disabledCls, full && "w-full", className)}
+      className={cx(base, sizes[size], onTint && variant === "secondary" ? secondaryOnTint : variants[variant], disabledCls, full && "w-full", className)}
     >
       {loading ? <LoaderCircle aria-hidden size={16} className="motion-safe:animate-spin" /> : Icon ? <Icon aria-hidden size={20} /> : null}
       <span>{loading ? loadingLabel ?? buttons.loading : children}</span>

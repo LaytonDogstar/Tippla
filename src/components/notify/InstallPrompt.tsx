@@ -57,7 +57,7 @@ export function InstallPrompt({ hadValue }: { hadValue: boolean }) {
           <p className="text-meta text-text-muted">{t.body}</p>
         </div>
         <div className="flex shrink-0 gap-t1">
-          <Button variant="outline" onClick={add}>{ios ? t.how : t.add}</Button>
+          <Button variant="secondary" onClick={add}>{ios ? t.how : t.add}</Button>
           <Button variant="link" onClick={notNow}>{t.notNow}</Button>
         </div>
       </div>

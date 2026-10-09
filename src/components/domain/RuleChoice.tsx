@@ -28,7 +28,7 @@ export function RuleChoiceSheet({ persona, merchant, title, options, open, onClo
       <ul className="flex flex-col gap-t3">
         {options.map((o) => (
           <li key={o.kind}>
-            <Button full variant="outline" onClick={() => { addRule({ kind: o.kind, merchant }); onClose(); }}>{o.label}</Button>
+            <Button full variant="secondary" onClick={() => { addRule({ kind: o.kind, merchant }); onClose(); }}>{o.label}</Button>
             {o.note && <p className="mt-t1 text-caption text-text-muted">{o.note}</p>}
           </li>
         ))}

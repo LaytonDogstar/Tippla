@@ -31,7 +31,7 @@ export function DueSheet({ open, onClose, payCycle, persona, asOf }: { open: boo
     <Sheet open={open} onClose={close} title={t.dueTitle}
       subtitle={copy.payCycle.range(formatDayMonth(payCycle.cycle.start), formatDayMonth(payCycle.cycle.end))}
       footer={<>
-        <Button full variant="outline" onClick={() => router.push("/calendar")}>{t.openCalendar}</Button>
+        <Button full variant="secondary" onClick={() => router.push("/calendar")}>{t.openCalendar}</Button>
         <Button full variant="link" onClick={() => router.push("/hardship")}>{payCycleHero.moneyTight}</Button>
       </>}>
       <p className="tnum text-h1 font-display text-text">{t.dueTotal(formatWhole(payCycle.dueTotal))}</p>

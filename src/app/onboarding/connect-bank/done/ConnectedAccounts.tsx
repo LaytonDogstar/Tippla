@@ -16,7 +16,7 @@ export function ConnectedAccounts({ accounts }: { accounts: { id: number; bank: 
     <OnboardingShell step="connect_bank" connected backHref="/onboarding/connect-bank" title={t.otherTitle}
       footer={<>
         <Button size="standard" full onClick={() => router.push("/onboarding/analysing")}>{t.thatsAll}</Button>
-        <Button variant="outline" size="standard" full onClick={() => setSheet(true)}>{t.addAnother}</Button>
+        <Button variant="secondary" size="standard" full onClick={() => setSheet(true)}>{t.addAnother}</Button>
       </>}>
       <ul className="flex flex-col gap-t2">
         {accounts.map((a) => (

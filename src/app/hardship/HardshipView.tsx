@@ -89,7 +89,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
         <p className="tnum mt-t3 text-section-num text-text">{NDH.phoneDisplay}</p>
         <p className="text-meta text-text-muted">{NDH.hours}</p>
         <div className="mt-t3 flex flex-wrap gap-t2">
-          <a href={NDH.tel} className="inline-flex min-h-tap items-center gap-t2 rounded-pill bg-surface px-t4 text-body14 font-bold text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft"><Phone aria-hidden size={16} />{t.rail.call(NDH.phoneDisplay)}</a>
+          <a href={NDH.tel} className="inline-flex min-h-tap items-center gap-t2 rounded-pill bg-accent-soft px-t4 text-body14 font-bold text-accent-strong hover:bg-accent-tint2"><Phone aria-hidden size={16} />{t.rail.call(NDH.phoneDisplay)}</a>
           <a href={NDH.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-tap items-center gap-t1 px-t2 text-body14 font-semibold text-accent">{t.rail.website}<ExternalLink aria-hidden size={14} /></a>
         </div>
       </section>
@@ -141,7 +141,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
           {!outcome ? (
             <div className="flex flex-col gap-t2">
               <p className="text-body text-text-muted">{lc.followup.body}</p>
-              {(["agreed", "declined", "not_yet"] as const).map((o) => <Button key={o} full variant="outline" onClick={() => answer(o)}>{lc.followup.answers[o]}</Button>)}
+              {(["agreed", "declined", "not_yet"] as const).map((o) => <Button key={o} full variant="secondary" onClick={() => answer(o)}>{lc.followup.answers[o]}</Button>)}
             </div>
           ) : (
             <div role="status" className="flex flex-col gap-t3">
@@ -165,7 +165,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       </Sheet>
 
       <Sheet open={sheet === "counselling"} onClose={() => setSheet(null)} title={t.ndh.title}
-        footer={<Button full variant="link" onClick={() => setSheet(null)}>{t.ndh.notNow}</Button>}>
+        footer={<Button full variant="tertiary" onClick={() => setSheet(null)}>{t.ndh.notNow}</Button>}>
         <h3 className="text-h3 text-text">{NDH.name}</h3>
         <p className="mt-t2 text-body text-text-muted">{t.ndh.body}</p>
         <a href={NDH.tel} className="mt-t5 flex min-h-[48px] w-full items-center py-t2 text-center justify-center rounded-sm bg-accent text-body-strong text-on-accent hover:opacity-90">{t.ndh.call(NDH.phoneDisplay)}</a>
@@ -177,7 +177,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       </Sheet>
 
       <Sheet open={sheet === "gambling"} onClose={() => setSheet(null)} title={t.gambling.title}
-        footer={<Button full variant="link" onClick={() => setSheet(null)}>{t.notNow}</Button>}>
+        footer={<Button full variant="tertiary" onClick={() => setSheet(null)}>{t.notNow}</Button>}>
         <SupportOptions />
       </Sheet>
     </div>

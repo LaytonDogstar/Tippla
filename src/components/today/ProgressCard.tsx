@@ -79,8 +79,8 @@ export function ProgressCard({ state, change, attribution, plan, action, project
             </div>
           )}
           {action
-            ? <button type="button" onClick={onSeeHow} aria-label={`${pl.seeHow}: ${heading ?? ""}`} className="pressable flex h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft">{pl.seeHow}</button>
-            : <Link href="/savings" className="pressable flex h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent shadow-[inset_0_0_0_1.5px_var(--color-accent)] hover:bg-accent-soft">{pl.seeHow}</Link>}
+            ? <button type="button" onClick={onSeeHow} aria-label={`${pl.seeHow}: ${heading ?? ""}`} className="pressable flex min-h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent-strong hover:bg-accent-tint2">{pl.seeHow}</button>
+            : <Link href="/savings" className="pressable flex min-h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent-strong hover:bg-accent-tint2">{pl.seeHow}</Link>}
         </div>
       )}
     </section>

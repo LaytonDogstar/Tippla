@@ -111,7 +111,7 @@ export function HardshipLetter({ prefill, name, onDone }: { prefill: LetterPrefi
           className="flex min-h-[44px] w-full items-center justify-center rounded-sm bg-accent-soft px-t3 text-body-strong text-accent hover:shadow-[inset_0_0_0_2px_var(--color-accent)]">{t.email}</a>
         <form method="post" action="/api/hardship/letter" onSubmit={() => done("pdf")}>
           <input type="hidden" name="text" value={letter} />
-          <Button type="submit" full variant="outline">{t.pdf}</Button>
+          <Button type="submit" full variant="secondary">{t.pdf}</Button>
         </form>
         <Button full variant="link" onClick={() => setStep(2)}>{t.back}</Button>
       </div>

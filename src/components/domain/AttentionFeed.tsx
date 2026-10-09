@@ -69,7 +69,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday, 
                 <h3 id={`fi-${item.id}`} className="mt-t1 text-h3 text-text">{item.title}</h3>
                 <p className="mt-t1 text-small text-text-muted">{item.body}</p>
                 <div className="mt-t3 flex flex-col gap-t2">
-                  <ButtonLink href={item.action.href} variant="outline" full onClick={() => track("feed_item_actioned", { rule_id: item.type, position: position(item) })}>{item.action.label}</ButtonLink>
+                  <ButtonLink href={item.action.href} variant="secondary" full onClick={() => track("feed_item_actioned", { rule_id: item.type, position: position(item) })}>{item.action.label}</ButtonLink>
                   {item.hardship && (
                     <Link href={item.hardship.href} className="flex min-h-tap items-center justify-between rounded-sm px-t1 text-small text-accent hover:bg-surface2">
                       {item.hardship.label}<ChevronRight aria-hidden size={20} />
@@ -78,7 +78,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday, 
                 </div>
                 <div className="mt-t1 flex flex-wrap gap-x-t2 border-t border-divider pt-t1">
                   <Button variant="link" aria-label={`${t.done}: ${item.title}`} onClick={() => set(item, { status: "done", at: asOf, amount: item.amountAtStake }, t.toast.done)}>{t.done}</Button>
-                  <Button variant="link" aria-label={`${t.snooze}: ${item.title}`} onClick={() => setSnoozing(item)}>{t.snooze}</Button>
+                  <Button variant="tertiary" aria-label={`${t.snooze}: ${item.title}`} onClick={() => setSnoozing(item)}>{t.snooze}</Button>
                   <Button variant="link" aria-label={`${t.dismiss}: ${item.title}`} onClick={() => set(item, { status: "dismissed", at: asOf, amount: item.amountAtStake }, t.toast.dismissed)}>{t.dismiss}</Button>
                 </div>
               </article>
@@ -91,7 +91,7 @@ export function AttentionFeed({ persona, account: initial, items, asOf, payday, 
         {snoozing && (
           <div className="flex flex-col gap-t2">
             {[{ label: t.snoozeOptions.tomorrow, until: addDays(asOf, 1) }, ...(payday > addDays(asOf, 1) ? [{ label: `${t.snoozeOptions.payday} (${formatShortDay(payday)})`, until: payday }] : [])].map((o) => (
-              <Button key={o.until} full variant="outline" onClick={() => { const it = snoozing; setSnoozing(null); set(it, { status: "snoozed", until: o.until, at: asOf }, t.toast.snoozed(formatShortDay(o.until))); }}>
+              <Button key={o.until} full variant="secondary" onClick={() => { const it = snoozing; setSnoozing(null); set(it, { status: "snoozed", until: o.until, at: asOf }, t.toast.snoozed(formatShortDay(o.until))); }}>
                 {o.label}
               </Button>
             ))}

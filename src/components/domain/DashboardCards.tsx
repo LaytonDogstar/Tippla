@@ -73,7 +73,7 @@ export function NextStepCard({ title, rationale, onSeeHow }: { title: string; ra
       <p className="text-caption text-text-muted">{t.nextThing}</p>
       <div className="mt-t2 flex flex-wrap items-start justify-between gap-t3">
         <h2 id="nst" className="min-w-0 max-w-[218px] flex-1 text-h3 text-text">{title}</h2>
-        <Button variant="outline" onClick={onSeeHow} aria-label={`${t.seeHow}: ${title}`}>{t.seeHow}</Button>
+        <Button variant="secondary" onClick={onSeeHow} aria-label={`${t.seeHow}: ${title}`}>{t.seeHow}</Button>
       </div>
       <p className="mt-t3 text-small text-text-muted">{rationale}</p>
     </section>

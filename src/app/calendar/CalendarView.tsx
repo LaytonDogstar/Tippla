@@ -140,7 +140,7 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
                 <li className="w-full text-text-muted">{t.legend.note}</li>
               </ul>
               <div className="mt-t4 flex flex-wrap items-center gap-t3">
-                <Button variant="outline" aria-pressed={rangeMode} onClick={() => (rangeMode ? clearRange() : (setRangeMode(true), setFrom(null), setTo(null)))}>
+                <Button variant="secondary" aria-pressed={rangeMode} onClick={() => (rangeMode ? clearRange() : (setRangeMode(true), setFrom(null), setTo(null)))}>
                   {rangeMode ? t.cancelRange : t.selectRange}
                 </Button>
                 <p role="status" className="text-small text-text-muted">{rangeMode ? (from ? t.rangeHintEnd : t.rangeHint) : ""}</p>
@@ -155,7 +155,7 @@ export function CalendarView({ view, days, asOf, nav, monthHref, fortnightHref, 
                     {totals.bills > 0 && <Fig label={t.rangeBills} value={formatWhole(totals.bills)} predicted />}
                     {totals.expectedIncome > 0 && <Fig label={t.rangeExpected} value={formatWhole(totals.expectedIncome)} predicted />}
                   </dl>
-                  <Button variant="link" className="mt-t3" onClick={clearRange}>{t.clearRange}</Button>
+                  <Button variant="tertiary" className="mt-t3" onClick={clearRange}>{t.clearRange}</Button>
                 </section>
               )}
             </>
@@ -189,7 +189,7 @@ function Headline({ h }: { h: CalendarHeadline }) {
           {h.kind !== "past" && <p className="mt-t1 text-meta text-text-muted">{hl.estimate}</p>}
         </div>
       </div>
-      {short && <ButtonLink href="/hardship" variant="outline" className="mt-t3">{hl.options}</ButtonLink>}
+      {short && <ButtonLink href="/hardship" variant="link" className="mt-t3">{hl.options}</ButtonLink>}
     </section>
   );
 }
@@ -218,7 +218,7 @@ function DaySheet({ day, days, asOf, tx, isShort, onClose }: { day: CalendarDay 
     <Sheet open={!!day} onClose={onClose} title={day ? withYear(day.date) : ""}
       footer={day ? (
         <>
-          <ButtonLink full variant="outline" href="/spending">{t.day.seeSpending}</ButtonLink>
+          <ButtonLink full variant="secondary" href="/spending">{t.day.seeSpending}</ButtonLink>
           {(day.belowZero || isShort) && <ButtonLink full variant="link" href="/hardship">{t.day.hardship}</ButtonLink>}
         </>
       ) : undefined}>

@@ -220,16 +220,16 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
         <p className="mt-t4 text-small text-text-muted">{t.subscription.includes}</p>
         <ul className="mt-t2 flex flex-col gap-t1">{PLANS.pro.extras.map((e) => <li key={e} className="flex items-start gap-t2 text-small text-text"><Check aria-hidden size={16} className="mt-[2px] shrink-0 text-neutral" />{e}</li>)}</ul>
         <div className="mt-t5 flex flex-col gap-t2">
-          {b.status === "active" && !b.pendingPlan && <Button full variant="outline" onClick={() => setSheet("change")}>{t.subscription.changePlan(PLANS[other].name)}</Button>}
+          {b.status === "active" && !b.pendingPlan && <Button full variant="secondary" onClick={() => setSheet("change")}>{t.subscription.changePlan(PLANS[other].name)}</Button>}
           {b.status === "active" && al && (
             <>
               {tight && <p className="text-small text-text">{t.subscription.tight}</p>}
-              <Button full variant="outline" onClick={() => setSheet("pause")}>{t.subscription.pauseNow}</Button>
+              <Button full variant="secondary" onClick={() => setSheet("pause")}>{t.subscription.pauseNow}</Button>
             </>
           )}
-          {b.status === "active" && <Button full variant="link" onClick={() => setSheet("cancel")}>{t.subscription.cancel}</Button>}
-          {b.status === "cancelled" && <Button full variant="outline" onClick={() => set("active", b.plan, t.subscription.reactivated, asOf)}>{t.subscription.reactivate}</Button>}
-          {b.status === "paused" && <Button full variant="outline" onClick={() => set("active", b.plan, t.subscription.resumed, asOf)}>{t.subscription.resume}</Button>}
+          {b.status === "active" && <Button full variant="tertiary" onClick={() => setSheet("cancel")}>{t.subscription.cancel}</Button>}
+          {b.status === "cancelled" && <Button full variant="primary" onClick={() => set("active", b.plan, t.subscription.reactivated, asOf)}>{t.subscription.reactivate}</Button>}
+          {b.status === "paused" && <Button full variant="primary" onClick={() => set("active", b.plan, t.subscription.resumed, asOf)}>{t.subscription.resume}</Button>}
         </div>
       </section>
 
@@ -273,7 +273,7 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
       <Sheet open={sheet === "cancel"} onClose={() => setSheet(null)} title={t.subscription.cancelTitle}
         footer={<>
           <Button full onClick={() => set("cancelled", b.plan, t.subscription.cancelled, b.effects.cancelAccessUntil)}>{t.subscription.cancelConfirm}</Button>
-          <Button full variant="outline" onClick={() => setSheet("pause")}>{t.subscription.pauseInstead}</Button>
+          <Button full variant="secondary" onClick={() => setSheet("pause")}>{t.subscription.pauseInstead}</Button>
           <Button full variant="link" onClick={() => setSheet(null)}>{t.subscription.back}</Button>
         </>}>
         <p className="text-body text-text-muted">{t.subscription.cancelBody(formatShortDay(b.effects.cancelAccessUntil))}</p>
@@ -281,7 +281,7 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
       <Sheet open={sheet === "pause"} onClose={() => setSheet(null)} title={t.subscription.pauseTitle} onBack={() => setSheet("cancel")}
         footer={<>
           <Button full onClick={() => set("paused", b.plan, t.subscription.paused, b.effects.pauseSkips)}>{t.subscription.pauseConfirm}</Button>
-          <Button full variant="link" onClick={() => setSheet(null)}>{t.subscription.back}</Button>
+          <Button full variant="tertiary" onClick={() => setSheet(null)}>{t.subscription.back}</Button>
         </>}>
         <p className="text-body text-text-muted">{t.subscription.pauseBody(formatShortDay(b.effects.pauseSkips), formatShortDay(b.effects.pauseResumes))}</p>
         <SampleTag q="Q9" present={present} className="mt-t3" />
@@ -289,7 +289,7 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
       <Sheet open={sheet === "change"} onClose={() => setSheet(null)} title={t.subscription.changeTitle(PLANS[other].name)}
         footer={<>
           <Button full onClick={() => set("active", other, t.subscription.changed(PLANS[other].name, formatShortDay(b.effects.changeFrom)), b.effects.changeFrom)}>{t.subscription.changeConfirm(PLANS[other].name)}</Button>
-          <Button full variant="link" onClick={() => setSheet(null)}>{t.subscription.keepPlan}</Button>
+          <Button full variant="tertiary" onClick={() => setSheet(null)}>{t.subscription.keepPlan}</Button>
         </>}>
         <p className="text-body text-text-muted">{t.subscription.changeBody(PLANS[other].name, price(other), formatShortDay(b.effects.changeFrom))}</p>
       </Sheet>
@@ -333,7 +333,7 @@ export function ConsentsView({ persona, account: initial, consents, asOf }: { pe
         );
       })}
       <Sheet open={!!required} onClose={() => setRequired(null)} title={t.consents.withdrawRequiredTitle}
-        footer={<Button full variant="link" onClick={() => setRequired(null)}>{t.consents.close}</Button>}>
+        footer={<Button full variant="tertiary" onClick={() => setRequired(null)}>{t.consents.close}</Button>}>
         <p className="text-body text-text-muted">{t.consents.withdrawRequiredBody}</p>
       </Sheet>
     </div>
@@ -374,7 +374,7 @@ export function BankView({ persona, account: initial, accounts, refreshedAt, hea
                     {health.status === "expiring" ? h.bank.renew : h.bank.reconnect}
                   </Link>
                 )}
-                <Button full variant="outline" loading={refreshing} loadingLabel={t.bank.refreshing} onClick={refresh}>{t.bank.refresh}</Button>
+                <Button full variant="secondary" loading={refreshing} loadingLabel={t.bank.refreshing} onClick={refresh}>{t.bank.refresh}</Button>
                 <Button full variant="link" onClick={() => setSheet("disconnect")}>{t.bank.disconnect}</Button>
               </>
             )}
@@ -389,21 +389,21 @@ export function BankView({ persona, account: initial, accounts, refreshedAt, hea
         </section>
       )}
       <section className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
-        <Button full variant="outline" onClick={() => setSheet("add")}>{t.bank.add}</Button>
+        <Button full variant="secondary" onClick={() => setSheet("add")}>{t.bank.add}</Button>
         <p className="mt-t2 text-small text-text-muted">{t.bank.addNote}</p>
       </section>
 
       <Sheet open={sheet === "disconnect"} onClose={() => setSheet(null)} title={t.bank.disconnectTitle}
         footer={<>
           <Button full onClick={() => { save({ ...account, bank: { disconnected: true } }); setSheet(null); toast({ kind: "confirm", message: t.bank.disconnected }); }}>{t.bank.disconnectConfirm}</Button>
-          <Button full variant="link" onClick={() => setSheet(null)}>{t.bank.cancel}</Button>
+          <Button full variant="tertiary" onClick={() => setSheet(null)}>{t.bank.cancel}</Button>
         </>}>
         <p className="text-body text-text-muted">{t.bank.disconnectBody}</p>
       </Sheet>
       <Sheet open={sheet === "reconnect"} onClose={() => setSheet(null)} title={t.bank.reconnectTitle}
         footer={<>
           <Button full onClick={() => { save({ ...account, bank: { disconnected: false } }); setSheet(null); toast({ kind: "confirm", message: t.bank.reconnected }); }}>{t.bank.continue}</Button>
-          <Button full variant="link" onClick={() => setSheet(null)}>{t.bank.cancel}</Button>
+          <Button full variant="tertiary" onClick={() => setSheet(null)}>{t.bank.cancel}</Button>
         </>}>
         <p className="text-body text-text-muted">{t.bank.reconnectBody}</p>
       </Sheet>

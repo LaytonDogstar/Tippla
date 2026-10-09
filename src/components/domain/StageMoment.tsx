@@ -24,7 +24,7 @@ export function StageMomentCard({ persona, account, moment }: { persona: Persona
       {moment.feesAvoided > 0 && <p className="mt-t1 text-body text-text">{t.fees(formatDollars(moment.feesAvoided))}</p>}
       <div className="mt-t4 flex flex-wrap gap-t2">
         <Link href="/progress/whats-next" onClick={seen} className="inline-flex min-h-[44px] items-center justify-center rounded-sm bg-accent px-t4 text-body-strong text-on-accent">{t.next}</Link>
-        <Button variant="link" onClick={seen}>{t.later}</Button>
+        <Button variant="tertiary" onClick={seen}>{t.later}</Button>
       </div>
     </section>
   );

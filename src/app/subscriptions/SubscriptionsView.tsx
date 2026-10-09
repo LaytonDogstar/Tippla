@@ -69,7 +69,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
     toast({ kind: "confirm", message: t.reminderToast(s.merchant, formatShortDay(s.remindOn)), onUndo: () => save(before) });
   };
   const reminderButton = (s: Subs["rows"][number]) => prefs.reminders[s.merchant]
-    ? <Button variant="link" onClick={() => { const r = { ...prefs.reminders }; delete r[s.merchant]; save({ ...prefs, reminders: r }); }}>{t.cancelReminder}</Button>
+    ? <Button variant="tertiary" onClick={() => { const r = { ...prefs.reminders }; delete r[s.merchant]; save({ ...prefs, reminders: r }); }}>{t.cancelReminder}</Button>
     : <Button variant="link" onClick={() => remind(s)}>{t.remind}</Button>;
 
   // Rail (UX round 2, 4.1): the totals, and the ones you said you don't use with what cancelling would save.
@@ -131,8 +131,8 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
                   {state === "ask" && (
                     <div className="flex flex-wrap items-center gap-x-t2">
                       <span className="text-body14 font-semibold text-text">{cx_.stillUsing(s.merchant)}</span>
-                      <Button variant="link" onClick={() => answer(s.merchant, true)} aria-label={`${cx_.yes}: ${cx_.stillUsing(s.merchant)}`}>{cx_.yes}</Button>
-                      <Button variant="link" onClick={() => answer(s.merchant, false)} aria-label={`${cx_.no}: ${cx_.stillUsing(s.merchant)}`}>{cx_.no}</Button>
+                      <Button variant="secondary" onClick={() => answer(s.merchant, true)} aria-label={`${cx_.yes}: ${cx_.stillUsing(s.merchant)}`}>{cx_.yes}</Button>
+                      <Button variant="secondary" onClick={() => answer(s.merchant, false)} aria-label={`${cx_.no}: ${cx_.stillUsing(s.merchant)}`}>{cx_.no}</Button>
                     </div>
                   )}
                   {(state === "kept" || state === "quiet") && (
@@ -143,7 +143,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
                   )}
                   {state === "no" && (
                     <div className="flex flex-wrap items-center gap-t2">
-                      <Button variant="outline" onClick={() => { track("cancel_guide_opened", { merchant: s.merchant }); setHowTo(s.merchant); }}>{t.howToCancel}</Button>
+                      <Button variant="secondary" onClick={() => { track("cancel_guide_opened", { merchant: s.merchant }); setHowTo(s.merchant); }}>{t.howToCancel}</Button>
                       {reminderButton(s)}
                     </div>
                   )}
@@ -158,7 +158,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
       <Sheet open={!!menu} onClose={() => setMenu(null)} title={menu ?? ""}>
         {menu && (
           <div className="flex flex-col gap-t2">
-            <Button full variant="outline" onClick={() => { const m = menu; setMenu(null); track("cancel_guide_opened", { merchant: m }); setHowTo(m); }}>{t.howToCancel}</Button>
+            <Button full variant="secondary" onClick={() => { const m = menu; setMenu(null); track("cancel_guide_opened", { merchant: m }); setHowTo(m); }}>{t.howToCancel}</Button>
             {(prefs.kept[menu] || prefs.notUsing?.[menu]) && <Button full variant="link" onClick={() => { const m = menu; setMenu(null); const k = { ...prefs.kept }; delete k[m]; const n = { ...prefs.notUsing }; delete n[m]; save({ ...prefs, kept: k, notUsing: n }); }}>{t.changeAnswer}</Button>}
             {corrections && <Button full variant="link" onClick={() => { const m = menu; setMenu(null); setFixing(m); }} aria-label={correctionCopy.notRightFor(menu)}>{correctionCopy.notRight}</Button>}
           </div>
@@ -172,7 +172,7 @@ export function SubscriptionsView({ persona, subs, account, asOf, confirm, charg
               return again ? tallyCopy.chargedAgain(row.merchant, formatCents(again.amount), formatDayMonth(again.date))
                 : tallyCopy.cancelledNote(formatDayMonth(confirm[row.merchant] ?? addDays(row.nextCharge, 3)));
             })()}</p>
-          : <Button full variant="outline" onClick={() => markCancelled(row.merchant)}>{tallyCopy.cancelled}</Button>) : undefined}>
+          : <Button full variant="secondary" onClick={() => markCancelled(row.merchant)}>{tallyCopy.cancelled}</Button>) : undefined}>
         {row && (
           <div className="flex flex-col gap-t4">
             <ol className="flex list-decimal flex-col gap-t2 pl-t5 text-body text-text">

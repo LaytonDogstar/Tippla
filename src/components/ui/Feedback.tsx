@@ -101,7 +101,7 @@ export function EmptyState({ variant, query = "", onAction, illustrated }: { var
       )}
       <h2 className="mt-t6 text-h2 font-display text-text">{c.title}</h2>
       <p className="mt-t3 text-small text-text-muted">{body}</p>
-      {onAction && <Button variant="outline" className="mt-t5" onClick={onAction}>{c.action}</Button>}
+      {onAction && <Button variant="secondary" className="mt-t5" onClick={onAction}>{c.action}</Button>}
     </section>
   );
 }
