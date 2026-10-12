@@ -194,7 +194,7 @@ test("calendar: month first, as the mockup (Jess, September 2026)", async ({ pag
 });
 
 test("calendar: selecting days: click, drag, Shift-click, Select range, quick ranges", async ({ page }) => {
-  await page.goto("/calendar?persona=jess&present=1");
+  await page.goto("/calendar?persona=jess&present=1&forecast=bills"); // the figures below count bills only
   const cal = page.getByRole("group", { name: /^September 2026/ });
   const dayBtn = (d: string) => cal.getByRole("button", { name: new RegExp(`^\\w{3} ${d}/09,`) });
   const title = page.locator("#sel-h");
