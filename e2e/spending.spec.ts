@@ -110,7 +110,7 @@ test("Where it went: fixed and repayments lines; Essentials and Lifestyle by amo
   await w.getByRole("button", { name: /^Transport/ }).click();
   await expect(w).toContainText("Spent so far$115");
   await expect(w).toContainText("$3 over your usual cycle");
-  await expect(w).toContainText("Up $115 on this point last cycle. Mostly Opal Top Up ($68).");
+  await expect(w).toContainText("Up $115 since this point last cycle. Mostly Opal Top Up ($68).");
   await w.getByRole("button", { name: /^Gambling/ }).click(); // one panel at a time
   await expect(w.getByRole("button", { name: /^Transport/ })).toHaveAttribute("aria-expanded", "false");
   await expect(w).toContainText("About usual for this point");

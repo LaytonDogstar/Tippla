@@ -47,8 +47,9 @@ test("Jess: where the money went, the plan, repayments, gambling, progress and w
   await expect(g).not.toContainText(/score/i);
 
   const prog = page.getByRole("region", { name: "Pay cycles" });
-  await expect(prog.getByRole("row", { name: /Lowest balance/ })).toContainText("forecast");
-  await expect(prog.getByRole("row", { name: /Gambling/ })).toContainText("↓ $185");
+  await expect(prog.getByRole("row", { name: /Lowest balance/ })).toContainText("−$483↑ $154 · forecast with usual spending");
+  await expect(prog.getByRole("row", { name: /Gambling/ })).toContainText("$200↓ $100 since this point last cycle"); // as Today and the panel
+  await expect(prog.getByRole("row", { name: /Pay advances/ })).toContainText("Same as this point last cycle");
   await expect(prog.getByRole("link", { name: "See every pay cycle" })).toHaveAttribute("href", "/progress");
   await expect(page.getByText("General information only. It doesn’t take your full situation into account.", { exact: false })).toBeVisible();
   await expect(page.getByText(/Pay by card|lenders can.t see cash/i)).toHaveCount(0);

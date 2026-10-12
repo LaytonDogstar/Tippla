@@ -499,12 +499,16 @@ function Money({ n }: { n: number }) {
 }
 
 function ProgressCard({ progress }: { progress: NonNullable<Progress> }) {
+  // Spending rows change against the same point last cycle (as Today and the gambling panel); the lowest balance
+  // compares whole cycles.
   const change = (r: ProgressRow) => {
-    if (Math.round(r.change) === 0) return { text: t.progress.noChange, good: false };
-    // Repayments are scheduled: a lower figure part-way through the cycle is only "so far".
+    const lowest = r.key === "lowest";
+    if (Math.round(r.change) === 0) return { text: lowest ? t.progress.noChangeLowest : t.progress.noChange, good: false };
+    // Repayments are scheduled: lower than at this point last cycle usually means one falls later, so only "so far".
     if (r.key === "loans" && r.change < 0) return { text: t.progress.soFar, good: false };
-    const better = r.key === "lowest" ? r.change > 0 : r.change < 0;
-    return { text: r.change < 0 ? t.progress.down(formatWhole(-r.change)) : t.progress.up(formatWhole(r.change)), good: better };
+    const better = lowest ? r.change > 0 : r.change < 0;
+    const amt = r.change < 0 ? t.progress.down(formatWhole(-r.change)) : t.progress.up(formatWhole(r.change));
+    return { text: lowest ? amt : `${amt} ${t.progress.sincePoint}`, good: better };
   };
   return (
     <section aria-labelledby="mp-prog-h" className={cx(card, "flex flex-col gap-t3")}>

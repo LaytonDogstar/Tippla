@@ -51,7 +51,7 @@ export const spending = {
       colThisPeriod: "This period",
       colVs: "vs last",
       groups: { essential: "Essentials", lifestyle: "Lifestyle" },
-      changeSr: (amt: string, up: boolean) => `${up ? "up" : "down"} ${amt} on this point last cycle`,
+      changeSr: (amt: string, up: boolean) => `${up ? "up" : "down"} ${amt} since this point last cycle`,
       sameSr: "same as this point last cycle",
       tiles: { spent: "Spent so far", spentPeriod: "Spent", usualByDay: (n: number) => `Usual by day ${n}`, usualFull: "Usual full cycle" },
       status: {
@@ -59,7 +59,7 @@ export const spending = {
         ahead: (amt: string) => `${amt} more than usual by now`,
         about: "About usual for this point",
       },
-      detailChange: (up: boolean, amt: string) => `${up ? "Up" : "Down"} ${amt} on this point last cycle.`,
+      detailChange: (up: boolean, amt: string) => `${up ? "Up" : "Down"} ${amt} since this point last cycle.`,
       detailMostly: (merchant: string, amt: string) => `Mostly ${merchant} (${amt}).`,
       merchantsLabel: (name: string) => `${name}: merchants`,
       txCount: (n: number) => (n === 1 ? "1 transaction" : `${n} transactions`),
