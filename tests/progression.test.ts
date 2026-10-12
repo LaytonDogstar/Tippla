@@ -13,12 +13,14 @@ describe("plans", async () => {
     const p = activePlan(jess, {}, goal)!;
     expect([p.type, p.title, p.current, p.explicit]).toEqual(["off_advances", "Get off pay advances", 0, false]);
     expect(p.steps.map((s) => s.label)).toEqual(["A pay cycle with pay advances of $150 or less", "A pay cycle with pay advances of $75 or less", "A pay cycle with no new pay advance"]);
-    expect(p.steps[0]!.soFar).toBe("$0 of pay advances so far, against $150.");
+    // The whole pay cycle counts: $300 taken on 24/09, before the goal was set on 25/09 (fixed 12/10/2026).
+    expect(p.steps[0]!.soFar).toBe("$300 of pay advances so far, against $150.");
   });
 
-  it("only what happens after the start counts; the step ticks itself at payday", () => {
+  it("each pay cycle is judged in full; a missed step carries over at payday", () => {
+    // 17/09–30/09 had a $300 advance (24/09), so at payday step 1 isn't met even though the goal started 25/09.
     const p = activePlan(jessP, {}, goal)!;
-    expect(p.steps.map((s) => [s.status, s.doneOn])).toEqual([["done", "2026-09-30"], ["current", null], ["upcoming", null]]);
+    expect(p.steps.map((s) => [s.status, s.doneOn])).toEqual([["current", null], ["upcoming", null], ["upcoming", null]]);
     // Started earlier, her $300 advances don't meet the first step: it carries over, no penalty.
     expect(planProgress(jessP, {}, "off_advances", "2026-09-03").current).toBe(0);
   });
@@ -85,5 +87,18 @@ describe("progression", async () => {
     expect(refinanceEligible(marcus, { hardshipVisitedAt: "2026-09-01" })).toBe(false);
     expect(refinanceEligible(marcus, { hardshipVisitedAt: "2026-08-01" })).toBe(true);
     expect(refinanceEligible(marcus, { hardshipSelfSelected: true })).toBe(false);
+  });
+});
+
+describe("regression: step 1 counts every pay advance in the current pay cycle", async () => {
+  const { load } = await import("./helpers");
+  const { advancesThisCycle, currentCycle, planProgress } = await import("@/lib/selectors");
+  it("Jess: the $300 Beforepay advance on 24/09 is inside 17/09–30/09 and counts, even for a plan started 25/09", async () => {
+    const d = await load("jess");
+    expect(currentCycle(d)).toMatchObject({ start: "2026-09-17", end: "2026-09-30" });
+    expect(advancesThisCycle(d)).toBe(300);
+    const p = planProgress(d, {}, "off_advances", "2026-09-25", false);
+    expect(p.current).toBe(0);
+    expect(p.steps[0]!.soFar).toBe("$300 of pay advances so far, against $150.");
   });
 });

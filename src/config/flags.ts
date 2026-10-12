@@ -80,3 +80,6 @@ export const STREAK_MILESTONES = [2, 4, 6] as const;
 /** SmartScore page (12/10/2026): which of "Where you stand" and "Next step" comes first. Later this may switch to
  * action first when the score goes up; for now it's set here. */
 export const SCORE_SECTION_ORDER: "changeFirst" | "actionFirst" = "changeFirst";
+
+/** Money plan: show the gambling card when last pay cycle's gambling was at least this much. */
+export const GAMBLING_CARD_MIN_PER_CYCLE = 50;

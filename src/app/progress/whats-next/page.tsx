@@ -12,7 +12,7 @@ import { WhatsNextList } from "./WhatsNextList";
 export const dynamic = "force-dynamic";
 
 const HREF: Record<NextOption, string | null> = {
-  plans: "/savings", emergency: "/progress#buffer", goals: "/progress#savings", multi: "/progress#savings",
+  plans: "/money-plan", emergency: "/progress#buffer", goals: "/progress#savings", multi: "/progress#savings",
   review: null, creditFile: "/progress/credit-file", refinance: "/progress/cheaper-credit",
 };
 

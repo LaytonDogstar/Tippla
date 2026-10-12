@@ -17,13 +17,14 @@ test("acceptance: Jess (goal: stop relying on pay advances) sees Get off pay adv
   await withAccount(context, "jess", { focusGoal: { type: "off_advances", startedAt: "2026-09-25" } });
   await page.goto("/?persona=jess&present=1");
   await expect(page.getByRole("link", { name: /^Your plan · Step 1 of 3\s?: Get off pay advances\. A pay cycle with pay advances of \$150 or less/ })).toBeVisible();
-  await page.goto("/savings?persona=jess&present=1");
+  await page.goto("/money-plan?persona=jess&present=1");
   const plan = page.getByRole("region", { name: "Get off pay advances" });
   await expect(plan).toContainText("Suggested for you");
   await expect(plan.locator("[aria-current=step]")).toContainText("A pay cycle with pay advances of $150 or less");
-  await expect(plan).toContainText("This pay cycle: $0 of pay advances so far, against $150.");
+  await expect(plan).toContainText("This pay cycle (17/09–30/09): $300 taken on 24/09, so this step carries over to the next pay cycle.");
   await expectNoAxe(page);
-  await plan.getByRole("button", { name: "Switch plan" }).click();
+  await plan.getByRole("button", { name: "More options" }).click();
+  await page.getByRole("button", { name: "Switch plan" }).click();
   await page.getByRole("dialog").getByRole("button", { name: /Cut bills and subscriptions/ }).click();
   await expect(page.getByRole("status").filter({ hasText: "Started: Cut bills and subscriptions" })).toBeVisible();
   const cut = page.getByRole("region", { name: "Cut bills and subscriptions" });

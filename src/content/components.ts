@@ -192,7 +192,7 @@ export const buttons = { loading: "Loading…" };
 export const nav = {
   label: "Main",
   // Today redesign (07/10/2026): five sections; mobile tabs Today, Money, Ask, Score, More.
-  sections: { today: "Today", money: "Money", score: "Score & plan", borrowing: "Borrowing", help: "Help & hardship" },
+  sections: { today: "Today", money: "Money", score: "SmartScore", borrowing: "Borrowing", help: "Help & hardship" },
   tabs: { today: "Today", money: "Money", ask: "Ask", score: "Score", more: "More" },
   askLabel: "Ask Tippla",
   moreTitle: "More",
@@ -215,6 +215,7 @@ export const nav = {
   items: {
     smartscore: "SmartScore",
     lift: "Your plan",
+    moneyPlan: "Money plan",
     spending: "Spending",
     calendar: "Calendar",
     subscriptions: "Subscriptions",

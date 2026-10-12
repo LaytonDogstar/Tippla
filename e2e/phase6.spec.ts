@@ -2,7 +2,7 @@
 // sideways scrolling; reduced motion; presentation mode hides dev tools and "Sample logic" tags.
 import { expect, test, type Page } from "@playwright/test";
 
-const ROUTES = ["/", "/score", "/score/current-borrowing", "/savings", "/spending", "/spending?tab=categories", "/spending?tab=budgets",
+const ROUTES = ["/", "/score", "/score/current-borrowing", "/money-plan", "/spending", "/spending?tab=categories", "/spending?tab=budgets",
   "/spending/compare", "/spending/compare?tab=cohort", "/calendar", "/calendar?month=2026-10", "/subscriptions", "/loans", "/loans?tab=upcoming",
   "/loans?tab=history", "/loans?tab=other", "/loans/repayment", "/offers", "/hardship", "/help", "/notifications", "/account",
   "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/onboarding", "/onboarding/consents", "/onboarding/score-reveal", "/progress", "/notifications/summary"];
@@ -69,7 +69,7 @@ test("reduced motion: transitions are effectively off and sheets appear without 
 });
 
 test("presentation mode hides the dev pill and Sample logic tags; dev mode shows them", async ({ page }) => {
-  for (const r of ["/score", "/savings", "/spending/compare?tab=cohort", "/hardship", "/account/subscription"]) {
+  for (const r of ["/score", "/money-plan", "/spending/compare?tab=cohort", "/hardship", "/account/subscription"]) {
     await page.goto(url(r, "jess"));
     await expect(page.getByText(/Sample logic/), r).toHaveCount(0);
     await expect(page.getByRole("button", { name: /^Dev ·/ }), r).toHaveCount(0);

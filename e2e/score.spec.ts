@@ -53,26 +53,38 @@ test("Priya: override state, null factors, no recommendations", async ({ page })
   await page.getByRole("region", { name: "What's behind it" }).getByRole("button", { name: /^Income stability/ }).click();
   await expect(page.getByRole("dialog").getByText("We don't have enough history to work this out yet.").first()).toBeVisible();
 
-  await page.goto("/savings?persona=priya&present=1");
-  await expect(page.getByRole("button", { name: "See how" })).toHaveCount(0);
+  // The money plan carries no score-factor copy (it moved to SmartScore).
+  await page.goto("/money-plan?persona=priya&present=1");
+  await expect(page.getByRole("heading", { level: 1, name: "Your money plan" })).toBeVisible();
+  await expect(page.getByText(/lift this factor|lenders look at|Cash use/i)).toHaveCount(0);
 });
 
-test("Ways to lift your score: snooze and dismiss with undo", async ({ page }) => {
-  await page.goto("/savings?persona=jess&present=1");
+test("Money plan cards: remind me next pay cycle and not relevant, each with a way back", async ({ page }) => {
+  await page.goto("/money-plan?persona=jess&present=1");
   await page.evaluate(() => localStorage.removeItem("tippla-recs"));
   await page.reload();
-  const before = await page.getByRole("button", { name: "See how" }).count();
-  await page.getByRole("button", { name: "Not relevant to me" }).first().click();
-  await expect(page.getByRole("button", { name: "See how" })).toHaveCount(before - 1);
-  await page.getByRole("button", { name: "Undo" }).click();
-  await expect(page.getByRole("button", { name: "See how" })).toHaveCount(before);
+  const repay = page.getByRole("region", { name: /Your repayments/ });
+  await repay.getByRole("button", { name: "More options" }).click();
+  await page.getByRole("button", { name: "Remind me next pay cycle" }).click();
+  await expect(repay).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "hidden until your next pay cycle" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("region", { name: /Your repayments/ })).toHaveCount(0); // kept for this pay cycle
+  await page.getByRole("button", { name: "Show it again" }).click();
+  await expect(page.getByRole("region", { name: /Your repayments/ })).toBeVisible();
+  const g = page.getByRole("region", { name: /on betting last pay cycle/ });
+  await g.getByRole("button", { name: "More options" }).click();
+  await page.getByRole("button", { name: "Hide this card" }).click();
+  await expect(g).toHaveCount(0);
+  await page.getByRole("button", { name: "Show it again" }).click();
+  await expect(page.getByRole("region", { name: /on betting last pay cycle/ })).toBeVisible();
 });
 
 for (const persona of ["jess", "marcus", "priya"]) {
   for (const scheme of ["light", "dark"] as const) {
     test(`axe: Phase 3 screens, ${persona}, ${scheme}`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
-      for (const url of ["/", "/score", "/savings"]) {
+      for (const url of ["/", "/score", "/money-plan"]) {
         await page.goto(`${url}?persona=${persona}&present=1`);
         await page.waitForLoadState("networkidle");
         await expectNoAxe(page);
