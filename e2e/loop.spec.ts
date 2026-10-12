@@ -85,8 +85,8 @@ test("value tally: actions in the app are pending, then confirmed from bank data
 
   // 2. "I've cancelled it" for Binge.
   await page.goto("/subscriptions?persona=jess&present=1");
-  await page.getByRole("button", { name: "More options for Binge" }).click();
-  await page.getByRole("dialog", { name: "Binge" }).getByRole("button", { name: "How to cancel" }).click();
+  await page.getByRole("region", { name: "Coming up" }).getByRole("button", { name: /^Binge/ }).click();
+  await page.getByRole("region", { name: "Coming up" }).getByRole("button", { name: "How to cancel" }).click();
   await page.getByRole("dialog", { name: "How to cancel Binge" }).getByRole("button", { name: "I've cancelled it" }).click();
   await expect(page.getByRole("dialog").getByText("Marked as cancelled. We'll confirm after 11/10.")).toBeVisible();
 

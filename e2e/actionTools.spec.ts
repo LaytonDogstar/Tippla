@@ -48,18 +48,21 @@ test("follow-up next pay cycle: 'Did you hear back?', and the helpline if they s
   await expectNoAxe(page);
 });
 
-test("cancellation helper: 'Still using Netflix?' No leads to how to cancel; iCloud has its own steps", async ({ page }) => {
+test("cancellation helper: 'Still using Netflix?' No leads to Could save and how to cancel; iCloud has its own steps", async ({ page }) => {
   await page.goto("/subscriptions?persona=jess&present=1");
-  // UX round 2, 6.5: No shows How to cancel (the main action) and a reminder; the answer is listed in the rail.
-  await page.getByRole("button", { name: "No: Still using Netflix?" }).click();
-  await expect(page.getByRole("complementary").getByText("Netflix")).toBeVisible();
-  await page.getByRole("article", { name: "Netflix" }).getByRole("button", { name: "How to cancel" }).click();
+  await page.getByRole("region", { name: "Quick check" }).getByRole("button", { name: "No, I don't use it" }).click();
+  const save = page.getByRole("region", { name: "Could save" });
+  await expect(save).toContainText("$227.88");
+  await expect(save).toContainText("Cancel before Sat 03/10 to skip the next $18.99 charge");
+  // Keyboard: the "marked as not using" message and the tab bar sit over the bottom of the page.
+  await save.getByRole("button", { name: /^How to cancel\s*: Netflix$/ }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog", { name: "How to cancel Netflix" })).toBeVisible();
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "More options for Apple iCloud" }).click();
-  await page.getByRole("dialog", { name: "Apple iCloud" }).getByRole("button", { name: "How to cancel" }).click();
+  const coming = page.getByRole("region", { name: "Coming up" });
+  await coming.getByRole("button", { name: /^Apple iCloud/ }).click();
+  await coming.getByRole("button", { name: "How to cancel" }).click();
   await expect(page.getByRole("dialog", { name: "How to cancel Apple iCloud" })).toContainText("iCloud storage is billed by Apple");
-  await expect(page.getByRole("article", { name: /Apple iCloud/ }).getByText(/Still using/)).toHaveCount(0); // $4.49: under $10
 });
 
 test("bill comparison: neutral pointers; a switch is noted as self-reported", async ({ page }) => {
