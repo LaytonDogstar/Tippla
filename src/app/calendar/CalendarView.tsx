@@ -50,6 +50,8 @@ export function CalendarView({ days: rawDays, now, asOf, cycles, initial, range:
   // The banner: the lowest point before payday (as on Today) when that's below $0, else the lowest point after.
   const beforePayday = useMemo(() => lowestForecast(days.filter((d) => d.date < nextPayday)), [days, nextPayday]);
   const shortDay = beforePayday && beforePayday.balance! < 0 ? beforePayday : low && low.balance! < 0 ? low : null;
+  // The stats are about now, so the lowest card stops at payday like the banner (not a later month's low).
+  const cycleLow = beforePayday ?? low;
   const short = shortDay ? { date: shortDay.date, amount: -shortDay.balance! } : null;
 
   const [month, setMonth] = useState(initial.month);
@@ -127,8 +129,8 @@ export function CalendarView({ days: rawDays, now, asOf, cycles, initial, range:
 
       <section aria-label={t.stats.label} className="grid grid-cols-2 gap-t3 min-[900px]:grid-cols-4">
         <Stat label={t.stats.today} value={now.balanceToday === null ? "—" : formatWhole(now.balanceToday)} neg={(now.balanceToday ?? 0) < 0} note={formatShortDay(asOf)} />
-        <Stat label={forecast === "usual" ? t.stats.lowestUsual : t.stats.lowest} value={low ? formatWhole(low.balance!) : "—"} neg={(low?.balance ?? 0) < 0}
-          note={low ? `${formatShortDay(low.date)}${low.date === addDaysIso(nextPayday, -1) ? ` · ${t.stats.dayBeforePayday}` : ""}` : t.stats.lowestNone} />
+        <Stat label={forecast === "usual" ? t.stats.lowestUsual : t.stats.lowest} value={cycleLow ? formatWhole(cycleLow.balance!) : "—"} neg={(cycleLow?.balance ?? 0) < 0}
+          note={cycleLow ? `${formatShortDay(cycleLow.date)}${cycleLow.date === addDaysIso(nextPayday, -1) ? ` · ${t.stats.dayBeforePayday}` : ""}` : t.stats.lowestNone} />
         <Stat label={t.stats.bills} value={formatWhole(now.bills.total)} note={now.bills.payees.length ? now.bills.payees.join(", ") : t.stats.billsNone} />
         <Stat label={t.stats.below} value={String(now.belowZero.days)} neg={now.belowZero.days > 0} note={t.stats.belowOf(now.belowZero.of)} />
       </section>

@@ -179,7 +179,7 @@ test("calendar: month first, as the mockup (Jess, September 2026)", async ({ pag
   // Four stats about now.
   const stats = main.getByRole("region", { name: "Your money now" });
   await expect(stats).toContainText("Balance today$314Fri 25/09");
-  await expect(stats).toContainText("Lowest forecast (bills only)−$53Wed 30/09 · day before payday");
+  await expect(stats).toContainText("Lowest before payday (bills only)−$53Wed 30/09 · day before payday");
   await expect(stats).toContainText("Bills still to come$367Telstra, Beforepay");
   await expect(stats).toContainText("Days below $010of 25 so far this month");
   // Monday-first weeks; 31/08 is a muted, non-interactive cell.

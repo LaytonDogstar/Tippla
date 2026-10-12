@@ -311,8 +311,8 @@ export const calendarPage = {
   stats: {
     label: "Your money now",
     today: "Balance today",
-    lowest: "Lowest forecast (bills only)",
-    lowestUsual: "Lowest forecast (with usual spending)",
+    lowest: "Lowest before payday (bills only)",
+    lowestUsual: "Lowest before payday (with usual spending)",
     lowestNone: "No forecast yet",
     dayBeforePayday: "day before payday",
     bills: "Bills still to come",
