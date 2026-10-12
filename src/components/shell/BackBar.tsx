@@ -88,12 +88,13 @@ export function NavMemory() {
   return <Suspense fallback={null}><Memory /></Suspense>;
 }
 
-function Bar({ fallback }: { fallback?: string }) {
+/** Where "Back" goes from here, and the click handler that gets there (restoring the origin's scroll position). */
+export function useBack(fallback?: string) {
   const search = useSearchParams();
   const router = useRouter();
   const target = backTarget(search.get(ORIGIN_PARAM), fallback);
-  if (!target) return null;
   const go = (e: React.MouseEvent) => {
+    if (!target) return;
     e.preventDefault();
     write(RESTORE, target.href);
     // Straight back through history when the origin was the page before (keeps everything as it was).
@@ -101,6 +102,24 @@ function Bar({ fallback }: { fallback?: string }) {
     if (stack.at(-2) === target.href && window.history.length > 1) router.back();
     else router.push(target.href);
   };
+  return { target, go };
+}
+
+/** "← Back to Today" inline, where the customer landed deep in a page (only when there's an origin). */
+export function BackInline({ className }: { className?: string }) {
+  const { target, go } = useBack();
+  if (!target) return null;
+  return (
+    <a href={target.href} onClick={go} data-nav-root data-testid="back-inline"
+      className={className ?? "inline-flex min-h-tap items-center gap-t1 font-semibold text-accent hover:text-accent-strong"}>
+      <ChevronLeft aria-hidden size={18} />{ui.backTo(target.label)}
+    </a>
+  );
+}
+
+function Bar({ fallback }: { fallback?: string }) {
+  const { target, go } = useBack(fallback);
+  if (!target) return null;
   return (
     <div className="px-gutter pt-t3 desktop:pt-t5">
       <a href={target.href} onClick={go} data-nav-root data-testid="back-control"

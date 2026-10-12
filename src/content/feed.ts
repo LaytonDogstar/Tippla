@@ -89,7 +89,8 @@ export const attributionCopy = {
     newAdvanceShort: "new pay advance",
     newLoan: (provider: string) => `New ${provider} loan`,
     loanPaidOff: (provider: string) => `${provider} paid off`,
-    gambling: (amt: string) => `Gambling deposits ${amt} since the last update`,
+    /** Pay-cycle figures, the same ones Today, Money plan and the gambling panel use. */
+    gambling: (now: string, last: string) => `Gambling: ${now} so far this pay cycle, ${last} last pay cycle`,
     gamblingShort: "gambling deposits",
     dishonour: (n: number) => (n === 1 ? "1 payment didn't go through" : `${n} payments didn't go through`),
     dishonourShort: "failed payment",

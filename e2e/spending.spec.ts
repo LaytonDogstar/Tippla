@@ -165,7 +165,8 @@ test("dashboard month bar opens that month on Spending", async ({ page }) => {
 });
 
 test("calendar: month first, as the mockup (Jess, September 2026)", async ({ page }) => {
-  await page.goto("/calendar?persona=jess&present=1");
+  // Bills only (the toggle's second option): the banner and stats as in the mockup.
+  await page.goto("/calendar?persona=jess&present=1&forecast=bills");
   const main = page.locator("main");
   await expect(main.getByRole("heading", { name: "September 2026" })).toBeVisible();
   // No old toggles or chart.

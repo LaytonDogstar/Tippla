@@ -159,7 +159,7 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
           movement={movement ? safeCopy.up(formatWhole(movement.up), movement.since) : null}
           onSafe={() => setSheet("safe")} onAdvance={() => setSheet("advance")} onTight={() => openPanel("tight")} />
         {loop}
-        <ComingUp blocks={coming} onBill={() => setSheet("due")} />
+        <ComingUp blocks={coming} onBill={() => setSheet("due")} onTight={() => openPanel("tight")} />
         {panels && <JourneyPanels data={panels} persona={persona} account={account} asOf={asOf} />}
         {flags.feed && <NeedsALook persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} max={2} />}
       </Section>

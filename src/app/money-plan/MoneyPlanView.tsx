@@ -132,7 +132,8 @@ export function MoneyPlanView(p: MoneyPlanViewProps) {
       {!p.plan && !others.length && <p className={cx(card, "text-body14 text-text-muted")}>{t.noCards}</p>}
 
       {p.progress && <ProgressCard progress={p.progress} />}
-      <SmallerWins wins={p.wins} prefs={prefs} toggle={(id, on) => setPref(id, on ? "done" : null)} state={p.state} />
+      <SmallerWins wins={p.wins} prefs={prefs} toggle={(id, on) => setPref(id, on ? "done" : null)} state={p.state}
+        dueHref={p.panels?.tight.beforePayday ? `/calendar?from=${p.panels.tight.beforePayday.from}&to=${p.panels.tight.beforePayday.to}` : "/calendar"} />
 
       <section aria-labelledby="mp-score-h" className={cx(card, "flex flex-col gap-t2")}>
         <h2 id="mp-score-h" className="text-body font-extrabold text-text">{t.score.title}</h2>
@@ -547,7 +548,7 @@ function ProgressCard({ progress }: { progress: NonNullable<Progress> }) {
 
 // ---- Smaller wins -------------------------------------------------------------------------------------------------
 
-function SmallerWins({ wins, prefs, toggle, state }: { wins: Win[]; prefs: Record<string, CyclePref>; toggle: (id: string, on: boolean) => void; state: string }) {
+function SmallerWins({ wins, prefs, toggle, state, dueHref = "/calendar" }: { wins: Win[]; prefs: Record<string, CyclePref>; toggle: (id: string, on: boolean) => void; state: string; dueHref?: string }) {
   const [open, setOpen] = useState(true);
   const [tips, setTips] = useState<string | null>(null);
   const vic = state === "VIC";
@@ -557,11 +558,11 @@ function SmallerWins({ wins, prefs, toggle, state }: { wins: Win[]; prefs: Recor
     const c = t.wins.items;
     switch (w.id) {
       case "subscriptions": return { w, title: c.subscriptions.title, detail: c.subscriptions.detail(listOf(w.names ?? []), formatWhole(Math.round(w.amount ?? 0))), link: { label: c.subscriptions.link, href: "/subscriptions" }, save: t.wins.upTo(formatWhole(w.saving ?? 0)) };
-      case "failed_debits": return { w, title: c.failed_debits.title, detail: c.failed_debits.detail(w.count ?? 0, formatDayMonth(w.lastDate!), formatWhole(w.fees ?? 0)), link: { label: c.failed_debits.link, href: "/calendar" }, save: t.wins.about(formatWhole(w.saving ?? 0)) };
+      case "failed_debits": return { w, title: c.failed_debits.title, detail: c.failed_debits.detail(w.count ?? 0, formatDayMonth(w.lastDate!), formatWhole(w.fees ?? 0)), link: { label: c.failed_debits.link, href: dueHref }, save: t.wins.about(formatWhole(w.saving ?? 0)) };
       case "phone": return { w, title: c.phone.title, detail: c.phone.detail(w.merchant!, formatWhole(Math.round(w.monthly ?? 0))), link: { label: c.phone.link, tips: w.merchant! }, save: t.wins.varies };
       case "energy": return { w, title: c.energy.title, detail: c.energy.detail(w.merchant!, formatWhole(Math.round(w.monthly ?? 0)), vic), link: { label: c.energy.link(vic), external: vic ? ENERGY_COMPARE_VIC : PROGRAMS.energy_compare.url }, save: t.wins.varies };
     }
-  }), [wins, vic]);
+  }), [wins, vic, dueHref]);
   return (
     <section aria-labelledby="mp-wins-h" className={cx(card, "flex scroll-mt-[72px] flex-col gap-t3")} id="mp-wins">
       <div className="flex items-center justify-between gap-t2">
