@@ -65,17 +65,13 @@ test("cancellation helper: 'Still using Netflix?' No leads to Could save and how
   await expect(page.getByRole("dialog", { name: "How to cancel Apple iCloud" })).toContainText("iCloud storage is billed by Apple");
 });
 
-test("bill comparison: neutral pointers; a switch is noted as self-reported", async ({ page }) => {
-  await page.goto("/savings?persona=jess&present=1");
-  const section = page.getByRole("region", { name: "Compare your bills" });
-  await expect(section.getByRole("link", { name: "Compare on Energy Made Easy" })).toHaveAttribute("href", "https://www.energymadeeasy.gov.au/");
-  await section.getByRole("button", { name: "Paying less for Telstra" }).click();
-  await expect(page.getByRole("dialog")).toContainText("General information only");
+test("bill comparison (money plan's smaller wins): neutral pointers only", async ({ page }) => {
+  await page.goto("/money-plan?persona=jess&present=1");
+  const section = page.getByRole("region", { name: "Smaller wins" });
+  await expect(section.getByRole("link", { name: /Compare on Energy Made Easy/ })).toHaveAttribute("href", "https://www.energymadeeasy.gov.au/");
+  await section.getByRole("button", { name: "Ways to pay less" }).click();
+  await expect(page.getByRole("dialog", { name: "Paying less for Telstra" })).toContainText("General information only");
   await page.keyboard.press("Escape");
-  await section.getByRole("article", { name: /Telstra/ }).getByRole("button", { name: "I've switched or changed plan" }).click();
-  await page.getByLabel("About how much less each month? ($)").fill("15");
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(section.getByText("Noted: about $15 a month less (you told us)")).toBeVisible();
   await expectNoAxe(page);
 });
 

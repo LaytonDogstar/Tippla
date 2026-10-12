@@ -33,7 +33,7 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
   // The month and selected day live in the URL (shareable, survives reload) without a server round trip.
   useEffect(() => {
     const u = new URL(window.location.href);
-    ["view", "offset", "focus"].forEach((k) => u.searchParams.delete(k));
+    ["view", "offset", "focus", "from", "to"].forEach((k) => u.searchParams.delete(k));
     u.searchParams.set("month", month);
     if (lo === hi) u.searchParams.set("day", lo); else u.searchParams.delete("day");
     window.history.replaceState(window.history.state, "", u.toString());

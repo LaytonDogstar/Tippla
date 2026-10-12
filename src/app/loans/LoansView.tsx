@@ -70,7 +70,7 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
         ) : <p className="mt-t2 text-body14 text-text-muted">{t.upcoming.empty}</p>}
         <button type="button" onClick={() => setTab("upcoming")} className="mt-t2 inline-flex min-h-tap items-center gap-t1 text-body14 font-semibold text-accent">{t.seeAllUpcoming}<ChevronRight aria-hidden size={16} /></button>
       </section>
-      <CardLink icon={Flag} title={t.planLink} body={t.planLinkBody} href="/savings" as="p" />
+      <CardLink icon={Flag} title={t.planLink} body={t.planLinkBody} href="/money-plan" as="p" />
     </>
   );
 

@@ -62,7 +62,7 @@ test("Pause instead is the single optional alternative, with its effect shown be
   await expect(page.getByText("Paused. Billing resumes on Fri 30/10.")).toBeVisible();
 });
 
-const ROUTES = ["/", "/score", "/savings", "/spending", "/calendar", "/subscriptions", "/loans", "/loans/repayment", "/offers", "/help", "/hardship", "/notifications", "/account", "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/spending/compare"];
+const ROUTES = ["/", "/score", "/money-plan", "/spending", "/calendar", "/subscriptions", "/loans", "/loans/repayment", "/offers", "/help", "/hardship", "/notifications", "/account", "/account/profile", "/account/subscription", "/account/consents", "/account/bank", "/spending/compare"];
 
 test("Hardship support is always reachable: one tap from Today and the desktop rail, two taps from anywhere on phones", async ({ page, browser }) => {
   // Single-column Today (09/10/2026): "Options if money's tight" in the hero; Hardship support under More everywhere.

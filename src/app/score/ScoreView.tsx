@@ -281,7 +281,7 @@ function NextStep({ plan, action, projection, shortfall, present }: ScoreViewPro
       <div>
         <div className="flex items-center justify-between gap-t3">
           <span className="text-meta text-text-muted">{plan && current !== null ? t.next.plan(current + 1, steps.length) : t.next.nextStep}</span>
-          {plan && <Link href="/savings" className="inline-flex min-h-tap items-center text-meta font-semibold text-accent">{t.next.seePlan}</Link>}
+          {plan && <Link href="/money-plan" className="inline-flex min-h-tap items-center text-meta font-semibold text-accent">{t.next.seePlan}</Link>}
         </div>
         {plan && steps.length > 0 && (
           <div aria-hidden className="mt-t2 grid gap-[4px]" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>

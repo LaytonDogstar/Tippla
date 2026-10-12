@@ -44,7 +44,7 @@ const PLANS: Record<PlanType, StepDef[]> = {
   cut_bills: [
     { kind: "manual", label: t.steps.reviewSubs, link: "/subscriptions" },
     { kind: "manual", label: t.steps.decideSubs, link: "/subscriptions" },
-    { kind: "manual", label: t.steps.checkBills, link: "/savings#bills-h" },
+    { kind: "manual", label: t.steps.checkBills, link: "/money-plan#mp-wins" },
   ],
   pay_on_time: [
     { kind: "now", label: t.steps.reminders, ok: (c) => !c.a.notify?.paused },

@@ -38,3 +38,4 @@ export * from "./spendingCycle";
 export * from "./calendarMonth";
 export * from "./subscriptionReview";
 export * from "./scorePage";
+export * from "./moneyPlan";

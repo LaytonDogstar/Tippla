@@ -1,6 +1,6 @@
 "use client";
 // App navigation (Today redesign, 07/10/2026; reference/today-desktop-mockup.html).
-// Desktop (≥1,024): sidebar with five sections (Today · Money · Score & plan · Borrowing · Help & hardship) and the
+// Desktop (≥1,024): sidebar with five sections (Today · Money · SmartScore · Borrowing · Help & hardship) and the
 // account entry at the bottom; the active section's own pages are listed under it, so every page stays reachable.
 // Phones and tablets: fixed tab bar (Today · Money · Ask · Score · More). Ask is a raised circle; More opens a sheet
 // with Borrowing, Help & hardship and Account (Hardship support: two taps from anywhere, one tap on Today).
@@ -22,8 +22,8 @@ type Section = { section: FeedSection; href: string; label: string; icon: Lucide
 export const SECTIONS: Section[] = [
   { section: "today", href: "/", label: nav.sections.today, icon: House, pages: [{ href: "/", label: nav.home }, { href: "/progress", label: nav.items.lift }] },
   { section: "money", href: "/spending", label: nav.sections.money, icon: Wallet,
-    pages: [{ href: "/spending", label: nav.items.spending }, { href: "/calendar", label: nav.items.calendar }, { href: "/subscriptions", label: nav.items.subscriptions }] },
-  { section: "score", href: "/score", label: nav.sections.score, icon: CircleGauge, pages: [{ href: "/score", label: nav.items.smartscore }, { href: "/savings", label: nav.items.lift }] },
+    pages: [{ href: "/spending", label: nav.items.spending }, { href: "/money-plan", label: nav.items.moneyPlan }, { href: "/calendar", label: nav.items.calendar }, { href: "/subscriptions", label: nav.items.subscriptions }] },
+  { section: "score", href: "/score", label: nav.sections.score, icon: CircleGauge, pages: [{ href: "/score", label: nav.items.smartscore }] },
   { section: "borrowing", href: "/loans", label: nav.sections.borrowing, icon: CreditCard, pages: [{ href: "/loans", label: nav.items.loans }, { href: "/offers", label: nav.items.offers }] },
   { section: "help", href: "/hardship", label: nav.sections.help, icon: LifeBuoy, pages: [{ href: "/hardship", label: nav.items.hardship }, { href: "/help", label: nav.items.help }] },
 ];

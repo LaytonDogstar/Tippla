@@ -52,7 +52,7 @@ export function ProgressCard({ state, change, attribution, plan, action, project
 
       {/* No plan and nothing suggested: a way in, now there's no "Pick a goal" button on the card. */}
       {!plan && !action && (
-        <Link href="/savings" className="flex min-h-tap items-center justify-between gap-t3 rounded-inset bg-surface px-t4 py-t3">
+        <Link href="/money-plan" className="flex min-h-tap items-center justify-between gap-t3 rounded-inset bg-surface px-t4 py-t3">
           <span className="min-w-0"><strong className="block text-body14 font-bold text-text">{pr.choosePlan}</strong><span className="block text-meta text-text-muted">{pr.choosePlanBody}</span></span>
           <span aria-hidden className="text-accent">›</span>
         </Link>
@@ -60,7 +60,7 @@ export function ProgressCard({ state, change, attribution, plan, action, project
       {(plan || action) && (
         <div className="flex flex-col gap-t3 border-t border-accent-tint2 pt-t4">
           {plan && current !== null
-            ? <Link href="/savings" className="inline-flex min-h-tap items-center self-start text-meta-s font-semibold text-accent-strong underline-offset-2 hover:underline">
+            ? <Link href="/money-plan" className="inline-flex min-h-tap items-center self-start text-meta-s font-semibold text-accent-strong underline-offset-2 hover:underline">
                 {pl.step(current + 1, steps.length)}<span className="sr-only">: {plan.title}. {step?.label ?? ""}</span>
               </Link>
             : <p className="text-meta-s font-semibold text-accent-strong">{pl.nextStep}</p>}
@@ -80,7 +80,7 @@ export function ProgressCard({ state, change, attribution, plan, action, project
           )}
           {action
             ? <button type="button" onClick={onSeeHow} aria-label={`${pl.seeHow}: ${heading ?? ""}`} className="pressable flex min-h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent-strong hover:bg-accent-tint2">{pl.seeHow}</button>
-            : <Link href="/savings" className="pressable flex min-h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent-strong hover:bg-accent-tint2">{pl.seeHow}</Link>}
+            : <Link href="/money-plan" className="pressable flex min-h-[46px] items-center justify-center rounded-pill bg-surface text-body14 font-bold text-accent-strong hover:bg-accent-tint2">{pl.seeHow}</Link>}
         </div>
       )}
     </section>

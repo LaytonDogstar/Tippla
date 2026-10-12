@@ -35,8 +35,8 @@ export const TOOL_ROUTES: Record<ToolName, { href: string; label: string }> = {
   get_spending: { href: "/spending", label: "See spending" },
   get_score: { href: "/score", label: "See your SmartScore" },
   get_score_attribution: { href: "/score", label: "See what changed" },
-  simulate_score: { href: "/savings", label: "See your plan" },
-  get_plan: { href: "/savings", label: "See your plan" },
+  simulate_score: { href: "/money-plan", label: "See your plan" },
+  get_plan: { href: "/money-plan", label: "See your plan" },
   get_hardship_options: { href: "/hardship", label: "Options if money's tight" },
 };
 

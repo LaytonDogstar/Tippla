@@ -132,8 +132,8 @@ test("Today: change the goal in a sheet; the plan follows it", async ({ page }) 
   await sheet.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Goal saved" })).toBeVisible();
   await expect(page.getByRole("button", { name: /^See how: Check your subscriptions/ })).toBeVisible();
-  await page.goto("/savings?persona=jess&present=1");
-  await expect(page.getByRole("main").getByRole("article").first().getByRole("heading", { level: 2 })).toHaveText("Check your subscriptions");
+  await page.goto("/money-plan?persona=jess&present=1");
+  await expect(page.getByRole("region", { name: "Cut bills and subscriptions" })).toBeVisible();
   await expectNoAxe(page);
 });
 
