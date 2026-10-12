@@ -46,6 +46,9 @@ export const FLAGS = {
   pwa_v1: { spec: "10", description: "Installable app", built: true },
   push_v1: { spec: "10", description: "Push notifications", built: true, gate: ["G5"] },
   email_lifecycle_v1: { spec: "10", description: "Lifecycle email", built: true, gate: ["G5"] },
+  // Journeys brief A2 (12/10/2026): the Today prompt, the switch pausing lender matching, the switch in the
+  // money's-tight panel. Needs compliance sign-off: not built for anyone yet; preview with ?state=hardship_mode.
+  hardship_mode_v1: { spec: "journeys", description: "Hardship mode: prompt on strong signals, pauses lender matching", built: false },
 } satisfies Record<string, FlagDef>;
 
 export type FlagName = keyof typeof FLAGS;

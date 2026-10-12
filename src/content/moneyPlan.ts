@@ -9,7 +9,7 @@ export const moneyPlan = {
   sub: (from: string, to: string) => `Built from your last full pay cycle, ${from} – ${to}. These are options, not rules.`,
   subNoCycle: "Built from your bank data so far. These are options, not rules.",
   askPlaceholder: "Ask about your money plan",
-  sections: { progress: { title: "Your progress" }, wins: { title: "Smaller wins" } },
+  sections: { progress: { title: "Pay cycles" }, wins: { title: "Smaller wins" } },
 
   // ---- Where your money went
   went: {
@@ -100,7 +100,11 @@ export const moneyPlan = {
     monthlyAs: (amt: string) => `${amt} a month`,
     weeklyAs: (amt: string) => `${amt} a week`,
     total: "Total per pay cycle",
-    cantSee: "We can’t see what you still owe or the interest you’re paying. Each lender can give you a payout figure.",
+    cantSee: "Balances are estimates from your bank data, where we have one. We can’t see interest rates. Each lender can give you an exact payout figure.",
+    balance: (amt: string) => `Estimated balance ${amt}`,
+    balanceShared: (amt: string, others: string) => `About ${amt} left with ${others} (estimated together)`,
+    balanceNone: "Balance not available",
+    window: "a pay cycle, all repayments including pay advances",
     helpTitle: "Free help with debts",
     helpBody: "A financial counsellor can work out which debts to deal with first, and can talk to your lenders for you about lower or paused repayments. It’s free and confidential.",
     call: (name: string, phone: string) => `Call the ${name} · ${phone}`,

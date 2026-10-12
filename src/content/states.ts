@@ -30,6 +30,7 @@ export const statesCopy = {
     tight: "Tight pay cycle (bills covered, nothing spare)",
     no_bills: "No bills in the next two weeks",
     improved: "5 improving cycles (to Healthy)",
+    hardship_mode: "Preview hardship mode (not live)",
   },
   clearStates: "Clear states",
   hardshipSelf: {

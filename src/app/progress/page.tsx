@@ -21,7 +21,7 @@ export default async function Progress({ searchParams }: { searchParams: { perso
   const { data, account, edits } = await loadCustomer(persona);
   const plan = goalPlan(data, account.goal);
   return (
-    <PortalShell path="/progress" persona={persona} present={present} header={<PageHeader title={t.title} sub={t.sub} />}>
+    <PortalShell path="/progress" backHref="/money-plan" persona={persona} present={present} header={<PageHeader title={t.title} sub={t.sub} />}>
       <ProgressView persona={persona} account={account} present={present} asOf={data.asOf}
         progress={(() => { const pr = progress(data, account, edits); return isOn("streaks_v1", persona) ? pr : { ...pr, streaks: [] }; })()} plan={plan} safe={safeToSpendFor(data, account)}
         options={goalDateOptions(data)} defaultOption={DEFAULT_GOAL_OPTION} nextPayday={data.derived.pay_cycle.next_payday} />

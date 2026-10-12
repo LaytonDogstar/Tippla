@@ -141,7 +141,9 @@ test("search by merchant or amount, with a plain empty state; the double charge 
 test("gambling insight from How lenders see your spending: neutral sheet, support replaces content with Back", async ({ page }) => {
   await page.goto("/spending?persona=jess&present=1");
   const lenders = page.getByRole("region", { name: "How lenders see your spending" });
-  await expect(lenders).toContainText("3 lenders");
+  // The same repayments figure as Money plan and Borrowing (journeys A3).
+  await expect(lenders).toContainText("$668 a pay cycle");
+  await expect(lenders).toContainText("6 lenders, including pay advances");
   await expect(lenders).toContainText("1 this cycle");
   await lenders.getByRole("button", { name: /^2 deposits/ }).click();
   const sheet = page.getByRole("dialog");
@@ -172,11 +174,11 @@ test("calendar: month first, as the mockup (Jess, September 2026)", async ({ pag
   // The banner: amount and date, bills to come, excludes everyday spending (with the month's average), a way forward.
   const banner = main.getByRole("region", { name: "You're forecast to be $53 short on Wed 30/09" });
   await expect(banner).toContainText("That's after $367 of bills still to come, but before everyday spending. You've averaged about $70 a day on that this month.");
-  await expect(banner.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  await expect(banner.getByRole("button", { name: "Options if money's tight" })).toBeVisible();
   // Four stats about now.
   const stats = main.getByRole("region", { name: "Your money now" });
   await expect(stats).toContainText("Balance today$314Fri 25/09");
-  await expect(stats).toContainText("Lowest forecast−$53Wed 30/09 · day before payday");
+  await expect(stats).toContainText("Lowest forecast (bills only)−$53Wed 30/09 · day before payday");
   await expect(stats).toContainText("Bills still to come$367Telstra, Beforepay");
   await expect(stats).toContainText("Days below $010of 25 so far this month");
   // Monday-first weeks; 31/08 is a muted, non-interactive cell.

@@ -1,6 +1,7 @@
 // Page chrome. Onboarding: Back + Support header, no tabs (they'd be consent-bypassing routes before setup),
 // optional fixed footer with the primary action and a visible Hardship support link.
 // Portal: header, content padded clear of the dock, mobile dock + desktop rail, dev persona pill.
+import { BackBar, NavMemory } from "./BackBar";
 import { OnboardingStep, type OnboardingStepId } from "@/components/analytics/OnboardingStep";
 import { ChevronLeft, MessageCircle } from "lucide-react";
 import Link from "next/link";
@@ -89,7 +90,9 @@ export function PortalFrame({ path, title, backHref, persona, present, cta, head
   return (
     <div className="min-h-[100dvh] bg-bg text-text desktop:pl-sidebar">
       <div className={wide ? "mx-auto max-w-[720px] desktop:max-w-[1240px]" : "mx-auto max-w-[720px]"}>
-        {header ?? <Header backHref={backHref} title={title} />}
+        <NavMemory />
+        <BackBar fallback={backHref} />
+        {header ?? <Header title={title} />}
         {notice && <div className="px-gutter pb-t2">{notice}</div>}
         <main id="main" className={cta ? "px-gutter pb-[calc(var(--tab-bar-height)+80px+env(safe-area-inset-bottom)+16px)]" : "px-gutter pb-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom)+24px)]"}>
           {children}

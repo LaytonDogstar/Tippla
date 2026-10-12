@@ -4,26 +4,35 @@
 // "Select range"; then the detail panel for the selected day or range, which updates as the selection changes.
 // Every figure comes from calendarDays() (pending never counted), so the cells, stats and panel agree.
 import Link from "next/link";
+import { JourneyPanels, useUrlPanel } from "@/components/domain/JourneyPanels";
+import type { PanelData } from "@/lib/selectors/panels";
+import type { AccountState } from "@/lib/account/state";
+import type { PersonaId } from "@/lib/api/types";
 import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { calendarPage as t, monthLabel } from "@/content/spending";
 import { addDays as addDaysIso, formatCents, formatShortDay, formatWhole } from "@/lib/format";
 import { monthGrid, monthKey, rangeSummary, shiftMonth, type CalDay, type CalendarNow } from "@/lib/selectors/calendarMonth";
-import { bounds, initialSelection, isSelected, select } from "@/lib/calendar/selection";
+import { calendarSearch, bounds, initialSelection, isSelected, select } from "@/lib/calendar/selection";
 import { MonthCalendar } from "@/components/domain/MonthCalendar";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
 
 const signedCents = (n: number) => `${n > 0 ? "+" : "−"}${formatCents(Math.abs(n))}`;
 
-export function CalendarView({ days, now, asOf, cycles, initial, range: monthBounds, stale }: {
+export function CalendarView({ days, now, asOf, cycles, initial, range: monthBounds, stale, usualPerDay = 0, panels = null, persona, account = null }: {
   days: CalDay[]; now: CalendarNow; asOf: string;
   cycles: { last: [string, string]; this: [string, string] };
   /** The month shown first and the selection (today, a linked day, or the whole month). */
   initial: { month: string; start: string; end: string };
   range: { min: string; max: string };
   stale: { when: string } | null;
+  /** The usual everyday spending a day (figures.usualEverydayPerDay), for the "with usual spending" line. */
+  usualPerDay?: number;
+  /** Journeys A2: "Options if money's tight" opens its panel in place (?panel=tight). */
+  panels?: PanelData | null; persona?: PersonaId; account?: AccountState | null;
 }) {
+  const { open: openPanel } = useUrlPanel();
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
   const [month, setMonth] = useState(initial.month);
   const [sel, dispatch] = useReducer(select, initialSelection(initial.start, initial.end));
@@ -33,9 +42,7 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
   // The month and selected day live in the URL (shareable, survives reload) without a server round trip.
   useEffect(() => {
     const u = new URL(window.location.href);
-    ["view", "offset", "focus", "from", "to"].forEach((k) => u.searchParams.delete(k));
-    u.searchParams.set("month", month);
-    if (lo === hi) u.searchParams.set("day", lo); else u.searchParams.delete("day");
+    u.search = calendarSearch(u.searchParams, month, lo, hi).toString();
     window.history.replaceState(window.history.state, "", u.toString());
   }, [month, lo, hi]);
   // A mouse drag ends wherever the button comes up.
@@ -61,6 +68,9 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
     { label: t.quick.thisCycle, a: cycles.this[0], b: cycles.this[1] },
     { label: t.quick.month, a: monthFirst < days[0]!.date ? days[0]!.date : monthFirst, b: monthLast },
   ];
+  // "Whole month" is only an exact match when the data covers the whole month (not when the forecast stops short).
+  const monthWhole = monthLast === addDaysIso(`${shiftMonth(month, 1)}-01`, -1) && monthFirst >= days[0]!.date;
+  const exact = (q: (typeof quick)[number]) => !sel.rangeMode && lo === q.a && hi === q.b && (q.label !== t.quick.month || monthWhole);
   // Days of this month past the end of the forecast (muted in the grid): say so rather than leave blanks unexplained.
   const lastDay = days.at(-1)!.date;
   const forecastEnds = monthKey(lastDay) === month && lastDay < addDaysIso(`${shiftMonth(month, 1)}-01`, -1) ? addDaysIso(lastDay, 1) : null;
@@ -68,6 +78,7 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
 
   return (
     <div className="flex flex-col gap-t5 pb-t6">
+      {panels && persona && account && <JourneyPanels data={panels} persona={persona} account={account} />}
       {stale && (
         <p role="status" className="flex items-start gap-t2 rounded-inset bg-caution-soft px-t4 py-t3 text-body14 text-text">
           <TriangleAlert aria-hidden size={18} className="mt-[2px] shrink-0 text-caution" />
@@ -81,7 +92,7 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
         <MonthArrow dir="next" disabled={month >= monthBounds.max} onClick={() => goMonth(shiftMonth(month, 1))} />
       </div>
 
-      {now.short && (
+      {now.short && monthKey(now.short.date) === month && (
         <section aria-labelledby="short-h" className="flex flex-wrap items-center justify-between gap-t4 rounded-card-s border border-negative-soft bg-surface p-t5 shadow-card sm:rounded-card">
           <div className="flex min-w-0 flex-[1_1_420px] items-start gap-t4">
             <span aria-hidden className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-[12px] bg-negative-soft text-negative"><TriangleAlert size={20} /></span>
@@ -90,7 +101,7 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
               <p className="mt-t1 text-body14 leading-relaxed text-text-secondary">{t.banner.body(formatWhole(now.bills.total), formatWhole(now.everydayPerDay))}</p>
             </div>
           </div>
-          <ButtonLink href="/hardship" size="standard">{t.banner.options}</ButtonLink>
+          {panels ? <Button size="standard" onClick={() => openPanel("tight")}>{t.banner.options}</Button> : <ButtonLink href="/hardship" size="standard">{t.banner.options}</ButtonLink>}
         </section>
       )}
 
@@ -106,7 +117,7 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
         <div className="flex flex-wrap items-center justify-between gap-t3">
           <div role="group" aria-label={t.quick.label} className="flex flex-wrap gap-t2">
             {quick.map((q) => (
-              <QuickButton key={q.label} on={!sel.rangeMode && lo === q.a && hi === q.b} onClick={() => dispatch({ type: "set", start: q.a, end: q.b })}>{q.label}</QuickButton>
+              <QuickButton key={q.label} on={exact(q)} onClick={() => dispatch({ type: "set", start: q.a, end: q.b })}>{q.label}</QuickButton>
             ))}
           </div>
           <div className="flex items-center gap-t3">
@@ -122,7 +133,7 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
         <Legend />
       </section>
 
-      <Panel days={days} from={lo} to={hi} asOf={asOf} />
+      <Panel days={days} from={lo} to={hi} asOf={asOf} usualPerDay={usualPerDay} />
     </div>
   );
 }
@@ -178,8 +189,14 @@ function Legend() {
 
 // ---- The selected day or range -----------------------------------------------------------------------------------
 
-function Panel({ days, from, to, asOf }: { days: CalDay[]; from: string; to: string; asOf: string }) {
+function Panel({ days, from, to, asOf, usualPerDay }: { days: CalDay[]; from: string; to: string; asOf: string; usualPerDay: number }) {
   const p = t.panel;
+  // Forecast days, with the usual everyday spending taken off each day (the same sum as figures.forecastBoth).
+  const usualLow = useMemo(() => {
+    const f = days.filter((d) => d.isFuture && d.balance !== null && d.date >= from && d.date <= to)
+      .map((d) => ({ date: d.date, balance: d.balance! - usualPerDay * Math.round((Date.parse(d.date) - Date.parse(asOf)) / 86_400_000) }));
+    return f.length && usualPerDay > 0 ? f.reduce((lo, x) => (x.balance < lo.balance ? x : lo)) : null;
+  }, [days, from, to, asOf, usualPerDay]);
   const r = useMemo(() => rangeSummary(days, from, to), [days, from, to]);
   const sel = useMemo(() => days.filter((d) => d.date >= r.from && d.date <= r.to), [days, r.from, r.to]);
   const single = r.days === 1;
@@ -200,6 +217,11 @@ function Panel({ days, from, to, asOf }: { days: CalDay[]; from: string; to: str
         <PanelStat label={p.lowest} value={r.lowest ? formatWhole(r.lowest.balance) : "—"} neg={(r.lowest?.balance ?? 0) < 0}
           note={r.lowest ? formatShortDay(r.lowest.date) : undefined} className="col-span-2 min-[900px]:col-span-1" />
       </dl>
+      {r.forecastFrom && (
+        <p data-testid="forecast-note" className="text-meta text-text-secondary">
+          {p.billsOnly}{usualLow ? ` ${p.withUsual(usualLow.balance < 0 ? `−${formatWhole(-usualLow.balance)}` : formatWhole(usualLow.balance), formatShortDay(usualLow.date), formatWhole(usualPerDay))}` : ""}
+        </p>
+      )}
       {!single && <BalanceBars days={sel} from={r.from} to={r.to} lowest={r.lowest} />}
       <div className="flex flex-col gap-t3">
         {sel.map((d) => <DayGroup key={d.date} day={d} asOf={asOf} />)}

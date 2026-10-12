@@ -67,7 +67,7 @@ const ROUTES = ["/", "/score", "/money-plan", "/spending", "/calendar", "/subscr
 test("Hardship support is always reachable: one tap from Today and the desktop rail, two taps from anywhere on phones", async ({ page, browser }) => {
   // Single-column Today (09/10/2026): "Options if money's tight" in the hero; Hardship support under More everywhere.
   await page.goto("/?persona=jess&present=1");
-  await expect(page.getByRole("region", { name: "This pay cycle" }).getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  await expect(page.getByRole("region", { name: "This pay cycle" }).getByRole("button", { name: "Options if money's tight" })).toBeVisible();
   for (const r of ROUTES) {
     await page.goto(`${r}?persona=jess&present=1`);
     await expect(page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: /^More/ }), r).toBeInViewport();

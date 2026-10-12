@@ -2,9 +2,9 @@
 // the past, never a failure. No comparisons with other people.
 
 export const progressCopy = {
-  title: "Your progress",
-  sub: "How things are going, pay cycle by pay cycle",
-  homeLink: "Your progress",
+  title: "Pay cycles",
+  sub: "How each pay cycle went, one after another",
+  homeLink: "Pay cycles",
   homeNoGoal: "See how things are going, and set a goal if you want one",
   homeGoal: (amt: string, date: string, pct: number) => `Goal: ${amt} left by ${date} · ${pct}% there`,
   homeGoalPending: (amt: string, date: string) => `Goal: ${amt} left by ${date}`,

@@ -1,4 +1,5 @@
 // P11 Hardship support: relief, not embarrassment. Every option is optional; nothing here tells a lender.
+import { hardshipModeOn } from "@/lib/hardshipMode";
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import { activeLoans, otherCredit } from "@/lib/selectors";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function Hardship({ searchParams }: { searchParams: { persona?: string; present?: string; followup?: string } }) {
   const persona = currentPersona(searchParams.persona);
   const present = presentationMode(searchParams.present);
-  const { data, account } = await loadCustomer(persona);
+  const { data, account, states } = await loadCustomer(persona);
   const lenders = [...activeLoans(data).map((l) => l.provider), ...otherCredit(data).map((o) => o.provider)];
   // Spec 06: pre-fill the letter, soonest repayment first (Jess: Beforepay $315 due Wed 30/09).
   const autofill = isOn("hardship_autofill_v1", persona);
@@ -23,7 +24,7 @@ export default async function Hardship({ searchParams }: { searchParams: { perso
   return (
     <PortalShell path="/hardship" persona={persona} present={present} wide header={<PageHeader title={t.title} sub={t.sub} action={<HardshipInfoButton />} />}>
       <HardshipView persona={persona} account={account} present={present} lenders={[...new Set(lenders)]} asOf={data.asOf}
-        letter={autofill ? { prefill, name: data.profile.full_name } : null} followup={followup} />
+        letter={autofill ? { prefill, name: data.profile.full_name } : null} followup={followup} hardshipMode={hardshipModeOn(persona, states)} />
     </PortalShell>
   );
 }

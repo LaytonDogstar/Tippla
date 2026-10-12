@@ -22,8 +22,10 @@ export const SHOW_LEFT_ON_CROSSING_ROW = true;
 
 const signed = (n: number) => `${n < 0 ? "−" : ""}${formatWhole(Math.abs(n))}`;
 
-export function ComingUp({ blocks, pauseHref = "/account/subscription", onBill }: {
+export function ComingUp({ blocks, pauseHref = "/account/subscription", onBill, onTight }: {
   blocks: ComingUpBlocks; pauseHref?: string;
+  /** Opens the money's-tight panel (journeys A2); without it, the link goes to Hardship support. */
+  onTight?: () => void;
   /** A bill's name before payday opens what's due (with "Not right?" corrections): the hero no longer has that button. */
   onBill?: () => void;
 }) {
@@ -45,7 +47,7 @@ export function ComingUp({ blocks, pauseHref = "/account/subscription", onBill }
               </div>
               <span className={cx("tnum text-[0.9375rem] font-bold", blocks.balanceNow < 0 ? "text-negative" : "text-text")}>{signed(blocks.balanceNow)}</span>
             </li>
-            {before.map((r) => <Row key={key(r)} r={r} pauseHref={pauseHref} onBill={onBill} />)}
+            {before.map((r) => <Row key={key(r)} r={r} pauseHref={pauseHref} onBill={onBill} onTight={onTight} />)}
           </ul>
           <p className={cx("tnum flex items-baseline justify-between gap-t3 border-t-2 border-text pt-t2 text-[0.9375rem] font-bold", short ? "text-negative" : "text-text")}>
             <span className="inline-flex items-center gap-t1">{short && <TriangleAlert aria-hidden size={16} strokeWidth={2} />}{short ? t.shortBefore : t.leftBefore}</span>
@@ -83,7 +85,7 @@ export function ComingUp({ blocks, pauseHref = "/account/subscription", onBill }
 
 const key = (r: ComingUpRow) => `${r.kind}-${r.name}-${r.date}`;
 
-function Row({ r, pauseHref, onBill }: { r: ComingUpRow; pauseHref: string; onBill?: () => void }) {
+function Row({ r, pauseHref, onBill, onTight }: { r: ComingUpRow; pauseHref: string; onBill?: () => void; onTight?: () => void }) {
   const title = r.kind === "tippla" ? t.tippla : r.name;
   const kind = r.kind === "payAdvance" ? t.advanceSub : r.kind === "income" ? t.payday : null;
   const status = r.kind === "tippla" ? null : t.qualifier[r.qualifier];
@@ -97,9 +99,13 @@ function Row({ r, pauseHref, onBill }: { r: ComingUpRow; pauseHref: string; onBi
         <p className="text-meta-s text-text-muted">{sub}</p>
         {r.kind === "tippla" && <Link href={pauseHref} className="inline-flex min-h-tap items-center text-meta font-semibold text-accent underline-offset-2 hover:underline">{t.pauseThisMonth}</Link>}
         {r.takesBelowZero && (
-          <Link href="/hardship" className="inline-flex min-h-tap items-center gap-t1 text-meta font-semibold text-negative underline underline-offset-2">
-            <TriangleAlert aria-hidden size={14} strokeWidth={2} />{t.belowZero} · {t.seeOptions}
-          </Link>
+          onTight
+            ? <button type="button" onClick={onTight} className="inline-flex min-h-tap items-center gap-t1 text-left text-meta font-semibold text-negative underline underline-offset-2">
+                <TriangleAlert aria-hidden size={14} strokeWidth={2} />{t.belowZero} · {t.seeOptions}
+              </button>
+            : <Link href="/hardship" className="inline-flex min-h-tap items-center gap-t1 text-meta font-semibold text-negative underline underline-offset-2">
+                <TriangleAlert aria-hidden size={14} strokeWidth={2} />{t.belowZero} · {t.seeOptions}
+              </Link>
         )}
       </div>
       <Amounts r={r} hideLeft={r.takesBelowZero && !SHOW_LEFT_ON_CROSSING_ROW} />

@@ -20,7 +20,7 @@ import { cycleDays, dueCoverage, heroState, type HeroState } from "@/lib/selecto
 const t = todayCopy.hero;
 const DOT: Record<HeroState, string> = { short: "bg-hero-negative-mark", tight: "bg-hero-caution-mark", onTrack: "bg-hero-positive-mark" };
 
-export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trackSafe = true, ask = true, onSafe, onAdvance }: {
+export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trackSafe = true, ask = true, usual, onSafe, onAdvance, onTight }: {
   /** Unused since 09/10/2026 (Ask Tippla is the header bar). */
   ask?: boolean;
   pc: PayCycleSummary; safe: SafeToSpend; asOf: string;
@@ -34,6 +34,10 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
   trackSafe?: boolean;
   /** Unused since 09/10/2026 (Coming up sits under the hero); kept so callers needn't change. */
   onDue?: () => void; onSafe: () => void; onAdvance: () => void;
+  /** Opens the money's-tight panel; without it the button goes to Hardship support. */
+  onTight?: () => void;
+  /** The lowest balance before payday with the usual everyday spending too (figures.shortBeforePayday). Shown when below $0. */
+  usual?: { balance: number; date: string; perDay: number } | null;
 }) {
   const state = heroState(pc, safe);
   useEffect(() => {
@@ -78,6 +82,9 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
             <span aria-hidden className="mt-t2 block text-[0.9375rem] leading-[1.375rem] text-hero-on-muted sm:text-[1rem] sm:leading-6">{line} <strong className="font-bold text-hero-on">{payday}</strong></span>
             <span className="sr-only">{sr}</span>
           </p>
+          {usual && usual.balance < 0 && (
+            <p data-testid="hero-usual" className="mt-t2 text-meta text-hero-on">{t.withUsual(formatWhole(-usual.balance), formatShortDay(usual.date), formatWhole(usual.perDay))}</p>
+          )}
           {/* Short: the headline is balance minus what's due, itemised in Coming up below. */}
           {state !== "short" && (
             <div className="mt-t2 flex flex-wrap items-center gap-t2">
@@ -139,7 +146,9 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
 
       {/* One action (09/10/2026): Ask Tippla is the header bar and what's due is Coming up, right under the hero. */}
       <div className="flex flex-col items-stretch gap-t2 sm:flex-row sm:gap-t3">
-        <Link href="/hardship" className="pressable flex min-h-[48px] items-center justify-center rounded-pill bg-hero-on px-t5 py-t2 text-center text-[0.9375rem] font-bold text-hero-from sm:flex-1">{t.moneyTight}</Link>
+        {onTight
+          ? <button type="button" onClick={onTight} className="pressable flex min-h-[48px] items-center justify-center rounded-pill bg-hero-on px-t5 py-t2 text-center text-[0.9375rem] font-bold text-hero-from sm:flex-1">{t.moneyTight}</button>
+          : <Link href="/hardship" className="pressable flex min-h-[48px] items-center justify-center rounded-pill bg-hero-on px-t5 py-t2 text-center text-[0.9375rem] font-bold text-hero-from sm:flex-1">{t.moneyTight}</Link>}
       </div>
     </HeroCard>
   );

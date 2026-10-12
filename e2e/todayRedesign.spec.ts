@@ -11,7 +11,7 @@ test.describe("hero states", () => {
     await page.goto("/?persona=jess&present=1&state=none");
     await expect(page.getByTestId("hero-pill")).toHaveText("Short before payday");
     await expect(page.getByTestId("hero-amount")).toContainText("About $53 short of what's due before payday on Thu 01/10");
-    await expect(hero(page).getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+    await expect(hero(page).getByRole("button", { name: "Options if money's tight" })).toBeVisible();
     // Pay advance: labelled not income, with what's paid back and when.
     await expect(hero(page).getByText("Pay advance (not income)")).toBeVisible();
     await expect(hero(page).getByText("$315 back 30/09")).toBeVisible();
@@ -33,18 +33,18 @@ test("single column (09/10/2026): the sections in order, no quick actions, one c
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/?persona=jess&present=1&state=none");
-    const order = ["This pay cycle", "Coming up", "Needs a look", "Spending", "Your progress", /^We got .+ wrong$/];
+    const order = ["This pay cycle", "Coming up", "Needs a look", "Spending", "SmartScore history", /^We got .+ wrong$/];
     const tops: number[] = [];
     for (const name of order) tops.push((await page.getByRole("region", { name }).first().boundingBox())!.y);
     expect(tops, `${width}`).toEqual([...tops].sort((a, b) => a - b));
-    const xs = await Promise.all(["This pay cycle", "Spending", "Your progress"].map(async (n) => (await page.getByRole("region", { name: n }).first().boundingBox())!.x));
+    const xs = await Promise.all(["This pay cycle", "Spending", "SmartScore history"].map(async (n) => (await page.getByRole("region", { name: n }).first().boundingBox())!.x));
     expect(new Set(xs.map(Math.round)).size, `${width}: one column`).toBe(1);
     await expect(page.getByRole("navigation", { name: "Quick actions" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "See what's due" })).toHaveCount(0);
   }
   // The hero's one action: options if money's tight (Ask Tippla is the header bar; what's due is Coming up).
   const hero = page.getByRole("region", { name: "This pay cycle" });
-  await expect(hero.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  await expect(hero.getByRole("button", { name: "Options if money's tight" })).toBeVisible();
   await expect(hero.getByRole("link", { name: "Ask Tippla" })).toHaveCount(0);
   await expect(page.getByRole("search").getByRole("button", { name: "Ask Tippla" })).toBeVisible();
 });
@@ -142,7 +142,7 @@ test.describe("empty states", () => {
   test("new member with no SmartScore yet (Priya)", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?persona=priya&present=1&state=none");
-    await expect(page.getByRole("region", { name: "Your progress" }).getByText("Not enough history yet")).toBeVisible();
+    await expect(page.getByRole("region", { name: "SmartScore history" }).getByText("Not enough history yet")).toBeVisible();
   });
 });
 

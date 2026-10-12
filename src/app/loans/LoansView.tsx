@@ -4,6 +4,9 @@ import type { PersonaId } from "@/lib/api/types";
 import { RuleChoiceSheet, LOAN_OPTIONS } from "@/components/domain/RuleChoice";
 import { correctionCopy } from "@/content/corrections";
 import Link from "next/link";
+import { JourneyPanels, useUrlPanel } from "@/components/domain/JourneyPanels";
+import type { PanelData } from "@/lib/selectors/panels";
+import type { AccountState } from "@/lib/account/state";
 import { useEffect, useState } from "react";
 import { loansPage as t } from "@/content/account";
 import { copy } from "@/content/en-AU";
@@ -21,18 +24,22 @@ type Tab = "overview" | "upcoming" | "history" | "other";
 const TABS: Tab[] = ["overview", "upcoming", "history", "other"];
 const money = (n: number) => (Number.isInteger(n) ? formatWhole(n) : formatCents(n));
 
-export function LoansView({ persona, corrections = false, initialTab, initialProvider, loans, other, totals, advance, upcoming, history, failed, offersCount, showOffers = true }: {
+export function LoansView({ persona, corrections = false, initialTab, initialProvider, loans, other, totals, advance, upcoming, history, failed, offersCount, showOffers = true, repay = null, panels = null, account = null, initialFix = null }: {
   /** UX round 2, 2.2 (shouldShowLenderOffers): no offers link during a debt plan or when finding things hard. */
   showOffers?: boolean;
   persona: PersonaId; corrections?: boolean;
   initialTab?: string; initialProvider: string | null; loans: Loan[]; other: OtherCredit[]; totals: ReturnType<typeof loanTotals>;
+  repay?: { perCycle: number; count: number; advances: boolean } | null;
+  /** Journeys A2: each lender opens the shared lender panel (?panel=lender:<name>); ?fix=<name> opens "Not right?". */
+  panels?: PanelData | null; account?: AccountState | null; initialFix?: string | null;
   advance: PayAdvance | null; upcoming: Record<30 | 60 | 90, UpcomingRepayment[]>; history: HistoryMonth[];
   failed: ReturnType<typeof failedPayments>; offersCount: number;
 }) {
   const [tab, setTab] = useState<Tab>(TABS.includes(initialTab as Tab) ? (initialTab as Tab) : "overview");
   const [range, setRange] = useState<30 | 60 | 90>(30);
   const [provider, setProvider] = useState<string | null>(initialProvider);
-  const [fixing, setFixing] = useState<string | null>(null);
+  const [fixing, setFixing] = useState<string | null>(corrections ? initialFix : null);
+  const { open: openPanel } = useUrlPanel();
   useEffect(() => {
     const u = new URL(window.location.href);
     if (tab === "overview") u.searchParams.delete("tab"); else u.searchParams.set("tab", tab);
@@ -41,10 +48,12 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
   }, [tab, provider]);
 
   const saccs = loans.filter((l) => l.type === "SACC");
-  const combined = saccs.length > 1 ? copy.loans.combinedBalance(formatWhole(totals.saccOutstanding), saccs.length) : undefined;
+  const combined = saccs.length > 1 ? copy.loans.combinedBalance(formatWhole(totals.saccOutstanding), listNames(saccs.map((l) => l.provider))) : undefined;
   const bnpl = other.filter((o) => o.kind === "bnpl");
   const advances = other.filter((o) => o.kind === "wage_advance");
-  const viewRepayments = (p: string) => { setProvider(p); setTab("history"); window.scrollTo({ top: 0 }); };
+  const viewHistory = (p: string) => { setProvider(p); setTab("history"); window.scrollTo({ top: 0 }); };
+  // The lender panel when it can show this lender; otherwise straight to its repayment history.
+  const viewRepayments = (p: string) => (panels?.lenders.some((l) => l.provider === p) ? openPanel(`lender:${p}`) : viewHistory(p));
 
   const next3 = upcoming[30].slice(0, 3);
   // Rail (UX round 2, 4.1): the debt-to-income summary, the next three repayments and the plan.
@@ -76,6 +85,7 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
 
   return (
     <div className="pb-t6">
+      {panels && account && <JourneyPanels data={panels} persona={persona} account={account} />}
       <PageColumns railLabel={t.railLabel} rail={rail} main={<>
       <RuleChoiceSheet persona={persona} merchant={fixing ?? ""} title={fixing ? correctionCopy.loan.title(fixing) : ""} options={LOAN_OPTIONS} open={!!fixing} onClose={() => setFixing(null)} scoreNote />
       <SegmentedControl label={t.tabsLabel} value={tab} onChange={setTab} options={TABS.map((v) => ({ value: v, label: t.tabs[v] }))} />
@@ -92,6 +102,7 @@ export function LoansView({ persona, corrections = false, initialTab, initialPro
                   onViewRepayments={() => viewRepayments(l.provider)} onNotRight={corrections ? () => setFixing(l.provider) : undefined} />
               ))}
               {totals.totalOutstanding > 0 && <p className="tnum px-t1 text-small text-text-muted">{t.totalLeft(formatWhole(totals.totalOutstanding))}</p>}
+              {repay && repay.count > 0 && <p data-testid="repay-per-cycle" className="tnum px-t1 text-small text-text-secondary">{t.repayPerCycle(formatWhole(Math.round(repay.perCycle)), repay.count, repay.advances)}</p>}
             </>
           ) : <p className="rounded-card-s bg-surface shadow-card sm:rounded-card p-t5 text-small text-text">{t.noLoans}</p>}
           <CreditGroups bnpl={bnpl} advances={advances} advance={advance} onView={viewRepayments} />
@@ -210,3 +221,5 @@ function CreditGroups({ bnpl, advances, advance, onView }: { bnpl: OtherCredit[]
     </>
   );
 }
+
+const listNames = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0] ?? "");

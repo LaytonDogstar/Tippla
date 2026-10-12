@@ -3,7 +3,7 @@
 // selectors Today uses (and the server-rendered Today agrees via the edits cookie). Header as on Today.
 import { loadCustomer } from "@/lib/customer";
 import { categoryEdits, currentPersona, presentationMode } from "@/lib/persona";
-import { gamblingInsight, notifications, payCycleSummary, unreadCount, type SpendData } from "@/lib/selectors";
+import { gamblingInsight, loanBalance, panelData, notifications, payCycleSummary, repayments, unreadCount, type SpendData } from "@/lib/selectors";
 import { formatUpdated } from "@/lib/format";
 import { duplicateCharge } from "@/lib/feed/rules/duplicateCharge";
 import { isOn } from "@/config/featureFlags";
@@ -38,6 +38,9 @@ export default async function Spending({ searchParams }: { searchParams: Search 
         doubles={doubles}
         asOf={data.asOf}
         hideGambling={!!account.hideGambling}
+        panels={panelData(data, account, categoryEdits(persona), { letter: isOn("hardship_autofill_v1", persona) })}
+        panelsAccount={account}
+        repay={(() => { const r = repayments(data, categoryEdits(persona)); return { ...r, balances: Object.fromEntries(r.lenders.map((l) => [l.provider, loanBalance(data, l.provider)])) }; })()}
         gambling={account.hideGambling ? null : (() => { const g = gamblingInsight(data); return g ? { pctOfIncome90: g.pctOfIncome90, factor: g.factor } : null; })()}
         corrections={isOn("corrections_v1", persona) ? { oneOff: data.memberRules?.oneOffIncome ?? [], regular: data.memberRules?.regularIncome ?? [] } : null}
       />

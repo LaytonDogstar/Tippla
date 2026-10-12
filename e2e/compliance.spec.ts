@@ -18,6 +18,8 @@ test("rule 3: Jess is short before payday, and hardship is one tap from Today", 
   await page.goto("/?persona=jess&present=1&state=none");
   // Single-column Today: next to the shortfall in the hero, and on the payment that takes her below $0.
   await expect(page.getByRole("region", { name: "Coming up" }).getByRole("link", { name: "This takes you below $0 · See your options" })).toHaveAttribute("href", "/hardship");
-  await page.getByRole("region", { name: "This pay cycle" }).getByRole("link", { name: "Options if money's tight" }).click();
+  // The hero's "Options if money's tight" opens the graduated panel (journeys A2), which ends with all hardship support.
+  await page.getByRole("region", { name: "This pay cycle" }).getByRole("button", { name: "Options if money's tight" }).click();
+  await page.getByRole("dialog", { name: "Options if money's tight" }).getByRole("link", { name: "All hardship support" }).click();
   await expect(page.getByRole("heading", { name: "Hardship support" })).toBeVisible();
 });

@@ -44,6 +44,9 @@ import type { Streak } from "@/lib/selectors/progress";
 import type { PlanProgress } from "@/lib/selectors/plans";
 import type { ForecastPoint } from "@/lib/selectors/forecastAccuracy";
 import { PayCycleHero } from "@/components/today/PayCycleHero";
+import { JourneyPanels, useUrlPanel } from "@/components/domain/JourneyPanels";
+import { HardshipPrompt } from "@/components/domain/HardshipSwitch";
+import type { PanelData } from "@/lib/selectors/panels";
 import { NeedsALook } from "@/components/today/NeedsALook";
 import { SmartScoreCard } from "@/components/today/SmartScoreCard";
 import { ComingUp } from "@/components/today/ComingUp";
@@ -55,7 +58,7 @@ import { todayCopy } from "@/content/today";
 
 type SheetId = "due" | "advance" | "action" | "safe" | "tally" | "adjust" | null;
 
-export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, spending, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, chips = false, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, notice, plan, focusGoal, progressText, bufferSteps, milestones, surplus, moment, savingsLines, flags }: {
+export function HomeView({ persona, account, checked, feedItems, attribution, asOf, score, change, trend, action, projection, payCycle, spending, coming, lapsed, safe, checkIn, recap, feesAvoided, tally, present, movement, adjustBills, oneOffDates, focus, payPending, chips = false, goalLabel, firstPayday, recapLead, accuracyLine, miss, stsPaused, notice, plan, focusGoal, progressText, bufferSteps, milestones, surplus, moment, savingsLines, flags, usualShort = null, panels = null, hardshipPrompt = false }: {
   persona: PersonaId; account: AccountState; checked: string; feedItems: FeedItem[]; attribution: ScoreAttribution | null;
   asOf: string; lapsed?: boolean; score: ScoreState; change: { delta: number; since: string } | null; trend: { date: string; score: number }[];
   action: FirstAction | null; projection: ScoreProjection | null; payCycle: PayCycleSummary;
@@ -78,9 +81,16 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
   bufferSteps?: { extra: number[]; next: number | null } | null; milestones?: Streak[]; surplus?: number | null; moment?: StageMoment | null; savingsLines?: string[];
   /** Feature flags (retention pack): each part of Today can be switched off. */
   flags: { feed: boolean; safe: boolean; tally: boolean; buffer: boolean; corrections?: boolean; assistant?: boolean };
+  /** Short before payday with the usual everyday spending (figures.shortBeforePayday). */
+  usualShort?: { balance: number; date: string; perDay: number } | null;
+  /** Journeys brief A2: gambling and money's-tight panels open in place (?panel=). */
+  panels?: PanelData | null;
+  /** Hardship mode (flag): the one-time prompt on strong signals. */
+  hardshipPrompt?: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
+  const { open: openPanel } = useUrlPanel();
   const { account: acct, update } = useAccount(persona, account);
   const trying = (acct.actions ?? []).some((a) => a.type === "skip_advance");
   const tryThis = () => {
@@ -144,14 +154,16 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
     <div className={`mx-auto flex w-full max-w-[660px] flex-col ${GROUP_GAP}`}>
       {chips && <SectionChips label={sec.label} items={[{ id: "t-now", label: sec.chips.now }, { id: "t-cycle", label: sec.chips.cycle }, { id: "t-longer", label: sec.chips.longer }]} />}
       <Section id="t-now" n={1} title={sec.now.title} desc={sec.now.desc}>
-        <PayCycleHero pc={payCycle} safe={safe} asOf={asOf} stsPaused={!!stsPaused} notice={notice} trackSafe={flags.safe && !checkIn}
+        {hardshipPrompt && <HardshipPrompt persona={persona} account={account} asOf={asOf} />}
+        <PayCycleHero pc={payCycle} safe={safe} asOf={asOf} usual={usualShort} stsPaused={!!stsPaused} notice={notice} trackSafe={flags.safe && !checkIn}
           movement={movement ? safeCopy.up(formatWhole(movement.up), movement.since) : null}
-          onSafe={() => setSheet("safe")} onAdvance={() => setSheet("advance")} />
+          onSafe={() => setSheet("safe")} onAdvance={() => setSheet("advance")} onTight={() => openPanel("tight")} />
         {loop}
         <ComingUp blocks={coming} onBill={() => setSheet("due")} />
+        {panels && <JourneyPanels data={panels} persona={persona} account={account} asOf={asOf} />}
         {flags.feed && <NeedsALook persona={persona} account={account} items={feedItems} asOf={asOf} payday={payCycle.nextPayday} checked={checked} max={2} />}
       </Section>
-      <Section id="t-cycle" n={2} title={sec.cycle.title} desc={sec.cycle.desc}><SpendingSummary v={spending} /></Section>
+      <Section id="t-cycle" n={2} title={sec.cycle.title} desc={sec.cycle.desc}><SpendingSummary v={spending} gamblingPanel={!!panels?.gambling} /></Section>
       <Section id="t-longer" n={3} title={sec.longer.title} desc={sec.longer.desc}>
         <ProgressCard state={score} change={change} attribution={attribution} plan={plan ?? null}
           action={action ? { title: action.title, summary: action.wouldChange ?? action.summary } : null} projection={projection} onSeeHow={() => setSheet("action")} />
@@ -180,7 +192,7 @@ export function HomeView({ persona, account, checked, feedItems, attribution, as
             {action.id === "pay-advance" && (trying
               ? <p role="status" className="text-small text-text-muted">{tallyCopy.tryingNote}</p>
               : <Button full onClick={tryThis}>{tallyCopy.tryThis}</Button>)}
-            {action.ifYouWant && <><Button full variant={action.id === "pay-advance" ? "secondary" : "primary"} onClick={() => setSheet("due")}>{t.dueTitle}</Button><Button full variant="link" onClick={() => router.push("/hardship")}>{todayCopy.hero.moneyTight}</Button></>}
+            {action.ifYouWant && <><Button full variant={action.id === "pay-advance" ? "secondary" : "primary"} onClick={() => setSheet("due")}>{t.dueTitle}</Button><Button full variant="link" onClick={() => { setSheet(null); openPanel("tight"); }}>{todayCopy.hero.moneyTight}</Button></>}
           </> : undefined}>
           <InsightSheetBody item={{ id: action.id, context: action.factor, title: action.title, summary: action.summary, happening: action.happening, wouldChange: action.wouldChange, ifYouWant: action.ifYouWant }} />
           {/* Goal setting lives here (and on Details) since the progress card has one button (09/10/2026). */}
