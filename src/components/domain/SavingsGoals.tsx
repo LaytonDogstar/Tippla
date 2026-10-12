@@ -1,6 +1,6 @@
 "use client";
 // Spec 07 §3 named savings goals: a name, an amount and a date; progress from a linked savings account's
-// balance; the amount to put aside each pay cycle. One goal at Healthy, up to three at Thriving.
+// balance; the amount to put aside each pay cycle. One goal once the buffer goal is reached (or at Healthy), up to three at Thriving.
 import { useState } from "react";
 import { savingsCopy as t } from "@/content/plans";
 import { formatDayMonth, formatWhole } from "@/lib/format";
@@ -38,7 +38,7 @@ export function SavingsGoals({ persona, account, asOf, goals, limit, savingsAcco
   return (
     <section id="savings" aria-labelledby="savings-h" className="mt-t3 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
       <h2 id="savings-h" className="text-card text-text sm:text-card-l">{t.heading}</h2>
-      {limit === 0 ? <p className="mt-t1 text-small text-text-muted">{t.locked}</p> : (
+      {limit === 0 ? <p className="mt-t1 text-small text-text-muted">{account.goal ? t.locked : t.lockedNoGoal}</p> : (
         <>
           <p className="mt-t1 text-small text-text-muted">{t.intro}{limit > 1 ? ` ${t.max(limit)}` : ""}</p>
           <ul className="mt-t3 flex flex-col gap-t3">

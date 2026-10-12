@@ -61,7 +61,8 @@ test("savings goals at Healthy (Marcus): name, amount, date; amount per pay cycl
   await expect(s.getByRole("button", { name: "Add a savings goal" })).toHaveCount(0); // one at Healthy
   await expectNoAxe(page);
   await page.goto("/progress?persona=jess&present=1");
-  await expect(page.getByRole("region", { name: "Savings goals" })).toContainText("Savings goals open up at Healthy");
+  // Not tied to the score: once her buffer goal is reached Jess could add one; until then the buffer comes first.
+  await expect(page.getByRole("region", { name: "Savings goals" })).toContainText("Your buffer comes first. Set a buffer goal above; once you reach it, you can add a small savings goal too.");
 });
 
 test("payday surplus: 'Move $50 to your buffer?' protects it in safe to spend", async ({ page }) => {

@@ -94,7 +94,8 @@ export const savingsCopy = {
   reached: "Reached",
   checkIn: (name: string, amt: string) => `${name}: put aside about ${amt} this pay cycle`,
   invalid: "Enter a name, an amount between $10 and $50,000 and a date after today",
-  locked: "Savings goals open up at Healthy. Your buffer comes first.",
+  locked: "Your buffer comes first. Once you reach your buffer goal above, you can add a small savings goal too.",
+  lockedNoGoal: "Your buffer comes first. Set a buffer goal above; once you reach it, you can add a small savings goal too.",
   max: (n: number) => `Up to ${n} at once.`,
   created: "Savings goal saved",
 };

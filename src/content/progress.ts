@@ -12,6 +12,8 @@ export const progressCopy = {
   goal: {
     heading: "Your goal",
     none: "Pick an amount to have left the day before payday. We'll build it into your safe-to-spend figure, a bit each pay cycle.",
+    /** When Today isn't showing a safe-to-spend figure (short or tight), don't promise one. */
+    noneNoSafe: "Pick an amount to have left the day before payday. We'll work out how much to aim for each pay cycle, and show here how each one went.",
     set: "Set a goal",
     target: (amt: string, date: string) => `${amt} left the day before payday, by ${date}`,
     thisCycle: (amt: string, date: string) => `This pay cycle, aim to have ${amt} left on ${date}.`,
@@ -40,7 +42,12 @@ export const progressCopy = {
 
   cycles: {
     heading: "Money left the day before payday",
-    intro: "Your balance at the end of each of your last pay cycles.",
+    intro: "Your balance the day before each payday. This pay cycle is a forecast.",
+    current: (a: string, b: string) => `${a} – ${b} · this pay cycle`,
+    /** Worded like the completed rows: "Below $0 (…)" or "… left", marked as a forecast. */
+    forecast: (amt: string, below: boolean) => (below ? `Below $0 (about ${amt}, forecast)` : `About ${amt} left (forecast)`),
+    forecastNote: (perDay: string, bills: string) => `With your usual everyday spending (about ${perDay} a day). Counting bills only: ${bills}.`,
+    seeCalendar: "See it on the calendar",
     row: (a: string, b: string) => `${a} – ${b}`,
     left: (amt: string) => `${amt} left`,
     below: "Below $0",
@@ -54,17 +61,21 @@ export const progressCopy = {
     no_advance: (n: number) => `${n} pay cycles in a row without a new pay advance`,
     no_failed_payment: (n: number) => `${n} pay cycles in a row with no failed payments`,
     money_left: (n: number) => `${n} pay cycles in a row with money left before payday`,
-    none: "When something goes well two pay cycles in a row, like no new pay advance, it shows up here.",
+    none: "When something goes well, like spending less than at this point last cycle, it shows up here.",
+    soFar: "So far this pay cycle",
+    everyday_less: (amt: string) => `${amt} less on everyday spending than at this point last cycle`,
+    gambling_less: (amt: string) => `${amt} less on gambling than at this point last cycle`,
+    inARow: "Pay cycles in a row",
   },
 
   timeline: {
-    heading: "Your SmartScore and what you did",
-    score: (n: number) => `SmartScore ${n}`,
+    heading: "What you did",
     cancelled_subscription: (m: string) => `You marked ${m} as cancelled`,
     skip_advance: "You chose to skip the next pay advance",
     acted_on_bill: (m: string) => `You acted on the ${m} payment`,
-    none: "Things you do in Tippla, like cancelling a subscription, show here next to your score.",
   },
+
+  scoreLink: "See your SmartScore over time",
 
   tally: { heading: "Tippla has helped you save", see: "What we've counted" },
 } as const;

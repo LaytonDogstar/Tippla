@@ -91,6 +91,8 @@ export const attributionCopy = {
     loanPaidOff: (provider: string) => `${provider} paid off`,
     /** Pay-cycle figures, the same ones Today, Money plan and the gambling panel use. */
     gambling: (now: string, last: string) => `Gambling: ${now} so far this pay cycle, ${last} last pay cycle`,
+    /** Appended when there's alcohol spending: the factor is "Gambling & alcohol spending". */
+    alcohol: (perMonth: string) => `. Alcohol: about ${perMonth} a month over the last 90 days`,
     gamblingShort: "gambling deposits",
     dishonour: (n: number) => (n === 1 ? "1 payment didn't go through" : `${n} payments didn't go through`),
     dishonourShort: "failed payment",

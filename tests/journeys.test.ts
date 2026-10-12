@@ -2,7 +2,7 @@
 // the calendar's URL round-trip, the panels' data, and hardship mode's signals and flag.
 import { describe, expect, it } from "vitest";
 import {
-  calendarDays, forecastBoth, gamblingPanel, hardshipSignals, lenderViews, lenders, loanBalance, lowestBoth, payCycleSummary, repayments,
+  calendarDays, cycleWins, currentCycleForecast, forecastBoth, gamblingPanel, goalPlan, savingsGoalLimit, hardshipSignals, lenderViews, lenders, loanBalance, lowestBoth, payCycleSummary, repayments,
   sharedSmallLoans, shortBeforePayday, tightPanel, usualEverydayPerDay,
 } from "@/lib/selectors";
 import { ORIGIN_PARAM, backTarget, originOf, pageName, safeFrom, withFrom } from "@/lib/nav/back";
@@ -157,5 +157,27 @@ describe("hardship mode", () => {
   it("off for everyone until signed off; previewable with the dev state", () => {
     expect(hardshipModeOn("jess")).toBe(false);
     expect(hardshipModeOn("jess", ["hardship_mode"])).toBe(true);
+  });
+});
+
+describe("Pay cycles", () => {
+  it("this pay cycle as a forecast row: the same −$483 / −$53 as Today and Calendar", async () => {
+    const d = await load("jess");
+    const c = currentCycleForecast(d)!;
+    expect(c.cycle).toEqual({ start: "2026-09-17", end: "2026-09-30" });
+    expect(c.withEveryday).toBe(shortBeforePayday(d).withEveryday!.balance);
+    expect(r(c.billsOnly)).toBe(-53);
+  });
+  it("going well so far: Today's everyday comparison and the gambling panel's, only when down; gambling hidden stays hidden", async () => {
+    const d = await load("jess");
+    expect(cycleWins(d)).toEqual([{ kind: "everyday_less", amount: 39 }, { kind: "gambling_less", amount: -gamblingPanel(d).change }]);
+    expect(cycleWins(d, { hideGambling: true }).map((w) => w.kind)).toEqual(["everyday_less"]);
+  });
+  it("savings goals: not tied to the score alone; one once the buffer goal is reached", async () => {
+    const d = await load("jess");
+    expect(savingsGoalLimit(d)).toBe(0);
+    expect(savingsGoalLimit(d, true)).toBe(1);
+    expect(goalPlan(d, undefined)).toBeNull();
+    expect(savingsGoalLimit(await load("marcus"))).toBe(1);
   });
 });
