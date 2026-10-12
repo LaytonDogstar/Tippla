@@ -96,6 +96,8 @@ test.describe("Part B defects", () => {
     await expect(page.getByTestId("forecast-note")).toContainText("Forecast days count pay and bills only. With your usual everyday spending (about $86 a day), the lowest would be about −$583 on Wed 14/10.");
     await page.goto("/calendar?persona=jess&present=1");
     await expect(page.locator("#short-h")).toHaveText("You're forecast to be $483 short on Wed 30/09"); // as on Today
+    // The lowest card stops at payday too, so it matches the banner (not October's −$583).
+    await expect(page.getByRole("region", { name: "Your money now" })).toContainText("Lowest before payday (with usual spending)−$483Wed 30/09 · day before payday");
     await page.goto("/?persona=jess&present=1&state=none");
     await expect(page.getByTestId("hero-usual")).toHaveText("With your usual everyday spending (about $86 a day): about $483 short by Wed 30/09");
   });
