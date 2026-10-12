@@ -5,7 +5,11 @@ import { Bell, Sparkles } from "lucide-react";
 import { notificationsCopy } from "@/content/account";
 import { nav } from "@/content/components";
 
-export function TodayHeader({ title, sub, subBefore, subHref, unread, ask }: { title: string; sub: string; subBefore?: string | null; subHref?: string; unread: number; ask: { placeholder: string } | null }) {
+export function TodayHeader({ title, sub, subBefore, subHref, unread, ask }: {
+  title: string; sub: string; subBefore?: string | null; subHref?: string; unread: number;
+  /** The Ask Tippla bar; `chips` are suggested questions under it (each opens the assistant with that question). */
+  ask: { placeholder: string; chips?: readonly string[]; chipsLabel?: string; entry?: string } | null;
+}) {
   return (
     <header className="mx-auto w-full px-gutter pb-t3 pt-t4 sm:pb-t4 sm:pt-t5 desktop:max-w-[calc(660px+2*var(--gutter))] desktop:pt-t7">
       <div className="flex items-center gap-t4">
@@ -31,6 +35,16 @@ export function TodayHeader({ title, sub, subBefore, subHref, unread, ask }: { t
           </button>
         </form>
       )}
+      {ask?.chips?.length ? (
+        <ul aria-label={ask.chipsLabel} className="mt-t2 flex flex-wrap gap-t2">
+          {ask.chips.map((q) => (
+            <li key={q}>
+              <Link href={`/assistant?entry=${ask.entry ?? "contextual"}&q=${encodeURIComponent(q)}`}
+                className="inline-flex min-h-tap items-center rounded-pill border border-line px-t3 text-meta font-semibold text-accent-strong hover:bg-accent-soft">{q}</Link>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </header>
   );
 }

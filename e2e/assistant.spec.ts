@@ -39,8 +39,8 @@ test("borrowing: no recommendation, the member's own figures and options; distre
   await expect(page.getByRole("link", { name: "Call the National Debt Helpline" })).toHaveAttribute("href", "tel:1800007007");
 });
 
-test("contextual: 'Ask about this' on the score page asks straight away", async ({ page }) => {
+test("contextual: a suggested question on the score page asks straight away", async ({ page }) => {
   await page.goto("/score?persona=jess&present=1");
-  await page.getByRole("link", { name: /Ask about this: Why did my score change\?/ }).click();
+  await page.getByRole("link", { name: "Why did my score drop?" }).click();
   await expect(page.getByText("Your SmartScore is 472, in the Steadying stage. It's down 17 since 11/09.", { exact: false })).toBeVisible();
 });

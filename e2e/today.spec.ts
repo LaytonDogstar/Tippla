@@ -75,10 +75,10 @@ test("score explanation on Today and /score", async ({ page }) => {
   await expect(progress.getByRole("link", { name: /^Open SmartScore: SmartScore 472 out of 1,000, Steadying/ })).toHaveAttribute("href", "/score");
   await expect(progress).toContainText("–17 since 11/09 · New pay advance –9 · Gambling deposits –6 · Money left over –2 (estimated)");
   await page.goto("/score?persona=jess&present=1");
-  const box = page.getByRole("region", { name: "What changed" });
+  const box = page.getByRole("region", { name: "Where you stand" });
   await expect(box).toContainText("Current borrowing 3.4 → 2.9");
   await expect(box).toContainText("New Beforepay pay advance (24/09)");
-  await expect(box).toContainText("Estimate");
+  await expect(box).toContainText("Points per factor are estimates.");
 });
 
 test("offers never appear on Today, even with lender matching on (Marcus)", async ({ page }) => {
