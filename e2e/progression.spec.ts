@@ -21,7 +21,7 @@ test("acceptance: Jess (goal: stop relying on pay advances) sees Get off pay adv
   const plan = page.getByRole("region", { name: "Get off pay advances" });
   await expect(plan).toContainText("Suggested for you");
   await expect(plan.locator("[aria-current=step]")).toContainText("A pay cycle with pay advances of $150 or less");
-  await expect(plan).toContainText("This pay cycle: $0 of pay advances so far, against $150.");
+  await expect(plan).toContainText("This pay cycle: $300 of pay advances so far, against $150.");
   await expectNoAxe(page);
   await plan.getByRole("button", { name: "Switch plan" }).click();
   await page.getByRole("dialog").getByRole("button", { name: /Cut bills and subscriptions/ }).click();

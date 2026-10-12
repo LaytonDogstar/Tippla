@@ -21,18 +21,20 @@ type StepDef =
   | { kind: "manual"; label: string; link?: string }
   | { kind: "cycle"; label: string; ok: (f: CycleFacts, c: Ctx) => boolean; soFar?: (c: Ctx) => string };
 
-const advancesSince = (c: Ctx) => {
-  const cyc = currentCycle(c.d);
-  const from = c.start > cyc.start ? c.start : cyc.start;
-  return sumMoney(inPeriod(posted(c.d.transactions), { ...cyc, start: from }).filter((x) => x.category === "wage_advance" && x.amount > 0).map((x) => x.amount));
-};
+/**
+ * Pay advances taken in the current pay cycle, from its first day. Steps are judged per pay cycle, so what counts is
+ * the whole cycle, not the days since the plan started (a suggested plan "starts" today, which used to hide an
+ * advance taken earlier in the same cycle: "$0 so far" with $300 taken on 24/09).
+ */
+export const advancesThisCycle = (d: PersonaData) =>
+  sumMoney(inPeriod(posted(d.transactions), currentCycle(d)).filter((x) => x.category === "wage_advance" && x.amount > 0).map((x) => x.amount));
 const gamblingIn = (d: PersonaData, f: CycleFacts) => sumMoney(inPeriod(posted(d.transactions), f.cycle).filter((x) => x.category === "gambling" && x.amount < 0).map((x) => -x.amount));
 
 const PLANS: Record<PlanType, StepDef[]> = {
   off_advances: PLAN_ADVANCE_STEPS.map((max) => ({
     kind: "cycle" as const, label: t.steps.advance(formatWhole(max)),
     ok: (f: CycleFacts) => f.advances.total <= max,
-    soFar: (c: Ctx) => t.soFarAdvance(formatWhole(advancesSince(c)), formatWhole(max)),
+    soFar: (c: Ctx) => t.soFarAdvance(formatWhole(advancesThisCycle(c.d)), formatWhole(max)),
   })),
   reach_payday: [
     { kind: "now", label: t.steps.buffer, ok: (c) => c.a.buffer !== undefined && c.a.buffer > 0 },
@@ -59,13 +61,15 @@ const PLANS: Record<PlanType, StepDef[]> = {
 export interface PlanStep { label: string; kind: StepDef["kind"]; status: "done" | "current" | "upcoming"; doneOn: ISODate | null; soFar: string | null; link?: string }
 export interface PlanProgress { type: PlanType; title: string; factor: string; startedAt: ISODate; explicit: boolean; steps: PlanStep[]; current: number | null; completed: boolean }
 
-/** Completed pay cycles that ended after `from`, oldest first. */
+/**
+ * Completed pay cycles that ended on or after `from`, oldest first, each judged in full: the pay cycle the plan
+ * started in counts as a whole (an advance taken before the start date, in the same cycle, still counts).
+ */
 function cyclesAfter(d: PersonaData, from: ISODate): CycleFacts[] {
   const out: CycleFacts[] = [];
   for (let i = 12; i >= 1; i--) {
     const c = cycleBefore(d, i);
-    // The pay cycle the plan started in counts only from the start date (what happened before isn't judged).
-    if (!c.limitedByHistory && c.end >= from) out.push(cycleFacts(d, c.start < from ? { ...c, start: from } : c));
+    if (!c.limitedByHistory && c.end >= from) out.push(cycleFacts(d, c));
   }
   return out;
 }
