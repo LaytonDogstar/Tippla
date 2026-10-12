@@ -157,8 +157,9 @@ test("navigation: tab bar on phones (Ask in the centre, Hardship support under M
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/spending?persona=jess&present=1");
   const side = page.getByRole("navigation", { name: "Main" });
-  for (const s of ["Today", "Money", "Score & plan", "Borrowing", "Help & hardship"]) await expect(side.getByRole("link", { name: new RegExp(`^${s}`) })).toBeVisible();
+  for (const s of ["Today", "Money", "SmartScore", "Borrowing", "Help & hardship"]) await expect(side.getByRole("link", { name: new RegExp(`^${s}( \\d+ things? to look at)?$`) })).toBeVisible();
   await expect(side.getByRole("link", { name: "Calendar" })).toBeVisible();
+  await expect(side.getByRole("link", { name: "Money plan" })).toHaveAttribute("href", "/money-plan");
 });
 
 for (const width of [390, 1440]) {
