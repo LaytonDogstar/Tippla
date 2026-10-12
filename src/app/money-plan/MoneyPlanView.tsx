@@ -18,6 +18,9 @@ import type { PersonaId } from "@/lib/api/types";
 import type { AccountState, PlanType } from "@/lib/account/state";
 import type { PlanProgress } from "@/lib/selectors/plans";
 import type { Lender, MoneyWent, ProgressRow, SpendGroup, Win } from "@/lib/selectors/moneyPlan";
+import type { LoanBalance } from "@/lib/selectors/figures";
+import type { PanelData } from "@/lib/selectors/panels";
+import { JourneyPanels, balanceText, useUrlPanel } from "@/components/domain/JourneyPanels";
 import { useAccount } from "@/lib/account/client";
 import { track } from "@/lib/analytics/client";
 import { loadCyclePrefs, saveCyclePrefs, type CyclePref } from "@/lib/ui/cyclePrefs";
@@ -42,6 +45,10 @@ export interface MoneyPlanViewProps {
   take: { low: number; high: number } | null;
   shortfall: number;
   lenders: Lender[];
+  /** Borrowing's balance estimate for each lender (figures.loanBalance). */
+  balances?: Record<string, LoanBalance>;
+  /** Journeys A2: lender, letter and gambling panels open in place (?panel=). */
+  panels?: PanelData | null;
   gambling: Gambling;
   progress: Progress;
   wins: Win[];
@@ -110,6 +117,7 @@ export function MoneyPlanView(p: MoneyPlanViewProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-[660px] flex-col gap-t5 pb-t7">
+      {p.panels && <JourneyPanels data={p.panels} persona={p.persona} account={p.account} asOf={p.asOf} />}
       <p className="px-[2px] text-body14 text-text-muted">{p.last ? t.sub(formatShortDay(p.last.start), formatShortDay(p.last.end)) : t.subNoCycle}</p>
 
       {p.went ? <WhereItWent went={p.went} run={p.run} /> : <p className={cx(card, "text-body14 text-text-muted")}>{t.went.none}</p>}
@@ -118,9 +126,9 @@ export function MoneyPlanView(p: MoneyPlanViewProps) {
         <PlanCardV2 {...p} plan={p.plan} cardsBelow={cardsBelow} menu={menu("plan")} />
       ))}
       {others.map((o) => (hideState(o.id) ? hiddenRow(o.id)
-        : o.id === "repay" ? <RepaymentsCard key="repay" lenders={p.lenders} total={repayTotal} paid={p.went?.paid ?? 0} gap={(p.went?.net ?? 0) < 0 || p.shortfall > 0}
+        : o.id === "repay" ? <RepaymentsCard key="repay" lenders={p.lenders} balances={p.balances} panels={!!p.panels} total={repayTotal} paid={p.went?.paid ?? 0} gap={(p.went?.net ?? 0) < 0 || p.shortfall > 0}
             biggest={!!p.went?.groups.some((g) => g.group === "rent") && repayTotal >= nonRentMax} menu={menu("repay")} />
-        : <GamblingCard key="gambling" g={p.gambling!} menu={menu("gambling")} />))}
+        : <GamblingCard key="gambling" g={p.gambling!} menu={menu("gambling")} panels={!!p.panels?.gambling} />))}
       {!p.plan && !others.length && <p className={cx(card, "text-body14 text-text-muted")}>{t.noCards}</p>}
 
       {p.progress && <ProgressCard progress={p.progress} />}
@@ -378,7 +386,8 @@ function PlanCardV2(p: MoneyPlanViewProps & { plan: PlanProgress; cardsBelow: bo
 
 // ---- Your repayments ----------------------------------------------------------------------------------------------
 
-function RepaymentsCard({ lenders, total, paid, gap, biggest, menu }: { lenders: Lender[]; total: number; paid: number; gap: boolean; biggest: boolean; menu: MenuActions }) {
+function RepaymentsCard({ lenders, total, paid, gap, biggest, menu, balances = {}, panels }: { lenders: Lender[]; total: number; paid: number; gap: boolean; biggest: boolean; menu: MenuActions; balances?: Record<string, LoanBalance>; panels: boolean }) {
+  const { open } = useUrlPanel();
   const share = paid ? total / paid : 0;
   const shareText = paid ? t.went.shareWords(share) ?? pct(share) : null;
   const detail = (l: Lender) => {
@@ -399,8 +408,11 @@ function RepaymentsCard({ lenders, total, paid, gap, biggest, menu }: { lenders:
           {lenders.map((l) => (
             <tr key={l.provider} className="border-t border-divider first:border-t-0">
               <th scope="row" className="py-[11px] pr-t3 font-normal">
-                <span className="block text-body14 font-bold text-text">{l.provider}</span>
+                {panels
+                  ? <button type="button" onClick={() => open(`lender:${l.provider}`)} className="block min-h-tap text-left text-body14 font-bold text-accent underline-offset-2 hover:underline">{l.provider}</button>
+                  : <span className="block text-body14 font-bold text-text">{l.provider}</span>}
                 <span className="block text-meta-s text-text-muted">{detail(l)}</span>
+                {balances[l.provider] && balances[l.provider]!.kind !== "none" && <span className="block text-meta-s text-text-muted">{balanceText(balances[l.provider]!)}</span>}
               </th>
               <td className="whitespace-nowrap py-[11px] text-right text-body14 font-extrabold tabular-nums text-text">{formatWhole(l.perCycle)}</td>
             </tr>
@@ -420,7 +432,9 @@ function RepaymentsCard({ lenders, total, paid, gap, biggest, menu }: { lenders:
             className="inline-flex min-h-tap items-center justify-center gap-t2 rounded-pill bg-accent px-t3 text-center text-body-strong text-on-accent">
             <Phone aria-hidden size={18} />{t.repay.call(NDH.name, NDH.phoneDisplay)}
           </a>
-          <ButtonLink href="/hardship" variant="secondary" className="bg-surface">{t.repay.hardship}</ButtonLink>
+          {panels
+            ? <Button variant="secondary" onTint onClick={() => open("letter")}>{t.repay.hardship}</Button>
+            : <ButtonLink href="/hardship" variant="secondary" className="bg-surface">{t.repay.hardship}</ButtonLink>}
         </div>
       </div>
     </section>
@@ -431,8 +445,9 @@ function RepaymentsCard({ lenders, total, paid, gap, biggest, menu }: { lenders:
 
 const OPTION_ICONS = { block: CreditCard, betstop: Ban, gho: Phone } as const;
 
-function GamblingCard({ g, menu }: { g: NonNullable<Gambling>; menu: MenuActions }) {
+function GamblingCard({ g, menu, panels }: { g: NonNullable<Gambling>; menu: MenuActions; panels: boolean }) {
   const [open, setOpen] = useState(false);
+  const { open: openPanel } = useUrlPanel();
   const ops = g.operators.length > 1 ? `${g.operators.slice(0, -1).join(", ")} and ${g.operators.at(-1)}` : g.operators[0] ?? "";
   return (
     <section aria-labelledby="mp-gamb-h" className={cx(card, "flex flex-col gap-t4")}>
@@ -453,7 +468,7 @@ function GamblingCard({ g, menu }: { g: NonNullable<Gambling>; menu: MenuActions
           );
         })}
       </ul>
-      <div><Button onClick={() => setOpen(true)}>{t.gambling.cta}</Button></div>
+      <div><Button onClick={() => (panels ? openPanel("gambling") : setOpen(true))}>{t.gambling.cta}</Button></div>
       <Sheet open={open} onClose={() => setOpen(false)} title={gamblingSupport.title} subtitle={gamblingSupport.intro}>
         <ul className="flex flex-col gap-t4">
           {gamblingSupport.items.map((s) => (

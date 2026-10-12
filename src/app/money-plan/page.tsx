@@ -7,7 +7,7 @@ import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import {
   activePlan, availablePlans, calendarDays, currentCycle, cycleBefore, cycleLength, cycleProgress, gamblingCard, lastRefresh, lenders, moneyWent,
-  notifications, payAdvanceRun, shortfallIn, smallerWins, suggestedPlan, unreadCount, whatItWouldTake,
+  loanBalance, notifications, panelData, payAdvanceRun, shortfallIn, smallerWins, suggestedPlan, unreadCount, whatItWouldTake,
 } from "@/lib/selectors";
 import { addDays, formatUpdated } from "@/lib/format";
 import { moneyPlan as t } from "@/content/moneyPlan";
@@ -46,6 +46,8 @@ export default async function MoneyPlan({ searchParams }: { searchParams: { pers
         take={hasLast ? whatItWouldTake(shortfall, run?.amount ?? null) : null}
         shortfall={shortfall}
         lenders={lenders(data, edits)}
+        balances={Object.fromEntries(lenders(data, edits).map((l) => [l.provider, loanBalance(data, l.provider)]))}
+        panels={panelData(data, account, edits, { letter: isOn("hardship_autofill_v1", persona) })}
         gambling={account.hideGambling || !hasLast ? null : gamblingCard(data, went, edits)}
         progress={hasLast ? cycleProgress(data, edits) : null}
         wins={smallerWins(data, cycleLength(now.start, now.end))}

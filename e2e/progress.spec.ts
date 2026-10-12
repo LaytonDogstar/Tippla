@@ -13,9 +13,10 @@ async function expectNoAxe(page: Page) {
 }
 const region = (page: Page, name: string | RegExp) => page.getByRole("region", { name });
 
-test("Marcus: streaks, money left before each payday, score timeline; reached from Today", async ({ page }) => {
-  await page.goto("/?persona=marcus&present=1");
-  await page.getByRole("region", { name: "Your progress" }).getByRole("link", { name: /^Details/ }).click();
+test("Marcus: streaks, money left before each payday, score timeline; reached from Money plan", async ({ page }) => {
+  // Pay cycles (journeys A2): Money plan's "See every pay cycle"; Today's card is now SmartScore history.
+  await page.goto("/money-plan?persona=marcus&present=1");
+  await page.getByRole("link", { name: "See every pay cycle" }).click();
   await expect(page).toHaveURL(/\/progress/);
   await expect(region(page, "Going well")).toContainText("12 pay cycles in a row without a new pay advance");
   const cycles = region(page, "Money left the day before payday");
@@ -47,7 +48,7 @@ test("Jess on payday: set a goal; safe to spend allows for it; change and remove
   const checkIn = region(page, "Payday check-in");
   await expect(checkIn).toContainText("Safe to spend: about $25 a day");
   await expect(checkIn).toContainText("Includes $40 towards your goal");
-  await expect(page.getByRole("region", { name: "Your progress" }).getByRole("link", { name: /^Details/ })).toHaveAttribute("href", "/progress");
+  await expect(page.getByRole("region", { name: "SmartScore history" }).getByRole("link", { name: /^Details/ })).toHaveAttribute("href", "/score#s-trend");
   await checkIn.getByRole("button", { name: "How we worked this out" }).click();
   await expect(page.getByRole("dialog").getByText("Towards your goal this pay cycle")).toBeVisible();
   await page.keyboard.press("Escape");

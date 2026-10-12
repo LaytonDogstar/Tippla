@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { activeLoans, failedPayments, loanTotals, otherCredit, payCycleSummary, repaymentHistory, upcomingRepayments, visibleOffers, shouldShowLenderOffers } from "@/lib/selectors";
+import { activeLoans, failedPayments, loanTotals, otherCredit, payCycleSummary, repaymentHistory, upcomingRepayments, visibleOffers, shouldShowLenderOffers, repayments, panelData } from "@/lib/selectors";
 import { formatUpdated } from "@/lib/format";
 import { loansPage as t } from "@/content/account";
 import { PageHeader } from "@/components/shell/Shells";
@@ -13,7 +13,7 @@ import { isOn } from "@/config/featureFlags";
 
 export const dynamic = "force-dynamic";
 
-export default async function Loans({ searchParams }: { searchParams: { persona?: string; present?: string; tab?: string; provider?: string } }) {
+export default async function Loans({ searchParams }: { searchParams: { persona?: string; present?: string; tab?: string; provider?: string; fix?: string } }) {
   const persona = currentPersona(searchParams.persona);
   const { data, edits, account, goal } = await loadCustomer(persona);
   const pc = payCycleSummary(data, edits);
@@ -29,6 +29,10 @@ export default async function Loans({ searchParams }: { searchParams: { persona?
         loans={activeLoans(data)}
         other={otherCredit(data)}
         totals={loanTotals(data)}
+        panels={panelData(data, account, edits, { letter: isOn("hardship_autofill_v1", persona) })}
+        account={account}
+        initialFix={searchParams.fix && activeLoans(data).some((l) => l.provider === searchParams.fix) ? searchParams.fix : null}
+        repay={(() => { const r = repayments(data, edits); return { perCycle: r.perCycle, count: r.count, advances: r.advanceProviders > 0 }; })()}
         advance={pc.payAdvances[0] ?? null}
         upcoming={{ 30: upcomingRepayments(data, 30), 60: upcomingRepayments(data, 60), 90: upcomingRepayments(data, 90) }}
         history={repaymentHistory(data)}

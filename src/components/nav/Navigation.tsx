@@ -20,9 +20,9 @@ export type Badges = Partial<Record<FeedSection, number>>;
 type Section = { section: FeedSection; href: string; label: string; icon: LucideIcon; pages: { href: string; label: string }[] };
 
 export const SECTIONS: Section[] = [
-  { section: "today", href: "/", label: nav.sections.today, icon: House, pages: [{ href: "/", label: nav.home }, { href: "/progress", label: nav.items.lift }] },
+  { section: "today", href: "/", label: nav.sections.today, icon: House, pages: [{ href: "/", label: nav.home }] },
   { section: "money", href: "/spending", label: nav.sections.money, icon: Wallet,
-    pages: [{ href: "/spending", label: nav.items.spending }, { href: "/money-plan", label: nav.items.moneyPlan }, { href: "/calendar", label: nav.items.calendar }, { href: "/subscriptions", label: nav.items.subscriptions }] },
+    pages: [{ href: "/spending", label: nav.items.spending }, { href: "/money-plan", label: nav.items.moneyPlan }, { href: "/calendar", label: nav.items.calendar }, { href: "/subscriptions", label: nav.items.subscriptions }, { href: "/progress", label: nav.items.payCycles }] },
   { section: "score", href: "/score", label: nav.sections.score, icon: CircleGauge, pages: [{ href: "/score", label: nav.items.smartscore }] },
   { section: "borrowing", href: "/loans", label: nav.sections.borrowing, icon: CreditCard, pages: [{ href: "/loans", label: nav.items.loans }, { href: "/offers", label: nav.items.offers }] },
   { section: "help", href: "/hardship", label: nav.sections.help, icon: LifeBuoy, pages: [{ href: "/hardship", label: nav.items.hardship }, { href: "/help", label: nav.items.help }] },
@@ -35,7 +35,7 @@ const withoutOffers = (pages: { href: string; label: string }[], hide?: boolean)
 const under = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(href + "/"));
 const sectionOf = (path: string): FeedSection | "account" | null => {
   if (ACCOUNT_PAGES.some((p) => under(path, p.href))) return "account";
-  // "/" matches only Today itself; "/progress" belongs to Today too.
+  // "/" matches only Today itself; "/progress" (Pay cycles) belongs to Money.
   return SECTIONS.find((s) => s.pages.some((p) => under(path, p.href)))?.section ?? null;
 };
 
@@ -83,7 +83,7 @@ export function MobileDock({ path: forced, preview, badges = {}, hideOffers }: {
   const moreBadge = (badges.borrowing ?? 0) + (badges.help ?? 0);
   return (
     <div className={preview ? "w-full" : "fixed inset-x-0 bottom-0 z-30 desktop:hidden"}>
-      <nav aria-label={preview ? `${nav.label} (${preview})` : nav.label} className="border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]">
+      <nav data-nav-root aria-label={preview ? `${nav.label} (${preview})` : nav.label} className="border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]">
         <ul className="mx-auto grid h-tab max-w-[720px] grid-cols-5">
           {tab({ key: "today", href: "/", label: nav.tabs.today, icon: House, active: at === "today", badge: badges.today, section: "today" })}
           {tab({ key: "money", href: "/spending", label: nav.tabs.money, icon: Wallet, active: at === "money", badge: badges.money, section: "money" })}
@@ -111,7 +111,7 @@ export function MobileDock({ path: forced, preview, badges = {}, hideOffers }: {
             {MORE.map((g) => (
               <div key={g.label}>
                 <p className="pb-t1 text-meta text-text-muted">{g.label}</p>
-                <ul className="flex flex-col">
+                <ul data-nav-root className="flex flex-col">
                   {withoutOffers(g.pages, hideOffers).map((p) => (
                     <li key={p.href}>
                       <Link href={p.href} onClick={() => setMore(false)} aria-current={under(path, p.href) ? "page" : undefined}
@@ -157,7 +157,7 @@ export function DesktopSidebar({ path: forced, brand = "Tippla", preview, badges
     </ul>
   );
   return (
-    <nav aria-label={preview ? `${nav.label} (${preview})` : nav.label}
+    <nav data-nav-root aria-label={preview ? `${nav.label} (${preview})` : nav.label}
       className={cx(preview ? "flex h-[780px]" : "fixed inset-y-0 left-0 z-30 hidden desktop:flex", "w-sidebar flex-col gap-t1 bg-surface px-t4 py-[28px] shadow-[1px_0_0_var(--color-divider)]")}>
       <p className="px-t3 pb-t6 text-wordmark text-text">{brand}</p>
       <div className="flex min-h-0 flex-1 flex-col gap-t1 overflow-y-auto">

@@ -172,7 +172,7 @@ test("calendar: month first, as the mockup (Jess, September 2026)", async ({ pag
   // The banner: amount and date, bills to come, excludes everyday spending (with the month's average), a way forward.
   const banner = main.getByRole("region", { name: "You're forecast to be $53 short on Wed 30/09" });
   await expect(banner).toContainText("That's after $367 of bills still to come, but before everyday spending. You've averaged about $70 a day on that this month.");
-  await expect(banner.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  await expect(banner.getByRole("button", { name: "Options if money's tight" })).toBeVisible();
   // Four stats about now.
   const stats = main.getByRole("region", { name: "Your money now" });
   await expect(stats).toContainText("Balance today$314Fri 25/09");

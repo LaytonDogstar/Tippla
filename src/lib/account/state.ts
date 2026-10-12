@@ -84,6 +84,10 @@ export interface AccountState {
   feed?: FeedState;
   /** The customer said things are hard right now (docs/09 "in hardship", self-selected). */
   hardshipSelfSelected?: boolean;
+  /** Hardship mode (journeys A2): the one-time Today prompt was dismissed. */
+  hardshipPromptDismissed?: boolean;
+  /** Hardship mode paused lender matching when it was turned on (so we can say so, and offer to turn it back on). */
+  matchingPausedForHardship?: boolean;
 }
 type AllAccounts = Partial<Record<PersonaId, AccountState>>;
 
@@ -114,6 +118,8 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   const s = a.subscription;
   if (s && ["active", "paused", "cancelled"].includes(s.status) && ["standard", "pro"].includes(s.plan) && typeof s.effective === "string") out.subscription = s;
   if (a.hardshipSelfSelected === true) out.hardshipSelfSelected = true;
+  if (a.hardshipPromptDismissed === true) out.hardshipPromptDismissed = true;
+  if (a.matchingPausedForHardship === true) out.matchingPausedForHardship = true;
   if (typeof a.analytics === "boolean") out.analytics = a.analytics;
   if (a.hideGambling === true) out.hideGambling = true;
   if (typeof a.buffer === "number" && a.buffer >= 0 && a.buffer <= 2000) out.buffer = Math.round(a.buffer);

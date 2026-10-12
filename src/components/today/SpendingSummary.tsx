@@ -1,8 +1,10 @@
+"use client";
 // Spending on Today (09/10/2026): the same summary component and selector as the Spending page (SpendSummary,
 // spendingView), so both show the same numbers. Then fixed costs and repayments as one line each, and everyday
 // categories by amount spent (never by size of change): the top five, then Other. The change column compares the
 // same day of the last cycle and is tinted only past CHANGE_THRESHOLD. With no previous cycle there's no comparison.
 import Link from "next/link";
+import { useUrlPanel } from "@/components/domain/JourneyPanels";
 import { ChevronRight } from "lucide-react";
 import { todayCopy } from "@/content/today";
 import { formatWhole } from "@/lib/format";
@@ -19,7 +21,8 @@ const t = todayCopy.spending;
 export const TODAY_TOP_CATEGORIES = 5;
 const TONE: Record<ChangeTone, string> = { up: "bg-negative-soft text-negative", down: "bg-positive-soft text-positive", neutral: "text-text-muted" };
 
-export function SpendingSummary({ v }: { v: SpendingView }) {
+export function SpendingSummary({ v, gamblingPanel = false }: { v: SpendingView; /** Gambling opens its panel in place (journeys A2). */ gamblingPanel?: boolean }) {
+  const { open } = useUrlPanel();
   const rows = v.groups.flatMap((g) => g.rows).sort((a, b) => b.total - a.total);
   const top = rows.slice(0, TODAY_TOP_CATEGORIES);
   const rest = rows.slice(TODAY_TOP_CATEGORIES);
@@ -55,13 +58,19 @@ export function SpendingSummary({ v }: { v: SpendingView }) {
           <ul className="-mx-t2">
             {top.map((r) => (
               <li key={r.category}>
-                <Link href={`/spending?category=${r.category}`} className="tnum flex min-h-tap items-center gap-t2 rounded-md px-t2 text-body14 hover:bg-surface2">
+                {(() => {
+                  const body = (<>
                   <span aria-hidden className="h-[10px] w-[10px] shrink-0 rounded-pill" style={{ background: catVar(r.category) }} />
                   <span className="min-w-0 flex-1 text-text-secondary">{r.name}</span>
                   <strong className="font-bold text-text">{formatWhole(r.total)}</strong>
                   {compare && <span className="flex w-[72px] justify-end">{r.previous !== null && r.change !== null && <Change amount={r.change} tone={r.tone} />}</span>}
                   <ChevronRight aria-hidden size={16} className="shrink-0 text-icon-muted" />
-                </Link>
+                  </>);
+                  const cls = "tnum flex min-h-tap w-full items-center gap-t2 rounded-md px-t2 text-left text-body14 hover:bg-surface2";
+                  return r.category === "gambling" && gamblingPanel
+                    ? <button type="button" onClick={() => open("gambling")} className={cls}>{body}</button>
+                    : <Link href={`/spending?category=${r.category}#activity`} className={cls}>{body}</Link>;
+                })()}
               </li>
             ))}
             {other && (

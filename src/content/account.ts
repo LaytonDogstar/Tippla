@@ -11,8 +11,10 @@ export const loansPage = {
   loansHeading: "Loans",
   nextRepayments: "Next repayments",
   seeAllUpcoming: "See all upcoming",
-  planLink: "Your plan",
+  planLink: "Your money plan",
   planLinkBody: "Steps to borrow less, one pay cycle at a time.",
+  /** Journeys A3: the same repayments figure as Money plan and Spending (figures.repayments). */
+  repayPerCycle: (amt: string, n: number, advances: boolean) => `Repayments: about ${amt} a pay cycle across ${n === 1 ? "1 lender" : `${n} lenders`}${advances ? ", including pay advances" : ""}`,
   railLabel: "Borrowing summary",
   totalLeft: (amt: string) => `About ${amt} left across your loans, estimated`,
   noLoans: "We didn't find any loans in the connected account.",

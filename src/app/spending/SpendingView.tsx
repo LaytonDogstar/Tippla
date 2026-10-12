@@ -5,7 +5,7 @@
 // sit outside the cards, with sticky chips to jump between them. Every figure comes from spendingView(), the same
 // selector Today's Spending section uses; recategorising a transaction moves everything at once.
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search, TriangleAlert } from "lucide-react";
 import type { CategoryId, PersonaId, Transaction } from "@/lib/api/types";
@@ -38,6 +38,14 @@ import { gamblingSupport } from "@/content/support";
 import { factorCopy } from "@/content/en-AU";
 import { FACTOR_SLUGS } from "@/lib/ui/factorSlugs";
 import { ButtonLink } from "@/components/ui/Button";
+import type { LoanBalance, Repayments } from "@/lib/selectors/figures";
+import type { PanelData } from "@/lib/selectors/panels";
+import type { AccountState } from "@/lib/account/state";
+import { JourneyPanels, balanceText, useUrlPanel } from "@/components/domain/JourneyPanels";
+import { scrollWhenSettled } from "@/components/shell/BackBar";
+import { ORIGIN_PARAM, pageName, safeFrom } from "@/lib/nav/back";
+import { panels as pc } from "@/content/panels";
+import { Phone } from "lucide-react";
 
 export interface SpendingParams { period?: string; month?: string; category?: string; direction?: string; q?: string }
 
@@ -48,7 +56,7 @@ const PAGE = 30;
 /** How long a Budget ideas row shows "Budget set" (with Undo) before it leaves. */
 const IDEA_CONFIRM_MS = 6000;
 
-export function SpendingView({ persona, data: loaded, initialEdits, rules: initialRules = [], payCycle, params, asOf, corrections = null, doubles = {}, hideGambling = false, gambling = null }: {
+export function SpendingView({ persona, data: loaded, initialEdits, rules: initialRules = [], payCycle, params, asOf, corrections = null, doubles = {}, hideGambling = false, gambling = null, repay = null, panels = null, panelsAccount = null }: {
   /** For the gambling insight (how it affects the SmartScore, and support), opened from the lenders card. */
   gambling?: GamblingFacts | null;
   /** The member's saved rules (the drawer shows a merchant's category rule and adds or removes one). */
@@ -58,6 +66,11 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
   /** Transaction id → Needs a look item id, for transactions flagged as a possible double charge. */
   doubles?: Record<string, string>;
   hideGambling?: boolean;
+  /** Repayments a pay cycle and the lenders (figures.repayments), the same figure as Money plan and Borrowing. */
+  repay?: (Repayments & { balances: Record<string, LoanBalance> }) | null;
+  /** Journeys A2: lender and gambling panels open in place (?panel=). */
+  panels?: PanelData | null;
+  panelsAccount?: AccountState | null;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -95,7 +108,14 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
     window.history.replaceState(window.history.state, "", u.toString());
   }, [periodKey, selected, direction, q]);
   // Links into Activity (a category, a direction or a search) land on it.
-  useEffect(() => { if (params.category || params.direction || params.q) document.getElementById("activity")?.scrollIntoView({ block: "start" }); }, [params.category, params.direction, params.q]);
+  // Only once the page has finished laying out (journeys B2: scrolling earlier landed ~1,250px short on phones).
+  useEffect(() => {
+    if (!(params.category || params.direction || params.q)) return;
+    scrollWhenSettled(() => { const el = document.getElementById("activity"); return el ? Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72) : null; });
+  }, [params.category, params.direction, params.q]);
+  const search = useSearchParams();
+  const fromName = pageName(safeFrom(search.get(ORIGIN_PARAM)) ?? "");
+  const { open: openPanel } = useUrlPanel();
 
   // ---- Numbers: every one through the selectors ---------------------------------------------------------
   const p = useMemo(() => resolvePeriod(data, periodKey), [data, periodKey]);
@@ -178,6 +198,7 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
 
   return (
     <div className="mx-auto w-full max-w-[660px] pb-t6">
+      {panels && <JourneyPanels data={panels} persona={persona} account={panelsAccount ?? {}} asOf={asOf} />}
       {/* Period: one control instead of four chips, with the dates (and payday) beside it. */}
       <div className="flex items-center justify-between gap-t3">
         <label className="relative inline-flex min-h-tap shrink-0 items-center rounded-pill border border-line bg-surface pl-[14px] pr-t6 font-bold text-text focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--color-focus)]">
@@ -234,12 +255,27 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
             </div>
             <p className="mt-t1 text-body14 text-text-secondary">{t.lenders.body}</p>
             <dl className={cx("tnum mt-t3 grid gap-t2", lenders.gamblingDeposits === null ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3")}>
-              <Fact label={t.lenders.loans} value={t.lenders.lendersN(lenders.lenders)} />
+              {repay && repay.count > 0
+                ? <Fact label={t.lenders.loans} value={t.lenders.repayPerCycle(formatWhole(Math.round(repay.perCycle)))} note={t.lenders.repayNote(repay.count, repay.advanceProviders)} />
+                : <Fact label={t.lenders.loans} value={t.lenders.lendersN(lenders.lenders)} />}
               <Fact label={t.lenders.payAdvances} value={t.lenders.advancesN(lenders.payAdvances)} />
               {lenders.gamblingDeposits !== null && (gamblingInsight
                 ? <Fact label={t.lenders.gambling} value={t.lenders.depositsN(lenders.gamblingDeposits)} className="col-span-2 sm:col-span-1" onOpen={() => setGamblingSheet("insight")} />
                 : <Fact label={t.lenders.gambling} value={t.lenders.depositsN(lenders.gamblingDeposits)} className="col-span-2 sm:col-span-1" />)}
             </dl>
+            {repay && repay.lenders.length > 0 && panels && (
+              <ul aria-label={t.lenders.listLabel} className="mt-t3 flex flex-col overflow-hidden rounded-inset bg-surface">
+                {repay.lenders.map((l) => (
+                  <li key={l.provider} className="border-t border-divider first:border-t-0">
+                    <button type="button" onClick={() => openPanel(`lender:${l.provider}`)} className="flex min-h-tap w-full items-center justify-between gap-t3 px-t4 py-t2 text-left">
+                      <span className="min-w-0"><span className="block text-body14 font-semibold text-text">{l.provider}</span>
+                        <span className="block text-meta-s text-text-muted">{repay.balances[l.provider]?.kind === "none" || !repay.balances[l.provider] ? t.lenders.perCycleNote : balanceText(repay.balances[l.provider]!)}</span></span>
+                      <span className="tnum shrink-0 text-body14 font-bold text-text">{formatWhole(Math.round(l.perCycle))}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
             <Link href="/score" className="mt-t3 flex min-h-tap items-center justify-between gap-t3 rounded-inset bg-surface px-t4 py-t2 text-body14 text-text">
               <span>{t.lenders.scoreLine}</span><span className="shrink-0 font-semibold text-accent">{t.lenders.seeHow}</span>
             </Link>
@@ -248,6 +284,24 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
 
         {/* Activity: a flat list on the page background (not a card), white row groups, sticky day headers. */}
         <Section id="activity" n={hasIdeas ? 4 : 3} title={t.sections.activity.title} desc={t.sections.activity.desc(allInPeriod.length)}>
+          {/* Arrived from another page on a filter: say what this is and where from (journeys A1). */}
+          {(selected || q.trim()) && fromName && (
+            <p data-testid="context-header" className="px-[2px] text-meta font-semibold text-text-secondary">
+              {[selected ? categoryNames[selected] : `“${q.trim()}”`, p.label.toLowerCase(), pc.context.from(fromName)].join(" · ")}
+            </p>
+          )}
+          {/* No route into gambling shows transactions without a visible way to support (journeys A2). */}
+          {selected === "gambling" && !hideGambling && (
+            <div data-testid="gambling-support-strip" className="flex flex-col gap-t2 rounded-[14px] bg-accent-soft p-t4 text-body14 text-text">
+              <p>{pc.strip.text}</p>
+              <div className="flex flex-wrap gap-t2">
+                <a href="tel:1800858858" className="inline-flex min-h-tap items-center gap-t2 rounded-pill bg-surface px-t3 font-bold text-accent-strong"><Phone aria-hidden size={16} />{pc.strip.call}</a>
+                {panels?.gambling
+                  ? <button type="button" onClick={() => openPanel("gambling")} className="inline-flex min-h-tap items-center rounded-pill px-t3 font-bold text-accent-strong underline-offset-2 hover:underline">{pc.strip.more}</button>
+                  : <button type="button" onClick={() => setGamblingSheet("support")} className="inline-flex min-h-tap items-center rounded-pill px-t3 font-bold text-accent-strong underline-offset-2 hover:underline">{pc.strip.more}</button>}
+              </div>
+            </div>
+          )}
           <label className="flex min-h-[48px] items-center gap-t2 rounded-pill border border-line bg-surface px-t4 focus-within:border-accent focus-within:outline focus-within:outline-[length:var(--focus-width)] focus-within:outline-offset-[var(--focus-offset)] focus-within:outline-focus">
             <Search aria-hidden size={18} className="text-text-muted" />
             <span className="sr-only">{sp.feed.searchLabel}</span>
@@ -321,13 +375,14 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
   );
 }
 
-function Fact({ label, value, className, onOpen }: { label: string; value: string; className?: string; onOpen?: () => void }) {
+function Fact({ label, value, note, className, onOpen }: { label: string; value: string; note?: string; className?: string; onOpen?: () => void }) {
   return (
     <div className={cx("relative rounded-[12px] bg-surface px-t3 py-t2", className)}>
       <dt className="text-meta-s font-semibold text-text-muted">{label}</dt>
       <dd className="text-body14 font-extrabold text-text">
         {onOpen ? <button type="button" onClick={onOpen} className="text-left after:absolute after:inset-0 after:content-['']">{value}<span className="sr-only">{t.lenders.gamblingSr}</span></button> : value}
       </dd>
+      {note && <dd className="text-meta-s text-text-muted">{note}</dd>}
     </div>
   );
 }

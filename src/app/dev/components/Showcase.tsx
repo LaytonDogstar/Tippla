@@ -234,7 +234,7 @@ export function Showcase({ data }: { data: ShowcaseData }) {
           <>
             {jess.loans.map((l) => (
               <LoanCard key={l.provider} loan={l} defaultExpanded={l.type !== "SACC"}
-                combinedBalance={l.estimatedBalance === null && l.type === "SACC" ? copy.loans.combinedBalance(formatWhole(jess.loanTotals.saccOutstanding), saccs.length) : undefined} />
+                combinedBalance={l.estimatedBalance === null && l.type === "SACC" ? copy.loans.combinedBalance(formatWhole(jess.loanTotals.saccOutstanding), saccs.map((x) => x.provider).join(" and ")) : undefined} />
             ))}
           </>
         )}

@@ -36,8 +36,8 @@ export function ProgressCard({ state, change, attribution, plan, action, project
     <section aria-labelledby="progress-h" className="flex flex-col gap-t4 rounded-card-s bg-accent-soft p-t5 sm:rounded-card sm:p-t6">
       <div className="flex items-center gap-t3">
         <h2 id="progress-h" className="flex-1 text-card text-text sm:text-card-l">{pr.heading}</h2>
-        {/* Details: the progress page (streaks, goal, score timeline); the score itself opens the SmartScore page. */}
-        <Link href="/progress" className="inline-flex min-h-tap items-center rounded-md px-t1 text-body14 font-semibold text-accent hover:text-accent-strong">{pr.details}<span className="sr-only">{pr.detailsSr}</span></Link>
+        {/* Details: the SmartScore page at "Over time" (journeys brief A2: "SmartScore history"). */}
+        <Link href="/score#s-trend" className="inline-flex min-h-tap items-center rounded-md px-t1 text-body14 font-semibold text-accent hover:text-accent-strong">{pr.details}<span className="sr-only">{pr.detailsSr}</span></Link>
       </div>
 
       {state.kind === "scored" ? <Score state={state} change={change} attribution={attribution} /> : (

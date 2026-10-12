@@ -32,7 +32,7 @@ test("Jess: status line, two ranked cards then more, section badges", async ({ p
   await expect(page.getByRole("region", { name: "Needs a look" }).getByRole("button", { name: "5 more to look at" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Needs a look" })).not.toContainText("short before payday");
   // Hardship is one tap away: in the hero next to the shortfall.
-  await expect(page.getByRole("region", { name: "This pay cycle" }).getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  await expect(page.getByRole("region", { name: "This pay cycle" }).getByRole("button", { name: "Options if money's tight" })).toBeVisible();
   await expect(dock(page).getByRole("link", { name: "Money 4 things to look at" })).toBeVisible();
   // Spec 03: short before payday, so "pause your Tippla payment" sits under Help; spec 06 adds the entitlements check.
   // Help and Borrowing live under More on phones.
@@ -71,7 +71,7 @@ test("Snooze until tomorrow hides the card", async ({ page }) => {
 test("score explanation on Today and /score", async ({ page }) => {
   // Your progress (09/10/2026): the score opens the SmartScore page; how much it moved and what moved it (estimated).
   await page.goto("/?persona=jess&present=1");
-  const progress = page.getByRole("region", { name: "Your progress" });
+  const progress = page.getByRole("region", { name: "SmartScore history" });
   await expect(progress.getByRole("link", { name: /^Open SmartScore: SmartScore 472 out of 1,000, Steadying/ })).toHaveAttribute("href", "/score");
   await expect(progress).toContainText("–17 since 11/09 · New pay advance –9 · Gambling deposits –6 · Money left over –2 (estimated)");
   await page.goto("/score?persona=jess&present=1");

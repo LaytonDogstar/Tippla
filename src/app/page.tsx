@@ -4,7 +4,8 @@
 // Lender offers never appear here: this page is about the customer's own money.
 import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
-import { goalOptions, goalPlan, dashboardBanner, comingUp, comingUpBlocks, currentBalance, spendingView, currentCycle, scoreTrend, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState } from "@/lib/selectors";
+import { goalOptions, goalPlan, dashboardBanner, comingUp, comingUpBlocks, currentBalance, spendingView, currentCycle, scoreTrend, savingsGoalStatus, cycleOfBills, nextBufferStep, stageMoment, streakMilestones, surplusSuggestion, activePlan, publicPlanTitle, connectionHealth, forecastAccuracy, goalLabel, isFirstPayday, recapLead, lastRefresh, cycleRecap, paydayCheckIn, safeToSpendFor, stsOptions, valueTally, notifications, refreshStatus, scoreAttribution, unreadCount, firstAction, payCycleSummary, scoreChange, scoreState, shortBeforePayday, panelData, heroState, hardshipSignals } from "@/lib/selectors";
+import { hardshipModeOn } from "@/lib/hardshipMode";
 import { addDays, daysBetween, formatDate, formatDayMonth, formatShortDay, formatUpdated, formatWhole, toAESTDate } from "@/lib/format";
 import { safeCopy } from "@/content/loop";
 import { flagsFor } from "@/config/featureFlags";
@@ -114,6 +115,9 @@ async function TodayContent({ searchParams }: { searchParams: { persona?: string
         action={next}
         projection={projectScore(data, isOn("score_projection_v1", persona), goal)}
         payCycle={payCycleSummary(data, edits)}
+        hardshipPrompt={hardshipModeOn(persona, states) && hardshipSignals(data, edits).strong}
+        panels={panelData(data, account, edits, { hardshipMode: hardshipModeOn(persona, states), letter: isOn("hardship_autofill_v1", persona), safeToSpendVisible: heroState(payCycleSummary(data, edits), safe) === "onTrack" })}
+        usualShort={(() => { const s = shortBeforePayday(data, edits); return s.withEveryday ? { ...s.withEveryday, perDay: s.everydayPerDay } : null; })()}
         spending={spending}
         coming={comingUpBlocks(data, comingUp(data, account), currentBalance(data))}
         lapsed={states.includes("lapsed")}

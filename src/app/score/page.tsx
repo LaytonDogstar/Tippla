@@ -7,7 +7,7 @@ import { loadCustomer } from "@/lib/customer";
 import { currentPersona, presentationMode } from "@/lib/persona";
 import {
   factorDrivers, factorLines, factors, firstAction, groupFactors, lastRefresh, loanTotals, nextUpdate, notifications, payCycleSummary,
-  recommendations, scoreAttribution, scoreDirection, scoreSections, scoreState, scoreTrend, shortfallGuard, unreadCount,
+  panelData, recommendations, scoreAttribution, scoreDirection, scoreSections, scoreState, scoreTrend, shortfallGuard, unreadCount,
 } from "@/lib/selectors";
 import { formatShortDay, formatUpdated } from "@/lib/format";
 import { scorePage as t } from "@/content/factors";
@@ -63,6 +63,7 @@ export async function ScorePage({ searchParams, slug }: { searchParams: { person
         action={action ? { title: action.title } : null}
         projection={projectScore(data, isOn("score_projection_v1", persona), goal)}
         shortfall={shortfallGuard(payCycle)}
+        journey={panelData(data, account, edits)} persona={persona} account={account}
         room={room} other={other} strongest={strongest} gamblingLink={!account.hideGambling}
         trend={scoreTrend(data)} panels={panels} scoredAt={data.score?.scoredAt ?? null}
         initial={slug ? factorFromSlug(slug) : null} present={present} stagesSample={STAGES_ARE_SAMPLE} />

@@ -123,7 +123,7 @@ test("SmartScore one column (Jess): header, pills, hero, what changed, next step
   await expect(factors.getByRole("button", { name: /^Income stability/ })).toBeHidden();
   await toggle.click();
   await expect(factors.getByRole("button", { name: /^Income stability/ })).toBeVisible();
-  await expect(factors.getByRole("link", { name: /See gambling in Spending/ })).toHaveAttribute("href", "/spending?category=gambling");
+  await expect(factors.getByRole("button", { name: /See gambling in Spending/ })).toBeVisible(); // opens the gambling panel (journeys A2)
   // 4 Over time: a chart with a text alternative listing the values.
   await expect(page.getByRole("img", { name: /521, 515, 506, 498, 489, 472\. Healthy starts at 600/ })).toBeVisible();
   await page.getByRole("button", { name: "How your score works" }).click();

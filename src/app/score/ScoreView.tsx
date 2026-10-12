@@ -25,6 +25,10 @@ import { FACTOR_SLUGS } from "@/lib/ui/factorSlugs";
 import { Section, SectionChips, GROUP_GAP } from "@/components/shell/Sections";
 import { HeroCard } from "@/components/today/HeroCard";
 import { InsightSheetBody } from "@/components/domain/Insight";
+import { JourneyPanels, useUrlPanel } from "@/components/domain/JourneyPanels";
+import type { PanelData } from "@/lib/selectors/panels";
+import type { PersonaId } from "@/lib/api/types";
+import type { AccountState } from "@/lib/account/state";
 import { Button } from "@/components/ui/Button";
 import { SampleTag } from "@/components/ui/SampleTag";
 import { Sheet } from "@/components/ui/Sheet";
@@ -55,6 +59,9 @@ export interface ScoreViewProps {
   initial: Key | null;
   present: boolean;
   stagesSample: boolean;
+  /** Journeys A2: the gambling panel opens in place (?panel=gambling). */
+  journey?: PanelData | null;
+  persona?: PersonaId; account?: AccountState;
 }
 
 const signed = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(n)}`;
@@ -62,6 +69,7 @@ const changeText = (c: number | null) => (c === null ? "–" : c === 0 ? t.list.
 
 export function ScoreView(p: ScoreViewProps) {
   const router = useRouter();
+  const { open: openPanel } = useUrlPanel();
   const [open, setOpen] = useState<Key | null>(p.initial);
   const [related, setRelated] = useState(false);
   const [others, setOthers] = useState(false);
@@ -83,6 +91,7 @@ export function ScoreView(p: ScoreViewProps) {
 
   return (
     <div className="mx-auto w-full max-w-[660px] pb-t6">
+      {p.journey && p.persona && p.account && <JourneyPanels data={p.journey} persona={p.persona} account={p.account} />}
       <SectionChips items={chips} label={t.pillsLabel} />
       <div className={cx("mt-t4 flex flex-col", GROUP_GAP)}>
         {p.sections.map((s) => (
@@ -98,7 +107,9 @@ export function ScoreView(p: ScoreViewProps) {
               {p.room.map((f) => (
                 <li key={f.key} className="border-t border-divider">
                   <FactorButton f={f} strong onOpen={() => show(f.key)} />
-                  {f.key === "ADVERSE_SPEND" && p.gamblingLink && <CrossLink href="/spending?category=gambling">{t.list.gambling}</CrossLink>}
+                  {f.key === "ADVERSE_SPEND" && p.gamblingLink && (p.journey?.gambling
+                    ? <button type="button" onClick={() => openPanel("gambling")} className="-mt-t1 mb-t2 inline-flex min-h-tap items-center text-meta font-semibold text-accent">{t.list.gambling}<span aria-hidden>&nbsp;→</span></button>
+                    : <CrossLink href="/spending?category=gambling#activity">{t.list.gambling}</CrossLink>)}
                   {f.key === "LOAN_AMOUNT_AND_TYPE" && <CrossLink href="/loans">{t.list.borrowing}</CrossLink>}
                 </li>
               ))}

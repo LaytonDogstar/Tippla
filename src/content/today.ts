@@ -37,6 +37,8 @@ export const todayCopy = {
     estimate: "Estimate",
     how: "How we worked this out",
     sevenDays: "For the next 7 days",
+    /** Journeys brief A3: the same forecast with the usual everyday spending taken off, labelled. */
+    withUsual: (amt: string, date: string, perDay: string) => `With your usual everyday spending (about ${perDay} a day): about ${amt} short by ${date}`,
   },
   quick: {
     label: "Quick actions",
@@ -150,9 +152,9 @@ export const todayCopy = {
   progress: {
     choosePlan: "Choose a plan",
     choosePlanBody: "Pick one thing to work on. We'll break it into small steps.",
-    heading: "Your progress",
+    heading: "SmartScore history",
     details: "Details",
-    detailsSr: ": your progress, goal and SmartScore timeline",
+    detailsSr: ": your SmartScore over time",
     estimated: "estimated",
   },
   unusual: {

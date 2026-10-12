@@ -1,5 +1,6 @@
 "use client";
 import { HardshipLetter, type LetterPrefill } from "@/components/domain/HardshipLetter";
+import { HardshipSwitch } from "@/components/domain/HardshipSwitch";
 import { letterCopy as lc } from "@/content/actions";
 import { ChevronRight, ExternalLink, Info, Layers, MessageCircle, Phone, Settings, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -11,10 +12,8 @@ import { SupportOptions } from "@/components/domain/SupportOptions";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Feedback";
 import { SampleTag } from "@/components/ui/SampleTag";
-import { Toggle } from "@/components/ui/Form";
 import { CardLink } from "@/components/ui/CardLink";
 import { PageColumns } from "@/components/shell/PageColumns";
-import { statesCopy } from "@/content/states";
 import { useAccount } from "@/lib/account/client";
 import type { AccountState } from "@/lib/account/state";
 import type { PersonaId } from "@/lib/api/types";
@@ -37,10 +36,12 @@ export function HardshipInfoButton() {
   );
 }
 
-export function HardshipView({ persona, account: initial, present, lenders, asOf, letter = null, followup = null }: {
+export function HardshipView({ persona, account: initial, present, lenders, asOf, letter = null, followup = null, hardshipMode = false }: {
   persona: PersonaId; account: AccountState; present: boolean; lenders: string[]; asOf: string;
   /** Spec 06: the pre-filled letter (null: the plain template), and a lender to ask "Did you hear back?" about. */
   letter?: { prefill: LetterPrefill[]; name: string } | null; followup?: string | null;
+  /** Hardship mode (flag, off until signed off): the switch also pauses lender matching. */
+  hardshipMode?: boolean;
 }) {
   const { account, save, update } = useAccount(persona, initial);
   // Opening Hardship support this pay cycle means Tippla offers its own pause openly (spec 03 §8).
@@ -122,12 +123,7 @@ export function HardshipView({ persona, account: initial, present, lenders, asOf
       </ul>
 
       <section className="mt-t4 rounded-card-s bg-surface shadow-card sm:rounded-card p-t4">
-        <Toggle label={statesCopy.hardshipSelf.label} description={statesCopy.hardshipSelf.description} checked={!!account.hardshipSelfSelected}
-          onChange={(v) => {
-            update((l) => ({ ...l, hardshipSelfSelected: v || undefined }));
-            toast({ kind: "confirm", message: v ? statesCopy.hardshipSelf.toastOn : statesCopy.hardshipSelf.toastOff });
-          }} />
-        {account.hardshipSelfSelected && <p role="status" className="mt-t1 px-t1 text-small text-text-muted">{statesCopy.hardshipSelf.on}</p>}
+        <HardshipSwitch persona={persona} account={initial} asOf={asOf} mode={hardshipMode} />
       </section>
       </>} />
 

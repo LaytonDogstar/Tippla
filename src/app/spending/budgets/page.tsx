@@ -14,7 +14,7 @@ export default async function Budgets({ searchParams }: { searchParams: { person
   const { data } = await loadCustomer(persona);
   const lite: SpendData = { transactions: data.transactions, asOf: data.asOf, derived: data.derived, profile: { data_from: data.profile.data_from } };
   return (
-    <PortalShell path="/spending" persona={persona} present={presentationMode(searchParams.present)} wide header={<PageHeader title={t.budgets.pageTitle} />}>
+    <PortalShell path="/spending" backHref="/spending" persona={persona} present={presentationMode(searchParams.present)} wide header={<PageHeader title={t.budgets.pageTitle} />}>
       <BudgetsView persona={persona} data={lite} initialEdits={categoryEdits(persona)} />
     </PortalShell>
   );

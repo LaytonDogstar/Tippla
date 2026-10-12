@@ -46,7 +46,7 @@ test("Jess: where the money went, the plan, repayments, gambling, progress and w
   await expect(g).toContainText("That’s 18% of your pay, across Ladbrokes, Sportsbet and TAB. So far this pay cycle it’s $200.");
   await expect(g).not.toContainText(/score/i);
 
-  const prog = page.getByRole("region", { name: "Your progress" });
+  const prog = page.getByRole("region", { name: "Pay cycles" });
   await expect(prog.getByRole("row", { name: /Lowest balance/ })).toContainText("forecast");
   await expect(prog.getByRole("row", { name: /Gambling/ })).toContainText("↓ $185");
   await expect(prog.getByRole("link", { name: "See every pay cycle" })).toHaveAttribute("href", "/progress");

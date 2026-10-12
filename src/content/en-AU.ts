@@ -111,7 +111,7 @@ export const copy = {
     typeSACC: "Small loan",
     typeMACC: "Medium loan",
     typeAOCC: "Other credit",
-    combinedBalance: (amt: string, n: number) => `About ${amt} left across ${n} small loans (estimated)`,
+    combinedBalance: (amt: string, names: string) => `About ${amt} left across ${names} together (estimated; your bank data gives one figure for small loans)`,
     repaid: (lender: string, amt: string, n: number) => `Repaid to ${lender} in the last 90 days: ${amt} (${n} ${n === 1 ? "repayment" : "repayments"})`,
   },
   banners: {

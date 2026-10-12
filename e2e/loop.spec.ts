@@ -18,7 +18,7 @@ test("safe to spend: short or nothing spare before payday, with the working and 
   await page.goto("/?persona=jess&present=1&state=none");
   const hero = region(page, "This pay cycle");
   await expect(hero).toContainText("Short before payday");
-  await expect(hero.getByRole("link", { name: "Options if money's tight" })).toHaveAttribute("href", "/hardship");
+  await expect(hero.getByRole("button", { name: "Options if money's tight" })).toBeVisible(); // opens the money's-tight panel (journeys A2)
   // ... and Marcus with a tight cycle has nothing spare, with the working one tap away.
   await page.goto("/?persona=marcus&present=1&state=tight");
   await expect(hero).toContainText("left after bills, with nothing spare before payday");
