@@ -47,7 +47,7 @@ test.describe("dynamic type 200%", () => {
     });
   }
   test("calendar: picking a day works at large text", async ({ page }) => {
-    await page.goto(url("/calendar", "jess"));
+    await page.goto(url("/calendar", "jess") + "&forecast=bills"); // bills only: Today's headline figure
     await page.getByRole("button", { name: /^Wed 30\/09, forecast balance/ }).click();
     const panel = page.getByRole("region", { name: "Wed 30/09" });
     await expect(panel.getByText("Forecast end of day −$53")).toBeVisible();

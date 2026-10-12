@@ -42,7 +42,7 @@ import type { LoanBalance, Repayments } from "@/lib/selectors/figures";
 import type { PanelData } from "@/lib/selectors/panels";
 import type { AccountState } from "@/lib/account/state";
 import { JourneyPanels, balanceText, useUrlPanel } from "@/components/domain/JourneyPanels";
-import { scrollWhenSettled } from "@/components/shell/BackBar";
+import { BackInline, scrollWhenSettled } from "@/components/shell/BackBar";
 import { ORIGIN_PARAM, pageName, safeFrom } from "@/lib/nav/back";
 import { panels as pc } from "@/content/panels";
 import { Phone } from "lucide-react";
@@ -286,8 +286,10 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
         <Section id="activity" n={hasIdeas ? 4 : 3} title={t.sections.activity.title} desc={t.sections.activity.desc(allInPeriod.length)}>
           {/* Arrived from another page on a filter: say what this is and where from (journeys A1). */}
           {(selected || q.trim()) && fromName && (
-            <p data-testid="context-header" className="px-[2px] text-meta font-semibold text-text-secondary">
-              {[selected ? categoryNames[selected] : `“${q.trim()}”`, p.label.toLowerCase(), pc.context.from(fromName)].join(" · ")}
+            <p data-testid="context-header" className="flex flex-wrap items-center gap-x-t2 px-[2px] text-meta font-semibold text-text-secondary">
+              {/* The way back sits where the customer landed, not ~2,500px up at the top of the page. */}
+              <BackInline />
+              <span>{[selected ? categoryNames[selected] : `“${q.trim()}”`, p.label.toLowerCase()].join(" · ")}</span>
             </p>
           )}
           {/* No route into gambling shows transactions without a visible way to support (journeys A2). */}
@@ -317,7 +319,7 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
               <span role="status" className="text-meta text-text-muted">{sp.feed.count(feed.length)}</span>
             </div>
           )}
-          {double.length > 1 && (
+          {double.length > 1 && double.every((x) => feed.some((f) => f.id === x.id)) && (
             <div className="flex min-h-tap items-center justify-between gap-t3 rounded-inset bg-caution-soft px-t4 py-t2 text-meta font-semibold text-caution">
               <span className="inline-flex items-center gap-t1"><TriangleAlert aria-hidden size={14} />{t.activity.double(double[0]!.merchant, formatCents(-double[0]!.amount))}</span>
               <button type="button" onClick={() => setSheet({ kind: "tx", id: double[0]!.id })} className="min-h-tap shrink-0 underline underline-offset-2">{t.activity.review}</button>

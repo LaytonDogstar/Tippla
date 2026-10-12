@@ -2,6 +2,7 @@
 // each refresh and Tippla stores it). Splitting the points between them uses SAMPLE weights (Q3); the parts
 // are scaled and rounded so they always add up to the actual change. Each part links to the transactions
 // behind it, so "new pay advance −9" points at the 24/09 Beforepay credit.
+import { gamblingPanel } from "./panels";
 import type { FactorKey, PersonaData } from "@/lib/api/types";
 import { SAMPLE_FACTOR_WEIGHTS } from "@/config/flags";
 import { attributionCopy as t } from "@/content/feed";
@@ -61,7 +62,11 @@ function reasonFor(d: PersonaData, f: FactorKey, from: ISODate, to: ISODate, dow
     }
     case "ADVERSE_SPEND": {
       const g = tx.filter((x) => x.category === "gambling" && x.amount < 0);
-      if (down && g.length) return { reason: t.reasons.gambling(formatAUD(sumMoney(g.map((x) => -x.amount)))), short: t.reasons.gamblingShort, ids: g.map((x) => x.id) };
+      // Named in pay cycles (journeys review): "$285 since the last update" was a third gambling figure in the app.
+      if (down && g.length) {
+        const gp = gamblingPanel(d);
+        return { reason: t.reasons.gambling(formatAUD(gp.total), formatAUD(gp.lastCycle)), short: t.reasons.gamblingShort, ids: g.map((x) => x.id) };
+      }
       return { reason: null, short: name.toLowerCase(), ids: [] };
     }
     case "MISSED_PAYMENT": {

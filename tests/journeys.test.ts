@@ -126,9 +126,9 @@ describe("calendar URL round-trip", () => {
 });
 
 describe("panels", () => {
-  it("gambling: this cycle so far against the whole of the last one, with the transactions", async () => {
+  it("gambling: this cycle so far against the same point last cycle (as Today's card), with the whole of last cycle too", async () => {
     const g = gamblingPanel(await load("jess"));
-    expect([g.total, g.lastCycle, g.change]).toEqual([200, 385, -185]);
+    expect([g.total, g.lastSamePoint, g.change, g.lastCycle]).toEqual([200, 300, -100, 385]);
     expect(g.transactions.map((t) => t.merchant)).toEqual(["Sportsbet", "TAB"]);
   });
   it("money's tight: both figures, what's due (lenders marked), smaller wins; buffer only when safe to spend shows", async () => {

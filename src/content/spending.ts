@@ -298,12 +298,21 @@ export const calendarPage = {
   banner: {
     title: (amt: string, day: string) => `You're forecast to be ${amt} short on ${day}`,
     body: (bills: string, perDay: string) => `That's after ${bills} of bills still to come, but before everyday spending. You've averaged about ${perDay} a day on that this month.`,
+    bodyUsual: (bills: string, perDay: string) => `That's after ${bills} of bills still to come and your usual everyday spending (about ${perDay} a day).`,
     options: "Options if money's tight",
+  },
+  forecastToggle: {
+    label: "Forecast",
+    usual: "With usual spending",
+    bills: "Bills only",
+    usualNote: (perDay: string) => `Future days take off about ${perDay} a day of everyday spending.`,
+    billsNote: "Future days count pay and bills only.",
   },
   stats: {
     label: "Your money now",
     today: "Balance today",
     lowest: "Lowest forecast (bills only)",
+    lowestUsual: "Lowest forecast (with usual spending)",
     lowestNone: "No forecast yet",
     dayBeforePayday: "day before payday",
     bills: "Bills still to come",
@@ -348,6 +357,8 @@ export const calendarPage = {
     lowest: "Lowest point",
     /** Journeys A3: the forecast counts bills and pay only; the usual everyday spending is shown alongside, labelled. */
     billsOnly: "Forecast days count pay and bills only.",
+    usualCounted: (perDay: string) => `Forecast days take off your usual everyday spending (about ${perDay} a day).`,
+    billsOnlyLow: (amt: string, date: string) => `Counting bills only, the lowest would be ${amt} on ${date}.`,
     withUsual: (amt: string, date: string, perDay: string) => `With your usual everyday spending (about ${perDay} a day), the lowest would be about ${amt} on ${date}.`,
     chart: "End-of-day balance",
     chartSr: (from: string, to: string, low: string, lowDay: string) => `End-of-day balance from ${from} to ${to}. Lowest ${low} on ${lowDay}. Every figure is in the list below.`,

@@ -12,15 +12,19 @@ import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { calendarPage as t, monthLabel } from "@/content/spending";
 import { addDays as addDaysIso, formatCents, formatShortDay, formatWhole } from "@/lib/format";
-import { monthGrid, monthKey, rangeSummary, shiftMonth, type CalDay, type CalendarNow } from "@/lib/selectors/calendarMonth";
+import { lowestForecast, monthGrid, monthKey, rangeSummary, shiftMonth, type CalDay, type CalendarNow } from "@/lib/selectors/calendarMonth";
+import { SegmentedControl } from "@/components/ui/Chips";
+
+type Forecast = "usual" | "bills";
 import { calendarSearch, bounds, initialSelection, isSelected, select } from "@/lib/calendar/selection";
 import { MonthCalendar } from "@/components/domain/MonthCalendar";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
 
+const nextPaydayOf = (cycles: { this: [string, string] }) => addDaysIso(cycles.this[1], 1);
 const signedCents = (n: number) => `${n > 0 ? "+" : "−"}${formatCents(Math.abs(n))}`;
 
-export function CalendarView({ days, now, asOf, cycles, initial, range: monthBounds, stale, usualPerDay = 0, panels = null, persona, account = null }: {
+export function CalendarView({ days: rawDays, now, asOf, cycles, initial, range: monthBounds, stale, usualPerDay = 0, panels = null, persona, account = null, initialForecast = "usual" }: {
   days: CalDay[]; now: CalendarNow; asOf: string;
   cycles: { last: [string, string]; this: [string, string] };
   /** The month shown first and the selection (today, a linked day, or the whole month). */
@@ -31,20 +35,36 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
   usualPerDay?: number;
   /** Journeys A2: "Options if money's tight" opens its panel in place (?panel=tight). */
   panels?: PanelData | null; persona?: PersonaId; account?: AccountState | null;
+  /** Future days show the balance with the usual everyday spending taken off ("usual", the default) or bills only. */
+  initialForecast?: Forecast;
 }) {
   const { open: openPanel } = useUrlPanel();
+  const [forecast, setForecast] = useState<Forecast>(initialForecast);
+  // The same sum as figures.forecastBoth: each future day less the usual everyday spending for the days until then.
+  const days = useMemo(() => (forecast === "bills" || usualPerDay <= 0 ? rawDays : rawDays.map((d) => (d.isFuture && d.balance !== null
+    ? { ...d, balance: Math.round((d.balance - usualPerDay * Math.round((Date.parse(d.date) - Date.parse(asOf)) / 86_400_000)) * 100) / 100 }
+    : d))), [rawDays, forecast, usualPerDay, asOf]);
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
+  const low = useMemo(() => lowestForecast(days), [days]);
+  const nextPayday = nextPaydayOf(cycles);
+  // The banner: the lowest point before payday (as on Today) when that's below $0, else the lowest point after.
+  const beforePayday = useMemo(() => lowestForecast(days.filter((d) => d.date < nextPayday)), [days, nextPayday]);
+  const shortDay = beforePayday && beforePayday.balance! < 0 ? beforePayday : low && low.balance! < 0 ? low : null;
+  const short = shortDay ? { date: shortDay.date, amount: -shortDay.balance! } : null;
+
   const [month, setMonth] = useState(initial.month);
   const [sel, dispatch] = useReducer(select, initialSelection(initial.start, initial.end));
   const [lo, hi] = bounds(sel);
-  const lowest = now.lowest?.date ?? null;
+  const lowest = low?.date ?? null;
 
   // The month and selected day live in the URL (shareable, survives reload) without a server round trip.
   useEffect(() => {
     const u = new URL(window.location.href);
-    u.search = calendarSearch(u.searchParams, month, lo, hi).toString();
+    const q = calendarSearch(u.searchParams, month, lo, hi);
+    if (forecast === "bills") q.set("forecast", "bills"); else q.delete("forecast");
+    u.search = q.toString();
     window.history.replaceState(window.history.state, "", u.toString());
-  }, [month, lo, hi]);
+  }, [month, lo, hi, forecast]);
   // A mouse drag ends wherever the button comes up.
   useEffect(() => {
     if (!sel.dragging) return;
@@ -92,13 +112,13 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
         <MonthArrow dir="next" disabled={month >= monthBounds.max} onClick={() => goMonth(shiftMonth(month, 1))} />
       </div>
 
-      {now.short && monthKey(now.short.date) === month && (
+      {short && monthKey(short.date) === month && (
         <section aria-labelledby="short-h" className="flex flex-wrap items-center justify-between gap-t4 rounded-card-s border border-negative-soft bg-surface p-t5 shadow-card sm:rounded-card">
           <div className="flex min-w-0 flex-[1_1_420px] items-start gap-t4">
             <span aria-hidden className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-[12px] bg-negative-soft text-negative"><TriangleAlert size={20} /></span>
             <div className="min-w-0">
-              <h2 id="short-h" className="text-[1.0625rem] font-extrabold text-text">{t.banner.title(formatWhole(now.short.amount), formatShortDay(now.short.date))}</h2>
-              <p className="mt-t1 text-body14 leading-relaxed text-text-secondary">{t.banner.body(formatWhole(now.bills.total), formatWhole(now.everydayPerDay))}</p>
+              <h2 id="short-h" className="text-[1.0625rem] font-extrabold text-text">{t.banner.title(formatWhole(short.amount), formatShortDay(short.date))}</h2>
+              <p className="mt-t1 text-body14 leading-relaxed text-text-secondary">{forecast === "usual" ? t.banner.bodyUsual(formatWhole(now.bills.total), formatWhole(usualPerDay)) : t.banner.body(formatWhole(now.bills.total), formatWhole(now.everydayPerDay))}</p>
             </div>
           </div>
           {panels ? <Button size="standard" onClick={() => openPanel("tight")}>{t.banner.options}</Button> : <ButtonLink href="/hardship" size="standard">{t.banner.options}</ButtonLink>}
@@ -107,11 +127,17 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
 
       <section aria-label={t.stats.label} className="grid grid-cols-2 gap-t3 min-[900px]:grid-cols-4">
         <Stat label={t.stats.today} value={now.balanceToday === null ? "—" : formatWhole(now.balanceToday)} neg={(now.balanceToday ?? 0) < 0} note={formatShortDay(asOf)} />
-        <Stat label={t.stats.lowest} value={now.lowest ? formatWhole(now.lowest.balance) : "—"} neg={(now.lowest?.balance ?? 0) < 0}
-          note={now.lowest ? `${formatShortDay(now.lowest.date)}${now.lowest.dayBeforePayday ? ` · ${t.stats.dayBeforePayday}` : ""}` : t.stats.lowestNone} />
+        <Stat label={forecast === "usual" ? t.stats.lowestUsual : t.stats.lowest} value={low ? formatWhole(low.balance!) : "—"} neg={(low?.balance ?? 0) < 0}
+          note={low ? `${formatShortDay(low.date)}${low.date === addDaysIso(nextPayday, -1) ? ` · ${t.stats.dayBeforePayday}` : ""}` : t.stats.lowestNone} />
         <Stat label={t.stats.bills} value={formatWhole(now.bills.total)} note={now.bills.payees.length ? now.bills.payees.join(", ") : t.stats.billsNone} />
         <Stat label={t.stats.below} value={String(now.belowZero.days)} neg={now.belowZero.days > 0} note={t.stats.belowOf(now.belowZero.of)} />
       </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-t2">
+        <SegmentedControl label={t.forecastToggle.label} value={forecast} onChange={setForecast}
+          options={[{ value: "usual", label: t.forecastToggle.usual }, { value: "bills", label: t.forecastToggle.bills }]} />
+        <p className="text-meta text-text-muted">{forecast === "usual" ? t.forecastToggle.usualNote(formatWhole(usualPerDay)) : t.forecastToggle.billsNote}</p>
+      </div>
 
       <section aria-label={monthLabel(month)} className="flex flex-col gap-t4 rounded-card-s border border-line bg-surface p-t3 shadow-card sm:rounded-card min-[720px]:p-t5">
         <div className="flex flex-wrap items-center justify-between gap-t3">
@@ -133,7 +159,7 @@ export function CalendarView({ days, now, asOf, cycles, initial, range: monthBou
         <Legend />
       </section>
 
-      <Panel days={days} from={lo} to={hi} asOf={asOf} usualPerDay={usualPerDay} />
+      <Panel days={days} rawDays={rawDays} forecast={forecast} from={lo} to={hi} asOf={asOf} usualPerDay={usualPerDay} />
     </div>
   );
 }
@@ -189,20 +215,21 @@ function Legend() {
 
 // ---- The selected day or range -----------------------------------------------------------------------------------
 
-function Panel({ days, from, to, asOf, usualPerDay }: { days: CalDay[]; from: string; to: string; asOf: string; usualPerDay: number }) {
+function Panel({ days, rawDays, forecast, from, to, asOf, usualPerDay }: { days: CalDay[]; rawDays: CalDay[]; forecast: Forecast; from: string; to: string; asOf: string; usualPerDay: number }) {
   const p = t.panel;
-  // Forecast days, with the usual everyday spending taken off each day (the same sum as figures.forecastBoth).
-  const usualLow = useMemo(() => {
-    const f = days.filter((d) => d.isFuture && d.balance !== null && d.date >= from && d.date <= to)
-      .map((d) => ({ date: d.date, balance: d.balance! - usualPerDay * Math.round((Date.parse(d.date) - Date.parse(asOf)) / 86_400_000) }));
-    return f.length && usualPerDay > 0 ? f.reduce((lo, x) => (x.balance < lo.balance ? x : lo)) : null;
-  }, [days, from, to, asOf, usualPerDay]);
+  // The other way of counting the forecast, for the note under the figures.
+  const other = useMemo(() => {
+    const f = (forecast === "usual" ? rawDays : days).filter((d) => d.isFuture && d.balance !== null && d.date >= from && d.date <= to);
+    const src = forecast === "usual" ? f : f.map((d) => ({ ...d, balance: d.balance! - usualPerDay * Math.round((Date.parse(d.date) - Date.parse(asOf)) / 86_400_000) }));
+    return src.length && usualPerDay > 0 ? src.reduce((lo, x) => (x.balance! < lo.balance! ? x : lo)) : null;
+  }, [days, rawDays, forecast, from, to, asOf, usualPerDay]);
+  const money = (n: number) => (n < 0 ? `−${formatWhole(-n)}` : formatWhole(n));
   const r = useMemo(() => rangeSummary(days, from, to), [days, from, to]);
   const sel = useMemo(() => days.filter((d) => d.date >= r.from && d.date <= r.to), [days, r.from, r.to]);
   const single = r.days === 1;
   const title = single ? `${formatShortDay(r.from)}${r.from === asOf ? ` · ${p.today}` : ""}` : `${formatShortDay(r.from)} – ${formatShortDay(r.to)}`;
   const sub = [!single && p.days(r.days), r.forecastFrom && p.includesForecast(formatShortDay(r.forecastFrom)), r.pending > 0 && p.pending(formatCents(r.pending))].filter(Boolean).join(" · ");
-  const money = (n: number | null) => (n === null ? "—" : formatWhole(n));
+  const fmt = (n: number | null) => (n === null ? "—" : formatWhole(n));
   return (
     <section aria-labelledby="sel-h" aria-live="polite" className="flex flex-col gap-t5 rounded-card-s border border-line bg-surface p-t4 shadow-card sm:rounded-card min-[720px]:p-t6">
       <div className="flex flex-wrap items-baseline justify-between gap-t2">
@@ -210,16 +237,18 @@ function Panel({ days, from, to, asOf, usualPerDay }: { days: CalDay[]; from: st
         {sub && <p className="text-meta text-text-muted">{sub}</p>}
       </div>
       <dl className="grid grid-cols-2 gap-[10px] min-[900px]:grid-cols-5">
-        <PanelStat label={p.opening} value={money(r.opening)} neg={(r.opening ?? 0) < 0} />
+        <PanelStat label={p.opening} value={fmt(r.opening)} neg={(r.opening ?? 0) < 0} />
         <PanelStat label={p.moneyIn} value={r.moneyIn ? `+${formatWhole(r.moneyIn)}` : "$0"} pos={r.moneyIn > 0} />
         <PanelStat label={p.moneyOut} value={r.moneyOut ? `−${formatWhole(r.moneyOut)}` : "$0"} />
-        <PanelStat label={r.closingIsForecast ? p.closingForecast : p.closing} value={money(r.closing)} neg={(r.closing ?? 0) < 0} />
+        <PanelStat label={r.closingIsForecast ? p.closingForecast : p.closing} value={fmt(r.closing)} neg={(r.closing ?? 0) < 0} />
         <PanelStat label={p.lowest} value={r.lowest ? formatWhole(r.lowest.balance) : "—"} neg={(r.lowest?.balance ?? 0) < 0}
           note={r.lowest ? formatShortDay(r.lowest.date) : undefined} className="col-span-2 min-[900px]:col-span-1" />
       </dl>
       {r.forecastFrom && (
         <p data-testid="forecast-note" className="text-meta text-text-secondary">
-          {p.billsOnly}{usualLow ? ` ${p.withUsual(usualLow.balance < 0 ? `−${formatWhole(-usualLow.balance)}` : formatWhole(usualLow.balance), formatShortDay(usualLow.date), formatWhole(usualPerDay))}` : ""}
+          {forecast === "usual"
+            ? <>{p.usualCounted(formatWhole(usualPerDay))}{other ? ` ${p.billsOnlyLow(money(other.balance!), formatShortDay(other.date))}` : ""}</>
+            : <>{p.billsOnly}{other ? ` ${p.withUsual(money(other.balance!), formatShortDay(other.date), formatWhole(usualPerDay))}` : ""}</>}
         </p>
       )}
       {!single && <BalanceBars days={sel} from={r.from} to={r.to} lowest={r.lowest} />}

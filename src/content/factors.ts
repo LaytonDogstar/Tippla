@@ -134,7 +134,7 @@ export const scorePage = {
     strongest: (name: string, v: string) => `${name} is your strongest at ${v}`,
     show: "Show",
     hide: "Hide",
-    gambling: "See gambling in Spending",
+    gambling: "See gambling",
     borrowing: "See your borrowing",
     rowSr: (name: string, score: string) => `${name}, ${score} out of 10`,
   },

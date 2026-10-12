@@ -10,6 +10,7 @@ import { ExternalLink, Phone } from "lucide-react";
 import { panels as t } from "@/content/panels";
 import { moneyPlan as mp } from "@/content/moneyPlan";
 import { NDH } from "@/config/services";
+import { ENERGY_COMPARE_VIC, PROGRAMS } from "@/data/directories";
 import { formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
 import type { PanelData } from "@/lib/selectors/panels";
 import type { PersonaId } from "@/lib/api/types";
@@ -163,9 +164,12 @@ function Row({ label, value, note }: { label: string; value: string; note?: stri
 function Tight({ data, openLetter }: { data: PanelData; openLetter: () => void }) {
   const s = data.tight;
   const w = mp.wins.items;
-  const winLink = (id: string): { label: string; href: string } => id === "subscriptions" ? { label: w.subscriptions.link, href: "/subscriptions" }
-    : id === "failed_debits" ? { label: w.failed_debits.link, href: "/calendar" }
-    : id === "phone" ? { label: w.phone.link, href: "/money-plan#mp-wins" } : { label: w.energy.link(false), href: "/money-plan#mp-wins" };
+  const vic = s.state === "VIC";
+  const due = s.beforePayday ? `/calendar?from=${s.beforePayday.from}&to=${s.beforePayday.to}` : "/calendar";
+  const winLink = (id: string): { label: string; href: string; external?: boolean } => id === "subscriptions" ? { label: w.subscriptions.link, href: "/subscriptions" }
+    : id === "failed_debits" ? { label: w.failed_debits.link, href: due }
+    : id === "phone" ? { label: w.phone.link, href: "/money-plan#mp-wins" }
+    : { label: w.energy.link(vic), href: vic ? ENERGY_COMPARE_VIC : PROGRAMS.energy_compare.url, external: true };
   const h3 = "text-body14 font-extrabold text-text";
   return (
     <div className="flex flex-col gap-t5 text-body14 text-text">
@@ -192,7 +196,12 @@ function Tight({ data, openLetter }: { data: PanelData; openLetter: () => void }
         <section className="flex flex-col gap-t2">
           <h3 className={h3}>{t.tight.steps.wins}</h3>
           <ul className="flex flex-col gap-t1">
-            {s.wins.map((x) => { const l = winLink(x.id); return <li key={x.id}><Link href={l.href} className={linkCls}>{l.label}</Link></li>; })}
+            {s.wins.map((x) => {
+              const l = winLink(x.id);
+              return <li key={x.id}>{l.external
+                ? <a href={l.href} target="_blank" rel="noopener noreferrer" className={linkCls}>{l.label}<ExternalLink aria-hidden size={14} /><span className="sr-only"> {t.gambling.opensIn}</span></a>
+                : <Link href={l.href} className={linkCls}>{l.label}</Link>}</li>;
+            })}
           </ul>
         </section>
       )}

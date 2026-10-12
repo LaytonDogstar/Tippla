@@ -58,7 +58,7 @@ test("Coming up: running balances to payday match the Calendar; the payment that
   const advance = c.getByRole("listitem").filter({ hasText: "Beforepay" });
   await expect(advance).toContainText("pay advance repayment");
   await expect(advance).toContainText("−$53 left");
-  await expect(advance.getByRole("link", { name: "This takes you below $0 · See your options" })).toHaveAttribute("href", "/hardship");
+  await expect(advance.getByRole("button", { name: "This takes you below $0 · See your options" })).toBeVisible(); // opens the money's-tight panel
   await expect(c.getByText("Short before payday")).toBeVisible();
   await expect(c.getByText(/^Payday · Harbourside/)).toBeVisible();
   const after = c.getByRole("button", { name: /^After payday/ });
@@ -66,7 +66,7 @@ test("Coming up: running balances to payday match the Calendar; the payment that
   await after.click();
   await expect(c.getByRole("listitem").filter({ hasText: "Tippla membership" }).getByRole("link", { name: "Pause this month" })).toBeVisible();
   // Every "left" is the Calendar's end-of-day forecast: Wed 30/09 is −$53 there too.
-  await page.goto("/calendar?persona=jess&present=1&day=2026-09-30");
+  await page.goto("/calendar?persona=jess&present=1&day=2026-09-30&forecast=bills"); // bills only, as Coming up
   await expect(page.getByRole("region", { name: "Wed 30/09" }).getByText("Forecast end of day −$53")).toBeVisible();
 });
 

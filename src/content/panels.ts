@@ -8,9 +8,10 @@ export const panels = {
     title: "Gambling",
     sub: (from: string, to: string) => `This pay cycle, ${from} – ${to}`,
     total: "This pay cycle so far",
-    change: (amt: string, up: boolean) => `${up ? "↑" : "↓"} ${amt} on the whole of last pay cycle`,
-    same: "Same as the whole of last pay cycle",
-    lastCycle: (amt: string) => `Last pay cycle: ${amt}`,
+    /** The same comparison as Today's Spending card: this point in the last pay cycle. */
+    change: (amt: string, up: boolean) => `${up ? "↑" : "↓"} ${amt} since this point last cycle`,
+    same: "Same as this point last cycle",
+    lastCycle: (amt: string) => `Last pay cycle in full: ${amt}`,
     none: "No gambling transactions this pay cycle.",
     txTitle: "Transactions",
     supportTitle: "If you want support",
@@ -58,7 +59,7 @@ export const panels = {
     summaryUsual: (amt: string, date: string) => `With your usual everyday spending, about ${amt} short by ${date}.`,
     steps: {
       due: "1. What's due before payday",
-      dueLender: "Repayment: a lender can often move or lower it (see 5)",
+      dueLender: "A lender can often move or lower a repayment: see “Ask a lender for hardship help” below",
       dueBill: "Most providers will move a due date if you ask before it's taken",
       dueNone: "Nothing else is due before payday.",
       wins: "2. Smaller wins this pay cycle",

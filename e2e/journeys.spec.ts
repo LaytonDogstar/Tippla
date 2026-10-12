@@ -67,7 +67,10 @@ test.describe("Part B defects", () => {
     await expect(dlg.getByRole("link", { name: "Call 1800 858 858" })).toBeVisible();
     await dlg.getByRole("link", { name: "See all gambling in Spending" }).click();
     await expect(page.getByTestId("gambling-support-strip")).toBeVisible();
-    await expect(page.getByTestId("context-header")).toHaveText("Gambling · this pay cycle · from SmartScore");
+    // The way back sits where the customer landed (not 2,500px up at the top of the page).
+    await expect(page.getByTestId("context-header")).toHaveText("Back to SmartScoreGambling · this pay cycle");
+    await expect(page.getByTestId("back-inline")).toBeInViewport();
+    await expect(page.getByText(/may have charged you twice/)).toHaveCount(0); // not a gambling transaction
   });
 
   test("B6: the calendar keeps from/to, selects no quick button that doesn't match, and drops September's banner in October", async ({ page }) => {
@@ -84,8 +87,15 @@ test.describe("Part B defects", () => {
   });
 
   test("B7: the forecast says what it counts; Today and the calendar show the usual-spending figure too", async ({ page }) => {
+    // Future days lead with the usual everyday spending taken off; "Bills only" is one tap away.
     await page.goto("/calendar?persona=jess&present=1&from=2026-10-01&to=2026-10-14");
-    await expect(page.getByTestId("forecast-note")).toContainText("Forecast days count pay and bills only. With your usual everyday spending (about $86 a day), the lowest would be about −$");
+    await expect(page.getByTestId("forecast-note")).toHaveText("Forecast days take off your usual everyday spending (about $86 a day). Counting bills only, the lowest would be $1,051 on Tue 13/10.");
+    await expect(page.getByRole("button", { name: /^Wed 14\/10, forecast balance −\$583/ })).toBeVisible();
+    await page.getByRole("radio", { name: "Bills only" }).check({ force: true });
+    await expect(page).toHaveURL(/forecast=bills/);
+    await expect(page.getByTestId("forecast-note")).toContainText("Forecast days count pay and bills only. With your usual everyday spending (about $86 a day), the lowest would be about −$583 on Wed 14/10.");
+    await page.goto("/calendar?persona=jess&present=1");
+    await expect(page.locator("#short-h")).toHaveText("You're forecast to be $483 short on Wed 30/09"); // as on Today
     await page.goto("/?persona=jess&present=1&state=none");
     await expect(page.getByTestId("hero-usual")).toHaveText("With your usual everyday spending (about $86 a day): about $483 short by Wed 30/09");
   });
@@ -124,6 +134,29 @@ test.describe("Part B defects", () => {
     await expect(page.getByRole("link", { name: "Set a buffer" })).toHaveCount(0);
     await page.goto("/?persona=marcus&present=1&state=none&panel=tight");
     await expect(page.getByRole("dialog", { name: "Options if money's tight" }).getByRole("link", { name: "Set a buffer" })).toBeVisible();
+  });
+
+  test("review: Coming up's below-$0 link opens the same panel; its links go where they say; closed panels leave no dialog", async ({ page }) => {
+    await page.goto("/?persona=jess&present=1&state=none");
+    await page.getByRole("button", { name: /This takes you below \$0/ }).click();
+    const dlg = page.getByRole("dialog", { name: "Options if money's tight" });
+    await expect(dlg).toBeVisible();
+    await expect(dlg).not.toContainText("see 5");
+    await expect(dlg.getByRole("link", { name: /Compare on Energy Made Easy/ })).toHaveAttribute("href", "https://www.energymadeeasy.gov.au/");
+    await expect(dlg.getByRole("link", { name: "See what’s due and when" })).toHaveAttribute("href", "/calendar?from=2026-09-26&to=2026-09-30");
+    await page.keyboard.press("Escape");
+    await expect(page.locator('[role="dialog"], [aria-modal]')).toHaveCount(0);
+  });
+
+  test("review: one gambling comparison everywhere; SmartScore names pay cycles, not a third figure", async ({ page }) => {
+    await page.goto("/?persona=jess&present=1&state=none");
+    await expect(page.getByRole("region", { name: "Spending" }).getByRole("button", { name: /Gambling/ })).toContainText("since this point last cycle");
+    await page.getByRole("region", { name: "Spending" }).getByRole("button", { name: /Gambling/ }).click();
+    await expect(page.getByRole("dialog", { name: "Gambling" })).toContainText("↓ $100 since this point last cycle (Last pay cycle in full: $385)");
+    await page.goto("/score?persona=jess&present=1");
+    await expect(page.getByRole("button", { name: "See gambling", exact: true })).toBeVisible();
+    await expect(page.locator("main")).not.toContainText("$285");
+    await expect(page.locator("main")).toContainText("Gambling: $200 so far this pay cycle, $385 last pay cycle");
   });
 });
 
