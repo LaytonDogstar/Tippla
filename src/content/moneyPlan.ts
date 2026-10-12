@@ -127,14 +127,16 @@ export const moneyPlan = {
 
   // ---- Your progress
   progress: {
-    sub: (asOf: string) => `Last pay cycle compared with this one so far (to ${asOf})`,
+    sub: (asOf: string) => `Last pay cycle in full, and this one so far (to ${asOf}). Changes compare with the same point last cycle.`,
     caption: "Last pay cycle and this pay cycle so far",
     rows: { lowest: "Lowest balance", gambling: "Gambling", advances: "Pay advances", loans: "Loans & BNPL" },
-    forecast: "forecast",
+    forecast: "forecast with usual spending",
+    noChange: "Same as this point last cycle",
+    noChangeLowest: "no change",
     soFar: "so far",
-    noChange: "no change",
     down: (amt: string) => `↓ ${amt}`,
     up: (amt: string) => `↑ ${amt}`,
+    sincePoint: "since this point last cycle",
     seeAll: "See every pay cycle",
   },
 

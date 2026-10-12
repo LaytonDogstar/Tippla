@@ -4,7 +4,7 @@
 // 03/09–16/09 figures are the ones in the brief.
 import { describe, expect, it } from "vitest";
 import {
-  calendarDays, currentCycle, cycleBefore, cycleProgress, gamblingCard, lenders, moneyWent, shortfallIn, smallerWins, whatItWouldTake,
+  calendarDays, currentCycle, currentCycleForecast, cycleBefore, cycleProgress, gamblingPanel, gamblingCard, lenders, moneyWent, shortfallIn, smallerWins, whatItWouldTake,
   type MoneyWent,
 } from "@/lib/selectors";
 import { GAMBLING_CARD_MIN_PER_CYCLE } from "@/config/flags";
@@ -104,14 +104,19 @@ describe("shortfall and what it would take", () => {
 });
 
 describe("this cycle against the last one", () => {
-  it("Jess: lowest balance (forecast), gambling, pay advances, loans and BNPL, with the change", async () => {
-    const p = cycleProgress(await load("jess"));
-    expect(p.rows.map((x) => [x.key, r(x.last), r(x.now), r(x.change), !!x.nowForecast])).toEqual([
-      ["lowest", -636, -53, 584, true],
-      ["gambling", 385, 200, -185, false],
-      ["advances", 300, 300, 0, false],
-      ["loans", 375, 335, -40, false],
+  it("Jess: lowest balance (forecast with usual spending), and spending against the same point last cycle", async () => {
+    const d = await load("jess");
+    const p = cycleProgress(d);
+    expect(p.rows.map((x) => [x.key, r(x.last), r(x.now), x.samePoint === undefined ? null : r(x.samePoint), r(x.change), !!x.nowForecast])).toEqual([
+      ["lowest", -636, -483, null, 154, true],
+      ["gambling", 385, 200, 300, -100, false],
+      ["advances", 300, 300, 300, 0, false],
+      ["loans", 375, 335, 335, 0, false],
     ]);
+    // The same figures as the gambling panel and Pay cycles' forecast row.
+    const g = gamblingPanel(d);
+    expect([p.rows[1]!.now, p.rows[1]!.change]).toEqual([g.total, g.change]);
+    expect(p.rows[0]!.now).toBe(currentCycleForecast(d)!.withEveryday);
   });
 });
 

@@ -8,6 +8,7 @@ import { GAMBLING_CARD_MIN_PER_CYCLE } from "@/config/flags";
 import { addDays, daysBetween, type ISODate } from "@/lib/format/dates";
 import { cents, sumMoney } from "@/lib/format/money";
 import { calendarDays, type CalDay } from "./calendarMonth";
+import { forecastBoth } from "./figures";
 import { currentCycle, cycleBefore, type Period } from "./periods";
 import { billSwitchCandidates, subscriptions } from "./subscriptions";
 import { applyOverrides, posted, type CategoryOverrides } from "./transactions";
@@ -133,25 +134,45 @@ export function whatItWouldTake(shortfall: number, usualAdvance: number | null):
 
 // ---- This cycle against the last one -----------------------------------------------------------------------------
 
-export interface ProgressRow { key: "lowest" | "gambling" | "advances" | "loans"; last: number; now: number; nowForecast?: boolean; change: number }
+export interface ProgressRow {
+  key: "lowest" | "gambling" | "advances" | "loans";
+  last: number; now: number; nowForecast?: boolean;
+  /** Spending rows: last pay cycle up to the same point (as many days in as this one is). */
+  samePoint?: number;
+  /** Spending rows: now − samePoint ("since this point last cycle", as Today and the gambling panel). Lowest: now − last. */
+  change: number;
+}
+/**
+ * Last pay cycle in full and this one so far. Spending rows change against the same point last cycle (as Today's
+ * Spending card and the gambling panel), so a part-cycle never reads as a drop. The lowest balance compares whole
+ * cycles, this one forecast with the usual everyday spending (as Pay cycles and Calendar).
+ */
 export function cycleProgress(d: PersonaData, overrides?: CategoryOverrides): { last: Period; now: Period; asOf: ISODate; rows: ProgressRow[] } {
   const last = cycleBefore(d, 1), now = currentCycle(d);
   const days = calendarDays(d, overrides);
   const tx = posted(applyOverrides(d.transactions, overrides));
-  const sum = (p: Period, f: (t: (typeof tx)[number]) => boolean) => sumMoney(tx.filter((t) => t.date >= p.start && t.date <= p.end && f(t)).map((t) => Math.abs(t.amount)));
-  const lowest = (p: Period) => days.filter((x) => x.date >= p.start && x.date <= p.end && x.balance !== null).reduce<CalDay | null>((lo, x) => (!lo || x.balance! < lo.balance! ? x : lo), null);
-  const lo = lowest(last), ln = lowest(now);
-  const row = (key: ProgressRow["key"], a: number, b: number, extra: Partial<ProgressRow> = {}): ProgressRow => ({ key, last: a, now: b, change: sumMoney([b, -a]), ...extra });
+  const sum = (p: { start: ISODate; end: ISODate }, f: (t: (typeof tx)[number]) => boolean) => sumMoney(tx.filter((t) => t.date >= p.start && t.date <= p.end && f(t)).map((t) => Math.abs(t.amount)));
+  const lowestPast = (p: Period) => days.filter((x) => x.date >= p.start && x.date <= p.end && x.balance !== null && !x.isFuture).reduce<number | null>((lo, x) => (lo === null || x.balance! < lo ? x.balance! : lo), null);
+  const future = forecastBoth(d, days).filter((x) => x.date >= now.start && x.date <= now.end);
+  const futureLow = future.reduce<number | null>((lo, x) => (lo === null || x.withEveryday < lo ? x.withEveryday : lo), null);
+  const pastNow = lowestPast(now);
+  const lo = lowestPast(last) ?? 0;
+  const ln = futureLow !== null && (pastNow === null || futureLow < pastNow) ? { balance: futureLow, forecast: true } : { balance: pastNow ?? 0, forecast: false };
+  const same = { start: last.start, end: addDays(last.start, Math.max(0, daysBetween(now.start, d.asOf))) };
+  const spend = (key: ProgressRow["key"], f: (t: (typeof tx)[number]) => boolean): ProgressRow => {
+    const a = sum(last, f), b = sum(now, f), sp = sum(same, f);
+    return { key, last: a, now: b, samePoint: sp, change: sumMoney([b, -sp]) };
+  };
   const g = (t: { category: CategoryId; amount: number }) => t.category === "gambling" && t.amount < 0;
   const adv = (t: { category: CategoryId; amount: number }) => t.category === "wage_advance" && t.amount > 0;
   const loan = (t: { category: CategoryId; amount: number }) => (t.category === "loan_repayment" || t.category === "bnpl") && t.amount < 0;
   return {
     last, now, asOf: d.asOf,
     rows: [
-      row("lowest", lo?.balance ?? 0, ln?.balance ?? 0, { nowForecast: !!ln?.isFuture }),
-      row("gambling", sum(last, g), sum(now, g)),
-      row("advances", sum(last, adv), sum(now, adv)),
-      row("loans", sum(last, loan), sum(now, loan)),
+      { key: "lowest", last: lo, now: ln.balance, nowForecast: ln.forecast, change: sumMoney([ln.balance, -lo]) },
+      spend("gambling", g),
+      spend("advances", adv),
+      spend("loans", loan),
     ],
   };
 }
