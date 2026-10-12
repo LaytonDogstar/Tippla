@@ -6,6 +6,7 @@
 // Then the days-to-payday strip, balance against what's due, paid in / spent / pay advance (never income),
 // and two actions: what's due, and options if money's tight (always next to a short state).
 import Link from "next/link";
+import { HeroCard } from "./HeroCard";
 import { useEffect } from "react";
 import { ArrowDown, ArrowUp, CreditCard, HeartHandshake, Unplug } from "lucide-react";
 import { track } from "@/lib/analytics/client";
@@ -54,7 +55,7 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
   const dueList = due.slice(0, 2).map((b) => `${b.merchant} ${formatWhole(b.expected_amount)}`).join(" · ") + (due.length > 2 ? ` ${t.more(due.length - 2)}` : "");
 
   return (
-    <section aria-labelledby="hero-h" className="on-brand flex flex-col gap-t3 rounded-hero-s bg-hero p-t4 text-hero-on shadow-hero sm:gap-t6 sm:p-t6 desktop:rounded-hero desktop:px-t7 desktop:py-[28px]">
+    <HeroCard labelledBy="hero-h">
       <h2 id="hero-h" className="sr-only">{t.label}</h2>
       {notice && (
         <Link href={notice.href} className="flex min-h-tap items-center gap-t2 rounded-inset bg-hero-glass px-t3 py-t2 text-meta font-semibold">
@@ -140,7 +141,7 @@ export function PayCycleHero({ pc, safe, asOf, stsPaused, movement, notice, trac
       <div className="flex flex-col items-stretch gap-t2 sm:flex-row sm:gap-t3">
         <Link href="/hardship" className="pressable flex min-h-[48px] items-center justify-center rounded-pill bg-hero-on px-t5 py-t2 text-center text-[0.9375rem] font-bold text-hero-from sm:flex-1">{t.moneyTight}</Link>
       </div>
-    </section>
+    </HeroCard>
   );
 }
 

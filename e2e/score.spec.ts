@@ -21,7 +21,7 @@ test("journey 3: dashboard → score → factor detail → recommendation sheet 
 
   await expect(page).toHaveURL(/\/score$/);
   await expect(page.getByRole("heading", { name: "SmartScore", level: 1 })).toBeVisible();
-  await page.getByRole("button", { name: /^Current borrowing 2\.9 \/ 10/ }).click();
+  await page.getByRole("region", { name: "What's behind it" }).getByRole("button", { name: /^Current borrowing/ }).click();
 
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByRole("heading", { name: "Current borrowing" })).toBeVisible();
@@ -50,7 +50,7 @@ test("Priya: override state, null factors, no recommendations", async ({ page })
   await expect(page.getByRole("heading", { name: "Not enough history yet" })).toBeVisible();
   await expect(page.getByText(/10\/11\/2026/)).toBeVisible();
   await expect(page.getByText("-998")).toHaveCount(0);
-  await page.getByRole("button", { name: /^Income stability.*Not enough history yet/ }).click();
+  await page.getByRole("region", { name: "What's behind it" }).getByRole("button", { name: /^Income stability/ }).click();
   await expect(page.getByRole("dialog").getByText("We don't have enough history to work this out yet.").first()).toBeVisible();
 
   await page.goto("/savings?persona=priya&present=1");
@@ -80,3 +80,48 @@ for (const persona of ["jess", "marcus", "priya"]) {
     });
   }
 }
+
+test("SmartScore one column (Jess): header, pills, hero, what changed, next step with the shortfall note, factors, trend", async ({ page }) => {
+  await page.goto("/score?persona=jess&present=1");
+  await expect(page.getByText("Updated Fri 25/09, 9:14am · Next update Fri 09/10")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Why did my score drop?" })).toHaveAttribute("href", /\/assistant\?entry=contextual&q=Why%20did%20my%20score%20drop/);
+  await expect(page.getByRole("link", { name: "How your score works" })).toHaveCount(0); // no info icon in the header
+  const pills = page.getByRole("navigation", { name: "On this page" });
+  await expect(pills.getByRole("link")).toHaveText(["Where you stand", "Next step", "What's behind it", "Over time"]);
+  // 1 Where you stand: the dark hero, then What changed.
+  const stand = page.getByRole("region", { name: "Where you stand" });
+  await expect(stand).toContainText("Steadying · falling for 10 weeks");
+  await expect(stand).toContainText("↓ 17 since 11/09");
+  await expect(stand).toContainText("Was 489 · out of 1,000");
+  await expect(stand).toContainText("128 points to Healthy at 600");
+  await expect(stand).toContainText("489 → 472 since 11/09");
+  await expect(stand).toContainText("Points per factor are estimates. The total (−17) is your actual change.");
+  // 2 Next step: the plan, the action, the estimate and the shortfall note.
+  const next = page.getByRole("region", { name: "Next step" });
+  await expect(next).toContainText("Your plan · Step 1 of 3");
+  await expect(next).toContainText("Skip the next pay advance if you can");
+  await expect(next).toContainText("~490 by 23/10 · estimate");
+  await expect(next.getByRole("note")).toContainText("You're about $53 short before payday on Thu 01/10");
+  await expect(next.getByRole("link", { name: /Options if money's tight/ })).toHaveAttribute("href", "/hardship");
+  // 3 What's behind it: three with most room to move, the other five behind a toggle.
+  const factors = page.getByRole("region", { name: "What's behind it" });
+  await expect(factors).toContainText("8 factors, each scored out of 10");
+  const toggle = factors.getByRole("button", { name: /^Other factors · 5/ });
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(factors.getByRole("button", { name: /^Income stability/ })).toBeHidden();
+  await toggle.click();
+  await expect(factors.getByRole("button", { name: /^Income stability/ })).toBeVisible();
+  await expect(factors.getByRole("link", { name: /See gambling in Spending/ })).toHaveAttribute("href", "/spending?category=gambling");
+  // 4 Over time: a chart with a text alternative listing the values.
+  await expect(page.getByRole("img", { name: /521, 515, 506, 498, 489, 472\. Healthy starts at 600/ })).toBeVisible();
+  await page.getByRole("button", { name: "How your score works" }).click();
+  await expect(page.getByRole("dialog", { name: "How your score works" })).toBeVisible();
+});
+
+test("SmartScore: no shortfall note when Today shows none (Marcus)", async ({ page }) => {
+  await page.goto("/score?persona=marcus&present=1");
+  await expect(page.getByRole("region", { name: "Next step" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Next step" }).getByRole("note")).toHaveCount(0);
+  await page.goto("/?persona=marcus&present=1");
+  await expect(page.getByTestId("hero-amount")).not.toContainText("short");
+});

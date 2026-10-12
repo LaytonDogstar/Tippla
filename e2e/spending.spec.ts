@@ -254,19 +254,56 @@ test("calendar: months, links in, and where the forecast ends", async ({ page })
   await expect(page.getByRole("heading", { name: "October 2026" })).toBeVisible();
 });
 
-test("subscriptions: still using? Yes keeps it with an optional reminder; how to cancel from the menu", async ({ page }) => {
+test("subscriptions: one column; quick check one at a time; coming up by pay cycle; could save", async ({ page }) => {
   await page.goto("/subscriptions?persona=jess&present=1");
-  const rail = page.getByRole("complementary");
-  await expect(rail.getByText("$31")).toBeVisible(); // a pay cycle; includes Binge (new 08/09)
-  await expect(rail.getByText("$810 a year")).toBeVisible();
-  const netflix = page.getByRole("article", { name: "Netflix" });
-  await netflix.getByRole("button", { name: "Yes: Still using Netflix?" }).click();
-  await expect(netflix.getByText("Kept", { exact: true })).toBeVisible();
-  await netflix.getByRole("button", { name: "Remind me before next charge" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "We'll remind you about Netflix on Thu 01/10" })).toBeVisible();
-  await page.getByRole("button", { name: "More options for Netflix" }).click();
-  await page.getByRole("dialog", { name: "Netflix" }).getByRole("button", { name: "How to cancel" }).click();
-  await expect(page.getByRole("dialog").getByRole("heading", { name: "How to cancel Netflix" })).toBeVisible();
+  await expect(page.getByRole("complementary")).toHaveCount(0); // no rail
+  const yours = page.getByRole("region", { name: "Your subscriptions" });
+  await expect(yours).toContainText("5 subscriptions");
+  await expect(yours).toContainText("$31a pay cycle on average");
+  await expect(yours).toContainText("$67.47 a month · $809.64 a year, spread across your 2-week pay cycle");
+  await expect(yours).toContainText("Next charge$18.99 NetflixSat 03/10, after payday");
+  await expect(yours).toContainText("Checked0 of 55 still to check");
+  await expect(yours).toContainText("Netflix, Binge and Stan come to $48.99 a month ($587.88 a year).");
+  await expect(page.getByRole("region", { name: "Could save" })).toHaveCount(0);
+
+  // Quick check: streaming first; Yes, No, Not sure; then all checked.
+  const check = page.getByRole("region", { name: "Quick check" });
+  await expect(check).toContainText("1 of 5");
+  await expect(check.getByRole("heading", { name: "Still using Netflix?" })).toBeVisible();
+  await check.getByRole("button", { name: "Yes, keep it" }).click();
+  await expect(check.getByRole("heading", { name: "Still using Binge?" })).toBeVisible();
+  await check.getByRole("button", { name: "No, I don't use it" }).click();
+  await check.getByRole("button", { name: "Not sure, ask me later" }).click(); // Stan
+  await check.getByRole("button", { name: "Yes, keep it" }).click(); // Spotify
+  await check.getByRole("button", { name: "Yes, keep it" }).click(); // Apple iCloud
+  await expect(check).toContainText("All checked");
+  await expect(check).toContainText("3 using · 1 not using · 1 to check later");
+  await expect(page.getByRole("region", { name: "Could save" })).toContainText("$216.00a year");
+
+  // Coming up: grouped by pay cycle; a row opens to its figures, a reminder and its answer.
+  const coming = page.getByRole("region", { name: "Coming up" });
+  await expect(coming).toContainText("No subscriptions due before payday");
+  await expect(coming.getByRole("heading", { name: /Next cycle · 01\/10 – 14\/10/ })).toBeVisible();
+  const stan = coming.getByRole("button", { name: /^Stan/ });
+  await expect(stan).toContainText("To check");
+  await stan.click();
+  await expect(stan).toHaveAttribute("aria-expanded", "true");
+  await expect(coming).toContainText("Each charge$12.00Per pay cycle$5.54Per year$144.00");
+  await coming.getByRole("button", { name: "Remind me before 09/10" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "We'll remind you about Stan on Wed 07/10" })).toBeVisible();
+  await coming.getByRole("group", { name: "Still using it? Stan" }).getByRole("button", { name: "No" }).click();
+  await expect(stan).toContainText("Not using");
+  await expect(page.getByRole("region", { name: "Could save" })).toContainText("Stan");
+  // Start again clears the answers.
+  await check.getByRole("button", { name: "Start again" }).click();
+  await expect(check).toContainText("1 of 5");
+});
+
+test("subscriptions: no streaming insight or Could save for Priya", async ({ page }) => {
+  await page.goto("/subscriptions?persona=priya&present=1");
+  await expect(page.getByRole("region", { name: "Your subscriptions" })).toContainText("1 subscription");
+  await expect(page.getByText(/streaming services/)).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Could save" })).toHaveCount(0);
 });
 
 const SCREENS = ["/spending", "/spending?tab=categories", "/spending?tab=budgets", "/spending/compare", "/spending/compare?tab=cohort", "/calendar", "/calendar?month=2026-10", "/subscriptions"];

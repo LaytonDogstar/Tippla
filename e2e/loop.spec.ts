@@ -61,14 +61,13 @@ test("payday recap celebrates a positive streak (Marcus)", async ({ page }) => {
 
 test("score projection on /score is an estimate (Jess), and absent without a score (Priya)", async ({ page }) => {
   await page.goto("/score?persona=jess&present=1");
-  const box = region(page, "If you act on your next step");
-  await expect(box).toContainText("Skip the next pay advance: about 490 by 23/10");
-  await expect(box).toContainText("Estimate");
-  await expect(box.getByText(/Sample logic/)).toHaveCount(0);
+  const next = region(page, "Next step");
+  await expect(next).toContainText("~490 by 23/10 · estimate");
+  await expect(next.getByText(/Sample logic/)).toHaveCount(0);
   await page.goto("/score?persona=jess&present=0");
-  await expect(region(page, "If you act on your next step").getByText("Sample logic · Q3")).toBeVisible();
+  await expect(region(page, "Next step").getByText("Sample logic · Q3")).toBeVisible();
   await page.goto("/score?persona=priya&present=1");
-  await expect(region(page, "If you act on your next step")).toHaveCount(0);
+  await expect(page.getByText("Could reach")).toHaveCount(0);
 });
 
 test("value tally: actions in the app are pending, then confirmed from bank data at payday", async ({ page }) => {
@@ -85,8 +84,8 @@ test("value tally: actions in the app are pending, then confirmed from bank data
 
   // 2. "I've cancelled it" for Binge.
   await page.goto("/subscriptions?persona=jess&present=1");
-  await page.getByRole("button", { name: "More options for Binge" }).click();
-  await page.getByRole("dialog", { name: "Binge" }).getByRole("button", { name: "How to cancel" }).click();
+  await page.getByRole("region", { name: "Coming up" }).getByRole("button", { name: /^Binge/ }).click();
+  await page.getByRole("region", { name: "Coming up" }).getByRole("button", { name: "How to cancel" }).click();
   await page.getByRole("dialog", { name: "How to cancel Binge" }).getByRole("button", { name: "I've cancelled it" }).click();
   await expect(page.getByRole("dialog").getByText("Marked as cancelled. We'll confirm after 11/10.")).toBeVisible();
 
