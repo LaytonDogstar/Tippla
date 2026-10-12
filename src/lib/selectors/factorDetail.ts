@@ -5,7 +5,7 @@ import { weekdayLong } from "@/content/en-AU";
 import { formatDayMonth, formatPercent, formatWhole } from "@/lib/format";
 import { sumMoney } from "@/lib/format/money";
 import { daysOverdrawn90, lowestBalance90 } from "./balance";
-import { gamblingInsight } from "./gambling";
+import { alcoholPerMonth, gamblingInsight } from "./gambling";
 import { incomeStreams, monthlyIncome, payPattern } from "./income";
 import { activeLoans, dishonours90, loanTotals, otherCredit, payAdvanceRun } from "./loans";
 import { payCycleSummary } from "./payCycle";
@@ -31,7 +31,7 @@ export function factorDrivers(d: PersonaData, key: FactorKey): DriverFact[] {
     }
     case "ADVERSE_SPEND": {
       const g = gamblingInsight(d);
-      const alcohol = metric<{ category_id: number; monthly_mean_90_days: number | null }[]>(d.bankStatement, "AM2151").find((x) => x.category_id === 23)?.monthly_mean_90_days;
+      const alcohol = alcoholPerMonth(d);
       const out: DriverFact[] = g ? [{ text: c.gambling.share(formatPercent(g.pctOfIncome90)) }, { text: c.gambling.total(formatWhole(g.deposits90)) }] : [{ text: c.gambling.none }];
       if (alcohol) out.push({ text: c.gambling.alcohol(formatWhole(alcohol)) });
       return out;

@@ -20,16 +20,18 @@ test("Marcus: streaks, money left before each payday, score timeline; reached fr
   await expect(page).toHaveURL(/\/progress/);
   await expect(region(page, "Going well")).toContainText("12 pay cycles in a row without a new pay advance");
   const cycles = region(page, "Money left the day before payday");
-  await expect(cycles.getByRole("listitem")).toHaveCount(6);
-  await expect(cycles.getByRole("listitem").first()).toContainText("$917 left");
-  await expect(region(page, "Your SmartScore and what you did")).toContainText("SmartScore 612");
+  await expect(cycles.getByRole("listitem")).toHaveCount(7); // this pay cycle (forecast) and the last six
+  await expect(cycles.getByTestId("cycle-current")).toContainText("23/09 – 06/10 · this pay cycleAbout $974 left (forecast)");
+  await expect(cycles.getByRole("listitem").nth(1)).toContainText("$917 left");
+  // The score over time is on the SmartScore page; "What you did" only once there's something to list.
+  await expect(page.getByRole("link", { name: "See your SmartScore over time" })).toHaveAttribute("href", "/score#s-trend");
+  await expect(region(page, "What you did")).toHaveCount(0);
   await expect(page.getByRole("main")).not.toContainText(/offer|lender|gambl/i);
   await expectNoAxe(page);
 });
 
 test("Jess on payday: set a goal; safe to spend allows for it; change and remove with Undo", async ({ page }) => {
   await page.goto("/progress?persona=jess&present=1&state=payday");
-  await expect(region(page, "Going well")).toContainText("When something goes well two pay cycles in a row");
   await expect(region(page, "Money left the day before payday")).toContainText("Below $0 (−$680)");
   await page.getByRole("button", { name: "Set a goal" }).click();
   const sheet = page.getByRole("dialog");

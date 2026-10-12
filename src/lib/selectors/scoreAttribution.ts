@@ -2,13 +2,14 @@
 // each refresh and Tippla stores it). Splitting the points between them uses SAMPLE weights (Q3); the parts
 // are scaled and rounded so they always add up to the actual change. Each part links to the transactions
 // behind it, so "new pay advance −9" points at the 24/09 Beforepay credit.
+import { alcoholPerMonth } from "./gambling";
 import { gamblingPanel } from "./panels";
 import type { FactorKey, PersonaData } from "@/lib/api/types";
 import { SAMPLE_FACTOR_WEIGHTS } from "@/config/flags";
 import { attributionCopy as t } from "@/content/feed";
 import { factorCopy } from "@/content/en-AU";
 import { formatDayMonth, type ISODate } from "@/lib/format/dates";
-import { formatAUD, sumMoney } from "@/lib/format/money";
+import { formatAUD, formatWhole, sumMoney } from "@/lib/format/money";
 import { posted } from "./transactions";
 
 export interface AttributionPart {
@@ -65,7 +66,10 @@ function reasonFor(d: PersonaData, f: FactorKey, from: ISODate, to: ISODate, dow
       // Named in pay cycles (journeys review): "$285 since the last update" was a third gambling figure in the app.
       if (down && g.length) {
         const gp = gamblingPanel(d);
-        return { reason: t.reasons.gambling(formatAUD(gp.total), formatAUD(gp.lastCycle)), short: t.reasons.gamblingShort, ids: g.map((x) => x.id) };
+        // The factor counts alcohol too, so the reason names it when there is any (the factor detail's figure).
+        const alcohol = alcoholPerMonth(d);
+        const reason = t.reasons.gambling(formatAUD(gp.total), formatAUD(gp.lastCycle)) + (alcohol ? t.reasons.alcohol(formatWhole(alcohol)) : "");
+        return { reason, short: t.reasons.gamblingShort, ids: g.map((x) => x.id) };
       }
       return { reason: null, short: name.toLowerCase(), ids: [] };
     }

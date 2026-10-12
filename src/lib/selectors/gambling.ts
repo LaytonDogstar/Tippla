@@ -22,3 +22,8 @@ export function gamblingInsight(d: PersonaData) {
       : null,
   };
 }
+
+/** Average monthly alcohol spending over 90 days (AM2151, category 23): the other half of the "Gambling & alcohol" factor. */
+export function alcoholPerMonth(d: PersonaData): number | null {
+  return metric<{ category_id: number; monthly_mean_90_days: number | null }[]>(d.bankStatement, "AM2151").find((x) => x.category_id === 23)?.monthly_mean_90_days ?? null;
+}

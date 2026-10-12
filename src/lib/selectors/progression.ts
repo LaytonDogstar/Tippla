@@ -38,10 +38,15 @@ export function surplusSuggestion(d: PersonaData, endBalance: number | null, cur
 export type SavingsGoal = NonNullable<AccountState["savingsGoals"]>[number];
 export interface GoalStatus { goal: SavingsGoal; saved: number | null; percent: number | null; perCycle: number; reached: boolean; cyclesLeft: number }
 
-/** How many savings goals each band can run (spec 07 §4: Healthy one, Thriving several). */
-export function savingsGoalLimit(d: PersonaData): number {
+/**
+ * How many savings goals a member can run: one small goal once their buffer is in place (their buffer goal reached),
+ * or at Healthy; several at Thriving (spec 07 §4). Not tied to the score alone: a falling score shouldn't lock
+ * someone out of saving once they have a buffer.
+ */
+export function savingsGoalLimit(d: PersonaData, bufferReached = false): number {
   const s = scoreState(d);
-  return s.kind !== "scored" ? 0 : s.stage.stage.id === "thriving" ? 3 : s.stage.stage.id === "healthy" ? 1 : 0;
+  const stage = s.kind === "scored" ? s.stage.stage.id : null;
+  return stage === "thriving" ? 3 : stage === "healthy" || bufferReached ? 1 : 0;
 }
 
 /** Progress from the linked savings account's balance; the amount to put aside each remaining pay cycle. */

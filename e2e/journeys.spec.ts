@@ -51,6 +51,25 @@ test.describe("Part B defects", () => {
     await expect(back(page)).toHaveText("Back to Money plan");
   });
 
+  test("Pay cycles review (12/10): one column, this pay cycle as a forecast, wins so far, no safe-to-spend promise", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/progress?persona=jess&present=1");
+    const names = ["Money left the day before payday", "Going well", "Your goal", "Savings goals"];
+    const boxes = await Promise.all(names.map(async (n) => (await page.getByRole("region", { name: n }).boundingBox())!));
+    expect(new Set(boxes.map((b) => Math.round(b.x))).size, "one column").toBe(1);
+    expect(boxes.map((b) => b.y)).toEqual([...boxes.map((b) => b.y)].sort((a, b) => a - b));
+    const current = page.getByTestId("cycle-current");
+    await expect(current).toContainText("17/09 – 30/09 · this pay cycleBelow $0 (about −$483, forecast)");
+    await expect(current).toContainText("With your usual everyday spending (about $86 a day). Counting bills only: −$53.");
+    await expect(current.getByRole("link", { name: "See it on the calendar" })).toHaveAttribute("href", "/calendar?from=2026-09-17&to=2026-09-30");
+    const well = page.getByRole("region", { name: "Going well" });
+    await expect(well).toContainText("$39 less on everyday spending than at this point last cycle"); // as Today's Spending card
+    await expect(well).toContainText("$100 less on gambling than at this point last cycle"); // as the gambling panel
+    await expect(page.getByRole("region", { name: "Your goal" })).not.toContainText("safe-to-spend");
+    await expect(page.getByRole("region", { name: "What you did" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "See your SmartScore over time" })).toBeVisible();
+  });
+
   test("B4: Pay cycles (/progress) belongs to Money in the sidebar", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/progress?persona=jess&present=1");
@@ -158,7 +177,7 @@ test.describe("Part B defects", () => {
     await page.goto("/score?persona=jess&present=1");
     await expect(page.getByRole("button", { name: "See gambling", exact: true })).toBeVisible();
     await expect(page.locator("main")).not.toContainText("$285");
-    await expect(page.locator("main")).toContainText("Gambling: $200 so far this pay cycle, $385 last pay cycle");
+    await expect(page.locator("main")).toContainText("Gambling: $200 so far this pay cycle, $385 last pay cycle. Alcohol: about $122 a month over the last 90 days");
   });
 });
 

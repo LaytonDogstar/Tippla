@@ -3,9 +3,13 @@
 // anyone else, and nothing counts a streak that ended.
 import type { PersonaData } from "@/lib/api/types";
 import type { AccountState } from "@/lib/account/state";
-import type { ISODate } from "@/lib/format/dates";
+import { addDays, type ISODate } from "@/lib/format/dates";
+import { calendarDays } from "./calendarMonth";
+import { forecastBoth, usualEverydayPerDay } from "./figures";
+import { gamblingPanel } from "./panels";
 import { cycleFacts, streak, type CycleFacts } from "./payCycleLoop";
-import { cycleBefore } from "./periods";
+import { currentCycle, cycleBefore } from "./periods";
+import { spendingView } from "./spendingCycle";
 import { valueTally } from "./tally";
 import type { CategoryOverrides } from "./transactions";
 
@@ -43,9 +47,45 @@ export function actionMarks(a: AccountState): ActionMark[] {
   return marks.sort((x, y) => x.date.localeCompare(y.date));
 }
 
+export interface CurrentCycleForecast {
+  cycle: { start: ISODate; end: ISODate };
+  /** The forecast for the day before payday, both ways (the same engine as Today and Calendar). */
+  withEveryday: number;
+  billsOnly: number;
+  everydayPerDay: number;
+}
+
+/** This pay cycle as a forecast row, so the history joins up with Today and Calendar. Null once it's the last day. */
+export function currentCycleForecast(d: PersonaData, edits?: CategoryOverrides): CurrentCycleForecast | null {
+  const c = currentCycle(d);
+  const days = calendarDays(d, edits);
+  const f = forecastBoth(d, days).find((x) => x.date === addDays(d.derived.pay_cycle.next_payday, -1));
+  return f ? { cycle: { start: c.start, end: c.end }, withEveryday: f.withEveryday, billsOnly: f.billsOnly, everydayPerDay: usualEverydayPerDay(d, days) } : null;
+}
+
+export type WinKind = "everyday_less" | "gambling_less";
+export interface CycleWin { kind: WinKind; amount: number }
+
+/**
+ * Going well so far this pay cycle: less spent than at the same point last cycle (the same comparisons as Today's
+ * Spending card and the gambling panel). Gambling only when the member hasn't hidden it.
+ */
+export function cycleWins(d: PersonaData, a: AccountState = {}, edits?: CategoryOverrides): CycleWin[] {
+  const out: CycleWin[] = [];
+  const everyday = spendingView(d, currentCycle(d), edits ?? {}, { hideGambling: a.hideGambling }).everyday.change;
+  if (everyday !== null && Math.round(everyday) < 0) out.push({ kind: "everyday_less", amount: -Math.round(everyday) });
+  if (!a.hideGambling) {
+    const g = gamblingPanel(d, edits);
+    if (Math.round(g.change) < 0) out.push({ kind: "gambling_less", amount: -Math.round(g.change) });
+  }
+  return out;
+}
+
 export function progress(d: PersonaData, a: AccountState = {}, edits?: CategoryOverrides) {
   return {
     cycles: cycleHistory(d, edits),
+    current: currentCycleForecast(d, edits),
+    wins: cycleWins(d, a, edits),
     streaks: positiveStreaks(d, edits),
     score: d.scoreHistory.map((h) => ({ date: h.scored_date, score: h.score })),
     marks: actionMarks(a),
