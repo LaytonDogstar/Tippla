@@ -7,6 +7,7 @@ import { addDays, type ISODate } from "@/lib/format/dates";
 import { calendarDays } from "./calendarMonth";
 import { forecastBoth, usualEverydayPerDay } from "./figures";
 import { gamblingPanel } from "./panels";
+import { payCyclesTrend } from "./payCyclesTrend";
 import { cycleFacts, streak, type CycleFacts } from "./payCycleLoop";
 import { currentCycle, cycleBefore } from "./periods";
 import { spendingView } from "./spendingCycle";
@@ -82,9 +83,12 @@ export function cycleWins(d: PersonaData, a: AccountState = {}, edits?: Category
 }
 
 export function progress(d: PersonaData, a: AccountState = {}, edits?: CategoryOverrides) {
+  const cycles = cycleHistory(d, edits);
+  const current = currentCycleForecast(d, edits);
   return {
-    cycles: cycleHistory(d, edits),
-    current: currentCycleForecast(d, edits),
+    cycles,
+    current,
+    trend: payCyclesTrend(d, cycles, current, edits),
     wins: cycleWins(d, a, edits),
     streaks: positiveStreaks(d, edits),
     score: d.scoreHistory.map((h) => ({ date: h.scored_date, score: h.score })),

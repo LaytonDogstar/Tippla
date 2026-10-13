@@ -59,7 +59,8 @@ test.describe("Part B defects", () => {
     expect(new Set(boxes.map((b) => Math.round(b.x))).size, "one column").toBe(1);
     expect(boxes.map((b) => b.y)).toEqual([...boxes.map((b) => b.y)].sort((a, b) => a - b));
     const current = page.getByTestId("cycle-current");
-    await expect(current).toContainText("17/09 – 30/09 · this pay cycleBelow $0 (about −$483, forecast)");
+    await expect(current).toContainText("17/09–30/09 · this pay cycleForecast with usual spending · $300 advance on 24/09≈ −$483");
+    await current.getByRole("button").click();
     await expect(current).toContainText("With your usual everyday spending (about $86 a day). Counting bills only: −$53.");
     await expect(current.getByRole("link", { name: "See it on the calendar" })).toHaveAttribute("href", "/calendar?from=2026-09-17&to=2026-09-30");
     const well = page.getByRole("region", { name: "Going well" });
@@ -84,6 +85,48 @@ test.describe("Part B defects", () => {
     await page.getByRole("radio", { name: "Bills only" }).check({ force: true });
     await expect(range.getByTestId("usual-row")).toHaveCount(0);
     await expect(range.getByText("No bills or pay predicted. Everyday spending isn't counted in this view.").first()).toBeVisible();
+  });
+
+  test("Pay cycles, money left card (13/10): headline, chart, stats and the list, from Jess's data", async ({ page }) => {
+    await page.goto("/progress?persona=jess&present=1");
+    const card = page.getByRole("region", { name: "Money left the day before payday" });
+    await expect(card.getByTestId("trend-headline")).toHaveText("Your last 4 pay cycles all ended below $0, and this one is heading the same way");
+    await expect(card.getByTestId("trend-context")).toHaveText("Until late July you had a little left. Since then you've run out before payday every time, and pay advances began in late August.");
+    await expect(card.getByTestId("trend-chart")).toHaveAttribute("aria-label", "Balance the day before payday, oldest to newest: $83, $12, minus $241, minus $49, minus $698, minus $636, and this pay cycle forecast about minus $483 with usual spending.");
+    const cols = card.getByTestId("trend-col");
+    await expect(cols).toHaveCount(7);
+    for (const [i, text] of <[number, string][]>[[0, "$83"], [2, "−$241"], [2, "Bank fee"], [4, "Advance"], [5, "−$636"], [6, "≈ −$483"], [6, "This cycle (forecast)"]]) await expect(cols.nth(i)).toContainText(text);
+    // One scale both ways: −$698 is the deepest bar, $83 the tallest above; the forecast bar is dashed.
+    const h = async (i: number) => (await cols.nth(i).locator("[data-bar]").boundingBox())!.height;
+    expect(await h(4)).toBeGreaterThan(await h(5));
+    expect(Math.round((await h(4)) / (await h(0)))).toBe(Math.round(698 / 83));
+    await expect(cols.nth(6).locator("[data-bar]")).toHaveClass(/border-dashed/);
+    await expect(card).toContainText("Forecast, with usual spending (bills only: −$53)");
+    await expect(card).toContainText("Ended below $04 of last 6plus this one, forecast");
+    await expect(card).toContainText("Pay advances$9003 advances, $45 in fees since 27/08 · 1 still to be repaid");
+    await expect(card).toContainText("Bank fees2Failed payments in 23/07–05/08 and 03/09–16/09");
+    // The list: current first, then newest first; the last complete cycle is open with its breakdown.
+    const rows = card.getByRole("listitem").filter({ has: page.locator("button[aria-expanded]") });
+    await expect(rows).toHaveCount(7);
+    await expect(rows.nth(1)).toContainText("03/09–16/091 pay advance · 1 bank fee−$636");
+    await expect(rows.nth(1).getByRole("button")).toHaveAttribute("aria-expanded", "true");
+    const bd = rows.nth(1).getByTestId("cycle-breakdown");
+    await expect(bd).toContainText("Spent $238 more than you were paid");
+    await expect(bd.getByRole("img")).toHaveAttribute("aria-label", "Money in $2,467: Harbourside Hospitality $2,167, Beforepay advance $300. Money out $2,405: rent $820, everyday $432, gambling $385, loans & BNPL $375, Beforepay $315, bills & fees $78. Over your pay by $238.");
+    await expect(rows.nth(1).getByRole("link", { name: "See these transactions" })).toHaveAttribute("href", /^\/spending\?period=last_cycle/);
+    await expect(rows.nth(5)).toContainText("09/07–22/07No advances or fees$12 left");
+    // Expand and collapse; an older cycle links to Spending for that cycle.
+    const older = rows.nth(4).getByRole("button");
+    await older.click();
+    await expect(older).toHaveAttribute("aria-expanded", "true");
+    await expect(rows.nth(4).getByRole("link", { name: "See these transactions" })).toHaveAttribute("href", /^\/spending\?cycle=4/);
+    await older.click();
+    await expect(older).toHaveAttribute("aria-expanded", "false");
+    await expect(rows.nth(4).getByTestId("cycle-breakdown")).toHaveCount(0);
+    // Spending opens on that pay cycle, with the back control.
+    await page.goto("/spending?persona=jess&present=1&cycle=4");
+    await expect(page.getByRole("combobox").first()).toHaveValue("cycle:4");
+    await expect(page.getByText(/^23\/07 – 05\/08/).first()).toBeVisible();
   });
 
   test("B4: Pay cycles (/progress) belongs to Money in the sidebar", async ({ page }) => {

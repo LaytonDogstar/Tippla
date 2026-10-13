@@ -47,7 +47,7 @@ import { ORIGIN_PARAM, pageName, safeFrom } from "@/lib/nav/back";
 import { panels as pc } from "@/content/panels";
 import { Phone } from "lucide-react";
 
-export interface SpendingParams { period?: string; month?: string; category?: string; direction?: string; q?: string }
+export interface SpendingParams { period?: string; month?: string; cycle?: string; category?: string; direction?: string; q?: string }
 
 const t = sp.v5;
 const isSpendCat = (v: unknown): v is SpendCategory => typeof v === "string" && v in categoryTypes;
@@ -81,7 +81,7 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
   const corr = useCorrections(persona, { rules: initialRules });
   const { edits, setCategory, restore } = useCategoryEdits(persona, initialEdits, original);
   const { budgets, save: saveBudgets } = useBudgets(persona);
-  const [periodKey, setPeriodKey] = useState<{ period?: string; month?: string }>({ period: params.period, month: params.month });
+  const [periodKey, setPeriodKey] = useState<{ period?: string; month?: string; cycle?: string }>({ period: params.period, month: params.month, cycle: params.cycle });
   const [selected, setSelected] = useState<SpendCategory | null>(isSpendCat(params.category) ? params.category : null);
   const [direction, setDirection] = useState<FeedDirection>(params.direction === "out" || params.direction === "in" ? params.direction : "all");
   const [q, setQ] = useState(params.q ?? "");
@@ -100,8 +100,9 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
     const u = new URL(window.location.href);
     const set = (k: string, v: string | null | undefined) => (v ? u.searchParams.set(k, v) : u.searchParams.delete(k));
     u.searchParams.delete("tab");
-    set("period", periodKey.month ? null : periodKey.period && periodKey.period !== "this_cycle" ? periodKey.period : null);
+    set("period", periodKey.month || periodKey.cycle ? null : periodKey.period && periodKey.period !== "this_cycle" ? periodKey.period : null);
     set("month", periodKey.month);
+    set("cycle", periodKey.cycle);
     set("category", selected);
     set("direction", direction === "all" ? null : direction);
     set("q", q.trim() || null);
@@ -203,10 +204,13 @@ export function SpendingView({ persona, data: loaded, initialEdits, rules: initi
       <div className="flex items-center justify-between gap-t3">
         <label className="relative inline-flex min-h-tap shrink-0 items-center rounded-pill border border-line bg-surface pl-[14px] pr-t6 font-bold text-text focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--color-focus)]">
           <span className="sr-only">{t.periodLabel}</span>
-          <select value={p.id === "month" ? `month:${p.month}` : p.id} onChange={(e) => setPeriodKey(e.target.value.startsWith("month:") ? { month: e.target.value.slice(6) } : { period: e.target.value as PeriodId })}
+          <select value={p.id === "month" ? `month:${p.month}` : p.id === "cycle" ? `cycle:${periodKey.cycle}` : p.id}
+            onChange={(e) => setPeriodKey(e.target.value.startsWith("month:") ? { month: e.target.value.slice(6) } : e.target.value.startsWith("cycle:") ? { cycle: e.target.value.slice(6) } : { period: e.target.value as PeriodId })}
             className="appearance-none bg-transparent py-t2 text-body14 font-bold outline-none">
             {PERIOD_IDS.map((id) => <option key={id} value={id}>{periodLabels[id]}</option>)}
             {p.id === "month" && <option value={`month:${p.month}`}>{p.label}</option>}
+            {/* An older pay cycle, linked from Pay cycles (?cycle=N). */}
+            {p.id === "cycle" && <option value={`cycle:${periodKey.cycle}`}>{p.label}</option>}
           </select>
           <ChevronDown aria-hidden size={14} strokeWidth={2.5} className="pointer-events-none absolute right-[12px]" />
         </label>

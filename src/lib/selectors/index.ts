@@ -40,6 +40,7 @@ export * from "./subscriptionReview";
 export * from "./scorePage";
 export * from "./moneyPlan";
 export * from "./payCycleCard";
+export * from "./payCyclesTrend";
 export * from "./figures";
 export * from "./panels";
 export * from "./hardshipSignals";

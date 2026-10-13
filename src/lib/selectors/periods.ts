@@ -56,9 +56,12 @@ export function monthPeriod(d: SpendData, month: string): Period {
 
 const isMonthKey = (v: string | undefined): v is string => !!v && /^\d{4}-(0[1-9]|1[0-2])$/.test(v);
 
-/** Period from URL params: ?period=last_cycle or ?month=2026-05. Unknown or future values fall back. */
-export function resolvePeriod(d: SpendData, params: { period?: string; month?: string }): Period {
+/** Period from URL params: ?period=last_cycle, ?month=2026-05 or ?cycle=3 (pay cycles ago, from Pay cycles).
+ *  Unknown, future or out-of-history values fall back. */
+export function resolvePeriod(d: SpendData, params: { period?: string; month?: string; cycle?: string }): Period {
   if (isMonthKey(params.month) && params.month <= d.asOf.slice(0, 7) && params.month >= d.profile.data_from.slice(0, 7)) return monthPeriod(d, params.month);
+  const n = /^\d{1,2}$/.test(params.cycle ?? "") ? Number(params.cycle) : 0;
+  if (n >= 1 && n <= 26 && !cycleBefore(d, n).limitedByHistory) return cycleBefore(d, n);
   return period(d, (PERIOD_IDS as string[]).includes(params.period ?? "") ? (params.period as PeriodId) : "this_cycle");
 }
 
