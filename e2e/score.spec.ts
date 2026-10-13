@@ -19,13 +19,14 @@ test("journey 3: dashboard → score → factor detail → recommendation sheet 
   // Your progress (09/10/2026): the score opens the SmartScore page.
   await page.getByRole("link", { name: /^Open SmartScore/ }).click();
 
-  await expect(page).toHaveURL(/\/score$/);
+  // The back control's ?origin= is added once the page has hydrated (journeys A1), so it may or may not be there.
+  await expect(page).toHaveURL(/\/score(\?origin=[^&#]*)?$/);
   await expect(page.getByRole("heading", { name: "SmartScore", level: 1 })).toBeVisible();
   await page.getByRole("region", { name: "What's behind it" }).getByRole("button", { name: /^Current borrowing/ }).click();
 
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByRole("heading", { name: "Current borrowing" })).toBeVisible();
-  await expect(page).toHaveURL(/\/score\/current-borrowing$/);
+  await expect(page).toHaveURL(/\/score\/current-borrowing(\?origin=[^&#]*)?$/);
   await expectNoAxe(page);
 
   await sheet.getByRole("button", { name: /Skip the next pay advance/ }).click();
@@ -37,7 +38,7 @@ test("journey 3: dashboard → score → factor detail → recommendation sheet 
 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page).toHaveURL(/\/score$/);
+  await expect(page).toHaveURL(/\/score(\?origin=[^&#]*)?$/);
 });
 
 test("factor deep link opens its sheet", async ({ page }) => {
