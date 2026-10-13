@@ -70,6 +70,22 @@ test.describe("Part B defects", () => {
     await expect(page.getByRole("link", { name: "See your SmartScore over time" })).toBeVisible();
   });
 
+  test("Calendar (13/10): with usual spending, each forecast day lists what it takes off, and the range adds up", async ({ page }) => {
+    await page.goto("/calendar?persona=jess&present=1&from=2026-09-26&to=2026-09-30");
+    const range = page.getByRole("region", { name: "Sat 26/09 – Wed 30/09" });
+    await expect(range.getByTestId("usual-row")).toHaveCount(5);
+    await expect(range.getByTestId("usual-row").first()).toContainText("Usual everyday spendingEstimate · your average over the last 6 weeks−$86.00");
+    await expect(range).not.toContainText("Nothing predicted");
+    // $314 opening − $797 out (Telstra $52, Beforepay $315, 5 × $86) = −$483 closing.
+    await expect(range).toContainText("Opening balance$314");
+    await expect(range).toContainText("Money out−$797");
+    await expect(range).toContainText("Forecast closing−$483");
+    // Bills only: no usual-spending rows, and the empty day says why.
+    await page.getByRole("radio", { name: "Bills only" }).check({ force: true });
+    await expect(range.getByTestId("usual-row")).toHaveCount(0);
+    await expect(range.getByText("No bills or pay predicted. Everyday spending isn't counted in this view.").first()).toBeVisible();
+  });
+
   test("B4: Pay cycles (/progress) belongs to Money in the sidebar", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/progress?persona=jess&present=1");

@@ -8,7 +8,7 @@ import { JourneyPanels, useUrlPanel } from "@/components/domain/JourneyPanels";
 import type { PanelData } from "@/lib/selectors/panels";
 import type { AccountState } from "@/lib/account/state";
 import type { PersonaId } from "@/lib/api/types";
-import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingBasket, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { calendarPage as t, monthLabel } from "@/content/spending";
 import { addDays as addDaysIso, formatCents, formatShortDay, formatWhole } from "@/lib/format";
@@ -41,8 +41,9 @@ export function CalendarView({ days: rawDays, now, asOf, cycles, initial, range:
   const { open: openPanel } = useUrlPanel();
   const [forecast, setForecast] = useState<Forecast>(initialForecast);
   // The same sum as figures.forecastBoth: each future day less the usual everyday spending for the days until then.
+  // Each forecast day says what it takes off (listed in the day and counted in money out), so the list adds up.
   const days = useMemo(() => (forecast === "bills" || usualPerDay <= 0 ? rawDays : rawDays.map((d) => (d.isFuture && d.balance !== null
-    ? { ...d, balance: Math.round((d.balance - usualPerDay * Math.round((Date.parse(d.date) - Date.parse(asOf)) / 86_400_000)) * 100) / 100 }
+    ? { ...d, usual: usualPerDay, moneyOut: d.moneyOut + usualPerDay, balance: Math.round((d.balance - usualPerDay * Math.round((Date.parse(d.date) - Date.parse(asOf)) / 86_400_000)) * 100) / 100 }
     : d))), [rawDays, forecast, usualPerDay, asOf]);
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
   const low = useMemo(() => lowestForecast(days), [days]);
@@ -312,10 +313,20 @@ function DayGroup({ day, asOf }: { day: CalDay; asOf: string }) {
           {day.balance === null ? p.noBalance : (day.isFuture ? p.forecastEndOfDay : p.endOfDay)(formatWhole(day.balance))}
         </span>
       </div>
-      {day.items.length === 0
+      {day.items.length === 0 && !day.usual
         ? <p className="py-t3 text-meta text-text-muted">{day.isFuture ? p.noneForecast : p.none}</p>
         : (
           <ul>
+            {day.usual ? (
+              <li data-testid="usual-row" className="flex items-center gap-t3 border-t border-line py-[10px] first:border-t-0">
+                <span aria-hidden className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-pill border border-dashed border-text-muted text-text-secondary"><ShoppingBasket size={16} /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block break-words text-body14 font-bold text-text-secondary">{p.usualRow}</span>
+                  <span className="block text-meta text-text-muted">{p.usualRowNote}</span>
+                </span>
+                <span className="tnum whitespace-nowrap text-body14 font-bold text-text-secondary">{signedCents(-day.usual)}</span>
+              </li>
+            ) : null}
             {day.items.map((i) => {
               const dim = i.status !== "posted";
               return (

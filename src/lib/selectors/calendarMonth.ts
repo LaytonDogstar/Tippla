@@ -39,6 +39,8 @@ export interface CalDay {
   pending: number;
   /** Everyday spending: posted debits, leaving out rent, loan repayments, bills, BNPL and pay-advance repayments. */
   everyday: number;
+  /** Forecast days in Calendar's "with usual spending" view: the usual everyday spending taken off (in moneyOut). */
+  usual?: number;
 }
 
 /** Not everyday spending (the banner's average): commitments that would be paid anyway. */

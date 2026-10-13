@@ -368,7 +368,10 @@ export const calendarPage = {
     pendingTag: "Pending",
     predictedTag: "Predicted",
     none: "No transactions",
-    noneForecast: "Nothing predicted. Everyday spending isn't forecast.",
+    /** Bills-only view: nothing for everyday spending is taken off. */
+    noneForecast: "No bills or pay predicted. Everyday spending isn't counted in this view.",
+    usualRow: "Usual everyday spending",
+    usualRowNote: "Estimate · your average over the last 6 weeks",
   },
 } as const;
 
