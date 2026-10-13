@@ -110,6 +110,8 @@ export interface CycleBreakdown {
   moneyIn: { label: string; amount: number; kind: "pay" | "centrelink" | "advance" }[];
   moneyOut: { group: SpendGroup; amount: number; merchants: string[] }[];
   paid: number; inTotal: number; spent: number;
+  /** Pay advances received in the cycle: how a gap was covered. */
+  advances: { date: ISODate; amount: number; provider: string }[];
   /** The larger of money in and money out: both bars share it. */
   scale: number;
   /** spent − paid: positive = over your pay by that much; negative = that much left. */
@@ -130,7 +132,7 @@ export function cycleBreakdown(d: PersonaData, cycle: Period, overrides?: Catego
   const byGroup = new Map(w.groups.map((g) => [g.group, g]));
   const moneyOut = OUT_ORDER.map((g) => byGroup.get(g)).filter((g): g is NonNullable<typeof g> => !!g && g.total > 0)
     .map((g) => ({ group: g.group, amount: g.total, merchants: g.merchants }));
-  return { moneyIn, moneyOut, paid: w.paid, inTotal, spent: w.spent, scale: Math.max(inTotal, w.spent, 1), over: sumMoney([w.spent, -w.paid]) };
+  return { moneyIn, moneyOut, paid: w.paid, inTotal, spent: w.spent, advances: w.advances, scale: Math.max(inTotal, w.spent, 1), over: sumMoney([w.spent, -w.paid]) };
 }
 
 // ---- The whole section ------------------------------------------------------------------------------------------------

@@ -112,6 +112,8 @@ test.describe("Part B defects", () => {
     await expect(rows.nth(1).getByRole("button")).toHaveAttribute("aria-expanded", "true");
     const bd = rows.nth(1).getByTestId("cycle-breakdown");
     await expect(bd).toContainText("Spent $238 more than you were paid");
+    await expect(bd).toContainText("Over your pay by $238");
+    await expect(bd.getByTestId("breakdown-covered")).toHaveText("The $238 gap was covered by a $300 Beforepay advance on 10/09.");
     await expect(bd.getByRole("img")).toHaveAttribute("aria-label", "Money in $2,467: Harbourside Hospitality $2,167, Beforepay advance $300. Money out $2,405: rent $820, everyday $432, gambling $385, loans & BNPL $375, Beforepay $315, bills & fees $78. Over your pay by $238.");
     await expect(rows.nth(1).getByRole("link", { name: "See these transactions" })).toHaveAttribute("href", /^\/spending\?period=last_cycle/);
     await expect(rows.nth(5)).toContainText("09/07–22/07No advances or fees$12 left");
