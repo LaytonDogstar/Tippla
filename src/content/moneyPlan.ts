@@ -11,13 +11,19 @@ export const moneyPlan = {
   askPlaceholder: "Ask about your money plan",
   sections: { progress: { title: "Pay cycles" }, wins: { title: "Smaller wins" } },
 
-  // ---- Where your money went
+  // ---- Where your money went (pay cycle card, 13/10/2026; reference: tippla-pay-cycle-option3.html). Supportive, never
+  // alarming: no red or warning colours anywhere in this card.
   went: {
-    over: (amt: string) => `Last pay cycle you spent ${amt} more than you were paid`,
-    under: (amt: string) => `Last pay cycle you had ${amt} left over`,
-    even: "Last pay cycle you spent about what you were paid",
-    paidSpent: (paid: string, spent: string) => `Paid ${paid} · Spent ${spent}`,
+    eyebrow: "Last pay cycle",
+    over: (amt: string) => `You spent ${amt} more than you were paid`,
+    under: (amt: string) => `You had ${amt} left over`,
+    even: "You spent about what you were paid",
+    stats: { paid: "Paid", spent: "Spent", difference: "Difference" },
+    waffleTitle: "Where your pay went",
+    waffleKey: "Each square ≈ 1% of your pay",
     ranOut: "Your pay ran out here",
+    waffleLabel: (parts: string, total: string) => `Where your pay went: ${parts}. ${total} of pay in total.`,
+    groupTitles: { essentials: "Essentials", debt: "Debt & gambling" },
     groups: {
       rent: "Rent",
       everyday: "Everyday spending",
@@ -26,19 +32,16 @@ export const moneyPlan = {
       advance: "Pay-advance repayments",
       bills: "Bills, subscriptions & fees",
     } satisfies Record<SpendGroup, string>,
-    /** Words for the bar's summary (no ampersands for screen readers). */
-    groupsSpoken: {
-      rent: "rent", everyday: "everyday spending", gambling: "gambling", loans: "loans and buy now pay later", advance: "pay-advance repayments", bills: "bills, subscriptions and fees",
-    } satisfies Record<SpendGroup, string>,
-    ofPay: (pct: string) => `${pct} of your pay`,
-    everydayHint: (pct: string) => `${pct} · food, groceries, transport`,
-    loansHint: (pct: string, n: number) => `${pct} · ${n === 1 ? "1 lender" : `${n} lenders`}`,
-    advanceHint: (pct: string, fee: string | null) => (fee ? `${pct} · includes a ${fee} fee` : `${pct} of your pay`),
-    barLabel: (parts: string, covered: string | null) => `Where your money went: ${parts}.${covered ? ` Your pay covered the first ${covered}.` : ""}`,
+    advanceOne: (provider: string) => `${provider} repayment`,
+    everydaySub: "Food, groceries, transport",
+    lenders: (n: number) => (n === 1 ? "1 lender" : `${n} lenders`),
+    feeSub: (fee: string) => `Includes a ${fee} fee`,
+    ofPay: (pct: string) => `${pct} of pay`,
+    /** "about half" only between 45% and 55%; otherwise the percentage. */
+    heavy: (share: string, total: string) => `Debt, pay advances and gambling took ${share} your pay, ${total} in total.`,
+    shareWords: (pct: number) => (pct >= 0.45 && pct <= 0.55 ? "about half" : null),
+    shareOf: (pct: string) => `${pct} of`,
     coveredBy: (gap: string, amt: string, provider: string, date: string) => `The ${gap} gap was covered by a ${amt} ${provider} advance on ${date}.`,
-    coveredByBalance: (gap: string) => `The ${gap} gap came out of your balance.`,
-    heavy: (share: string) => `Debt, pay advances and gambling took ${share} of your pay.`,
-    shareWords: (pct: number) => (pct >= 0.45 && pct <= 0.55 ? "half" : pct >= 0.3 && pct < 0.36 ? "about a third" : pct >= 0.24 && pct < 0.27 ? "about a quarter" : null),
     none: "There isn't a full pay cycle in your bank data yet. Once there is, you'll see where your pay went here.",
   },
 
@@ -91,6 +94,7 @@ export const moneyPlan = {
     eyebrow: "Biggest cost after rent",
     eyebrowPlain: "Repayments",
     title: (amt: string) => `Your repayments: about ${amt} a pay cycle`,
+    shareWords: (pct: number) => (pct >= 0.45 && pct <= 0.55 ? "half" : pct >= 0.3 && pct < 0.36 ? "about a third" : pct >= 0.24 && pct < 0.27 ? "about a quarter" : null),
     body: (n: number, share: string | null) =>
       `That’s ${n === 1 ? "one lender" : `${n} lenders`}${share ? ` and ${share} of your pay` : ""}, before rent or food. Adding more credit right now is likely to make the gap bigger, not smaller.`,
     bodyNoGap: (n: number, share: string | null) => `That’s ${n === 1 ? "one lender" : `${n} lenders`}${share ? `, about ${share} of your pay` : ""}.`,

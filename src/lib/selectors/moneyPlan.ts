@@ -37,10 +37,6 @@ export interface MoneyWent {
   groups: { group: SpendGroup; total: number; shareOfPay: number; merchants: string[] }[];
   /** Pay advances received in the cycle (how a gap was covered). */
   advances: { date: ISODate; amount: number; provider: string }[];
-  /** Debt, pay advances and gambling, as a share of pay. */
-  heavyShare: number;
-  /** Where pay ran out along the bar (0–1), when spending was more than pay. */
-  payRanOutAt: number | null;
 }
 
 export function moneyWent(d: PersonaData, cycle: Period, overrides?: CategoryOverrides): MoneyWent {
@@ -53,12 +49,9 @@ export function moneyWent(d: PersonaData, cycle: Period, overrides?: CategoryOve
     const total = sumMoney(list.map((t) => -t.amount));
     return { group, total, shareOfPay: paid ? total / paid : 0, merchants: [...new Set(list.map((t) => t.merchant))] };
   }).filter((g) => g.total > 0);
-  const heavy = sumMoney(groups.filter((g) => g.group === "gambling" || g.group === "loans" || g.group === "advance").map((g) => g.total));
   return {
     cycle, paid, spent, net: sumMoney([paid, -spent]), groups,
     advances: tx.filter((t) => t.category === "wage_advance" && t.amount > 0).map((t) => ({ date: t.date, amount: t.amount, provider: t.merchant })),
-    heavyShare: paid ? heavy / paid : 0,
-    payRanOutAt: spent > paid && spent > 0 ? paid / spent : null,
   };
 }
 

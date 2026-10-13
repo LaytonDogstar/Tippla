@@ -35,8 +35,6 @@ describe("where your money went", () => {
     expect([r(w.paid), r(w.spent), r(-w.net)]).toEqual([2167, 2405, 238]);
     expect(Object.fromEntries(w.groups.map((g) => [g.group, r(g.total)]))).toEqual({ rent: 820, everyday: 432, gambling: 385, loans: 375, advance: 315, bills: 78 });
     expect(w.advances).toEqual([{ date: "2026-09-10", amount: 300, provider: "Beforepay" }]);
-    expect(w.heavyShare).toBeCloseTo((385 + 375 + 315) / 2166.66, 3);
-    expect(w.payRanOutAt).toBeCloseTo(2166.66 / 2404.94, 3);
     // The groups add up to what was spent.
     expect(r(w.groups.reduce((s, g) => s + g.total, 0))).toBe(r(w.spent));
   });
@@ -47,11 +45,9 @@ describe("where your money went", () => {
     const d: PersonaData = { ...jess, transactions: [...jess.transactions, tx("2026-09-05", -999, "Pending shop", "shopping", "pending"), tx("2026-09-05", -500, "Own savings", "transfer")] };
     expect(moneyWent(d, c).spent).toBe(before.spent);
   });
-  it("no pay-ran-out marker when there was money left", async () => {
+  it("Marcus had money left", async () => {
     const marcus = await load("marcus");
-    const w = moneyWent(marcus, cycleBefore(marcus, 1));
-    expect(w.net).toBeGreaterThan(0);
-    expect(w.payRanOutAt).toBeNull();
+    expect(moneyWent(marcus, cycleBefore(marcus, 1)).net).toBeGreaterThan(0);
   });
 });
 
