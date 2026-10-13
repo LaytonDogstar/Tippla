@@ -41,6 +41,7 @@ function theme(mode) {
     ...cats.map(([k, v]) => `  --cat-dim-${kebab(k)}: ${dimmed(v, c[mode].surface, c[mode].surface2)};`),
     ...(c.chart ? vars(c.chart[mode], "chart") : []),
     ...(c.spend ? vars(c.spend[mode], "spend") : []),
+    ...(c.payCycle ? vars(c.payCycle[mode], "pay") : []),
     ...(c.band ? vars(c.band[mode], "band") : []),
     ...Object.entries(t.elevation[mode]).map(([k, v]) => `  --elev-${k}: ${v};`),
   ].join("\n");

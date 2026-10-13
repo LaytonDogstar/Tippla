@@ -19,13 +19,28 @@ test("/savings redirects to the money plan, keeping the query", async ({ page })
 test("Jess: where the money went, the plan, repayments, gambling, progress and wins", async ({ page }) => {
   await page.goto("/money-plan?persona=jess&present=1");
   await expect(page.getByText("Built from your last full pay cycle, Thu 03/09 – Wed 16/09. These are options, not rules.")).toBeVisible();
-  const went = page.getByRole("region", { name: "Last pay cycle you spent $238 more than you were paid" });
-  await expect(went).toContainText("Paid $2,167 · Spent $2,405");
-  await expect(went.getByRole("img")).toHaveAttribute("aria-label", /^Where your money went: rent 34%, everyday spending 18%, gambling 16%, loans and buy now pay later 16%, pay-advance repayments 13%, bills, subscriptions and fees 3%\. Your pay covered the first 90%\.$/);
-  for (const [k, v] of <[string, string][]>[["Rent", "$820"], ["Everyday spending", "$432"], ["Gambling", "$385"], ["Loans & buy now, pay later", "$375"], ["Beforepay repayment", "$315"], ["Bills, subscriptions & fees", "$78"]]) {
-    await expect(went.getByRole("listitem").filter({ hasText: k })).toContainText(v);
+  const went = page.getByRole("region", { name: "Last pay cycle You spent $238 more than you were paid" });
+  await expect(went).toContainText("Paid$2,167Spent$2,405Difference−$238");
+  // 111 squares: 100 for the pay, 11 past "Your pay ran out here".
+  const waffle = went.getByTestId("waffle");
+  await expect(waffle).toHaveAttribute("aria-label", "Where your pay went: Rent 38%, Everyday spending 20%, Bills, subscriptions & fees 4%, Gambling 18%, Loans & buy now, pay later 17%, Beforepay repayment 15%. 111% of pay in total.");
+  await expect(waffle.locator("span.aspect-square")).toHaveCount(111);
+  await expect(went.getByText("Your pay ran out here")).toBeVisible();
+  await expect(went.getByTestId("debt-share")).toHaveText("Debt, pay advances and gambling took about half your pay, $1,075 in total.");
+  for (const [k, v] of <[string, string][]>[["Rent", "$82038% of pay"], ["Everyday spending", "Food, groceries, transport$43220% of pay"], ["Gambling", "$38518% of pay"], ["Loans & buy now, pay later", "5 lenders$37517% of pay"], ["Beforepay repayment", "Includes a $15 fee$31515% of pay"], ["Bills, subscriptions & fees", "$784% of pay"]]) {
+    await expect(went.getByRole("button", { name: new RegExp(`^${k.replace(/[&,]/g, ".")}`) })).toContainText(v);
   }
-  await expect(went).toContainText("The $238 gap was covered by a $300 Beforepay advance on 10/09. Debt, pay advances and gambling took half of your pay.");
+  await expect(went).toContainText("Essentials$1,33061% of pay");
+  await expect(went).toContainText("Debt & gambling$1,07550% of pay");
+  await expect(went).toContainText("The $238 gap was covered by a $300 Beforepay advance on 10/09.");
+  // Tapping a row pins its squares; tapping again lets go. The card uses no red or warning colours.
+  const gamb = went.getByRole("button", { name: /^Gambling/ });
+  await gamb.click();
+  await expect(gamb).toHaveAttribute("aria-pressed", "true");
+  await expect(waffle.locator("span.aspect-square.opacity-\\[\\.18\\]")).toHaveCount(111 - 18);
+  await gamb.click();
+  await expect(gamb).toHaveAttribute("aria-pressed", "false");
+  await expect(went.locator(".text-negative, .bg-negative-soft, .text-caution, .bg-caution-soft")).toHaveCount(0);
 
   const plan = page.getByRole("region", { name: "Get off pay advances" });
   await expect(plan).toContainText("you’d need to free up $90–$240");
@@ -87,3 +102,27 @@ test("the gambling card follows the member's gambling setting", async ({ page, c
   await page.goto("/money-plan?persona=jess&present=1");
   await expect(page.getByRole("region", { name: /on betting last pay cycle/ })).toHaveCount(0);
 });
+
+test("pay cycle card, money left (Marcus): no 'ran out' divider, the unspent pay as empty squares, no advance footnote", async ({ page }) => {
+  await page.goto("/money-plan?persona=marcus&present=1");
+  const went = page.getByRole("region", { name: /^Last pay cycle You had \$[\d,]+ left over$/ });
+  await expect(went.getByText("Your pay ran out here")).toHaveCount(0);
+  const waffle = went.getByTestId("waffle");
+  await expect(waffle.locator("span.aspect-square")).toHaveCount(100); // spent squares plus the empty track
+  await expect(went).not.toContainText("gap was covered");
+  await expect(went).toContainText(/Difference\+\$/);
+});
+
+for (const width of [360, 1440]) {
+  test(`pay cycle card: no sideways scroll at ${width}px, axe clean (light and dark)`, async ({ browser }) => {
+    for (const colorScheme of ["light", "dark"] as const) {
+      const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme });
+      const page = await ctx.newPage();
+      await page.goto("/money-plan?persona=jess&present=1");
+      await expect(page.getByTestId("waffle")).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+      await expectNoAxe(page);
+      await ctx.close();
+    }
+  });
+}

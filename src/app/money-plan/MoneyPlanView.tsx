@@ -17,7 +17,9 @@ import { formatDayMonth, formatShortDay, formatWhole } from "@/lib/format";
 import type { PersonaId } from "@/lib/api/types";
 import type { AccountState, PlanType } from "@/lib/account/state";
 import type { PlanProgress } from "@/lib/selectors/plans";
-import type { Lender, MoneyWent, ProgressRow, SpendGroup, Win } from "@/lib/selectors/moneyPlan";
+import type { Lender, MoneyWent, ProgressRow, Win } from "@/lib/selectors/moneyPlan";
+import { payCycleCard } from "@/lib/selectors/payCycleCard";
+import { PayCycleCard } from "@/components/money/PayCycleCard";
 import type { LoanBalance } from "@/lib/selectors/figures";
 import type { PanelData } from "@/lib/selectors/panels";
 import { JourneyPanels, balanceText, useUrlPanel } from "@/components/domain/JourneyPanels";
@@ -60,19 +62,6 @@ const card = "rounded-card-s bg-surface p-t5 shadow-card sm:rounded-card";
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 const range = (r: Range) => `${formatDayMonth(r.start)}–${formatDayMonth(r.end)}`;
 const calendarHref = (r: Range) => `/calendar?from=${r.start}&to=${r.end}`;
-/** Category tokens for the six groups; every other group is striped too, so colour is never the only cue. */
-const GROUP_STYLE: Record<SpendGroup, { color: string; striped: boolean }> = {
-  rent: { color: "var(--cat-housing)", striped: false },
-  everyday: { color: "var(--cat-food)", striped: true },
-  gambling: { color: "var(--cat-gambling)", striped: false },
-  loans: { color: "var(--cat-loan-repayment)", striped: true },
-  advance: { color: "var(--cat-wage-advance)", striped: false },
-  bills: { color: "var(--cat-bills)", striped: true },
-};
-const fill = (g: SpendGroup) => ({
-  backgroundColor: GROUP_STYLE[g].color,
-  backgroundImage: GROUP_STYLE[g].striped ? "repeating-linear-gradient(135deg, rgba(255,255,255,.4) 0 3px, transparent 3px 7px)" : undefined,
-});
 
 export function MoneyPlanView(p: MoneyPlanViewProps) {
   const cycleKey = `${p.persona}:${p.now.start}`;
@@ -120,7 +109,7 @@ export function MoneyPlanView(p: MoneyPlanViewProps) {
       {p.panels && <JourneyPanels data={p.panels} persona={p.persona} account={p.account} asOf={p.asOf} />}
       <p className="px-[2px] text-body14 text-text-muted">{p.last ? t.sub(formatShortDay(p.last.start), formatShortDay(p.last.end)) : t.subNoCycle}</p>
 
-      {p.went ? <WhereItWent went={p.went} run={p.run} /> : <p className={cx(card, "text-body14 text-text-muted")}>{t.went.none}</p>}
+      {p.went ? <PayCycleCard card={payCycleCard(p.went)} fee={p.run?.fee ? { provider: p.run.provider, amount: p.run.fee } : null} /> : <p className={cx(card, "text-body14 text-text-muted")}>{t.went.none}</p>}
 
       {p.plan && (hideState("plan") ? hiddenRow("plan") : (
         <PlanCardV2 {...p} plan={p.plan} cardsBelow={cardsBelow} menu={menu("plan")} />
@@ -143,63 +132,6 @@ export function MoneyPlanView(p: MoneyPlanViewProps) {
 
       <p className="max-w-[600px] px-[2px] text-meta-s text-text-muted">{t.footer}</p>
     </div>
-  );
-}
-
-// ---- Where your money went ------------------------------------------------------------------------------------------
-
-function WhereItWent({ went, run }: { went: MoneyWent; run: Run }) {
-  const gap = -went.net;
-  const headline = Math.round(gap) > 0 ? t.went.over(formatWhole(gap)) : Math.round(went.net) > 0 ? t.went.under(formatWhole(went.net)) : t.went.even;
-  const label = (g: SpendGroup, merchants: string[]) => (g === "advance" && merchants.length === 1 ? `${merchants[0]} repayment` : t.went.groups[g]);
-  const hint = (g: MoneyWent["groups"][number]) => {
-    const share = pct(g.shareOfPay);
-    if (g.group === "everyday") return t.went.everydayHint(share);
-    if (g.group === "loans") return t.went.loansHint(share, g.merchants.length);
-    if (g.group === "advance") return t.went.advanceHint(share, run?.fee ? formatWhole(run.fee) : null);
-    return t.went.ofPay(share);
-  };
-  const parts = went.groups.map((g) => `${t.went.groupsSpoken[g.group]} ${pct(g.total / went.spent)}`).join(", ");
-  const ranOut = went.payRanOutAt;
-  const first = went.advances[0];
-  // Only worth saying when it is a real part of the pay (10% or more).
-  const heavy = went.heavyShare >= 0.1 ? t.went.heavy(t.went.shareWords(went.heavyShare) ?? pct(went.heavyShare)) : null;
-  const covered = gap >= 1 ? (first ? t.went.coveredBy(formatWhole(gap), formatWhole(first.amount), first.provider, formatDayMonth(first.date)) : t.went.coveredByBalance(formatWhole(gap))) : null;
-  return (
-    <section aria-labelledby="mp-went-h" className={cx(card, "flex flex-col gap-t4")}>
-      <div className="flex flex-wrap items-baseline justify-between gap-t2">
-        <h2 id="mp-went-h" className="text-[1.25rem] font-extrabold leading-7 tracking-[-0.01em] text-text">{headline}</h2>
-        <span className="text-meta text-text-muted">{t.went.paidSpent(formatWhole(went.paid), formatWhole(went.spent))}</span>
-      </div>
-      {went.spent > 0 && (
-        <div className="flex flex-col gap-[6px]">
-          <div role="img" aria-label={t.went.barLabel(parts, ranOut !== null ? pct(ranOut) : null)} className="relative flex h-[34px] gap-[2px] overflow-hidden rounded-[10px] bg-surface2">
-            {went.groups.map((g) => <div key={g.group} className="h-full" style={{ width: `${(g.total / went.spent) * 100}%`, ...fill(g.group) }} />)}
-            {ranOut !== null && <div aria-hidden className="absolute inset-y-0 w-[3px] bg-text shadow-[0_0_0_2px_var(--color-surface)]" style={{ left: `${ranOut * 100}%` }} />}
-          </div>
-          {ranOut !== null && (
-            <div aria-hidden className="relative h-[18px] text-meta-s font-bold text-text">
-              <span className="absolute whitespace-nowrap" style={ranOut > 0.5 ? { right: `${(1 - ranOut) * 100}%` } : { left: `${ranOut * 100}%` }}>
-                {ranOut > 0.5 ? `${t.went.ranOut} ↑` : `↑ ${t.went.ranOut}`}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-      <ul className="grid grid-cols-2 gap-x-[18px] gap-y-[14px] sm:grid-cols-3">
-        {went.groups.map((g) => (
-          <li key={g.group} className="flex min-w-0 items-start gap-[10px]">
-            <span aria-hidden className="mt-[4px] h-[12px] w-[12px] shrink-0 rounded-[3px]" style={fill(g.group)} />
-            <span className="flex min-w-0 flex-col gap-[2px]">
-              <span className="text-meta font-semibold text-text-secondary">{label(g.group, g.merchants)}</span>
-              <span className="text-body font-extrabold tabular-nums text-text">{formatWhole(g.total)}</span>
-              <span className="text-meta-s text-text-muted">{hint(g)}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-      {(covered || heavy) && <p className="text-meta text-text-muted">{[covered, heavy].filter(Boolean).join(" ")}</p>}
-    </section>
   );
 }
 
@@ -390,7 +322,7 @@ function PlanCardV2(p: MoneyPlanViewProps & { plan: PlanProgress; cardsBelow: bo
 function RepaymentsCard({ lenders, total, paid, gap, biggest, menu, balances = {}, panels }: { lenders: Lender[]; total: number; paid: number; gap: boolean; biggest: boolean; menu: MenuActions; balances?: Record<string, LoanBalance>; panels: boolean }) {
   const { open } = useUrlPanel();
   const share = paid ? total / paid : 0;
-  const shareText = paid ? t.went.shareWords(share) ?? pct(share) : null;
+  const shareText = paid ? t.repay.shareWords(share) ?? pct(share) : null;
   const detail = (l: Lender) => {
     const kind = t.repay.kinds[l.kind];
     if (l.kind === "advance") return l.fee ? `${kind} · ${t.repay.advanceFee(formatWhole(l.fee))}` : kind;
