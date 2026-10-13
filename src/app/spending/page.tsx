@@ -14,7 +14,7 @@ import { SpendingView, type SpendingParams } from "./SpendingView";
 
 export const dynamic = "force-dynamic";
 
-type Search = { persona?: string; present?: string; tab?: string; period?: string; month?: string; category?: string; direction?: string; q?: string };
+type Search = { persona?: string; present?: string; tab?: string; period?: string; month?: string; cycle?: string; category?: string; direction?: string; q?: string };
 
 export default async function Spending({ searchParams }: { searchParams: Search }) {
   const persona = currentPersona(searchParams.persona);
@@ -23,7 +23,7 @@ export default async function Spending({ searchParams }: { searchParams: Search 
   const lite: SpendData = { transactions: data.transactions, asOf: data.asOf, derived: data.derived, profile: { data_from: data.profile.data_from } };
   // Transactions the duplicate-charge rule flags (the same check as Needs a look), tagged in Activity.
   const doubles = Object.fromEntries(duplicateCharge({ d: data, edits: categoryEdits(persona), account }).flatMap((i) => (i.transactionIds ?? []).map((id) => [id, i.id])));
-  const params: SpendingParams = { period: searchParams.period, month: searchParams.month, category: searchParams.category, direction: searchParams.direction, q: searchParams.q };
+  const params: SpendingParams = { period: searchParams.period, month: searchParams.month, cycle: searchParams.cycle, category: searchParams.category, direction: searchParams.direction, q: searchParams.q };
   return (
     <PortalShell path="/spending" persona={persona} present={present} wide
       header={<TodayHeader title={t.title} sub={data.score?.scoredAt ? formatUpdated(data.score.scoredAt) : ""} unread={unreadCount(notifications(data, account))}

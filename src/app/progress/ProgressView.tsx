@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Feedback";
 import { RadioGroup, TextInput } from "@/components/ui/Form";
 import { SampleTag } from "@/components/ui/SampleTag";
+import { MoneyLeftCard } from "./MoneyLeftCard";
 import { Sheet } from "@/components/ui/Sheet";
 
 type Progress = ReturnType<typeof progressFn>;
@@ -44,52 +45,12 @@ export function ProgressView({ persona, account: initial, present, asOf, progres
     date: m.date, key: `m-${i}`,
     text: m.kind === "cancelled_subscription" ? t.timeline.cancelled_subscription(m.label ?? "") : m.kind === "skip_advance" ? t.timeline.skip_advance : t.timeline.acted_on_bill(m.label ?? ""),
   })).sort((a, b) => b.date.localeCompare(a.date));
-  // Bars only for money left (scaled to the best cycle); a cycle that ended below $0 gets words, not a bar.
-  const maxLeft = Math.max(1, ...p.cycles.map((c) => Math.max(0, c.endBalance ?? 0)), Math.max(0, p.current?.withEveryday ?? 0));
-  const bar = (bal: number, forecast = false) => bal >= 0 && (
-    <div aria-hidden className="mt-t1 h-[6px] w-full rounded-pill bg-surface2">
-      <div className={forecast ? "h-full rounded-pill bg-accent/50" : "h-full rounded-pill bg-accent"} style={{ width: `${Math.max(2, Math.round((bal / maxLeft) * 100))}%` }} />
-    </div>
-  );
   const card = "rounded-card-s bg-surface shadow-card sm:rounded-card p-t4";
 
   // One column at every width, like Money plan: the history first, then what's going well, the goal and the rest.
   return (
     <div className="flex flex-col gap-t4 pb-t6">
-      {/* Money left before each payday: this pay cycle (forecast) on top, then the completed ones. */}
-      <section aria-labelledby="cycles-h" className={card}>
-        <h2 id="cycles-h" className="text-card text-text sm:text-card-l">{t.cycles.heading}</h2>
-        <p className="mt-t1 text-small text-text-muted">{t.cycles.intro}</p>
-        {p.cycles.length || p.current ? (
-          <ul className="mt-t3 flex flex-col">
-            {p.current && (
-              <li data-testid="cycle-current" className="border-t border-divider py-t3">
-                <div className="flex flex-wrap items-baseline justify-between gap-x-t3">
-                  <span className="text-small text-text">{t.cycles.current(formatDayMonth(p.current.cycle.start), formatDayMonth(p.current.cycle.end))}</span>
-                  <span className="tnum text-body-strong text-text">{t.cycles.forecast(formatWhole(p.current.withEveryday), p.current.withEveryday < 0)}</span>
-                </div>
-                {bar(p.current.withEveryday, true)}
-                <p className="mt-t1 text-caption text-text-muted">{t.cycles.forecastNote(formatWhole(p.current.everydayPerDay), formatWhole(p.current.billsOnly))}</p>
-                <Link href={`/calendar?from=${p.current.cycle.start}&to=${p.current.cycle.end}`} className="mt-t1 inline-flex min-h-tap items-center text-small font-semibold text-accent underline-offset-2 hover:underline">{t.cycles.seeCalendar}</Link>
-              </li>
-            )}
-            {[...p.cycles].reverse().map((c) => {
-              const bal = c.endBalance ?? 0;
-              const extras = [c.advances.count ? t.cycles.advance(c.advances.count) : null, c.fees.count ? t.cycles.fee(c.fees.count) : null].filter(Boolean);
-              return (
-                <li key={c.cycle.start} className="border-t border-divider py-t3">
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-t3">
-                    <span className="text-small text-text">{t.cycles.row(formatDayMonth(c.cycle.start), formatDayMonth(c.cycle.end))}</span>
-                    <span className="tnum text-body-strong text-text">{bal >= 0 ? t.cycles.left(formatWhole(bal)) : `${t.cycles.below} (${formatWhole(bal)})`}</span>
-                  </div>
-                  {bar(bal)}
-                  {extras.length > 0 && <p className="mt-t1 text-caption text-text-muted">{extras.join(" · ")}</p>}
-                </li>
-              );
-            })}
-          </ul>
-        ) : <p className="mt-t3 text-small text-text-muted">{t.cycles.none}</p>}
-      </section>
+      <MoneyLeftCard trend={p.trend} current={p.current} />
 
       {/* Going well: this pay cycle so far, then streaks across pay cycles. */}
       <section aria-labelledby="streaks-h" className={card}>

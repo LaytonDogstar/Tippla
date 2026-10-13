@@ -68,3 +68,15 @@ body {
 /* Dynamic type to 200%: a single long word ("Subscriptions") must wrap rather than push the page sideways. */
 h1, h2, h3, h4, dd, dt, p, li, a, button, label { overflow-wrap: break-word; }
 h1, h2, h3 { hyphens: auto; overflow-wrap: anywhere; }
+
+/* Labels inside a bar segment (Pay cycles breakdown): shown only when the segment is wide enough for the label,
+   measured in rem so it holds at any text size. The legend names every segment, so a hidden label loses nothing. */
+.seg-fit { container-type: inline-size; }
+.seg-label { display: none; }
+@container (min-width: 3rem) { .seg-label[data-need="3"] { display: inline; } }
+@container (min-width: 4rem) { .seg-label[data-need="4"] { display: inline; } }
+@container (min-width: 5rem) { .seg-label[data-need="5"] { display: inline; } }
+@container (min-width: 6rem) { .seg-label[data-need="6"] { display: inline; } }
+@container (min-width: 8rem) { .seg-label[data-need="8"] { display: inline; } }
+@container (min-width: 10rem) { .seg-label[data-need="10"] { display: inline; } }
+@container (min-width: 12rem) { .seg-label[data-need="12"] { display: inline; } }

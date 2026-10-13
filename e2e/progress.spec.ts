@@ -20,9 +20,10 @@ test("Marcus: streaks, money left before each payday, score timeline; reached fr
   await expect(page).toHaveURL(/\/progress/);
   await expect(region(page, "Going well")).toContainText("12 pay cycles in a row without a new pay advance");
   const cycles = region(page, "Money left the day before payday");
-  await expect(cycles.getByRole("listitem")).toHaveCount(7); // this pay cycle (forecast) and the last six
-  await expect(cycles.getByTestId("cycle-current")).toContainText("23/09 – 06/10 · this pay cycleAbout $974 left (forecast)");
-  await expect(cycles.getByRole("listitem").nth(1)).toContainText("$917 left");
+  await expect(cycles.getByTestId("trend-headline")).toHaveText("You've had money left the day before payday for 6 cycles in a row");
+  await expect(cycles.getByTestId("trend-col")).toHaveCount(7); // the last six and this pay cycle (forecast)
+  await expect(cycles.getByTestId("cycle-current")).toContainText("23/09–06/10 · this pay cycleForecast with usual spending≈ $974 left");
+  await expect(cycles.getByText("$917 left")).toBeVisible();
   // The score over time is on the SmartScore page; "What you did" only once there's something to list.
   await expect(page.getByRole("link", { name: "See your SmartScore over time" })).toHaveAttribute("href", "/score#s-trend");
   await expect(region(page, "What you did")).toHaveCount(0);
@@ -32,7 +33,7 @@ test("Marcus: streaks, money left before each payday, score timeline; reached fr
 
 test("Jess on payday: set a goal; safe to spend allows for it; change and remove with Undo", async ({ page }) => {
   await page.goto("/progress?persona=jess&present=1&state=payday");
-  await expect(region(page, "Money left the day before payday")).toContainText("Below $0 (−$680)");
+  await expect(region(page, "Money left the day before payday")).toContainText("−$680");
   await page.getByRole("button", { name: "Set a goal" }).click();
   const sheet = page.getByRole("dialog");
   await expect(sheet.getByLabel("$200")).toBeChecked();
