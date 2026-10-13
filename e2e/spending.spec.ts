@@ -224,7 +224,7 @@ test("calendar: selecting days: click, drag, Shift-click, Select range, quick ra
   await expect(range).toContainText("Opening balance$149");
   await expect(range).toContainText("Forecast closing−$53");
   await expect(range).toContainText("Lowest point−$53Wed 30/09");
-  await expect(range.getByText("Nothing predicted. Everyday spending isn't forecast.").first()).toBeVisible();
+  await expect(range.getByText("No bills or pay predicted. Everyday spending isn't counted in this view.").first()).toBeVisible();
   // Keyboard: Enter selects.
   await dayBtn("03").focus();
   await page.keyboard.press("Enter");
