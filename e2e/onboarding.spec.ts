@@ -33,22 +33,21 @@ async function throughConnect(page: Page, persona: string) {
   await page.getByLabel("Create a password").fill("a long password");
   await page.getByRole("button", { name: "Continue" }).click();
 
-  // O2: three separate, unticked consents; only the two required ones enable Continue.
+  // O2: two separate, unticked consents; only the required one enables Continue. No referral partner is named.
   await expect(page.getByRole("heading", { name: "Your choices" })).toBeVisible();
-  const ff = page.getByRole("checkbox", { name: "Share my Friendly Finance application with Tippla" });
   const bank = page.getByRole("checkbox", { name: "Let Tippla read my bank data through TaleFin" });
   const matching = page.getByRole("checkbox", { name: "Let Tippla show my profile to partner lenders when I might qualify" });
-  for (const c of [ff, bank, matching]) await expect(c).not.toBeChecked();
+  await expect(page.getByRole("checkbox")).toHaveCount(2);
+  await expect(page.getByText(/Friendly Finance/)).toHaveCount(0);
+  for (const c of [bank, matching]) await expect(c).not.toBeChecked();
   const cont = page.getByRole("button", { name: "Continue" });
   await expect(cont).toBeDisabled();
   await expect(page.getByText("Optional.", { exact: true })).toBeVisible();
   await expectNoAxe(page);
   // Expanders never tick anything.
-  await page.getByRole("button", { name: "What this means" }).nth(2).click();
+  await page.getByRole("button", { name: "What this means" }).nth(1).click();
   await expect(page.getByText("Leave it unticked to use Tippla without lender matching.")).toBeVisible();
   await expect(matching).not.toBeChecked();
-  await page.getByText("Share my Friendly Finance application with Tippla").click();
-  await expect(cont).toBeDisabled();
   await page.getByText("Let Tippla read my bank data through TaleFin").click();
   await expect(cont).toBeEnabled();
   await cont.click();
@@ -56,7 +55,7 @@ async function throughConnect(page: Page, persona: string) {
   // Choices are recorded separately, with time and version; optional stays false.
   await page.waitForURL("**/onboarding/connect-bank");
   const rec = await page.evaluate(() => JSON.parse(sessionStorage.getItem("tippla-onboarding") ?? "{}").consents);
-  expect(rec.ff_data_sharing).toMatchObject({ granted: true, version: "1.2" });
+  expect(rec.ff_data_sharing).toBeUndefined();
   expect(rec.talefin_bank_data).toMatchObject({ granted: true, version: "1.2" });
   expect(rec.lender_matching).toMatchObject({ granted: false, version: "1.2" });
   expect(Date.parse(rec.lender_matching.at)).not.toBeNaN();

@@ -153,7 +153,7 @@ export interface Offer {
 export interface Offers { lender_matching_consent: boolean; offers: Offer[] }
 
 export interface Consent {
-  id: "ff_data_sharing" | "talefin_bank_data" | "lender_matching";
+  id: "talefin_bank_data" | "lender_matching";
   label: string;
   required: boolean;
   granted: boolean;

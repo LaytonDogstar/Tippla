@@ -17,11 +17,10 @@ For each screen: **Job** (the one thing it must do) · **Content** · **Interact
 - **States:** validation inline, plain language ("That mobile number needs 10 digits, starting with 04").
 
 ### O2 Consents
-- Three **separate, unticked** checkboxes, each with a two-line plain explanation and a "What this means" expander:
-  1. Share my Friendly Finance application with Tippla (required)
-  2. Let Tippla read my bank data through TaleFin (required)
-  3. Let Tippla show my profile to partner lenders when I might qualify (**optional**). Copy must say: "Optional. Tippla works fully without this. You can turn it on or off any time."
-- Continue enabled when 1 and 2 are ticked. Record timestamp and version of each consent (mock).
+- Two **separate, unticked** checkboxes, each with a two-line plain explanation and a "What this means" expander:
+  1. Let Tippla read my bank data through TaleFin (required)
+  2. Let Tippla show my profile to partner lenders when I might qualify (**optional**). Copy must say: "Optional. Tippla works fully without this. You can turn it on or off any time."
+- Continue enabled when 1 is ticked. (14/10/2026: the referral-partner application consent was removed. Customers come from more than one channel and no partner is named.) Record timestamp and version of each consent (mock).
 
 ### O3 Connect bank
 - Before: what will happen, which bank, read-only, can disconnect any time, ~2 minutes. Button "Connect with TaleFin".

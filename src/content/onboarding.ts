@@ -35,14 +35,9 @@ export const onboarding = {
     optional: "Optional.",
     whatThisMeans: "What this means",
     continue: "Continue",
-    tickBoth: "Tick both required boxes to continue.",
+    tickRequired: "Tick the required box to continue.",
     saving: "Saving your choices…",
     items: {
-      ff_data_sharing: {
-        title: "Share my Friendly Finance application with Tippla",
-        explanation: "Tippla receives the details you gave Friendly Finance in your application.",
-        detail: "This shares your completed Friendly Finance application with Tippla. This permission is needed to continue.",
-      },
       talefin_bank_data: {
         title: "Let Tippla read my bank data through TaleFin",
         explanation: "TaleFin gives Tippla access to read your connected bank data.",

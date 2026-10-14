@@ -580,7 +580,6 @@ def write_snapshot(pid, p, d, index=None):
                          "total_repayable": 2943.33, "_fee_note": "Establishment fee is included in the repayments; 39 x $75.47 = $2,943.33, comparison rate 21.9% (medium loan, not a SACC)", "matched_on": ["Income steady for 6 months", "No failed payments in 90 days", "One fewer open loan than 3 months ago"],
                          "expires": None}] if pid == "marcus" else [])}
         files["consents.json"] = {"consents": [
-            {"id": "ff_data_sharing", "label": "Share my Friendly Finance application with Tippla", "required": True, "granted": True, "granted_at": "2026-03-28T19:42:10+11:00", "version": "1.2"},
             {"id": "talefin_bank_data", "label": "Let Tippla read my bank data through TaleFin", "required": True, "granted": True, "granted_at": "2026-03-28T19:42:10+11:00", "version": "1.2"},
             {"id": "lender_matching", "label": "Show my profile to partner lenders when I might qualify", "required": False, "granted": pid == "marcus", "granted_at": "2026-03-28T19:42:10+11:00" if pid == "marcus" else None, "version": "1.2"}]}
         sc, hist = build_score(pid, p)

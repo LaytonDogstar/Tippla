@@ -5,7 +5,7 @@ export interface OnboardingState {
   email?: string;
   mobile?: string;
   passwordSet?: boolean;
-  consents?: Record<"ff_data_sharing" | "talefin_bank_data" | "lender_matching", ConsentRecord>;
+  consents?: Record<"talefin_bank_data" | "lender_matching", ConsentRecord>;
   bankConnected?: boolean;
 }
 
