@@ -50,7 +50,7 @@ test("cancel the subscription in one tap plus one confirmation, no retention scr
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByText("Cancelled. You can use Tippla until Mon 28/09, and you won't be charged again.")).toBeVisible();
   await page.getByRole("button", { name: "Keep my subscription" }).click();
-  await expect(page.getByText("Next charge $11.32 on Fri 02/10 (the day after your payday)")).toBeVisible(); // spec 03: after payday
+  await expect(page.getByText("Next charge $5.66 on Fri 02/10 (the day after your payday)")).toBeVisible(); // spec 03: after payday
 });
 
 test("Pause instead is the single optional alternative, with its effect shown before confirming", async ({ page }) => {

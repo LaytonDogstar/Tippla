@@ -5,13 +5,24 @@
 //   ?state=lapsed,offline / none  dev state toggles (src/lib/dev/states.ts)
 // And, when SITE_PASSWORD is set (hosted preview), every page needs the preview password first.
 import { NextResponse, type NextRequest } from "next/server";
-import { GATE_COOKIE, GATE_PATHS, gateToken, sameToken } from "@/lib/gate";
+import { GATE_COOKIE, GATE_PATHS, MEMBER_COOKIE, gateToken, isSitePath, sameToken } from "@/lib/gate";
 
 const PERSONAS = ["jess", "marcus", "priya"];
 
 export async function middleware(req: NextRequest) {
   const password = process.env.SITE_PASSWORD;
-  if (password && !GATE_PATHS.some((p) => req.nextUrl.pathname === p || req.nextUrl.pathname.startsWith(`${p}/`))) {
+  const path = req.nextUrl.pathname;
+  const personaParam = req.nextUrl.searchParams.get("persona");
+  const pickedPersona = !!personaParam && PERSONAS.includes(personaParam);
+  // "/" is the marketing home for visitors and Today for members (picking a persona counts as signing in to the demo).
+  if (path === "/" && req.cookies.get(MEMBER_COOKIE)?.value !== "1" && !pickedPersona) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/home";
+    return NextResponse.rewrite(url);
+  }
+  // The marketing pages are public: no preview password, no dev cookies.
+  if (isSitePath(path)) return NextResponse.next();
+  if (password && !GATE_PATHS.some((p) => path === p || path.startsWith(`${p}/`))) {
     const cookie = req.cookies.get(GATE_COOKIE)?.value ?? "";
     if (!sameToken(cookie, await gateToken(password))) {
       const url = req.nextUrl.clone();
@@ -35,7 +46,10 @@ export async function middleware(req: NextRequest) {
   // ?dev= alone: the page reads the cookie, so it must see the new value on this request.
   if (present === "1" || present === "0") req.cookies.set("tippla-present", present);
   const res = NextResponse.next({ request: { headers: req.headers } });
-  if (persona && PERSONAS.includes(persona)) res.cookies.set("tippla-persona", persona, { path: "/", sameSite: "lax" });
+  if (persona && PERSONAS.includes(persona)) {
+    res.cookies.set("tippla-persona", persona, { path: "/", sameSite: "lax" });
+    res.cookies.set(MEMBER_COOKIE, "1", { path: "/", sameSite: "lax" });
+  }
   if (present === "1" || present === "0") res.cookies.set("tippla-present", present, { path: "/", sameSite: "lax" });
   if (state !== null) {
     if (state === "none" || state === "") res.cookies.delete("tippla-dev");
@@ -47,4 +61,5 @@ export async function middleware(req: NextRequest) {
 }
 
 // Static app files (service worker, manifest, icons, offline page) skip the gate so installing works.
-export const config = { matcher: ["/((?!_next|favicon.ico|sw.js|manifest.webmanifest|icons/|offline.html).*)"] };
+// The marketing site's images (site/) are public too.
+export const config = { matcher: ["/((?!_next|favicon.ico|sw.js|manifest.webmanifest|icons/|site/|fonts/|offline.html).*)"] };

@@ -18,7 +18,7 @@ export default async function Repayment({ searchParams }: { searchParams: { pers
   const saccs = loans.filter((l) => l.type === "SACC").length;
   return (
     <PortalShell path="/loans/repayment" title={t.title} backHref="/loans" persona={persona} present={present}>
-      <CalculatorView present={present} asOf={data.asOf} pro={data.profile.tier === "pro"} initialLoan={searchParams.loan ?? null}
+      <CalculatorView present={present} asOf={data.asOf} pro initialLoan={searchParams.loan ?? null}
         loans={loans.map((l) => ({
           provider: l.provider, repayment: l.repayment, cadenceDays: l.cadenceDays ?? 14,
           estimatedBalance: l.estimatedBalance, sharedBalance: l.estimatedBalance === null && l.type === "SACC" && saccs > 1 ? totals.saccOutstanding : null,

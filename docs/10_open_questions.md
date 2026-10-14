@@ -12,7 +12,7 @@ Where a question affects behaviour, implement the **default** shown, isolate it 
 | Q6 | Peer cohort data source and minimum cohort size | Product/Data | Synthetic ranges in `selectors/cohort.ts`, labelled "Sample cohort data" |
 | Q7 | Loan rate and remaining term for the repayment calculator | Product | Customer-entered, prefilled estimates |
 | Q8 | Does using hardship options affect SmartScore or lender matching? | Legal/TaleFin | Copy placeholder; confirm before production |
-| Q9 | Standard vs Pro feature split | Commercial | Pro: faster refresh, longer history, extra calculator scenarios |
+| Q9 | Standard vs Pro feature split | Commercial | **Decided 14/10: one plan, $4.99 a month, everything included** (`config/plans.ts`). The fixtures' legacy `tier` maps to the same plan |
 | Q10 | Refresh cadence, cost per bank pull, and ongoing consent/credential mechanism | TaleFin/Commercial | Fortnightly mock refresh |
 | Q11 | Which LENDER_ONLY / NEVER_DISPLAY fields may go in a lender package | Legal | None of NEVER_DISPLAY; LENDER_ONLY only with consent |
 | Q12 | Transaction schema and category coverage | TaleFin | **Transactions can be extracted (confirmed 30/09).** Category id lists known (`scripts/talefin_catalogue.json`). Still to see: the transaction schema, and how much spend lands in "Other Debit" |

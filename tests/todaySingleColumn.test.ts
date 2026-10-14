@@ -26,7 +26,7 @@ describe("Coming up running balances", () => {
     expect(b.before.map((r) => [r.name, Math.round(r.left), r.takesBelowZero])).toEqual([["Telstra", 262, false], ["Beforepay", -53, true]]);
     expect(Math.round(b.leftBeforePayday)).toBe(Math.round(payCycleSummary(d).leftAfterBills));
     expect(b.paydayRows).toHaveLength(1);
-    expect(b.after.find((r) => r.kind === "tippla")).toMatchObject({ date: "2026-10-02", amount: 9.99 });
+    expect(b.after.find((r) => r.kind === "tippla")).toMatchObject({ date: "2026-10-02", amount: 4.99 });
     expect(b.afterSummary!.lastDate).toBe(b.after.at(-1)!.date);
   });
 

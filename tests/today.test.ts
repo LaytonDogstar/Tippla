@@ -65,7 +65,7 @@ describe("coming up", () => {
     expect(items.every((i) => i.date > d.asOf && i.date <= "2026-10-09")).toBe(true);
     expect(items.find((i) => i.kind === "payAdvance")).toMatchObject({ name: "Beforepay", amount: 315, date: "2026-09-30" });
     expect(items.find((i) => i.kind === "income")).toMatchObject({ date: "2026-10-01", amount: 2340 });
-    expect(items.find((i) => i.kind === "tippla")).toMatchObject({ date: "2026-10-02", amount: 9.99, qualifier: "pausable" });
+    expect(items.find((i) => i.kind === "tippla")).toMatchObject({ date: "2026-10-02", amount: 4.99, qualifier: "pausable" });
   });
 
   it("no bills state: only money in and Tippla's own charge remain", async () => {
