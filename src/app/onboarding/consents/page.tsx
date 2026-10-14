@@ -1,5 +1,6 @@
 "use client";
-// O2: three separate, unticked consents. Continue needs the two required ones; lender matching plays no part.
+// O2: two separate, unticked consents. Continue needs the bank data one; lender matching plays no part.
+// (14/10/2026: the referral-partner application consent was removed; Tippla takes customers from more than one channel.)
 // Each choice is recorded with a timestamp and text version. Expanders never toggle a checkbox.
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,7 +14,6 @@ import { CONSENT_VERSION, readOnboarding, writeOnboarding, type OnboardingState 
 const t = onboarding.consents;
 type Id = keyof typeof t.items;
 const IDS: { id: Id; required: boolean }[] = [
-  { id: "ff_data_sharing", required: true },
   { id: "talefin_bank_data", required: true },
   { id: "lender_matching", required: false },
 ];
@@ -47,14 +47,14 @@ function ConsentCard({ id, required, checked, onChange }: { id: Id; required: bo
 
 export default function Consents() {
   const router = useRouter();
-  const [values, setValues] = useState<Record<Id, boolean>>({ ff_data_sharing: false, talefin_bank_data: false, lender_matching: false });
+  const [values, setValues] = useState<Record<Id, boolean>>({ talefin_bank_data: false, lender_matching: false });
   const [submitting, setSubmitting] = useState(false);
   // Back from a later step keeps local choices.
   useEffect(() => {
     const c = readOnboarding().consents;
-    if (c) setValues({ ff_data_sharing: c.ff_data_sharing.granted, talefin_bank_data: c.talefin_bank_data.granted, lender_matching: c.lender_matching.granted });
+    if (c) setValues({ talefin_bank_data: c.talefin_bank_data.granted, lender_matching: c.lender_matching.granted });
   }, []);
-  const ready = values.ff_data_sharing && values.talefin_bank_data && !submitting;
+  const ready = values.talefin_bank_data && !submitting;
   const submit = async () => {
     if (!ready) return;
     setSubmitting(true);
@@ -67,7 +67,7 @@ export default function Consents() {
   return (
     <OnboardingShell step="consents" backHref="/onboarding/password" title={t.title}
       footer={<>
-        {!values.ff_data_sharing || !values.talefin_bank_data ? <p id="consent-hint" className="text-center text-caption text-text-muted">{t.tickBoth}</p> : null}
+        {!values.talefin_bank_data ? <p id="consent-hint" className="text-center text-caption text-text-muted">{t.tickRequired}</p> : null}
         <Button size="standard" full disabled={!ready} loading={submitting} loadingLabel={t.saving} aria-describedby="consent-hint" onClick={submit}>{t.continue}</Button>
       </>}>
       <p className="text-small text-text-muted">{t.intro}</p>

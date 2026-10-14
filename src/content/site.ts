@@ -20,7 +20,7 @@ export const site = {
       { href: "/faq", label: "FAQ" },
     ],
     login: "Log in",
-    start: "Get started",
+    start: "See my SmartScore",
     menu: "Menu",
     close: "Close menu",
     home: "Tippla home",
@@ -29,7 +29,8 @@ export const site = {
     tagline: "Clear steps to get credit-ready, one pay cycle at a time.",
     columns: [
       { title: "Tippla", links: [{ href: "/#how", label: "How it works" }, { href: "/smartscore", label: "SmartScore" }, { href: "/pricing", label: "Pricing" }, { href: "/faq", label: "FAQ" }] },
-      { title: "Trust", links: [{ href: "/security", label: "Security and privacy" }, { href: "/support", label: "Free help and support" }] },
+      // TODO(launch): point Privacy policy and Terms and complaints at the real pages once published.
+      { title: "Trust", links: [{ href: "/security", label: "Security and privacy" }, { href: "/support", label: "Free help and support" }, { href: "/security#tippla-privacy", label: "Privacy policy" }, { href: "/security#tippla-privacy", label: "Terms and complaints" }] },
       { title: "Account", links: [{ href: "/login", label: "Log in" }, { href: "/onboarding", label: "Get started" }] },
     ],
     help: "Free, confidential help: National Debt Helpline 1800 007 007 · Gambling Help Online 1800 858 858",
@@ -41,63 +42,132 @@ export const site = {
 
   home: {
     meta: { title: "Tippla · Get credit-ready, one pay cycle at a time", description: "Knocked back for credit? Tippla shows what lenders see in your bank data and gives you clear steps that fit your pay cycle. $4.99 a month." },
+    start: "See my SmartScore",
+    example: "Example",
     hero: {
       eyebrow: "For anyone who's been knocked back for credit",
-      title: "Find out why, and what would change the answer",
-      body: "Tippla reads your bank data, shows you what lenders see, and gives you clear steps that fit your pay cycle.",
-      price: `${PRICE} a month. Cancel any time.`,
-      start: "Get started",
-      login: "Log in",
-      previewAlt: "Example of Tippla's Today screen: about $53 short before payday, with options",
+      title: ["Find out why.", "Then change the answer."],
+      body: "Tippla reads your bank data, shows you what lenders see, and gives you small, clear steps that fit your pay cycle.",
+      how: "See how it works",
+      ticks: [`${PRICE} a month`, "Cancel in one tap", "Not a lender"],
+      shortCallout: { label: (days: number) => `Heads up, ${days} days out`, value: (amt: string) => `${amt} short`, detail: (day: string) => `before payday on ${day}` },
+      subsCallout: { label: "Found in your subscriptions", value: (n: number, amt: string) => `${n} streaming services, ${amt} a month` },
     },
-    how: {
-      title: "How it works",
-      steps: [
-        { title: "Connect your bank", body: "Securely, through TaleFin, an ACCC-accredited Consumer Data Right data recipient. You choose the accounts." },
-        { title: "See your SmartScore", body: "A score from 0 to 1,000 and the nine things behind it, in plain words. No jargon, no judgement." },
-        { title: "Follow your plan", body: "Small, specific steps that fit your pay cycle, so you can see progress every payday." },
+    phone: {
+      title: "SmartScore",
+      gaugeLabel: (score: number, max: string) => `SmartScore gauge at ${score} out of ${max}`,
+      outOf: (max: string) => `out of ${max}`,
+      change: (delta: number, since: string) => `${delta < 0 ? "Down" : "Up"} ${Math.abs(delta)} since ${since}`,
+      nextStage: "Next stage",
+      stageAt: (name: string, at: number) => `${name} at ${at}`,
+      toGo: (n: number) => `${n} to go`,
+      moved: "What moved it",
+      points: (n: number) => (n > 0 ? `+${n}` : `−${Math.abs(n)}`),
+      nextStep: "Your next step",
+    },
+    trustLabel: "Your data, your choice",
+    trust: [
+      // TODO(launch): the mockup's "Read-only access · We can see, never move, your money" waits on TaleFin confirming
+      // read-only access for both CDR and its other connection method. Until then, a claim TaleFin makes publicly.
+      { icon: "lock", title: "Bank-grade security", body: "TaleFin is ISO 27001 certified" },
+      { icon: "shield", title: "Consumer Data Right", body: "Via TaleFin, ACCC-accredited" },
+      { icon: "bank", title: "We're not a lender", body: "No loans pushed, ever" },
+      { icon: "accounts", title: "You choose the accounts", body: "Disconnect any time" },
+    ],
+    features: {
+      kicker: "What you'll see",
+      title: "Your money, the way a lender reads it. Explained like a friend would.",
+      rows: [
+        {
+          id: "cycle", kicker: "Pay cycle view", title: "Know you'll be short before it happens",
+          body: "Tippla lines up your bills against your balance, payday to payday. If something won't fit, you'll know days ahead, with options that don't involve another pay advance.",
+          points: ["Calendar forecast, day by day", "A plain-English \"how we worked this out\""],
+        },
+        {
+          id: "plan", kicker: "Money plan", title: "See exactly where your pay goes",
+          body: "One picture of your whole pay cycle, no spreadsheets. Then specific options to free some up, including regular charges you may have forgotten about.",
+          points: ["Subscriptions in one place", "No judgement, just the numbers"],
+        },
+        {
+          id: "score", kicker: "SmartScore", title: "Watch the trend turn, one payday at a time",
+          body: "Your SmartScore runs from 0 to 1,000 and is built from nine things lenders look at. After every payday you'll see what moved it, and the one step that would help most next.",
+          points: ["Nine factors, in plain words", "Steps sized to your pay cycle"],
+        },
       ],
     },
-    preview: {
-      title: "What you'll see",
-      sub: "Real Tippla screens, with example data.",
-      example: "Example",
-      items: [
-        { id: "today", title: "Your pay cycle at a glance", body: "What's due before payday, and whether you'll be short, before it happens.", alt: "Example Today screen showing the pay cycle, money due before payday and a way forward" },
-        { id: "score", title: "Your SmartScore and what moved it", body: "Where you are, the next stage, and the factors that matter most right now.", alt: "Example SmartScore screen with the score, its stage and the path to the next stage" },
-        { id: "plan", title: "Where your pay went", body: "Each square is about 1% of your pay, so it's easy to see what takes the most.", alt: "Example Money plan card showing where the pay went, square by square" },
-        { id: "cycles", title: "How each pay cycle ended", body: "Your balance the day before each payday, so you can see the trend and what changed it.", alt: "Example chart of the balance the day before each payday" },
+    cycleCard: {
+      period: (from: string, to: string) => `Pay cycle ${from} – ${to}`,
+      flag: "Short before payday",
+      detail: (day: string) => `short of what's due before payday on ${day}`,
+      days: "Days to payday",
+      daysLeft: (n: number) => `${n} left`,
+      daysLabel: (n: number, of: number) => `Day ${n} of ${of} in this pay cycle`,
+      balance: (amt: string) => `Balance ${amt}`,
+      due: (amt: string) => `Due ${amt}`,
+      covered: (pct: number) => `Your balance covers ${pct}% of what's due`,
+      bills: (list: string) => `${list} come out before payday.`,
+    },
+    planCard: {
+      title: "Where your pay went",
+      sub: "Each square is 1% of your pay",
+      ranOut: "Your pay ran out here",
+      label: (parts: string, over: number) => `Where the pay went, as squares of 1% of pay: ${parts}. The last ${over} squares are past what was paid.`,
+      share: (name: string, pct: number) => `${name} ${pct}%`,
+    },
+    trendCard: {
+      title: "How each pay cycle ended",
+      sub: "Money left the day before payday",
+      now: "Now",
+      label: (values: string) => `Money left the day before payday, oldest to newest: ${values}. The last one is a forecast.`,
+      spoken: (amt: string, below: boolean) => (below ? `minus ${amt}` : amt),
+    },
+    how: {
+      title: "Set up in about five minutes",
+      steps: [
+        { title: "Connect your bank", body: "Securely, through TaleFin under the Consumer Data Right. You choose which accounts." },
+        { title: "See your SmartScore", body: "Your score and the nine things behind it. No jargon, no judgement." },
+        { title: "Follow your plan", body: "Small, specific steps each payday, so you can see yourself getting closer." },
       ],
     },
     side: {
-      title: "On your side",
+      title: "On your side, not a lender's",
+      body: "Tippla works fully without ever showing you an offer. You pay us, so we work for you.",
       items: [
-        { title: "We're not a lender", body: "We don't push loans, and Tippla works fully without ever seeing an offer." },
-        { title: "Lender matching is your choice", body: "It's off unless you turn it on. Lenders see nothing about you until you do." },
-        { title: "No pressure, ever", body: "No countdowns, no promises that you're already approved, and no comparing you with anyone else." },
+        { title: "We're not a lender", body: "We don't sell loans and we don't push them." },
+        { title: "Lender matching is off", body: "Unless you turn it on. Lenders see nothing about you until you do." },
+        { title: "No pressure, ever", body: "No countdowns, no promises that you're already approved, and no comparing you with anyone." },
       ],
     },
-    features: {
-      title: "What you get",
-      items: [
-        { title: "Pay cycle view", body: "Your money from payday to payday, with what's due and what's left." },
-        { title: "SmartScore", body: "Your score, its nine factors, and what moved it since last time." },
-        { title: "Money plan", body: "Where your pay went, and specific options to free some up." },
-        { title: "Calendar forecast", body: "Bills, pay and your balance, day by day, up to your next payday and beyond." },
-        { title: "Subscriptions", body: "Regular charges in one place, including ones you may have forgotten." },
-        { title: "Help when it's hard", body: "Hardship options, templates to ask a lender for help, and free counselling." },
-      ],
+    pricing: {
+      kicker: "One plan, everything included",
+      per: "a month",
+      terms: "Cancel in one tap. No lock-in.",
+      includes: ["SmartScore and its nine factors", "Pay cycle view and calendar forecast", "Money plan and subscriptions", "Hardship templates and free counselling links"],
+      more: "Full pricing details",
     },
+    faq: {
+      title: "Questions people ask first",
+      items: [
+        { q: "Is it safe to connect my bank?", a: "Your bank connects through TaleFin, an ACCC-accredited Consumer Data Right data recipient that's independently certified to ISO 27001. You choose the accounts, and you can disconnect any time." },
+        // TODO(launch): confirm with TaleFin and counsel whether anything is recorded on a credit file. Draft from the
+        // mockup: "Tippla doesn't make a credit enquiry, so nothing is recorded on your credit file."
+        { q: "Will this show up on my credit file?", a: "Signing up for Tippla isn't a credit application. What, if anything, appears on your credit file will be confirmed here before launch." },
+        // TODO(launch): confirm wording. The SmartScore is the TaleFin Score (docs/05), not "Tippla's own score".
+        { q: "Is the SmartScore my credit score?", a: "No. It's a score from 0 to 1,000 that TaleFin builds from your bank data. It isn't your credit report. It shows the kinds of things lenders tend to look at." },
+        { q: "How do I cancel?", a: "One tap in the app. No phone calls, no retention offers." },
+      ],
+      more: "More questions",
+    },
+    cta: { title: "Ready to see what lenders see?", body: `Five minutes to set up. ${PRICE} a month. Cancel in one tap.` },
     help: {
       title: "If things are hard right now",
       body: "Free help is available whether or not you join Tippla.",
       items: [
-        { label: "National Debt Helpline", detail: "Free financial counselling", tel: "1800 007 007", href: "tel:1800007007" },
-        { label: "Gambling Help Online", detail: "Free and confidential, 24/7", tel: "1800 858 858", href: "tel:1800858858" },
+        { label: "National Debt Helpline", tel: "1800 007 007", href: "tel:1800007007" },
+        { label: "Gambling Help Online, 24/7", tel: "1800 858 858", href: "tel:1800858858" },
       ],
       more: "More free help",
     },
-    cta: { title: "Ready to see where you stand?", body: `${PRICE} a month. Cancel in one tap.`, start: "Get started" },
   },
 
   smartscore: {

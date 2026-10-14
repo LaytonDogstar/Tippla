@@ -22,7 +22,7 @@ export default function FaqPage() {
             </details>
           ))}
         </div>
-        <StartButton size="large" className="mt-t6">{site.home.hero.start}</StartButton>
+        <StartButton size="large" className="mt-t6">{site.home.start}</StartButton>
       </Section>
     </>
   );

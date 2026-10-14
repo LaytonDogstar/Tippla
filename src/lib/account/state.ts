@@ -110,7 +110,7 @@ export function parseAccount(raw: string | undefined, persona: PersonaId): Accou
   const out: AccountState = { dismissedOffers: strings(a.dismissedOffers), readNotifications: strings(a.readNotifications) };
   if (a.consents && typeof a.consents === "object") {
     out.consents = {};
-    for (const id of ["ff_data_sharing", "talefin_bank_data", "lender_matching"] as const) {
+    for (const id of ["talefin_bank_data", "lender_matching"] as const) {
       const c = a.consents[id];
       if (c && typeof c.granted === "boolean" && typeof c.at === "string") out.consents[id] = { granted: c.granted, at: c.at };
     }

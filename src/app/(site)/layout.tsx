@@ -7,7 +7,7 @@ import { site } from "@/content/site";
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-bg text-text">
-      <a href="#site-main" className="sr-only focus:not-sr-only focus:absolute focus:left-t3 focus:top-t3 focus:z-30 focus:rounded-pill focus:bg-surface focus:px-t4 focus:py-t2">{site.skip}</a>
+      <a href="#site-main" className="sr-only focus:not-sr-only focus:absolute focus:left-t3 focus:top-t3 focus:z-30 focus:rounded-pill focus:bg-surface focus:px-t4 focus:py-t2 focus:text-text">{site.skip}</a>
       <SiteHeader />
       <main id="site-main" className="flex-1">{children}</main>
       <SiteFooter />

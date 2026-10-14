@@ -8,9 +8,9 @@ import { PageHead, Section } from "@/components/site/Bits";
 const t = site.security;
 export const metadata: Metadata = { title: t.meta.title, description: t.meta.description };
 
-function Block({ title, children }: { title: string; children: React.ReactNode }) {
+function Block({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-t2 rounded-[16px] bg-surface p-t5 shadow-card">
+    <div id={id} className="flex scroll-mt-t6 flex-col gap-t2 rounded-[16px] bg-surface p-t5 shadow-card">
       <h2 className="text-body font-extrabold">{title}</h2>
       {children}
     </div>
@@ -36,7 +36,7 @@ export default function SecurityPage() {
             <Block title={t.whoTitle}><p className="text-body14 text-text-secondary">{t.who}</p></Block>
           </div>
           <Block title={t.deleteTitle}><p className="text-body14 text-text-secondary">{t.delete}</p></Block>
-          <Block title={t.ownTitle}>
+          <Block id="tippla-privacy" title={t.ownTitle}>
             <span className="self-start rounded-pill bg-caution-soft px-t2 py-[2px] text-meta-s font-bold text-caution">{t.placeholder}</span>
             <p className="text-body14 text-text-secondary">{t.own}</p>
           </Block>
