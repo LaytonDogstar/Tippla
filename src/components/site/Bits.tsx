@@ -1,5 +1,4 @@
-// Small building blocks for the public site: page sections, a page heading, the phone-framed preview image (light and
-// dark versions of a real portal screen, captured by scripts/capture-site-previews.mjs) and the Get started button.
+// Small building blocks for the public site's inner pages: page sections, a page heading and the start button.
 import Link from "next/link";
 import { cx } from "@/components/ui/cx";
 
@@ -24,18 +23,5 @@ export function StartButton({ children, size = "standard", className }: { childr
   return (
     <Link href="/onboarding" className={cx("inline-flex min-h-tap items-center justify-center rounded-pill bg-cta font-bold text-on-accent shadow-cta",
       size === "large" ? "px-t6 py-t3 text-body" : "px-t5 text-body14", className)}>{children}</Link>
-  );
-}
-
-/** A real portal screen in a phone frame; the dark version shows when the visitor's device is in dark mode. */
-export function PhoneShot({ id, alt, priority = false, className }: { id: string; alt: string; priority?: boolean; className?: string }) {
-  return (
-    <div className={cx("overflow-hidden rounded-[28px] border-[6px] border-[color:var(--color-text)] bg-bg shadow-e3", className)}>
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcSet={`/site/preview-${id}-dark.jpg`} />
-        {/* eslint-disable-next-line @next/next/no-img-element -- static screenshots, already sized */}
-        <img src={`/site/preview-${id}-light.jpg`} alt={alt} width={390} height={780} loading={priority ? "eager" : "lazy"} className="block h-auto w-full" />
-      </picture>
-    </div>
   );
 }

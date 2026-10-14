@@ -43,7 +43,7 @@ export default function SmartScorePage() {
         <ul className="mt-t4 flex max-w-[70ch] flex-col gap-t2">
           {t.not.map((n) => <li key={n} className="text-body text-text-secondary">{n}</li>)}
         </ul>
-        <StartButton size="large" className="mt-t6">{site.home.hero.start}</StartButton>
+        <StartButton size="large" className="mt-t6">{site.home.start}</StartButton>
       </Section>
     </>
   );

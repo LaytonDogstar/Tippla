@@ -44,6 +44,7 @@ const config: Config = {
         chart: toVars(tokens.color.chart?.light ?? {}, "chart"),
         spend: toVars(tokens.color.spend?.light ?? {}, "spend"),
         band: toVars(tokens.color.band?.light ?? {}, "band"),
+        site: toVars(tokens.color.site?.light ?? {}, "site"),
         hero: { from: "var(--hero-from)", on: "var(--hero-on)", "on-muted": "var(--hero-on-muted)", "negative-mark": "var(--hero-negative-mark)", "caution-mark": "var(--hero-caution-mark)", "positive-mark": "var(--hero-positive-mark)", glass: "var(--hero-glass)", inset: "var(--hero-inset)", past: "var(--hero-past)", future: "var(--hero-future)", outline: "var(--hero-outline)" },
       },
       fontFamily: {
