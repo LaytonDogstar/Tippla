@@ -21,7 +21,7 @@ export const tipplaBillingRelief: Rule = ({ d, edits, account = {} }) => {
   return [{
     id: `tippla_billing_relief:${cycle.start}`, type: "tippla_billing_relief", section: "help",
     title: t.title(formatCents(amount)),
-    body: t.body(formatShortDay(b.nextCharge), b.plan === "pro"),
+    body: t.body(formatShortDay(b.nextCharge)),
     action: { label: t.action, href: "/account/subscription" },
     urgency: 3, amountAtStake: amount, expiresAt: d.derived.pay_cycle.next_payday,
   }];

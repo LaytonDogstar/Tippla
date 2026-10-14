@@ -31,7 +31,7 @@ describe("preview password gate", () => {
       const wrong = await post("nope");
       expect(wrong.headers.get("location")).toBe("/gate?error=1&next=%2Fspending");
       const out = await GET(new NextRequest("http://localhost:8080/api/gate?signout=1"));
-      expect(out.headers.get("location")).toBe("/gate");
+      expect(out.headers.get("location")).toBe("/"); // signed out: the public home
     } finally {
       if (prev === undefined) delete process.env.SITE_PASSWORD; else process.env.SITE_PASSWORD = prev;
     }

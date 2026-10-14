@@ -84,6 +84,6 @@ describe("account state", async () => {
     expect([b.effects.pauseSkips, b.effects.pauseResumes]).toEqual(["2026-10-02", "2026-10-30"]);
     const p = billing(jess, { subscription: { status: "paused", plan: "standard", effective: "2026-10-02", changedAt: "" } });
     expect([p.nextCharge, p.until]).toEqual(["2026-10-30", "2026-10-30"]);
-    expect(billing(marcus).planName).toBe("Pro");
+    expect(billing(marcus).planName).toBe("Tippla"); // one plan (14/10/2026)
   });
 });

@@ -1,11 +1,11 @@
-// Q9 (Standard vs Pro split) and pricing are open. SAMPLE LOGIC: placeholder prices and Pro extras so the
-// subscription screens work end to end. Both tiers get the complete core product.
+// One plan (decided 14/10/2026): $4.99 a month, everything included. The fixtures still carry a legacy "standard" or
+// "pro" tier from the generator; both map to the same plan, so nothing in the app differs by tier.
 export type PlanId = "standard" | "pro";
 
-export const PLANS: Record<PlanId, { name: string; pricePerMonth: number; extras: string[] }> = {
-  standard: { name: "Standard", pricePerMonth: 9.99, extras: [] },
-  pro: { name: "Pro", pricePerMonth: 14.99, extras: ["Bank data refreshed weekly instead of fortnightly", "12 months of history", "Extra repayment calculator scenarios"] },
-};
+const TIPPLA = { name: "Tippla", pricePerMonth: 4.99, extras: [] as string[] };
+export const PLANS: Record<PlanId, { name: string; pricePerMonth: number; extras: string[] }> = { standard: TIPPLA, pro: TIPPLA };
+/** The one price, for the marketing site and anywhere else that states it. */
+export const PRICE_PER_MONTH = TIPPLA.pricePerMonth;
 
 /** Pausing skips one monthly charge (sample policy, Q9). */
 export const PAUSE_MONTHS = 1;

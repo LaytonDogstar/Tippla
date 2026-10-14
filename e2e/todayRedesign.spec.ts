@@ -109,7 +109,7 @@ test("Needs a look: swipe left on a phone reveals Snooze and Done", async ({ bro
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   await page.goto("/?persona=jess&present=1&state=none");
-  const row = needs(page).getByRole("listitem").filter({ hasText: "You can pause your $9.99 Tippla payment" });
+  const row = needs(page).getByRole("listitem").filter({ hasText: "You can pause your $4.99 Tippla payment" });
   const b = (await row.boundingBox())!;
   const y = b.y + b.height / 2;
   // Pointer events from a touch: a clear sideways drag of 160px.

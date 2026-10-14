@@ -41,10 +41,10 @@ describe("forecast: the same engine on Calendar and Today", () => {
       expect(f.withEveryday).toBeCloseTo(f.billsOnly - per * daysBetween(d.asOf, f.date), 2);
     }
   });
-  it("Jess 01/10–14/10: +$1,051 counting bills only, about −$583 with her usual spending (the B7 mismatch, now labelled)", async () => {
+  it("Jess 01/10–14/10: +$1,056 counting bills only, about −$578 with her usual spending (the B7 mismatch, now labelled)", async () => {
     const d = await load("jess");
     const low = lowestBoth(d, calendarDays(d), "2026-10-01", "2026-10-14")!;
-    // The fixture alone: 1,061. On screen the app adds Tippla's own $10 fee (withMembershipCharge): $1,051.
+    // The fixture alone: 1,061. On screen the app adds Tippla's own $4.99 fee (withMembershipCharge): $1,056.
     expect(r(low.billsOnly.balance)).toBe(1061);
     expect(low.withEveryday.date).toBe("2026-10-14");
     expect(low.withEveryday.balance).toBeLessThan(-500);

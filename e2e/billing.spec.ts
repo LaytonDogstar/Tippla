@@ -13,28 +13,28 @@ async function expectNoAxe(page: Page) {
 
 test("Jess: next charge moves to Fri 02/10 after her payday, with the reason and the proration", async ({ page }) => {
   await page.goto("/account?persona=jess&present=1&state=none");
-  await expect(page.getByText("Standard plan · Next charge Fri 02/10 (the day after your payday)")).toBeVisible();
+  await expect(page.getByText("Tippla plan · Next charge Fri 02/10 (the day after your payday)")).toBeVisible();
   await page.goto("/account/subscription?persona=jess&present=1");
-  await expect(page.getByText("Next charge $11.32 on Fri 02/10 (the day after your payday)")).toBeVisible();
+  await expect(page.getByText("Next charge $5.66 on Fri 02/10 (the day after your payday)")).toBeVisible();
   await expect(page.getByText("We've moved your Tippla payment to after your pay lands on Thu 01/10.")).toBeVisible();
-  await expect(page.getByText("Because the date moved, this charge includes $1.33 for 28/09 – 01/10 (4 days × $9.99 ÷ 30 days).")).toBeVisible();
+  await expect(page.getByText("Because the date moved, this charge includes $0.67 for 28/09 – 01/10 (4 days × $4.99 ÷ 30 days).")).toBeVisible();
   // Short before payday: the pause is offered openly, not behind Cancel.
   await expect(page.getByText("If money's tight, you can pause for a month or change plan.", { exact: false })).toBeVisible();
   await expect(page.getByRole("button", { name: "Pause for a month" })).toBeVisible();
   await expectNoAxe(page);
 });
 
-test("choosing a fixed date that lands before a shortfall is moved to after pay; per pay cycle charges $4.61", async ({ page }) => {
+test("choosing a fixed date that lands before a shortfall is moved to after pay; per pay cycle charges $2.30", async ({ page }) => {
   await page.goto("/account/subscription?persona=jess&present=1&state=none");
   await page.getByText("A fixed date each month").click();
   await expect(page.getByRole("status").filter({ hasText: "Payment settings saved" })).toBeVisible();
   await expect(page.getByLabel("Day of the month")).toHaveValue("28");
   await expect(page.getByText("We've moved your payment from Mon 28/09 to Fri 02/10, after your pay lands, so it doesn't take your balance below $0.")).toBeVisible();
   await page.getByText("The day after payday (recommended)").click();
-  await page.getByText("Each pay cycle ($4.61 a fortnight)").click();
-  await expect(page.getByText("Next charge $4.61 on Fri 02/10 (the day after your payday)")).toBeVisible();
+  await page.getByText("Each pay cycle ($2.30 a fortnight)").click();
+  await expect(page.getByText("Next charge $2.30 on Fri 02/10 (the day after your payday)")).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel("Each pay cycle ($4.61 a fortnight)")).toBeChecked();
+  await expect(page.getByLabel("Each pay cycle ($2.30 a fortnight)")).toBeChecked();
 });
 
 test("pause for a month straight from the page; billing resumes after a payday", async ({ page }) => {
@@ -50,7 +50,7 @@ test("the feed offers the pause under Help when Jess is short; it never appears 
   await page.goto("/?persona=jess&present=1&state=none");
   // Help items count on More on phones (Today redesign).
   await expect(page.getByRole("navigation", { name: "Main" }).first().getByRole("button", { name: "More 2 things to look at" })).toBeVisible();
-  const row = page.getByRole("region", { name: "Needs a look" }).getByRole("listitem").filter({ hasText: "You can pause your $9.99 Tippla payment" });
+  const row = page.getByRole("region", { name: "Needs a look" }).getByRole("listitem").filter({ hasText: "You can pause your $4.99 Tippla payment" });
   await expect(row).toContainText("It's due Fri 02/10.");
   await row.getByRole("button", { name: /^More actions:/ }).click();
   await page.getByRole("dialog").getByRole("link", { name: "See pause and plan options" }).click();
@@ -65,7 +65,7 @@ test("Marcus: opening Hardship support this pay cycle surfaces the pause; a fail
   await page.waitForTimeout(500);
   await page.goto("/account/subscription?persona=marcus&present=1&state=billing_failed");
   await expect(page.getByText("If money's tight", { exact: false })).toBeVisible();
-  await expect(page.getByText(/Your \$14\.99 payment on Fri 28\/08 didn't go through\. We'll try again on Thu 08\/10, after your pay lands\. There's no fee from Tippla\./)).toBeVisible();
+  await expect(page.getByText(/Your \$4\.99 payment on Fri 28\/08 didn't go through\. We'll try again on Thu 08\/10, after your pay lands\. There's no fee from Tippla\./)).toBeVisible();
 });
 
 test("axe: subscription page, dark", async ({ page }) => {

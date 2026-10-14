@@ -60,7 +60,7 @@ export const feedCopy = {
     },
     billingRelief: {
       title: (price: string) => `You can pause your ${price} Tippla payment`,
-      body: (date: string, pro: boolean) => `It's due ${date}. If money's tight, you can skip a month${pro ? " or switch to Standard" : ""}. It takes a minute and you can undo it.`,
+      body: (date: string) => `It's due ${date}. If money's tight, you can skip a month. It takes a minute and you can undo it.`,
       action: "See pause and plan options",
     },
     scoreChange: {

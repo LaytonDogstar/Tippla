@@ -177,18 +177,15 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
     toast({ kind: "confirm", message: t.subscription.prefSaved });
   };
   useEffect(() => { if (tight && b.status === "active") track("pause_offered", { source: "account" }); }, [tight, b.status]);
-  const [sheet, setSheet] = useState<"cancel" | "pause" | "change" | null>(null);
+  const [sheet, setSheet] = useState<"cancel" | "pause" | null>(null);
   const now = mockNow({ asOf });
-  const other: PlanId = b.plan === "pro" ? "standard" : "pro";
   const set = (status: "active" | "paused" | "cancelled", plan: PlanId, msg: string, effective: string) => {
     if (status === "paused") track("pause_taken", {});
-    if (status === "active" && plan === "standard" && b.plan === "pro") track("downgrade_taken", {});
     const before = account;
     save({ ...account, subscription: { status, plan, effective, changedAt: now } });
     setSheet(null);
     toast({ kind: "confirm", message: msg, onUndo: () => save(before) });
   };
-  const price = (p: PlanId) => formatCents(PLANS[p].pricePerMonth);
 
   return (
     <div className="flex flex-col gap-t4 pb-t6">
@@ -218,9 +215,7 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
         )}
         {b.pendingPlan && b.nextCharge && <p className="mt-t1 text-small text-text-muted">{t.subscription.pendingPlan(PLANS[b.pendingPlan].name, formatShortDay(b.nextCharge))}</p>}
         <p className="mt-t4 text-small text-text-muted">{t.subscription.includes}</p>
-        <ul className="mt-t2 flex flex-col gap-t1">{PLANS.pro.extras.map((e) => <li key={e} className="flex items-start gap-t2 text-small text-text"><Check aria-hidden size={16} className="mt-[2px] shrink-0 text-neutral" />{e}</li>)}</ul>
         <div className="mt-t5 flex flex-col gap-t2">
-          {b.status === "active" && !b.pendingPlan && <Button full variant="secondary" onClick={() => setSheet("change")}>{t.subscription.changePlan(PLANS[other].name)}</Button>}
           {b.status === "active" && al && (
             <>
               {tight && <p className="text-small text-text">{t.subscription.tight}</p>}
@@ -285,13 +280,6 @@ export function SubscriptionView({ persona, present, account: initial, billing: 
         </>}>
         <p className="text-body text-text-muted">{t.subscription.pauseBody(formatShortDay(b.effects.pauseSkips), formatShortDay(b.effects.pauseResumes))}</p>
         <SampleTag q="Q9" present={present} className="mt-t3" />
-      </Sheet>
-      <Sheet open={sheet === "change"} onClose={() => setSheet(null)} title={t.subscription.changeTitle(PLANS[other].name)}
-        footer={<>
-          <Button full onClick={() => set("active", other, t.subscription.changed(PLANS[other].name, formatShortDay(b.effects.changeFrom)), b.effects.changeFrom)}>{t.subscription.changeConfirm(PLANS[other].name)}</Button>
-          <Button full variant="tertiary" onClick={() => setSheet(null)}>{t.subscription.keepPlan}</Button>
-        </>}>
-        <p className="text-body text-text-muted">{t.subscription.changeBody(PLANS[other].name, price(other), formatShortDay(b.effects.changeFrom))}</p>
       </Sheet>
     </div>
   );

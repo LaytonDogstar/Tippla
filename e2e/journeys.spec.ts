@@ -169,14 +169,14 @@ test.describe("Part B defects", () => {
   test("B7: the forecast says what it counts; Today and the calendar show the usual-spending figure too", async ({ page }) => {
     // Future days lead with the usual everyday spending taken off; "Bills only" is one tap away.
     await page.goto("/calendar?persona=jess&present=1&from=2026-10-01&to=2026-10-14");
-    await expect(page.getByTestId("forecast-note")).toHaveText("Forecast days take off your usual everyday spending (about $86 a day). Counting bills only, the lowest would be $1,051 on Tue 13/10.");
-    await expect(page.getByRole("button", { name: /^Wed 14\/10, forecast balance −\$583/ })).toBeVisible();
+    await expect(page.getByTestId("forecast-note")).toHaveText("Forecast days take off your usual everyday spending (about $86 a day). Counting bills only, the lowest would be $1,056 on Tue 13/10.");
+    await expect(page.getByRole("button", { name: /^Wed 14\/10, forecast balance −\$578/ })).toBeVisible();
     await page.getByRole("radio", { name: "Bills only" }).check({ force: true });
     await expect(page).toHaveURL(/forecast=bills/);
-    await expect(page.getByTestId("forecast-note")).toContainText("Forecast days count pay and bills only. With your usual everyday spending (about $86 a day), the lowest would be about −$583 on Wed 14/10.");
+    await expect(page.getByTestId("forecast-note")).toContainText("Forecast days count pay and bills only. With your usual everyday spending (about $86 a day), the lowest would be about −$578 on Wed 14/10.");
     await page.goto("/calendar?persona=jess&present=1");
     await expect(page.locator("#short-h")).toHaveText("You're forecast to be $483 short on Wed 30/09"); // as on Today
-    // The lowest card stops at payday too, so it matches the banner (not October's −$583).
+    // The lowest card stops at payday too, so it matches the banner (not October's −$578).
     await expect(page.getByRole("region", { name: "Your money now" })).toContainText("Lowest before payday (with usual spending)−$483Wed 30/09 · day before payday");
     await page.goto("/?persona=jess&present=1&state=none");
     await expect(page.getByTestId("hero-usual")).toHaveText("With your usual everyday spending (about $86 a day): about $483 short by Wed 30/09");

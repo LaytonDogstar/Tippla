@@ -28,7 +28,7 @@ test("Jess: status line, two ranked cards then more, section badges", async ({ p
   // Spec 01 ranking (urgency × 10 + log10(amount) × 5). The Beforepay repayment (Wed 30/09) is 5 days out,
   // so it isn't flagged until it's within 3 days (see the bill_due state).
   await expect(feedCards(page).nth(0)).toContainText("Possible double charge: Amazon AU $10.73 twice on 24/09");
-  await expect(feedCards(page).nth(1)).toContainText("You can pause your $9.99 Tippla payment");
+  await expect(feedCards(page).nth(1)).toContainText("You can pause your $4.99 Tippla payment");
   await expect(page.getByRole("region", { name: "Needs a look" }).getByRole("button", { name: "5 more to look at" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Needs a look" })).not.toContainText("short before payday");
   // Hardship is one tap away: in the hero next to the shortfall.
@@ -44,7 +44,7 @@ test("Done, with Undo; Not relevant sticks after a reload; badges follow", async
   await page.goto("/?persona=jess&present=1");
   await rowAction(page, /Possible double charge/, "Done");
   await expect(page.getByRole("status").filter({ hasText: "Marked as done" })).toBeVisible();
-  await expect(feedCards(page).nth(0)).toContainText("You can pause your $9.99 Tippla payment");
+  await expect(feedCards(page).nth(0)).toContainText("You can pause your $4.99 Tippla payment");
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(feedCards(page).nth(0)).toContainText("Possible double charge");
 
